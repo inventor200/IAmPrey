@@ -1,0 +1,12 @@
+IFID: 8c61fd61-7595-4277-a7ba-af9d18a6fc0c
+Name: I Am Prey
+Byline: by Joey Cramsey
+HtmlByline: by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>
+AuthorEmail: josephcsoftware@gmail.com
+Desc: A cat-and-mouse science fiction horror game.
+HtmlDesc: A cat-and-mouse science fiction horror game.
+Version: 1
+ReleaseDate: 2022-12-15
+LicenseType: Freeware
+CopyingRules: Nominal cost only; compilations allowed
+PresentationProfile: Default
