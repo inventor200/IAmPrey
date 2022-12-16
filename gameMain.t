@@ -1,10 +1,17 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+#include "soundBleed.t"
 #include "parkour.t"
 
 gameMain: GameMainDef {
     initialPlayerChar = me
+
+    showIntro() {
+        soundBleedCore.activate();
+        new Fuse(sideRoom, &spawnBeep, 1);
+        new Fuse(centerHallway, &spawnBeep, 2);
+    }
 }
 
 versionInfo: GameID {
@@ -18,10 +25,13 @@ versionInfo: GameID {
     htmlDesc = 'A cat-and-mouse science fiction horror game.'
 }
 
+beepProfile: SoundProfile;
+
 centralRoom: Room { 'Central Room'
     "The main room in the center."
 
     north = centerHallway
+    westMuffle = sideRoom
 }
 
 +me: Actor {
@@ -65,6 +75,11 @@ sideRoom: Room { 'Side Room'
     "The additional room to the side."
 
     north = centerHallway
+    eastMuffle = centralRoom
+
+    spawnBeep() {
+        soundBleedCore.createSound(beepProfile, self);
+    }
 }
 
 centerHallway: Room { 'Hallway (Center)'
@@ -72,4 +87,8 @@ centerHallway: Room { 'Hallway (Center)'
 
     southeast = centralRoom
     southwest = sideRoom
+
+    spawnBeep() {
+        soundBleedCore.createSound(beepProfile, self);
+    }
 }
