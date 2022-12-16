@@ -15,8 +15,8 @@ soundBleedCore: object {
     }
 
     createSound(soundProfile, room) {
-        local _freshBlood = new SoundBlood(soundProfile, room);
-        freshBlood.append(_freshBlood);
+        soundProfile.startingRoom = room;
+        freshBlood.appendUnique(soundProfile);
     }
 
     doBleed() {
@@ -29,10 +29,10 @@ soundBleedCore: object {
         freshBlood.removeRange(1, -1);
     }
 
-    doBleedFor(currentBlood) {
-        currentBlood.soundProfile.playerPerceivedStrength = 0;
-        currentBlood.soundProfile.hunterHeard = nil;
-        propagateRoom(currentBlood.room, currentBlood.soundProfile, bleedSource, 3, nil);
+    doBleedFor(soundProfile) {
+        soundProfile.playerPerceivedStrength = 0;
+        soundProfile.hunterHeard = nil;
+        propagateRoom(soundProfile.startingRoom, soundProfile, bleedSource, 3, nil);
     }
 
     propagateRoom(room, profile, form, strength, sourceDirection) {
@@ -55,8 +55,7 @@ soundBleedCore: object {
                         }
                     }
 
-                    //Debug only:
-                    say('\n' + profile.getReportString(form, sourceDirection, throughDoor));
+                    profile.doPlayerPerception(form, sourceDirection, throughDoor);
                 }
             }
         }
@@ -132,17 +131,31 @@ class SoundProfile: object {
     muffledStr = 'the muffled sound of a mysterious noise'
     closeEchoStr = 'the nearby echo of a mysterious noise'
     distantEchoStr = 'the distant echo of a mysterious noise'
+    subtleSound = nil
     isFromPlayer = nil
 
+    startingRoom = nil
     playerPerceivedStrength = 0
     hunterHeard = nil
 
-    getReportString(form, direction, throughDoor) {
-        local dirTitle = 'the ' + direction.name;
-        if (direction == upDir) dirTitle = 'above';
-        if (direction == downDir) dirTitle = 'below';
-        if (direction == inDir) dirTitle = 'inside';
-        if (direction == outDir) dirTitle = 'outside';
+    doPlayerPerception(form, sourceDirection, throughDoor) {
+        local reportStr = getReportString(form, sourceDirection, throughDoor);
+        if (subtleSound == nil) {
+            // Direct perception
+            say('\n' + reportStr);
+        }
+        else {
+            // LISTEN perception only
+            subtleSound.perceiveIn(gPlayerChar.getOutermostRoom(), reportStr);
+        }
+    }
+
+    getReportString(form, sourceDirection, throughDoor) {
+        local dirTitle = 'the ' + sourceDirection.name;
+        if (sourceDirection == upDir) dirTitle = 'above';
+        if (sourceDirection == downDir) dirTitle = 'below';
+        if (sourceDirection == inDir) dirTitle = 'inside';
+        if (sourceDirection == outDir) dirTitle = 'outside';
 
         local routeSetup = throughDoor ? 'Through a doorway to ' : 'From ';
 
@@ -157,15 +170,64 @@ class SoundProfile: object {
     }
 }
 
-class SoundBlood: object {
-    construct(_soundProfile, _room) {
-        soundProfile = _soundProfile;
-        room = _room;
+class SubtleSound: Noise {
+    construct() {
+        vocab = basicName + ';muffled distant nearby;echo';
+        if (location != nil) {
+            if (location.ofKind(SoundProfile)) {
+                location.subtleSound = self;
+            }
+            location = nil;
+        }
+        inherited();
+    }
+    desc() {
+        attemptPerception();
+    }
+    listenDesc() {
+        attemptPerception();
     }
 
-    soundProfile = nil
-    room = nil
+    basicName = 'mysterious noise'
+    caughtMsg = '{I} hear{s/d} a mysterious sound. ' // Automatically generated
+    missedMsg = 'The sound seems to have stopped. ' // Author-made
+
+    wasPerceived = nil
+
+    lifecycleFuse = nil
+
+    perceiveIn(room, _caughtMsg) {
+        moveInto(room);
+        caughtMsg = _caughtMsg;
+        wasPerceived = nil;
+        if (lifecycleFuse != nil) lifecycleFuse.removeEvent();
+        lifecycleFuse = new Fuse(self, &checkLifecycle, 1);
+    }
+
+    attemptPerception() {
+        if (wasPerceived) {
+            say(missedMsg);
+            endLifecycle();
+        }
+        else {
+            say(caughtMsg);
+            wasPerceived = true;
+        }
+    }
+
+    checkLifecycle() {
+        if (!wasPerceived) {
+            endLifecycle();
+        }
+        lifecycleFuse = nil;
+    }
+
+    endLifecycle() {
+        moveInto(nil);
+    }
 }
+
+SubtleSound template 'basicName' 'missedMsg'?;
 
 #define selectSoundDirectionExp(i, dir) \
     case i: \

@@ -9,8 +9,6 @@ gameMain: GameMainDef {
 
     showIntro() {
         soundBleedCore.activate();
-        //new Fuse(sideRoom, &spawnBeep, 1);
-        //new Fuse(centerHallway, &spawnBeep, 2);
     }
 }
 
@@ -26,6 +24,7 @@ versionInfo: GameID {
 }
 
 beepProfile: SoundProfile;
++ SubtleSound 'mysterious noise' 'The mysterious noise seems to have stopped. ';
 
 centralRoom: Room { 'Central Room'
     "The main room in the center."
@@ -40,6 +39,12 @@ centralRoom: Room { 'Central Room'
     isListed = true
 
     makePushed() {
+        spawnBeep();
+        new Fuse(self, &spawnBeep, 1);
+        new Fuse(self, &spawnBeep, 2);
+    }
+
+    spawnBeep() {
         soundBleedCore.createSound(beepProfile, sideRoom);
     }
 }
