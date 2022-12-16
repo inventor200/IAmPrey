@@ -1,7 +1,9 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
-#include "freeAction.t"
+#define gWasFreeAction (gAction.ofKind(SystemAction))
+#define gWasLenientAction (gAction.ofKind(SystemAction) || gActionIs(Look))
+#define gWasObservantAction (gAction.ofKind(SystemAction) || gActionIs(Look) || gActionIs(Listen) || gActionIs(Smell))
 #include "soundBleed.t"
 #include "parkour.t"
 

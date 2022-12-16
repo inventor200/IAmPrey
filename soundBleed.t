@@ -199,6 +199,10 @@ class SubtleSound: Noise {
 
     lifecycleFuse = nil
 
+    doAfterPerception() {
+        // For setting off actions based on player observation
+    }
+
     perceiveIn(room, _caughtMsg) {
         moveInto(room);
         caughtMsg = _caughtMsg;
@@ -209,6 +213,7 @@ class SubtleSound: Noise {
     attemptPerception() {
         if (wasPerceived) {
             say(missedMsg);
+            doAfterPerception();
             endLifecycle();
         }
         else {
@@ -224,7 +229,6 @@ class SubtleSound: Noise {
 
     checkLifecycle() {
         if (gWasFreeAction || gActionIs(Look)) {
-            say('\b(Free action taken; extending...)\b');
             setupFuse();
         }
         else {
