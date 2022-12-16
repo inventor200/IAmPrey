@@ -10,7 +10,7 @@ soundBleedCore: object {
     selectedMuffleDestination = nil
 
     activate() {
-        soundDaemon = new Daemon(self, &doBleed, 1);
+        soundDaemon = new Daemon(self, &doBleed, 0);
         soundDaemon.eventOrder = 110;
     }
 
@@ -20,8 +20,6 @@ soundBleedCore: object {
     }
 
     doBleed() {
-        //TODO: Move all previously-moved Sounds from sound profiles back to storage
-
         if (freshBlood.length == 0) return;
 
         for (local i = 1; i <= freshBlood.length; i++) {
@@ -32,38 +30,86 @@ soundBleedCore: object {
     }
 
     doBleedFor(currentBlood) {
+        currentBlood.soundProfile.playerPerceivedStrength = 0;
+        currentBlood.soundProfile.hunterHeard = nil;
         propagateRoom(currentBlood.room, currentBlood.soundProfile, bleedSource, 3, nil);
     }
 
     propagateRoom(room, profile, form, strength, sourceDirection) {
         // If sourceDirection is nil, we are in the source room.
 
-        //TODO: Test for player or hunter
+        //TODO: Test for hunter
 
-        //TODO: Move a Sound object from the profile to the player room.
-        // If it's already moved, and the mode is set to muffle, then skip this step.
-        //Debug only:
-        if (room == gPlayerChar.getOutermostRoom() && !profile.isFromPlayer) {
-            say('\n' + profile.getReportString(form, sourceDirection));
+        if (room == gPlayerChar.getOutermostRoom()) {
+            // No reason for the player to hear themselves
+            if (!profile.isFromPlayer) {
+                // Only reveal to the player if it wasn't heard louder before
+                if (profile.playerPerceivedStrength < strength) {
+                    profile.playerPerceivedStrength = strength;
+
+                    local throughDoor = nil;
+                    if (sourceDirection != nil) {
+                        local sourceConnector = room.(sourceDirection.dirProp);
+                        if (sourceConnector != nil) {
+                            throughDoor = sourceConnector.isOpenable;
+                        }
+                    }
+
+                    //Debug only:
+                    say('\n' + profile.getReportString(form, sourceDirection, throughDoor));
+                }
+            }
         }
 
         if (strength == 1) return;
 
-        for (local i = 1; i <= 12; i++) {
-            room.selectSoundDirection(i);
-            if (selectedMuffleDestination != nil && strength == 3) {
-                local nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
-                // If we can send the sound through a wall, then prioritize that.
-                // The only other way it could arrive would be a distant echo (2 rooms away),
-                // which would have the same strength, but has less priority.
-                if (nextSourceDir != nil) {
-                    propagateRoom(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
+        local priorityFlag = nil;
+
+        if (strength == 3) {
+            // Muffle through walls propagation
+            for (local i = 1; i <= 12; i++) {
+                room.selectSoundDirection(i);
+                if (selectedMuffleDestination != nil) {
+                    local nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
+                    // If we can send the sound through a wall, then prioritize that.
+                    // The only other way it could arrive would be a distant echo (2 rooms away),
+                    // which would have the same strength, but has less priority.
+                    if (nextSourceDir != nil) {
+                        propagateRoom(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
+                        priorityFlag = true; // Gets priority.
+                    }
                 }
             }
-            else if (selectedDestination != nil) {
+        }
+
+        if (priorityFlag) return;
+
+        if (strength >= 2) {
+            // Muffle through closed doors propagation
+            for (local i = 1; i <= 12; i++) {
+                room.selectSoundDirection(i);
+                if (selectedDestination != nil) {
+                    local nextSourceDir = selectedDestination.getDirectionTo(room);
+                    if (nextSourceDir != nil) {
+                        if (selectedConnector.isOpenable) {
+                            if (!selectedConnector.isOpen) {
+                                propagateRoom(selectedDestination, profile, wallMuffle, 1, nextSourceDir);
+                                priorityFlag = true; // Gets priority.
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (priorityFlag) return;
+
+        // Echo propagation
+        for (local i = 1; i <= 12; i++) {
+            room.selectSoundDirection(i);
+            if (selectedDestination != nil) {
                 local nextSourceDir = selectedDestination.getDirectionTo(room);
                 if (nextSourceDir != nil) {
-                    //TODO: Muffle through closed doors
                     local nextStrength = strength - 1;
                     local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
                     propagateRoom(selectedDestination, profile, nextForm, nextStrength, nextSourceDir);
@@ -73,6 +119,8 @@ soundBleedCore: object {
     }
 }
 
+//TODO: Ability to dispense temporary Sound objects into the player's room,
+// in case they use the LISTEN command, and there's information worth putting there.
 class SoundProfile: object {
     construct(_muffledStr, _closeEchoStr, _distantEchoStr, _isFromPlayer?) {
         muffledStr = _muffledStr;
@@ -86,19 +134,25 @@ class SoundProfile: object {
     distantEchoStr = 'the distant echo of a mysterious noise'
     isFromPlayer = nil
 
-    getReportString(form, direction) {
+    playerPerceivedStrength = 0
+    hunterHeard = nil
+
+    getReportString(form, direction, throughDoor) {
         local dirTitle = 'the ' + direction.name;
         if (direction == upDir) dirTitle = 'above';
         if (direction == downDir) dirTitle = 'below';
         if (direction == inDir) dirTitle = 'inside';
         if (direction == outDir) dirTitle = 'outside';
 
+        local routeSetup = throughDoor ? 'Through a doorway to ' : 'From ';
+
         if (form == wallMuffle) {
-            return 'Through a wall to ' + dirTitle +
+            routeSetup = throughDoor ? 'Through a closed door to ' : 'Through a wall to ';
+            return routeSetup + dirTitle +
                 ', you hear ' + muffledStr + '. ';
         }
         
-        return 'From ' + dirTitle +
+        return routeSetup + dirTitle +
             ', you hear ' + (form == closeEcho ? closeEchoStr : distantEchoStr) + '. ';
     }
 }

@@ -9,8 +9,8 @@ gameMain: GameMainDef {
 
     showIntro() {
         soundBleedCore.activate();
-        new Fuse(sideRoom, &spawnBeep, 1);
-        new Fuse(centerHallway, &spawnBeep, 2);
+        //new Fuse(sideRoom, &spawnBeep, 1);
+        //new Fuse(centerHallway, &spawnBeep, 2);
     }
 }
 
@@ -30,8 +30,23 @@ beepProfile: SoundProfile;
 centralRoom: Room { 'Central Room'
     "The main room in the center."
 
-    north = centerHallway
+    north = hallwayDoor
     westMuffle = sideRoom
+}
+
++soundButton: Button { 'sound button'
+    "A button that causes a sound in another room. "
+
+    isListed = true
+
+    makePushed() {
+        soundBleedCore.createSound(beepProfile, sideRoom);
+    }
+}
+
++hallwayDoor: Door { 'hallway door'
+    "The door to the hallway. "
+    otherSide = centralRoomDoor
 }
 
 +me: Actor {
@@ -85,10 +100,15 @@ sideRoom: Room { 'Side Room'
 centerHallway: Room { 'Hallway (Center)'
     "The central section of a long hallway."
 
-    southeast = centralRoom
+    southeast = centralRoomDoor
     southwest = sideRoom
 
     spawnBeep() {
         soundBleedCore.createSound(beepProfile, self);
     }
+}
+
++centralRoomDoor: Door { 'central room door'
+    "The door to the central room. "
+    otherSide = hallwayDoor
 }

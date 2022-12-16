@@ -6,7 +6,7 @@ AuthorEmail: josephcsoftware@gmail.com
 Desc: A cat-and-mouse science fiction horror game.
 HtmlDesc: A cat-and-mouse science fiction horror game.
 Version: 1
-ReleaseDate: 2022-12-15
+ReleaseDate: 2022-12-16
 LicenseType: Freeware
 CopyingRules: Nominal cost only; compilations allowed
 PresentationProfile: Default
