@@ -22,6 +22,11 @@ soundBleedCore: object {
     doBleed() {
         if (freshBlood.length == 0) return;
 
+        if (gWasFreeAction) {
+            say('\b(Free action taken; skipping...)\b');
+            return;
+        }
+
         for (local i = 1; i <= freshBlood.length; i++) {
             doBleedFor(freshBlood[i]);
         }
@@ -118,8 +123,6 @@ soundBleedCore: object {
     }
 }
 
-//TODO: Ability to dispense temporary Sound objects into the player's room,
-// in case they use the LISTEN command, and there's information worth putting there.
 class SoundProfile: object {
     construct(_muffledStr, _closeEchoStr, _distantEchoStr, _isFromPlayer?) {
         muffledStr = _muffledStr;
@@ -200,8 +203,7 @@ class SubtleSound: Noise {
         moveInto(room);
         caughtMsg = _caughtMsg;
         wasPerceived = nil;
-        if (lifecycleFuse != nil) lifecycleFuse.removeEvent();
-        lifecycleFuse = new Fuse(self, &checkLifecycle, 1);
+        setupFuse();
     }
 
     attemptPerception() {
@@ -215,11 +217,22 @@ class SubtleSound: Noise {
         }
     }
 
+    setupFuse() {
+        if (lifecycleFuse != nil) lifecycleFuse.removeEvent();
+        lifecycleFuse = new Fuse(self, &checkLifecycle, 1);
+    }
+
     checkLifecycle() {
-        if (!wasPerceived) {
-            endLifecycle();
+        if (gWasFreeAction || gActionIs(Look)) {
+            say('\b(Free action taken; extending...)\b');
+            setupFuse();
         }
-        lifecycleFuse = nil;
+        else {
+            if (!wasPerceived) {
+                endLifecycle();
+            }
+            lifecycleFuse = nil;
+        }
     }
 
     endLifecycle() {

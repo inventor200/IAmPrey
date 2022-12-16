@@ -1,6 +1,7 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+#include "freeAction.t"
 #include "soundBleed.t"
 #include "parkour.t"
 
@@ -40,8 +41,8 @@ centralRoom: Room { 'Central Room'
 
     makePushed() {
         spawnBeep();
-        new Fuse(self, &spawnBeep, 1);
-        new Fuse(self, &spawnBeep, 2);
+        //new Fuse(self, &spawnBeep, 1);
+        //new Fuse(self, &spawnBeep, 2);
     }
 
     spawnBeep() {
