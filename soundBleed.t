@@ -2,66 +2,117 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
 soundBleedCore: object {
     soundDaemon = nil
-    freshBlood = static new Vector(10) // Newly-spawned sound bleeds go here
+    envSounds = static new Vector(16) // Non-player sounds go here
+    envSoundRooms = static new Vector(16) // Aligned room vector so new objects are not created
+    playerSounds = static new Vector(16) // Player sounds go here
+    playerSoundRooms = static new Vector(16) // Aligned room vector so new objects are not created
+
+    propagatedRooms = static new Vector(64)
 
     selectedDirection = nil
     selectedConnector = nil
     selectedDestination = nil
     selectedMuffleDestination = nil
 
+    propagationPlayerPerceivedStrength = 0
+    detectedSourceRoom = nil
+
     activate() {
-        soundDaemon = new Daemon(self, &doBleed, 0);
+        soundDaemon = new Daemon(self, &doPropagation, 0);
         soundDaemon.eventOrder = 110;
     }
 
-    createSound(soundProfile, room) {
-        soundProfile.startingRoom = room;
-        freshBlood.appendUnique(soundProfile);
+    createSound(soundProfile, room, causedByPlayer?) {
+        if (causedByPlayer) {
+            if (playerSounds.indexOf(soundProfile) == nil) {
+                playerSounds.append(soundProfile);
+                playerSoundRooms.append(room);
+            }
+        }
+        else {
+            if (envSounds.indexOf(soundProfile) == nil) {
+                envSounds.append(soundProfile);
+                envSoundRooms.append(room);
+            }
+        }
     }
 
-    doBleed() {
-        if (freshBlood.length == 0) return;
+    doPropagation() {
+        if (envSounds.length == 0 && playerSounds.length == 0) return;
 
         if (gWasFreeAction) {
             say('\b(Free action taken; skipping...)\b');
             return;
         }
-
-        for (local i = 1; i <= freshBlood.length; i++) {
-            doBleedFor(freshBlood[i]);
+        
+        if (envSounds.length > 0) {
+            for (local i = 1; i <= envSounds.length; i++) {
+                doPropagationForPlayer(envSounds[i], envSoundRooms[i]);
+            }
+            envSounds.removeRange(1, -1);
+            envSoundRooms.removeRange(1, -1);
         }
 
-        freshBlood.removeRange(1, -1);
+        if (playerSounds.length > 0) {
+            for (local i = 1; i <= playerSounds.length; i++) {
+                doPropagationForHunter(playerSounds[i], playerSoundRooms[i]);
+            }
+            playerSounds.removeRange(1, -1);
+            playerSoundRooms.removeRange(1, -1);
+        }
     }
 
-    doBleedFor(soundProfile) {
-        soundProfile.playerPerceivedStrength = 0;
-        soundProfile.hunterHeard = nil;
-        propagateRoom(soundProfile.startingRoom, soundProfile, bleedSource, 3, nil);
+    doPropagationForPlayer(soundProfile, startRoom) {
+        // If the sound comes from the same room that the player is in,
+        // then we should have provided this sound directly by now.
+        if (startRoom == gPlayerChar.getOutermostRoom()) return;
+        
+        propagationPlayerPerceivedStrength = 0;
+        propagateRoomForPlayer(startRoom, soundProfile, bleedSource, 3, nil);
+        clearRooms();
     }
 
-    propagateRoom(room, profile, form, strength, sourceDirection) {
-        // If sourceDirection is nil, we are in the source room.
+    doPropagationForHunter(soundProfile, startRoom) {
+        detectedSourceRoom = nil;
+        propagateRoomForHunter(startRoom, soundProfile, soundProfile.strength, nil);
+        clearRooms();
+    }
 
-        //TODO: Test for hunter
+    checkPropagationStep(room, strength) {
+        if (room.highestSoundStrength < strength) {
+            room.highestSoundStrength = strength;
+            propagatedRooms.appendUnique(room);
+            return true;
+        }
 
+        return nil;
+    }
+
+    clearRooms() {
+        if (propagatedRooms.length == 0) return;
+
+        for (local i = 1; i <= propagatedRooms.length; i++) {
+            propagatedRooms[i].highestSoundStrength = 0;
+        }
+
+        propagatedRooms.removeRange(1, -1);
+    }
+
+    propagateRoomForPlayer(room, profile, form, strength, sourceDirection) {
         if (room == gPlayerChar.getOutermostRoom()) {
-            // No reason for the player to hear themselves
-            if (!profile.isFromPlayer) {
-                // Only reveal to the player if it wasn't heard louder before
-                if (profile.playerPerceivedStrength < strength) {
-                    profile.playerPerceivedStrength = strength;
+            // Only reveal to the player if it wasn't heard louder before
+            if (propagationPlayerPerceivedStrength < strength) {
+                propagationPlayerPerceivedStrength = strength;
 
-                    local throughDoor = nil;
-                    if (sourceDirection != nil) {
-                        local sourceConnector = room.(sourceDirection.dirProp);
-                        if (sourceConnector != nil) {
-                            throughDoor = sourceConnector.isOpenable;
-                        }
+                local throughDoor = nil;
+                if (sourceDirection != nil) {
+                    local sourceConnector = room.(sourceDirection.dirProp);
+                    if (sourceConnector != nil) {
+                        throughDoor = sourceConnector.isOpenable;
                     }
-
-                    profile.doPlayerPerception(form, sourceDirection, throughDoor);
                 }
+
+                profile.doPlayerPerception(form, sourceDirection, throughDoor);
             }
         }
 
@@ -79,7 +130,15 @@ soundBleedCore: object {
                     // The only other way it could arrive would be a distant echo (2 rooms away),
                     // which would have the same strength, but has less priority.
                     if (nextSourceDir != nil) {
-                        propagateRoom(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
+                        // We are faking strengths:
+                        // 1 = distant echo
+                        // 2 = through wall
+                        // 3 = through closed door
+                        // 4 = close echo
+                        // 5 = source
+                        if (!checkPropagationStep(selectedMuffleDestination, 2)) continue;
+                        
+                        propagateRoomForPlayer(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
                         priorityFlag = true; // Gets priority.
                     }
                 }
@@ -97,7 +156,9 @@ soundBleedCore: object {
                     if (nextSourceDir != nil) {
                         if (selectedConnector.isOpenable) {
                             if (!selectedConnector.isOpen) {
-                                propagateRoom(selectedDestination, profile, wallMuffle, 1, nextSourceDir);
+                                if (!checkPropagationStep(selectedDestination, 3)) continue;
+
+                                propagateRoomForPlayer(selectedDestination, profile, wallMuffle, 1, nextSourceDir);
                                 priorityFlag = true; // Gets priority.
                             }
                         }
@@ -115,8 +176,54 @@ soundBleedCore: object {
                 local nextSourceDir = selectedDestination.getDirectionTo(room);
                 if (nextSourceDir != nil) {
                     local nextStrength = strength - 1;
+                    local fakeNextStrength = nextStrength;
+                    if (fakeNextStrength > 1) fakeNextStrength += 2;
+                    
+                    if (!checkPropagationStep(selectedDestination, fakeNextStrength)) continue;
+
                     local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
-                    propagateRoom(selectedDestination, profile, nextForm, nextStrength, nextSourceDir);
+                    propagateRoomForPlayer(selectedDestination, profile, nextForm, nextStrength, nextSourceDir);
+                }
+            }
+        }
+    }
+
+    propagateRoomForHunter(room, profile, strength, sourceDirection) {
+        //TODO: Test for hunter
+
+        if (strength > 1) {
+            for (local i = 1; i <= 12; i++) {
+                room.selectSoundDirection(i);
+
+                local nextStrength = strength - 2;
+
+                if (selectedMuffleDestination != nil && strength > 2) {
+                    local nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
+                    if (nextSourceDir != nil) {
+                        if (!checkPropagationStep(selectedMuffleDestination, nextStrength)) continue;
+
+                        propagateRoomForHunter(selectedMuffleDestination, profile, nextStrength, nextSourceDir);
+                    }
+                }
+
+                if (selectedDestination != nil) {
+                    local nextSourceDir = selectedDestination.getDirectionTo(room);
+                    if (nextSourceDir != nil) {
+                        local falloff = 1;
+
+                        if (selectedConnector.isOpenable) {
+                            if (!selectedConnector.isOpen) {
+                                falloff = 2;
+                                if (strength <= falloff) continue;
+                            }
+                        }
+
+                        nextStrength = strength - falloff;
+
+                        if (!checkPropagationStep(selectedDestination, nextStrength)) continue;
+
+                        propagateRoomForHunter(selectedDestination, profile, nextStrength, nextSourceDir);
+                    }
                 }
             }
         }
@@ -124,22 +231,17 @@ soundBleedCore: object {
 }
 
 class SoundProfile: object {
-    construct(_muffledStr, _closeEchoStr, _distantEchoStr, _isFromPlayer?) {
+    construct(_muffledStr, _closeEchoStr, _distantEchoStr) { //TODO: Make this into a template, because these are not procedural
         muffledStr = _muffledStr;
         closeEchoStr = _closeEchoStr;
         distantEchoStr = _distantEchoStr;
-        isFromPlayer = _isFromPlayer;
     }
 
+    strength = 3
     muffledStr = 'the muffled sound of a mysterious noise'
     closeEchoStr = 'the nearby echo of a mysterious noise'
     distantEchoStr = 'the distant echo of a mysterious noise'
     subtleSound = nil
-    isFromPlayer = nil
-
-    startingRoom = nil
-    playerPerceivedStrength = 0
-    hunterHeard = nil
 
     doPlayerPerception(form, sourceDirection, throughDoor) {
         local reportStr = getReportString(form, sourceDirection, throughDoor);
@@ -270,6 +372,8 @@ modify Room {
     downMuffle = nil      // 10
     inMuffle = nil        // 11
     outMuffle = nil       // 12
+
+    highestSoundStrength = 0
 
     getMuffleDirectionTo(dest) {
         searchMuffleDirection(north);

@@ -27,7 +27,7 @@ versionInfo: GameID {
 }
 
 beepProfile: SoundProfile;
-+ SubtleSound 'mysterious noise' 'The mysterious noise seems to have stopped. ';
+//+ SubtleSound 'mysterious noise' 'The mysterious noise seems to have stopped. ';
 
 centralRoom: Room { 'Central Room'
     "The main room in the center."
