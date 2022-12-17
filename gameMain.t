@@ -26,9 +26,6 @@ versionInfo: GameID {
     htmlDesc = 'A cat-and-mouse science fiction horror game.'
 }
 
-beepProfile: SoundProfile;
-//+ SubtleSound 'mysterious noise' 'The mysterious noise seems to have stopped. ';
-
 centralRoom: Room { 'Central Room'
     "The main room in the center."
 
@@ -36,20 +33,12 @@ centralRoom: Room { 'Central Room'
     westMuffle = sideRoom
 }
 
-+soundButton: Button { 'sound button'
-    "A button that causes a sound in another room. "
-
-    isListed = true
-
-    makePushed() {
-        spawnBeep();
-        //new Fuse(self, &spawnBeep, 1);
-        //new Fuse(self, &spawnBeep, 2);
-    }
-
-    spawnBeep() {
-        soundBleedCore.createSound(beepProfile, sideRoom);
-    }
++vent: ParkourExit { 'vent;metal ventilation;grate'
+    "A metal ventilation grate. It seems passable, but kinda high up. "
+    destination = tallCrate
+    height = damaging
+    travelDesc = "{I} climb{s/ed} into the vent. "
+    otherSide = subtleVent
 }
 
 +hallwayDoor: Door { 'hallway door'
@@ -64,6 +53,7 @@ centralRoom: Room { 'Central Room'
 +cargoShelf: ParkourPlatform { 'tall cargo shelf'
     "A tall series of cargo shelves. "
     height = damaging
+    climbUpLinks = [vent]
 }
 
 ++bottle: Thing { 'water bottle'
@@ -99,24 +89,50 @@ sideRoom: Room { 'Side Room'
 
     north = centerHallway
     eastMuffle = centralRoom
+}
 
-    spawnBeep() {
-        soundBleedCore.createSound(beepProfile, self);
-    }
+longHallway: SenseRegion {
+    //
 }
 
 centerHallway: Room { 'Hallway (Center)'
-    "The central section of a long hallway."
+    "The central section of a long hallway. "
 
     southeast = centralRoomDoor
     southwest = sideRoom
+    east = eastHallway
 
-    spawnBeep() {
-        soundBleedCore.createSound(beepProfile, self);
-    }
+    regions = [longHallway]
 }
 
 +centralRoomDoor: Door { 'central room door'
     "The door to the central room. "
     otherSide = hallwayDoor
+}
+
+eastHallway: Room { 'Hallway (East)'
+    "The eastern section of a long hallway. "
+    west = centerHallway
+    south = subtleRoom
+
+    regions = [longHallway]
+}
+
+subtleRoom: Room { 'Subtle Room'
+    "Just a subtle room. "
+    north = eastHallway
+}
+
++subtleVent: ParkourExit { 'vent;metal ventilation;grate'
+    "A metal ventilation grate. It seems passable, but kinda high up. "
+    destination = cargoShelf
+    height = damaging
+    travelDesc = "{I} climb{s/ed} into the vent. "
+    otherSide = vent
+}
+
++tallCrate: ParkourPlatform { 'tall wooden crate'
+    "A really tall wooden crate. "
+    height = high
+    climbUpLinks = [subtleVent]
 }

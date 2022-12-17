@@ -351,6 +351,8 @@ modify Room {
 }
 
 modify Platform {
+    isFixed = true
+
     dobjFor(ParkourClimbDownTo) asDobjFor(Board)
     dobjFor(ParkourTo) asDobjFor(Board)
     dobjFor(ParkourJumpTo) {
@@ -441,6 +443,63 @@ hardImpactNoiseProfile: SoundProfile {
     }*/
 }
 
+class ParkourExit: TravelConnector, ParkourPlatform {
+    isConnectorListed = nil
+    otherSide = nil
+
+    preinitThing() {
+        inherited();
+
+        if(otherSide == nil) {
+            #ifdef __DEBUG
+            "WARNING!!! <<theName>> in << getOutermostRoom != nil ?
+              getOutermostRoom.name : 'nil'>> has no otherside.<.p>";           
+            
+            #endif
+        }
+        else {
+            if(otherSide.otherSide != self) {
+                otherSide.otherSide = self;
+            }
+
+            getFacets += otherSide;
+        }       
+    }
+
+    iobjFor(PutOn) {
+        action() {
+            gDobj.actionMoveInto(destination);
+        }
+    }
+
+    iobjFor(PutIn) asIobjFor(PutOn)
+
+    dobjFor(GoThrough) asDobjFor(Board)
+    dobjFor(GoIn) asDobjFor(Board)
+    dobjFor(Enter) asDobjFor(Board)
+    dobjFor(TravelVia) asDobjFor(Board)
+
+    dobjFor(Board) {
+        action() {
+            handleGenericSource();
+            //gActor.actionMoveInto(destination);
+            local nextRoom = destination.getOutermostRoom();
+            nextRoom.execTravel(gActor, gActor, self);
+            if (!destination.ofKind(Room)) {
+                gActor.moveInto(destination);
+            }
+            if (destination.ofKind(ParkourPlatform)) {
+                reportAfter(destination.getConnectionString());
+            }
+        }
+        report() {
+            /*if (gActor == gPlayerChar) {
+                "\b<<gActor.getOutermostRoom().lookAroundWithin()>>";
+            }*/
+        }
+    }
+}
+
 class ParkourPlatform: Platform {
     totalParkourLinks = perInstance(new Vector()) // This is modified at runtime
     climbUpLinks = [] // This is modified by the author
@@ -452,6 +511,7 @@ class ParkourPlatform: Platform {
     leapLinks = [] // This is modified by the author
     //wasClimbed = nil
     height = low
+    isFixed = true
 
     iobjFor(PutOn) {
         verify() {
