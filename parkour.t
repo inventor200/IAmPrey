@@ -408,7 +408,38 @@ class ParkourLink: object {
 
 #define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && gActor.location.isBoardable)
 
-//TODO: SoundProfile for someone jumping off of a platform, and another for a hard landing. Emit both appropriately.
+climbingNoiseProfile: SoundProfile {
+    'the muffled racket of something clambering'
+    'the nearby racket of something clambering'
+    'the distant reverberations of clambering'
+    strength = 4
+
+    /*afterEmission() {
+        say('\b(Emitted climbing noise.)');
+    }*/
+}
+
+impactNoiseProfile: SoundProfile {
+    'the muffled <i>thud</i> of something landing on the floor'
+    'the echoing <i>thud</i> of something landing on the floor'
+    'the distant <i>wump</i> of something landing on the floor'
+    strength = 4
+
+    /*afterEmission() {
+        say('\b(Emitted impact noise.)');
+    }*/
+}
+
+hardImpactNoiseProfile: SoundProfile {
+    'the muffled <i>crack</i> of something hitting the floor'
+    'the echoing <i>ka-thump</i> of something hitting the floor'
+    'the reverberating <i>wump</i> of something hitting the floor'
+    strength = 5
+
+    /*afterEmission() {
+        say('\b(Emitted hard impact noise.)');
+    }*/
+}
 
 class ParkourPlatform: Platform {
     totalParkourLinks = perInstance(new Vector()) // This is modified at runtime
@@ -559,6 +590,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt('{The subj dobj} {is}');
+            makeJumpUpNoise();
         }
         report() {
             doRepJumpUp('{the subj dobj}');
@@ -582,6 +614,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt('{The subj dobj} {is}');
+            makeJumpUpNoise();
         }
         report() {
             switch (parkourAvailableRangeCache) {
@@ -616,6 +649,12 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt('{The subj dobj} {is}');
+            if (gActor.parkourAvailableRangeCache == fallDownRange) {
+                makeFallDownNoise();
+            }
+            else {
+                makeJumpDownNoise();
+            }
         }
         report() {
             if (gActor.parkourAvailableRangeCache == fallDownRange) {
@@ -661,9 +700,12 @@ class ParkourPlatform: Platform {
         action() {
             if (height == high || height == damaging) {
                 gActor.actionMoveInto(exitLocation);
-                //if (height == damaging) {
-                    //
-                //}
+                if (height == damaging) {
+                    makeFallDownNoise();
+                }
+                else {
+                    makeJumpDownNoise();
+                }
             }
             else {
                 inherited();
@@ -849,6 +891,21 @@ class ParkourPlatform: Platform {
                 doClimbAction();
                 break;
         }
+    }
+
+    makeJumpUpNoise() {
+        if (gActor != gPlayerChar) return;
+        soundBleedCore.createSound(climbingNoiseProfile, getOutermostRoom(), true);
+    }
+
+    makeJumpDownNoise() {
+        if (gActor != gPlayerChar) return;
+        soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
+    }
+
+    makeFallDownNoise() {
+        if (gActor != gPlayerChar) return;
+        soundBleedCore.createSound(hardImpactNoiseProfile, getOutermostRoom(), true);
     }
 
     doRepClimbUp(target) {
