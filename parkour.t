@@ -408,6 +408,8 @@ class ParkourLink: object {
 
 #define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && gActor.location.isBoardable)
 
+//TODO: SoundProfile for someone jumping off of a platform, and another for a hard landing. Emit both appropriately.
+
 class ParkourPlatform: Platform {
     totalParkourLinks = perInstance(new Vector()) // This is modified at runtime
     climbUpLinks = [] // This is modified by the author

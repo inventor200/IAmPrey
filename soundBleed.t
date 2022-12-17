@@ -178,7 +178,7 @@ soundBleedCore: object {
                     local nextStrength = strength - 1;
                     local fakeNextStrength = nextStrength;
                     if (fakeNextStrength > 1) fakeNextStrength += 2;
-                    
+
                     if (!checkPropagationStep(selectedDestination, fakeNextStrength)) continue;
 
                     local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
@@ -230,13 +230,9 @@ soundBleedCore: object {
     }
 }
 
-class SoundProfile: object {
-    construct(_muffledStr, _closeEchoStr, _distantEchoStr) { //TODO: Make this into a template, because these are not procedural
-        muffledStr = _muffledStr;
-        closeEchoStr = _closeEchoStr;
-        distantEchoStr = _distantEchoStr;
-    }
+SoundProfile template 'muffledStr' 'closeEchoStr' 'distantEchoStr';
 
+class SoundProfile: object {
     strength = 3
     muffledStr = 'the muffled sound of a mysterious noise'
     closeEchoStr = 'the nearby echo of a mysterious noise'
@@ -274,6 +270,8 @@ class SoundProfile: object {
             ', you hear ' + (form == closeEcho ? closeEchoStr : distantEchoStr) + '. ';
     }
 }
+
+SubtleSound template 'basicName' 'missedMsg'?;
 
 class SubtleSound: Noise {
     construct() {
@@ -345,8 +343,6 @@ class SubtleSound: Noise {
         moveInto(nil);
     }
 }
-
-SubtleSound template 'basicName' 'missedMsg'?;
 
 #define selectSoundDirectionExp(i, dir) \
     case i: \
