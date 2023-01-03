@@ -37,7 +37,7 @@ centralRoom: Room { 'Central Room'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = tallCrate
     height = damaging
-    travelDesc = "{I} climb{s/ed} into the vent. "
+    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = subtleVent
 }
 
@@ -84,6 +84,14 @@ centralRoom: Room { 'Central Room'
     "A ceramic cup. "
 }
 
++obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'
+    "A metal ventilation grate. It seems passable, and it's low to the floor. "
+    isListed = true
+    destination = shortCrate
+    //travelDesc = "{I} climb{s/ed} into the vent. "
+    otherSide = lowVent
+}
+
 sideRoom: Room { 'Side Room'
     "The additional room to the side."
 
@@ -127,12 +135,28 @@ subtleRoom: Room { 'Subtle Room'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = cargoShelf
     height = damaging
-    travelDesc = "{I} climb{s/ed} into the vent. "
+    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = vent
+}
+
++lowVent: ParkourExit { 'low vent;metal ventilation;grate'
+    "A metal ventilation grate. It seems passable, and it's low to the floor. "
+    destination = centralRoom
+    height = low
+    //travelDesc = "{I} climb{s/ed} into the vent. "
+    otherSide = obviousLowVent
 }
 
 +tallCrate: ParkourPlatform { 'tall wooden crate'
     "A really tall wooden crate. "
     height = high
     climbUpLinks = [subtleVent]
+    climbDownLinks = [shortCrate]
+}
+
++shortCrate: ParkourPlatform { 'short wooden crate'
+    "A short wooden crate. "
+    height = low
+    climbUpLinks = [lowVent]
+    jumpUpLinks = [tallCrate]
 }
