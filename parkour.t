@@ -188,6 +188,7 @@ modify VerbRule(JumpOver)
 ;
 
 //TODO: Slide under
+//TODO: List parkour connections with command
 
 QParkour: Special {
     priority = 16
@@ -566,9 +567,6 @@ hardImpactNoiseProfile: SoundProfile {
         say('\b(Emitted hard impact noise.)');
     }*/
 }
-
-//TODO: Create a way to let someone use a normal exit from the floor,
-// and wind up on a ParkourPlatform in another room.
 
 //TODO: Test for complex containers (can also go under or in using standard functions)
 
