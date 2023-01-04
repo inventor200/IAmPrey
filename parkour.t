@@ -1,3 +1,5 @@
+#include "aac.t"
+
 VerbRule(ParkourTo)
     ('climb'|'cl'|'get'|'parkour'|'step') ('over'|'across'|'over' 'to'|'across' 'to'|'to'|'onto'|'on' 'to') (('the'|)'top' 'of'|) singleDobj
     : VerbProduction
@@ -186,27 +188,6 @@ modify VerbRule(JumpOffIntransitive)
 modify VerbRule(JumpOver)
     ('jump'|'hop'|'leap'|'vault') ('over'|'across'|('on'|'over' ('the'|)) 'top' 'of'|) singleDobj :
 ;
-
-// When the actor has multiple verbs per sentence,
-// we can use this to keep the expansion on track.
-actorActionContinuer_: dummy_ {
-    dummyName = ''
-    name = ''
-    person = (gActor == nil ? 3 : gActor.person)
-    plural = (gActor == nil ? nil : gActor.plural)
-}
-
-// A modified englishMessageParams will have our new token.
-modify englishMessageParams {
-    construct() {
-        // Add the simplified message token
-        params = params.append(['aac', { ctx, params:
-            cmdInfo(ctx, actorActionContinuer_, &dummyName, vSubject)
-        }]);
-
-        inherited();
-    }
-}
 
 //TODO: Slide under
 //TODO: List parkour connections with command
