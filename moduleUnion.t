@@ -70,37 +70,33 @@ modify ParkourPlatform {
 
     doRepJumpUp(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
-        "It's noisy, but {i} jump{s/ed} up,{the subj aac}
+        gMessageParams(obj);
+        "It's noisy, but {i} jump{s/ed} up,{aac}
         and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
     }
 
     doRepJumpDown(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
+        gMessageParams(obj);
         "It's noisy, but {i} {hold} onto
-        <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
-        drop{s/?ed} to a hanging position,{the subj aac}
-        {let} go,{the subj aac}
+        <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        drop{s/?ed} to a hanging position,{aac}
+        {let} go,{aac}
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
     }
 
     doRepLeap(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
+        gMessageParams(obj);
         "It's noisy, but {i} jump{s/ed} <<leapDirPrep>> {the obj},
-        and{the subj aac} tr{ies/ied} to keep {my} balance. ";
+        and{aac} tr{ies/ied} to keep {my} balance. ";
     }
 
     doRepFall(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
-        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
-        drop{s/?ed} to a hanging position,{the subj aac}
+        gMessageParams(obj);
+        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        drop{s/?ed} to a hanging position,{aac}
         and {let} go. The loud impact{dummy} fire{s/d} a sharp,
         lancing pain through {my} bones.
         {I} {am} stunned, but then recover{s/ed}

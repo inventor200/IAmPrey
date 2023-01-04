@@ -189,19 +189,23 @@ modify VerbRule(JumpOver)
 
 // When the actor has multiple verbs per sentence,
 // we can use this to keep the expansion on track.
-actorActionContinuer_: Thing {
+actorActionContinuer_: dummy_ {
     dummyName = ''
     name = ''
-    theName = ''
-    // Not sure why this would be necessary,
-    // but I'm trying to follow the pattern
-    // set by dummy_ in Adv3Lite:
-    noteName(src) {
-        name = src;
-        theName = 'the ' + src;
-    }
     person = (gActor == nil ? 3 : gActor.person)
     plural = (gActor == nil ? nil : gActor.plural)
+}
+
+// A modified englishMessageParams will have our new token.
+modify englishMessageParams {
+    construct() {
+        // Add the simplified message token
+        params = params.append(['aac', { ctx, params:
+            cmdInfo(ctx, actorActionContinuer_, &dummyName, vSubject)
+        }]);
+
+        inherited();
+    }
 }
 
 //TODO: Slide under
@@ -773,7 +777,7 @@ class ParkourPlatform: Platform {
     leapDirPrep = (stepDirPrep)
     theEdgeName = ('the edge')
     landingDirPrep = (contType == On ? 'on' : 'near')
-    landingConclusionMsg = (contType == On ? '' : 'From{the subj aac} {here}, {i} climb{s/ed} through. ')
+    landingConclusionMsg = (contType == On ? '' : 'From{aac} {here}, {i} climb{s/ed} through. ')
     //globalParamName = (theName)
 
     cannotParkourOnMsg =
@@ -862,38 +866,34 @@ class ParkourPlatform: Platform {
 
     doRepJumpUp(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
-        "{I} jump{s/ed} up,{the subj aac}
+        gMessageParams(obj);
+        "{I} jump{s/ed} up,{aac}
         and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
     }
 
     doRepJumpDown(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
+        gMessageParams(obj);
         "{I} {hold} onto
-        <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
-        drop{s/?ed} to a hanging position,{the subj aac}
-        {let} go,{the subj aac}
+        <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        drop{s/?ed} to a hanging position,{aac}
+        {let} go,{aac}
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
     }
 
     doRepLeap(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
+        gMessageParams(obj);
         "{I} jump{s/ed} <<leapDirPrep>> {the obj},
-        and{the subj aac} tr{ies/ied} to keep {my} balance. ";
+        and{aac} tr{ies/ied} to keep {my} balance. ";
     }
 
     doRepFall(destThing) {
         local obj = destThing;
-        local aac = actorActionContinuer_;
-        gMessageParams(obj, aac);
-        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
-        drop{s/?ed} to a hanging position,{the subj aac}
-        and {let} go. {I} land{s/ed} hard, and{the subj aac} {find} {myself}
+        gMessageParams(obj);
+        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        drop{s/?ed} to a hanging position,{aac}
+        and {let} go. {I} land{s/ed} hard, and{aac} {find} {myself}
         <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
     }
 
