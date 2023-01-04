@@ -47,7 +47,7 @@ soundBleedCore: object {
         
         if (envSounds.length > 0) {
             for (local i = 1; i <= envSounds.length; i++) {
-                envSounds[i].afterEmission();
+                envSounds[i].afterEmission(envSoundRooms[i]);
                 doPropagationForPlayer(envSounds[i], envSoundRooms[i]);
             }
             envSounds.removeRange(1, -1);
@@ -56,7 +56,7 @@ soundBleedCore: object {
 
         if (playerSounds.length > 0) {
             for (local i = 1; i <= playerSounds.length; i++) {
-                playerSounds[i].afterEmission();
+                playerSounds[i].afterEmission(playerSoundRooms[i]);
                 doPropagationForHunter(playerSounds[i], playerSoundRooms[i]);
             }
             playerSounds.removeRange(1, -1);
@@ -272,7 +272,7 @@ class SoundProfile: object {
             ', you hear ' + (form == closeEcho ? closeEchoStr : distantEchoStr) + '. ';
     }
 
-    afterEmission() {
+    afterEmission(room) {
         // For debug purposes.
     }
 }

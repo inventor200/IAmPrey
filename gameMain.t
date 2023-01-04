@@ -6,6 +6,7 @@
 #define gWasObservantAction (gAction.ofKind(SystemAction) || gActionIs(Look) || gActionIs(Listen) || gActionIs(Smell))
 #include "soundBleed.t"
 #include "parkour.t"
+#include "moduleUnion.t"
 
 gameMain: GameMainDef {
     initialPlayerChar = me

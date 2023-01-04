@@ -187,6 +187,23 @@ modify VerbRule(JumpOver)
     ('jump'|'hop'|'leap'|'vault') ('over'|'across'|('on'|'over' ('the'|)) 'top' 'of'|) singleDobj :
 ;
 
+// When the actor has multiple verbs per sentence,
+// we can use this to keep the expansion on track.
+actorActionContinuer_: Thing {
+    dummyName = ''
+    name = ''
+    theName = ''
+    // Not sure why this would be necessary,
+    // but I'm trying to follow the pattern
+    // set by dummy_ in Adv3Lite:
+    noteName(src) {
+        name = src;
+        theName = 'the ' + src;
+    }
+    person = (gActor == nil ? 3 : gActor.person)
+    plural = (gActor == nil ? nil : gActor.plural)
+}
+
 //TODO: Slide under
 //TODO: List parkour connections with command
 
@@ -211,6 +228,11 @@ QParkour: Special {
 modify Thing {
     parkourAvailableRangeCache = nil;
     parkourAttemptedRangeCache = nil;
+    parkourLastPlatform = nil;
+
+    rememberLastPlatform() {
+        parkourLastPlatform = getParkourPlatform();
+    }
 
     dobjFor(ParkourClimbDownTo) asDobjFor(ParkourTo)
     dobjFor(ParkourJumpTo) asDobjFor(ParkourTo)
@@ -316,58 +338,13 @@ modify Thing {
         return location.isSomehowOnParkourPlatform();
     }
 
-    cannotParkourOnMsg = BMsg(cannot parkour on,
-        '{The subj dobj} {is} not something {i} {can} get on from {here}.
-        {I} might need to get on something else first... ')
-    cannotSimplyParkourOnMsg = BMsg(cannot simply parkour on,
-        'While {i} cannot simply climb {the subj dobj} from {here},
-        {i} can JUMP UP {them dobj}, at the cost of making noise. ')
-    cannotParkourToMsg = BMsg(cannot parkour to,
-        '{The subj dobj} {is} too far away.
+    cannotParkourToMsg =
+        ('{The subj dobj} {is} too far away.
         {I} might need to get on something closer... ')
-    tooHighClimbDownMsg = BMsg(too high to climb down,
-        'The floor is too far below;
-        {i} might need to get on something lower first.
-        {I} could JUMP OFF, but {i} might make a lot of noise... ')
-    tooRiskyClimbDownMsg = BMsg(too risky to climb down,
-        'The floor is too far below;
-        {i} might need to get on something lower first.
-        {I} could JUMP OFF, but {i} might risk injury and make a lot of noise... ')
-    tooHighClimbDownToMsg = BMsg(too high to climb down to,
-        '{The subj dobj} {is} too far below;
-        {i} might need to get on something lower first.
-        {I} could JUMP DOWN TO {them dobj},
-        but {i} might make a lot of noise... ')
-    tooRiskyClimbDownToMsg = BMsg(too risky to climb down to,
-        '{The subj dobj} {is} too far below;
-        {i} might need to get on something lower first.
-        {I} could JUMP DOWN TO {them dobj},
-        but {i} might risk injury and make a lot of noise... ')
-    wayTooHighClimbDownMsg = BMsg(way too high to climb down,
-        'The floor is way too far below;
-        {i} might need to get on something lower first.
-        {I} certainly cannot JUMP OFF, without risking death. ')
-    wayTooHighClimbDownToMsg = BMsg(way too high to climb down to,
-        '{The subj dobj} {is} way too far below;
-        {i} might need to get on something lower first.
-        {I} certainly cannot JUMP OFF, without risking death. ')
-    platformLowEnoughMsg = BMsg(platform low enough,
-        '({The subj dobj} {is} low enough for a quieter approach.)\n')
-    cannotJumpUp = BMsg(cannot parkour jump up,
-        '{The subj dobj} {is} not something {i} {can} jump up. ')
-    cannotStepToMsg = BMsg(cannot step to,
-        'While {i} cannot simply step over to {the subj dobj},
-        {i} can LEAP TO {them dobj}, at the cost of making noise. ')
-    stuckOnPlatformMsg = BMsg(stuck on platform,
-        '{I} cannot move from {here}. ')
-    cannotReachPlatformTopMsg = BMsg(cannot reach top,
-        '{I} cannot reach top of {the subj iobj}. ')
-    parkourCannotClimbUpMsg = BMsg(cannot parkour climb up,
-        '{I} cannot climb up to that. ')
-    parkourCannotClimbDownMsg = BMsg(cannot parkour climb down,
-        '{I} cannot climb down to that. ')
-    parkourCannotStepMsg = BMsg(cannot parkour step,
-        '{I} cannot step over to that. ')
+    platformLowEnoughMsg =
+        ('({The subj dobj} {is} ' + ParkourPlatform.getClimbAdvantageReason('low') + '.)\n')
+    cannotJumpUp =
+        ('{The subj dobj} {is} not something {i} {can} jump up. ')
 }
 
 modify Floor {
@@ -533,40 +510,7 @@ class ParkourLink: object {
     range = nil
 }
 
-#define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && gActor.location.isBoardable)
-
-climbingNoiseProfile: SoundProfile {
-    'the muffled racket of something clambering'
-    'the nearby racket of something clambering'
-    'the distant reverberations of clambering'
-    strength = 4
-
-    /*afterEmission() {
-        say('\b(Emitted climbing noise.)');
-    }*/
-}
-
-impactNoiseProfile: SoundProfile {
-    'the muffled <i>thud</i> of something landing on the floor'
-    'the echoing <i>thud</i> of something landing on the floor'
-    'the distant <i>wump</i> of something landing on the floor'
-    strength = 4
-
-    /*afterEmission() {
-        say('\b(Emitted impact noise.)');
-    }*/
-}
-
-hardImpactNoiseProfile: SoundProfile {
-    'the muffled <i>crack</i> of something hitting the floor'
-    'the echoing <i>ka-thump</i> of something hitting the floor'
-    'the reverberating <i>wump</i> of something hitting the floor'
-    strength = 5
-
-    /*afterEmission() {
-        say('\b(Emitted hard impact noise.)');
-    }*/
-}
+#define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && (gActor.location.isBoardable || gActor.location.isEnterable))
 
 //TODO: Test for complex containers (can also go under or in using standard functions)
 
@@ -574,20 +518,23 @@ hardImpactNoiseProfile: SoundProfile {
 class ParkourTwoSidedTravelConnector: TravelConnector {
     isDestinationKnown = nil
 
-    handleParkourTravelTransfer() {
+    handleParkourTravelTransfer(actor) {
         local nextRoom = destination.getOutermostRoom();
-        nextRoom.execTravel(gActor, gActor, self);
-        if (!destination.ofKind(Room)) {
-            gActor.moveInto(destination);
-        }
-        if (destination.ofKind(ParkourPlatform)) {
-            local travelPrep = destination.contType == On ? 'on' : 'just inside';
-            reportAfter('\n{I} {am} now <<travelPrep>> <<destination.theName>>. ');
-            reportAfter(destination.getConnectionString());
-        }
-        if(otherSide != nil && actor == gPlayerChar && actor.isIn(destination)) {
-            otherSide.isDestinationKnown = true;
-            isDestinationKnown = true;
+        local traveler = getTraveler(actor); 
+        if (checkTravelBarriers(traveler)) {
+            nextRoom.execTravel(actor, traveler, self);
+            if (!destination.ofKind(Room)) {
+                traveler.moveInto(destination);
+            }
+            if (destination.ofKind(ParkourPlatform)) {
+                local travelPrep = destination.contType == On ? 'on' : 'just inside';
+                reportAfter('\n{I} {am} {then} <<travelPrep>> <<destination.theName>>. ');
+                reportAfter(destination.getConnectionString());
+            }
+            if(otherSide != nil && actor == gPlayerChar && actor.isIn(destination)) {
+                otherSide.isDestinationKnown = true;
+                isDestinationKnown = true;
+            }
         }
     }
 }
@@ -628,7 +575,7 @@ class ParkourEasyExit: ParkourTwoSidedTravelConnector, ParkourPartialDoor {
         preCond = [travelPermitted, touchObj, objOpen, actorInStagingLocation]
 
         action() {
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
     }
 }
@@ -653,25 +600,25 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
     travelDesc() {
         switch (gActor.parkourAvailableRangeCache) {
             case climbUpRange:
-                doRepClimbUp(standardTargetStr);
+                doRepClimbUp(self);
                 break;
             case climbDownRange:
-                doRepClimbDown(standardTargetStr);
+                doRepClimbDown(self);
                 break;
             case stepRange:
-                doRepStep(standardTargetStr);
+                doRepStep(self);
                 break;
             case jumpUpRange:
-                doRepJumpUp(standardTargetStr);
+                doRepJumpUp(self);
                 break;
             case jumpDownRange:
-                doRepJumpDown(standardTargetStr);
+                doRepJumpDown(self);
                 break;
             case leapRange:
-                doRepLeap(standardTargetStr);
+                doRepLeap(self);
                 break;
             case fallDownRange:
-                doRepFall(standardTargetStr);
+                doRepFall(self);
                 break;
         }
     }
@@ -688,7 +635,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -698,7 +645,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -708,7 +655,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -718,7 +665,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -728,7 +675,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -738,7 +685,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -748,7 +695,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -758,7 +705,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -768,7 +715,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -778,7 +725,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -788,7 +735,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -798,7 +745,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
         action() {
             inherited();
-            handleParkourTravelTransfer();
+            handleParkourTravelTransfer(gActor);
         }
         report() { }
     }
@@ -824,10 +771,131 @@ class ParkourPlatform: Platform {
     jumpUpDirPrep = (contType == On ? 'up' : 'up into')
     jumpDownDirPrep = (climbDownDirPrep)
     leapDirPrep = (stepDirPrep)
+    theEdgeName = ('the edge')
     landingDirPrep = (contType == On ? 'on' : 'near')
-    landingConclusionMsg = (contType == On ? '' : 'From there, {i} climb{s/ed} through. ')
-    standardTargetStr = '{the subj dobj}'
-    standardTargetAttemptStr = (standardTargetStr + '{is}')
+    landingConclusionMsg = (contType == On ? '' : 'From{the subj aac} {here}, {i} climb{s/ed} through. ')
+    //globalParamName = (theName)
+
+    cannotParkourOnMsg =
+        ('{The subj dobj} {is} not something {i} {can} get on from {here}.
+        {I} might need to get on something else first... ')
+    cannotSimplyParkourOnMsg =
+        ('While {i} {cannot} simply climb {the dobj} from {here},
+        {i} {can} JUMP UP {them dobj}'
+        + getJumpRisk())
+    tooHighClimbDownMsg =
+        ('The floor is too far below;
+        {i} might need to get on something lower first.
+        {I} could JUMP OFF'
+        + getJumpRisk())
+    tooRiskyClimbDownMsg =
+        ('The floor is too far below;
+        {i} might need to get on something lower first.
+        {I} could JUMP OFF'
+        + getFallRisk())
+    tooHighClimbDownToMsg =
+        ('{The subj dobj} {is} too far below;
+        {i} might need to get on something lower first.
+        {I} could JUMP DOWN TO {them dobj}'
+        + getJumpRisk())
+    tooRiskyClimbDownToMsg =
+        ('{The subj dobj} {is} too far below;
+        {i} might need to get on something lower first.
+        {I} could JUMP DOWN TO {them dobj}'
+        + getFallRisk())
+    wayTooHighClimbDownMsg =
+        ('The floor is way too far below;
+        {i} might need to get on something lower first. '
+        + getPlummetRisk())
+    wayTooHighClimbDownToMsg =
+        ('{The subj dobj} {is} way too far below;
+        {i} might need to get on something lower first. '
+        + getPlummetRisk())
+    cannotStepToMsg =
+        ('While {i} {cannot} simply step over to {the dobj},
+        {i} {can} LEAP TO {them dobj}'
+        + getJumpRisk())
+    stuckOnPlatformMsg =
+        ('{I} {cannot} move from {here}. ')
+    cannotReachPlatformTopMsg =
+        ('{I} {cannot} reach top of {the iobj}. ')
+    parkourCannotClimbUpMsg =
+        ('{I} {cannot} climb up to {that dobj}. ')
+    parkourCannotClimbDownMsg =
+        ('{I} {cannot} climb down to {that dobj}. ')
+    parkourCannotStepMsg =
+        ('{I} {cannot} step over to {that dobj}. ')
+
+    getClimbAdvantageReason(preferredQuality) {
+        return preferredQuality + 'for an easier approach';
+    }
+
+    getJumpRisk() {
+        return ', however.  ';
+    }
+
+    getFallRisk() {
+        return ', however. ';
+    }
+
+    getPlummetRisk() {
+        return '{I} certainly {cannot} JUMP OFF, without risking death. ';
+    }
+
+    doRepClimbUp(destThing) {
+        local obj = destThing;
+        gMessageParams(obj);
+        "{I} climb{s/ed} <<climbUpDirPrep>> {the obj}. ";
+    }
+
+    doRepClimbDown(destThing) {
+        local obj = destThing;
+        gMessageParams(obj);
+        "{I} climb{s/ed} <<climbDownDirPrep>> {the obj}. ";
+    }
+
+    doRepStep(destThing) {
+        local obj = destThing;
+        gMessageParams(obj);
+        "{I} step{s/?ed} <<stepDirPrep>> {the obj}. ";
+    }
+
+    doRepJumpUp(destThing) {
+        local obj = destThing;
+        local aac = actorActionContinuer_;
+        gMessageParams(obj, aac);
+        "{I} jump{s/ed} up,{the subj aac}
+        and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
+    }
+
+    doRepJumpDown(destThing) {
+        local obj = destThing;
+        local aac = actorActionContinuer_;
+        gMessageParams(obj, aac);
+        "{I} {hold} onto
+        <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
+        drop{s/?ed} to a hanging position,{the subj aac}
+        {let} go,{the subj aac}
+        and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
+    }
+
+    doRepLeap(destThing) {
+        local obj = destThing;
+        local aac = actorActionContinuer_;
+        gMessageParams(obj, aac);
+        "{I} jump{s/ed} <<leapDirPrep>> {the obj},
+        and{the subj aac} tr{ies/ied} to keep {my} balance. ";
+    }
+
+    doRepFall(destThing) {
+        local obj = destThing;
+        local aac = actorActionContinuer_;
+        gMessageParams(obj, aac);
+        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{the subj aac}
+        drop{s/?ed} to a hanging position,{the subj aac}
+        and {let} go. {I} land{s/ed} hard, and{the subj aac} {find} {myself}
+        <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
+    }
 
     // Override for travel inheritors
     hasConnectionStringOverride = nil
@@ -950,6 +1018,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbUpRange;
             verifyGeneral();
             verifyClimb([climbUpRange], [jumpUpRange]);
@@ -972,6 +1041,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbUpRange;
             verifyGeneral();
             verifyClimb([climbUpRange], [jumpUpRange]);
@@ -994,6 +1064,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = stepRange;
             verifyGeneral();
             verifyClimb([stepRange], [leapRange]);
@@ -1019,6 +1090,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = stepRange;
             verifyGeneral();
             verifyClimb([stepRange], [leapRange]);
@@ -1041,6 +1113,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbDownRange;
             verifyGeneral();
             verifyClimb([climbDownRange], [jumpDownRange, fallDownRange]);
@@ -1063,6 +1136,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbDownRange;
             verifyGeneral();
             verifyClimb([climbDownRange], [jumpDownRange, fallDownRange]);
@@ -1085,6 +1159,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbUpRange;
             verifyGeneral();
             verifyJump([climbUpRange], [jumpUpRange]);
@@ -1093,7 +1168,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            makeJumpUpNoise();
+            handleJumpUpDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1108,6 +1183,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbUpRange;
             verifyGeneral();
             verifyJump([climbUpRange], [jumpUpRange]);
@@ -1116,7 +1192,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            makeJumpUpNoise();
+            handleJumpUpDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1131,6 +1207,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = stepRange;
             verifyGeneral();
             verifyJump([stepRange], [leapRange]);
@@ -1139,7 +1216,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            makeJumpUpNoise();
+            handleJumpUpDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1154,6 +1231,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = stepRange;
             verifyGeneral();
             verifyJump([stepRange], [leapRange]);
@@ -1162,7 +1240,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            makeJumpUpNoise();
+            handleJumpUpDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1177,6 +1255,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(On);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbDownRange;
             verifyGeneral();
             verifyJump([climbDownRange], [jumpDownRange, fallDownRange]);
@@ -1186,10 +1265,10 @@ class ParkourPlatform: Platform {
             handleGenericSource();
             doClimbAttempt();
             if (gActor.parkourAvailableRangeCache == fallDownRange) {
-                makeFallDownNoise();
+                handleFallDownDifficulty(gActor);
             }
             else {
-                makeJumpDownNoise();
+                handleJumpDownDifficulty(gActor);
             }
         }
         report() {
@@ -1205,6 +1284,7 @@ class ParkourPlatform: Platform {
         verify() {
             verifyMinimal(In);
             gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gActor.rememberLastPlatform();
             gActor.parkourAttemptedRangeCache = climbDownRange;
             verifyGeneral();
             verifyJump([climbDownRange], [jumpDownRange, fallDownRange]);
@@ -1214,10 +1294,10 @@ class ParkourPlatform: Platform {
             handleGenericSource();
             doClimbAttempt();
             if (gActor.parkourAvailableRangeCache == fallDownRange) {
-                makeFallDownNoise();
+                handleFallDownDifficulty(gActor);
             }
             else {
-                makeJumpDownNoise();
+                handleJumpDownDifficulty(gActor);
             }
         }
         report() {
@@ -1260,10 +1340,10 @@ class ParkourPlatform: Platform {
             if (height == high || height == damaging) {
                 gActor.actionMoveInto(exitLocation);
                 if (height == damaging) {
-                    makeFallDownNoise();
+                    handleFallDownDifficulty(gActor);
                 }
                 else {
-                    makeJumpDownNoise();
+                    handleJumpDownDifficulty(gActor);
                 }
             }
             else {
@@ -1272,10 +1352,10 @@ class ParkourPlatform: Platform {
         }
         report() {
             if (height == damaging) {
-                doRepFall(gActor.getOutermostRoom().floorObj.theName);
+                doRepFall(gActor.getOutermostRoom().floorObj);
             }
             else {
-                doRepJumpDown(gActor.getOutermostRoom().floorObj.theName);
+                doRepJumpDown(gActor.getOutermostRoom().floorObj);
             }
         }
     }
@@ -1489,15 +1569,15 @@ class ParkourPlatform: Platform {
     doClimbAttempt() {
         switch (gActor.parkourAvailableRangeCache) {
             case climbUpRange:
-                extraReport('(' + standardTargetAttemptStr + ' low enough for a quieter approach.)\n');
+                extraReport('({the subj dobj} {is} ' + getClimbAdvantageReason('low') + '.)\n');
                 doInstead(ClimbUp, self);
                 break;
             case climbDownRange:
-                extraReport('(' + standardTargetAttemptStr + ' close enough for a quieter approach.)\n');
+                extraReport('({the subj dobj} {is} ' + getClimbAdvantageReason('close') + '.)\n');
                 doInstead(ParkourClimbDownTo, self);
                 break;
             case stepRange:
-                extraReport('(' + standardTargetAttemptStr + ' high enough for a quieter approach.)\n');
+                extraReport('({the subj dobj} {is} ' + getClimbAdvantageReason('high') + '.)\n');
                 doInstead(ParkourTo, self);
                 break;
             default:
@@ -1506,31 +1586,28 @@ class ParkourPlatform: Platform {
         }
     }
 
-    makeJumpUpNoise() {
-        if (gActor != gPlayerChar) return;
-        soundBleedCore.createSound(climbingNoiseProfile, getOutermostRoom(), true);
+    handleJumpUpDifficulty(actor) {
+        //
     }
 
-    makeJumpDownNoise() {
-        if (gActor != gPlayerChar) return;
-        soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
+    handleJumpDownDifficulty(actor) {
+        //
     }
 
-    makeFallDownNoise() {
-        if (gActor != gPlayerChar) return;
-        soundBleedCore.createSound(hardImpactNoiseProfile, getOutermostRoom(), true);
+    handleFallDownDifficulty(actor) {
+        //
     }
 
     doRepClimbChoices() {
         switch (gActor.parkourAvailableRangeCache) {
             case climbUpRange:
-                doRepClimbUp(standardTargetStr);
+                doRepClimbUp(self);
                 break;
             case climbDownRange:
-                doRepClimbDown(standardTargetStr);
+                doRepClimbDown(self);
                 break;
             case stepRange:
-                doRepStep(standardTargetStr);
+                doRepStep(self);
                 break;
         }
     }
@@ -1538,55 +1615,18 @@ class ParkourPlatform: Platform {
     doRepJumpChoices() {
         switch (gActor.parkourAvailableRangeCache) {
             case jumpUpRange:
-                doRepJumpUp(standardTargetStr);
+                doRepJumpUp(self);
                 break;
             case jumpDownRange:
-                doRepJumpDown(standardTargetStr);
+                doRepJumpDown(self);
                 break;
             case leapRange:
-                doRepLeap(standardTargetStr);
+                doRepLeap(self);
                 break;
             case fallDownRange:
-                doRepFall(standardTargetStr);
+                doRepFall(self);
                 break;
         }
-    }
-
-    doRepClimbUp(target) {
-        "{I} climb{s/ed} <<climbUpDirPrep>> <<target>>. ";
-    }
-
-    doRepClimbDown(target) {
-        "{I} climb{s/ed} <<climbDownDirPrep>> <<target>>. ";
-    }
-
-    doRepStep(target) {
-        "{I} step{s/?ed} <<stepDirPrep>> <<target>>. ";
-    }
-
-    doRepJumpUp(target) {
-        "It's noisy, but {i} jump{s/ed} up, and clamber{s/ed} <<jumpUpDirPrep>> <<target>>. ";
-    }
-
-    doRepJumpDown(target) {
-        local letVers = 'let';
-        if (gActor != gPlayerChar) letVers += 's';
-        "It's noisy, but {i} {hold} onto the edge, drop{s/?ed} to a hanging position,
-        <<letVers>> go, and land hard <<landingDirPrep>> <<target>> below. <<landingConclusionMsg>>";
-    }
-
-    doRepLeap(target) {
-        "It's noisy, but {i} jump{s/ed} <<leapDirPrep>> <<target>>,
-        and tr{ies/ied} to keep {my} balance. ";
-    }
-
-    doRepFall(target) {
-        local letVers = 'let';
-        if (gActor != gPlayerChar) letVers += 's';
-        "{I} {hold} onto the edge, drop{s/?ed} to a hanging position,
-        and <<letVers>> go. The loud impact fires a sharp, lancing pain through {my} bones.
-        {I} {am} stunned, but then recover{s/ed} after a moment to find {myself}
-        <<landingDirPrep>> <<target>>. <<landingConclusionMsg>>";
     }
 
     preinitThing() {
@@ -1670,16 +1710,16 @@ class ParkourPlatform: Platform {
 
         if (climbCount > 0) {
             strBfr.append('\n<tt>(CL)</tt> <b>Climbing routes:</b>');
-            getConnectionListString(climbUpLinkList, strBfr, 'climb ', &climbUpDirPrep);
-            getConnectionListString(climbDownLinkList, strBfr, 'climb ', &climbDownDirPrep);
-            getConnectionListString(stepLinkList, strBfr, 'step ', &stepDirPrep);
+            getConnectionListString(climbUpLinkList, strBfr, 'climb', &climbUpDirPrep);
+            getConnectionListString(climbDownLinkList, strBfr, 'climb', &climbDownDirPrep);
+            getConnectionListString(stepLinkList, strBfr, 'step', &stepDirPrep);
         }
         if (jumpCount > 0) {
             strBfr.append('\n<tt>(JM)</tt> <b>Jumping routes:</b>');
-            getConnectionListString(jumpUpLinkList, strBfr, 'jump ', &jumpUpDirPrep);
-            getConnectionListString(jumpDownLinkList, strBfr, 'jump ', &jumpDownDirPrep);
-            getConnectionListString(leapLinkList, strBfr, 'leap ', &leapDirPrep);
-            getConnectionListString(fallLinkList, strBfr, 'jump <i>(recklessly)</i> ', &jumpDownDirPrep);
+            getConnectionListString(jumpUpLinkList, strBfr, 'jump', &jumpUpDirPrep);
+            getConnectionListString(jumpDownLinkList, strBfr, 'jump', &jumpDownDirPrep);
+            getConnectionListString(leapLinkList, strBfr, 'leap', &leapDirPrep);
+            getConnectionListString(fallLinkList, strBfr, 'jump <i>(recklessly)</i>', &jumpDownDirPrep);
         }
 
         if (climbCount == 0 && jumpCount == 0) return stuckOnPlatformMsg;
@@ -1689,8 +1729,9 @@ class ParkourPlatform: Platform {
 
     getConnectionListString(lst, bfr, actionStr, prepPtr) {
         if (lst.length == 0) return;
-        bfr.append('\n{I} can ');
+        bfr.append('\n{I} {can} ');
         bfr.append(actionStr);
+        bfr.append(' ');
         for (local i = 1; i <= lst.length; i++) {
             local dest = lst[i];
             local destPrep = 'to ';
