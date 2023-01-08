@@ -205,23 +205,32 @@ QParkour: Special {
         local sca = findSubComponentFor(a);
         local scb = findSubComponentFor(b);
 
+        // Are sca and scb both valid SubComponents?
         if (sca != nil && scb != nil) {
-            local ourParent = sca.lexicalParent;
-            if (ourParent != nil && ourParent == scb.lexicalParent) {
-                if (ourParent.ofKind(ParkourMultiContainer)) {
-                    if (sca.ofKind(SubParkourPlatform)) {
-                        issues += new ReachProblemParkourFromTopOfSame(a, b);
+            // Are sca and scb two different SubComponents?
+            if (sca != scb) {
+                local ourParent = sca.lexicalParent;
+                // Do both sca and scb have a valid lexicalParent,
+                // and do they both share a lexicalParent?
+                if (ourParent != nil && ourParent == scb.lexicalParent) {
+                    // Is this lexicalParent capable of parkour?
+                    if (ourParent.ofKind(ParkourMultiContainer)) {
+                        // Are we reaching from the top of the lexicalParent?
+                        if (ourParent.remapOn == sca) {
+                            issues += new ReachProblemParkourFromTopOfSame(a, b, ourParent);
+                        }
+                        // Are we reaching from the bottom of the lexicalParent?
+                        else {
+                            issues += new ReachProblemParkour(a, b, ourParent);
+                        }
+                        return issues;
                     }
-                    else {
-                        issues += new ReachProblemParkour(a, b);
-                    }
-                    return issues;
                 }
             }
         }
 
         if (!a.canReachThroughParkour(b)) {
-            issues += new ReachProblemParkour(a, b);
+            issues += new ReachProblemParkour(a, b, b);
         }
 
         return issues;
@@ -238,18 +247,30 @@ QParkour: Special {
     }
 }
 
+class ReachProblemParkourBase: ReachProblemDistance {
+    construct(src, trg, lexparent) {
+        inherited(src, trg);
+        lexicalParent_ = lexparent;
+    }
+
+    lexicalParent_ = nil;
+}
+
 // General error for being unable to reach, due to parkour limitations
-class ReachProblemParkour: ReachProblemDistance {
+class ReachProblemParkour: ReachProblemParkourBase {
     tooFarAwayMsg() {
-        local specificLocation = (target_.contType == On ? 'The top of ' : '\^');
-        return specificLocation + target_.theName + ' is out of reach. ';
+        local isMultiContainer = lexicalParent_.ofKind(ParkourMultiContainer);
+        local isParkourPlatform = lexicalParent_.ofKind(ParkourPlatform) || isMultiContainer;
+        local isReachingForTop = isParkourPlatform ? (lexicalParent_.contType == On || isMultiContainer) : nil;
+        local specificLocation = (isReachingForTop ? 'The top of ' : '\^');
+        return specificLocation + lexicalParent_.theName + ' is out of reach. ';
     }
 }
 
 // Error for attempt to reach inside of container while standing on top of it
-class ReachProblemParkourFromTopOfSame: ReachProblemDistance {
+class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     tooFarAwayMsg() {
-        return 'The rest of ' + target_.theName + ' is too far below. ';
+        return 'The rest of ' + lexicalParent_.theName + ' is too far below. ';
     }
 }
 
@@ -467,13 +488,7 @@ modify Floor {
     }
 }
 
-defaultLabFloor: Floor { 'the floor'
-    //
-}
-
 modify Room {
-    floorObj = defaultLabFloor
-
     getParkourPlatform() {
         return nil;
     }
@@ -1291,7 +1306,7 @@ class ParkourPlatform: Platform {
             }
         }
         report() {
-            doRepClimbDown(gActor.getOutermostRoom().floorObj.theName);
+            doRepClimbDown(gActor.getOutermostRoom().floorObj);
         }
     }
 

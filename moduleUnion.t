@@ -104,3 +104,11 @@ modify ParkourPlatform {
         <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
     }
 }
+
+defaultLabFloor: Floor { 'the floor'
+    //
+}
+
+modify Room {
+    floorObj = defaultLabFloor
+}
