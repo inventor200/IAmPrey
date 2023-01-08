@@ -202,11 +202,54 @@ QParkour: Special {
         // Don't worry about room connections
         if (a.ofKind(Room) || b.ofKind(Room)) return issues;
 
+        local sca = findSubComponentFor(a);
+        local scb = findSubComponentFor(b);
+
+        if (sca != nil && scb != nil) {
+            local ourParent = sca.lexicalParent;
+            if (ourParent != nil && ourParent == scb.lexicalParent) {
+                if (ourParent.ofKind(ParkourMultiContainer)) {
+                    if (sca.ofKind(SubParkourPlatform)) {
+                        issues += new ReachProblemParkourFromTopOfSame(a, b);
+                    }
+                    else {
+                        issues += new ReachProblemParkour(a, b);
+                    }
+                    return issues;
+                }
+            }
+        }
+
         if (!a.canReachThroughParkour(b)) {
-            issues += new ReachProblemDistance(a, b);
+            issues += new ReachProblemParkour(a, b);
         }
 
         return issues;
+    }
+
+    findSubComponentFor(obj) {
+        if (obj.ofKind(SubComponent)) return obj;
+
+        if (obj.location != nil) {
+            if (obj.location.ofKind(SubComponent)) return obj.location;
+        }
+
+        return nil;
+    }
+}
+
+// General error for being unable to reach, due to parkour limitations
+class ReachProblemParkour: ReachProblemDistance {
+    tooFarAwayMsg() {
+        local specificLocation = (target_.contType == On ? 'The top of ' : '\^');
+        return specificLocation + target_.theName + ' is out of reach. ';
+    }
+}
+
+// Error for attempt to reach inside of container while standing on top of it
+class ReachProblemParkourFromTopOfSame: ReachProblemDistance {
+    tooFarAwayMsg() {
+        return 'The rest of ' + target_.theName + ' is too far below. ';
     }
 }
 
@@ -307,6 +350,10 @@ modify Thing {
             return forwardRange == climbUpRange || backwardRange == climbUpRange;
         }
         return true;
+    }
+
+    getIndirectParkourPlatform() {
+        return nil;
     }
 
     getParkourPlatform() {
@@ -497,8 +544,6 @@ class ParkourLink: object {
 
 #define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && (gActor.location.isBoardable || gActor.location.isEnterable))
 
-//TODO: Test for complex containers (can also go under or in using standard functions)
-
 // Abstract functionality for a parkour-interfacing exit.
 class ParkourTwoSidedTravelConnector: TravelConnector {
     isDestinationKnown = nil
@@ -514,9 +559,9 @@ class ParkourTwoSidedTravelConnector: TravelConnector {
             if (destination.ofKind(ParkourPlatform)) {
                 local travelPrep = destination.contType == On ? 'on' : 'just inside';
                 reportAfter('\n{I} {am} {then} <<travelPrep>> <<destination.theName>>. ');
-                reportAfter(destination.getConnectionString());
+                reportAfter(destination.getIndirectParkourPlatform().getConnectionString());
             }
-            if(otherSide != nil && actor == gPlayerChar && actor.isIn(destination)) {
+            if (otherSide != nil && actor == gPlayerChar && actor.isIn(destination)) {
                 otherSide.isDestinationKnown = true;
                 isDestinationKnown = true;
             }
@@ -565,6 +610,16 @@ class ParkourEasyExit: ParkourTwoSidedTravelConnector, ParkourPartialDoor {
     }
 }
 
+#define ParkourExitActionMod(actionName) \
+    dobjFor(actionName) { \
+        preCond = [travelPermitted, touchObj, objOpen] \
+        action() { \
+            inherited(); \
+            handleParkourTravelTransfer(gActor); \
+        } \
+        report() { } \
+    }
+
 // A TravelConnector for exclusively allowing travel only through
 // the parkour system.
 class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourPartialDoor {
@@ -612,132 +667,62 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
 
     dobjFor(TravelVia) asDobjFor(ParkourInto)
 
-    standardPreCond = [travelPermitted, touchObj, objOpen]
+    //standardPreCond = [travelPermitted, touchObj, objOpen]
 
     // Used as ClimbUp
-    dobjFor(Board) {
-        preCond = standardPreCond
+    ParkourExitActionMod(Board)
+    ParkourExitActionMod(ParkourClimbUpInto)
+    ParkourExitActionMod(ParkourTo)
+    ParkourExitActionMod(ParkourInto)
+    ParkourExitActionMod(ParkourClimbDownTo)
+    ParkourExitActionMod(ParkourClimbDownInto)
+    ParkourExitActionMod(ParkourJumpUp)
+    ParkourExitActionMod(ParkourJumpUpInto)
+    ParkourExitActionMod(ParkourJumpTo)
+    ParkourExitActionMod(ParkourJumpInto)
+    ParkourExitActionMod(ParkourJumpDownTo)
+    ParkourExitActionMod(ParkourJumpDownInto)
+}
 
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
+// A version of ParkourPlatform that is a compatible SubComponent
+class SubParkourPlatform: ParkourPlatform, SubComponent {
+    //
+}
+
+#define ParkourMultiContainerMod(actionName) \
+    dobjFor(actionName) { \
+        remap = remapOn \
     }
 
-    dobjFor(ParkourClimbUpInto) {
-        preCond = standardPreCond
+// All Fixtures that have a SubParkourPlatform must also inherit
+// from this class!!
+class ParkourMultiContainer: Fixture {
+    ParkourMultiContainerMod(Climb)
+    ParkourMultiContainerMod(ParkourJumpGeneric)
+    ParkourMultiContainerMod(ParkourClimbUpInto)
+    ParkourMultiContainerMod(ParkourTo)
+    ParkourMultiContainerMod(ParkourClimbDownTo)
+    ParkourMultiContainerMod(ParkourJumpUp)
+    ParkourMultiContainerMod(ParkourJumpTo)
+    ParkourMultiContainerMod(ParkourJumpDownTo)
+    ParkourMultiContainerMod(GetOff)
+    ParkourMultiContainerMod(JumpOff)
 
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
+    dobjFor(ClimbUp) asDobjFor(Board)
+    dobjFor(ClimbDown) asDobjFor(GetOff)
+
+    getIndirectParkourPlatform() {
+        return remapOn;
     }
 
-    dobjFor(ParkourTo) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourInto) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourClimbDownTo) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourClimbDownInto) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpUp) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpUpInto) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpTo) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpInto) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpDownTo) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpDownInto) {
-        preCond = standardPreCond
-
-        action() {
-            inherited();
-            handleParkourTravelTransfer(gActor);
-        }
-        report() { }
-    }
+    /*getParkourPlatform() {
+        return remapOn;
+    }*/
 }
 
 class ParkourPlatform: Platform {
     totalParkourLinks = perInstance(new Vector()) // This is modified at runtime
+
     climbUpLinks = [] // This is modified by the author
     climbDownLinks = [] // This is modified by the author
     stepLinks = [] // This is modified by the author
@@ -745,7 +730,6 @@ class ParkourPlatform: Platform {
     jumpDownLinks = [] // This is modified by the author
     fallDownLinks = [] // This is modified by the author
     leapLinks = [] // This is modified by the author
-    //wasClimbed = nil
     height = low
     isFixed = true
 
@@ -759,7 +743,6 @@ class ParkourPlatform: Platform {
     theEdgeName = ('the edge')
     landingDirPrep = (contType == On ? 'on' : 'near')
     landingConclusionMsg = (contType == On ? '' : 'From{aac} {here}, {i} climb{s/ed} through. ')
-    //globalParamName = (theName)
 
     cannotParkourOnMsg =
         ('{The subj dobj} {is} not something {i} {can} get on from {here}.
@@ -883,6 +866,10 @@ class ParkourPlatform: Platform {
 
     canPutInMe = (contType != On)
     isEnterable = (contType != On)
+
+    getIndirectParkourPlatform() {
+        return self;
+    }
 
     iobjFor(PutOn) {
         verify() {
@@ -1367,7 +1354,7 @@ class ParkourPlatform: Platform {
 
     canReachThroughParkour(obj) {
         if (obj.ofKind(ParkourPlatform)) {
-            return hasConnectionTo(obj);
+            return hasConnectionTo(obj.ofKind(ParkourPlatform));
         }
 
         if (obj.getParkourPlatform() == self) return true;
@@ -1616,48 +1603,48 @@ class ParkourPlatform: Platform {
         // Init climb-up/down and step links
         for (local i = 1; i <= climbUpLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                climbUpLinks[i], climbUpRange));
-            climbUpLinks[i].totalParkourLinks.appendUnique(new ParkourLink(
+                climbUpLinks[i].getIndirectParkourPlatform(), climbUpRange));
+            climbUpLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, climbDownRange));
         }
         for (local i = 1; i <= climbDownLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                climbDownLinks[i], climbDownRange));
-            climbDownLinks[i].totalParkourLinks.appendUnique(new ParkourLink(
+                climbDownLinks[i].getIndirectParkourPlatform(), climbDownRange));
+            climbDownLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, climbUpRange));
         }
         for (local i = 1; i <= stepLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                stepLinks[i], stepRange));
-            stepLinks[i].totalParkourLinks.appendUnique(new ParkourLink(
+                stepLinks[i].getIndirectParkourPlatform(), stepRange));
+            stepLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, stepRange));
         }
 
         // Init jump-up links
         for (local i = 1; i <= jumpUpLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                jumpUpLinks[i], jumpUpRange));
-            jumpUpLinks[i].totalParkourLinks.appendUnique(new ParkourLink(
+                jumpUpLinks[i].getIndirectParkourPlatform(), jumpUpRange));
+            jumpUpLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, climbDownRange));
         }
 
         // Init jump-down links
         for (local i = 1; i <= jumpDownLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                jumpDownLinks[i], jumpDownRange));
+                jumpDownLinks[i].getIndirectParkourPlatform(), jumpDownRange));
         }
 
         // Init fall-down links
         for (local i = 1; i <= fallDownLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                fallDownLinks[i], fallDownRange));
+                fallDownLinks[i].getIndirectParkourPlatform(), fallDownRange));
         }
 
         // Init leap links
         for (local i = 1; i <= leapLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                leapLinks[i], leapRange));
-            leapLinks[i].totalParkourLinks.appendUnique(new ParkourLink(
+                leapLinks[i].getIndirectParkourPlatform(), leapRange));
+            leapLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, leapRange));
         }
     }

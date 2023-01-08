@@ -38,7 +38,6 @@ centralRoom: Room { 'Central Room'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = tallCrate
     height = damaging
-    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = subtleVent
 }
 
@@ -65,10 +64,17 @@ centralRoom: Room { 'Central Room'
     "A weird dog cage. "
 }
 
-+cabinet: ParkourPlatform { 'tall lab cabinet'
++cabinet: ParkourMultiContainer { 'tall lab cabinet'
     "A locked, metal cabinet, likely containing lab materials. "
-    height = high
-    climbUpLinks = [cargoShelf]
+
+    remapIn: SubComponent {
+        isOpenable = true
+        isEnterable = true
+    }
+    remapOn: SubParkourPlatform {
+        height = high
+        climbUpLinks = [cargoShelf]
+    }
 }
 
 +desk: ParkourPlatform { 'lab desk'
@@ -89,7 +95,6 @@ centralRoom: Room { 'Central Room'
     "A metal ventilation grate. It seems passable, and it's low to the floor. "
     isListed = true
     destination = shortCrate
-    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = lowVent
 }
 
@@ -136,7 +141,6 @@ subtleRoom: Room { 'Subtle Room'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = cargoShelf
     height = damaging
-    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = vent
 }
 
@@ -144,7 +148,6 @@ subtleRoom: Room { 'Subtle Room'
     "A metal ventilation grate. It seems passable, and it's low to the floor. "
     destination = centralRoom
     height = low
-    //travelDesc = "{I} climb{s/ed} into the vent. "
     otherSide = obviousLowVent
 }
 
