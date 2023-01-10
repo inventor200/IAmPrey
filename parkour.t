@@ -274,8 +274,10 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     }
 }
 
+//TODO: Show previously-discovered climbable-from-floor parkour objects after looking around a room
+
 modify Thing {
-    parkourAvailableRangeCache = nil;
+    parkourAvailableRangeCache = nil; //TODO: Move these into a core object instead
     parkourAttemptedRangeCache = nil;
     parkourLastPlatform = nil;
 
@@ -389,6 +391,31 @@ modify Thing {
             return nil;
         }
         return location.isSomehowOnParkourPlatform();
+    }
+
+    hasBeenClimbed = nil
+    hasBeenClimbedProp = &hasBeenClimbed
+
+    hasBeenClimbedBy(obj) {
+        local prop = obj.hasBeenClimbedProp;
+        return self.(prop);
+    }
+
+    setHasClimbed(obj) {
+        setClimbKnowledgeOf(obj);
+        obj.(hasBeenClimbedProp) = true;
+    }
+
+    isKnownToBeClimbable = nil
+    isKnownToBeClimbableProp = &isKnownToBeClimbable
+
+    isKnownToBeClimbableBy(obj) {
+        local prop = obj.isKnownToBeClimbableProp;
+        return self.(prop);
+    }
+
+    setClimbKnowledgeOf(obj) {
+        obj.(isKnownToBeClimbableProp) = true;
     }
 
     cannotParkourToMsg =
@@ -551,13 +578,13 @@ class ParkourLink: object {
     construct(_dst, _range) {
         dst = _dst;
         range = _range;
+        isKnown = _dst.isKnownToBeClimbableBy(gPlayerChar);
     }
 
     dst = nil
     range = nil
+    isKnown = nil
 }
-
-#define gActorIsOnGenericPlatform (!gActor.location.ofKind(ParkourPlatform) && (gActor.location.isBoardable || gActor.location.isEnterable))
 
 // Abstract functionality for a parkour-interfacing exit.
 class ParkourTwoSidedTravelConnector: TravelConnector {
@@ -574,11 +601,20 @@ class ParkourTwoSidedTravelConnector: TravelConnector {
             if (destination.ofKind(ParkourPlatform)) {
                 local travelPrep = destination.contType == On ? 'on' : 'just inside';
                 reportAfter('\n{I} {am} {then} <<travelPrep>> <<destination.theName>>. ');
-                reportAfter(destination.getIndirectParkourPlatform().getConnectionString());
+                if (actor == gPlayerChar) {
+                    reportAfter(destination.getIndirectParkourPlatform().getConnectionString());
+                }
             }
-            if (otherSide != nil && actor == gPlayerChar && actor.isIn(destination)) {
-                otherSide.isDestinationKnown = true;
-                isDestinationKnown = true;
+            if (actor == gPlayerChar) {
+                actor.setHasClimbed(self);
+                if (otherSide != nil && actor.isIn(destination)) {
+                    otherSide.isDestinationKnown = true;
+                    isDestinationKnown = true;
+                    actor.setHasClimbed(otherSide);
+                    if (destination.ofKind(ParkourPlatform)) {
+                        actor.setHasClimbed(destination);
+                    }
+                }
             }
         }
     }
@@ -625,7 +661,7 @@ class ParkourEasyExit: ParkourTwoSidedTravelConnector, ParkourPartialDoor {
     }
 }
 
-#define ParkourExitActionMod(actionName) \
+#define parkourExitActionMod(actionName) \
     dobjFor(actionName) { \
         preCond = [travelPermitted, touchObj, objOpen] \
         action() { \
@@ -685,18 +721,18 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
     //standardPreCond = [travelPermitted, touchObj, objOpen]
 
     // Used as ClimbUp
-    ParkourExitActionMod(Board)
-    ParkourExitActionMod(ParkourClimbUpInto)
-    ParkourExitActionMod(ParkourTo)
-    ParkourExitActionMod(ParkourInto)
-    ParkourExitActionMod(ParkourClimbDownTo)
-    ParkourExitActionMod(ParkourClimbDownInto)
-    ParkourExitActionMod(ParkourJumpUp)
-    ParkourExitActionMod(ParkourJumpUpInto)
-    ParkourExitActionMod(ParkourJumpTo)
-    ParkourExitActionMod(ParkourJumpInto)
-    ParkourExitActionMod(ParkourJumpDownTo)
-    ParkourExitActionMod(ParkourJumpDownInto)
+    parkourExitActionMod(Board)
+    parkourExitActionMod(ParkourClimbUpInto)
+    parkourExitActionMod(ParkourTo)
+    parkourExitActionMod(ParkourInto)
+    parkourExitActionMod(ParkourClimbDownTo)
+    parkourExitActionMod(ParkourClimbDownInto)
+    parkourExitActionMod(ParkourJumpUp)
+    parkourExitActionMod(ParkourJumpUpInto)
+    parkourExitActionMod(ParkourJumpTo)
+    parkourExitActionMod(ParkourJumpInto)
+    parkourExitActionMod(ParkourJumpDownTo)
+    parkourExitActionMod(ParkourJumpDownInto)
 }
 
 // A version of ParkourPlatform that is a compatible SubComponent
@@ -704,7 +740,7 @@ class SubParkourPlatform: ParkourPlatform, SubComponent {
     //
 }
 
-#define ParkourMultiContainerMod(actionName) \
+#define parkourMultiContainerMod(actionName) \
     dobjFor(actionName) { \
         remap = remapOn \
     }
@@ -712,27 +748,30 @@ class SubParkourPlatform: ParkourPlatform, SubComponent {
 // All Fixtures that have a SubParkourPlatform must also inherit
 // from this class!!
 class ParkourMultiContainer: Fixture {
-    ParkourMultiContainerMod(Climb)
-    ParkourMultiContainerMod(ParkourJumpGeneric)
-    ParkourMultiContainerMod(ParkourClimbUpInto)
-    ParkourMultiContainerMod(ParkourTo)
-    ParkourMultiContainerMod(ParkourClimbDownTo)
-    ParkourMultiContainerMod(ParkourJumpUp)
-    ParkourMultiContainerMod(ParkourJumpTo)
-    ParkourMultiContainerMod(ParkourJumpDownTo)
-    ParkourMultiContainerMod(GetOff)
-    ParkourMultiContainerMod(JumpOff)
+    parkourMultiContainerMod(Climb)
+    parkourMultiContainerMod(ParkourJumpGeneric)
+    parkourMultiContainerMod(ParkourClimbUpInto)
+    parkourMultiContainerMod(ParkourTo)
+    parkourMultiContainerMod(ParkourClimbDownTo)
+    parkourMultiContainerMod(ParkourJumpUp)
+    parkourMultiContainerMod(ParkourJumpTo)
+    parkourMultiContainerMod(ParkourJumpDownTo)
+    parkourMultiContainerMod(GetOff)
+    parkourMultiContainerMod(JumpOff)
 
     dobjFor(ClimbUp) asDobjFor(Board)
     dobjFor(ClimbDown) asDobjFor(GetOff)
 
+    dobjFor(Examine) {
+        action() {
+            inherited();
+            getIndirectParkourPlatform().observePossibleLink();
+        }
+    }
+
     getIndirectParkourPlatform() {
         return remapOn;
     }
-
-    /*getParkourPlatform() {
-        return remapOn;
-    }*/
 }
 
 class ParkourPlatform: Platform {
@@ -884,6 +923,13 @@ class ParkourPlatform: Platform {
 
     getIndirectParkourPlatform() {
         return self;
+    }
+
+    dobjFor(Examine) {
+        action() {
+            inherited();
+            observePossibleLink();
+        }
     }
 
     iobjFor(PutOn) {
@@ -1409,9 +1455,11 @@ class ParkourPlatform: Platform {
     }
 
     getRangeFromSource() {
+        local currentPlat = gActor.getParkourPlatform();
+
         // If we are on a generic, then we will start climbing from the floor
         // If we are already on the floor, then get range from height
-        if (gActorIsOnGenericPlatform || gActor.location == gActor.getOutermostRoom()) {
+        if (currentPlat == nil) {
             switch (height) {
                 case low:
                     return climbUpRange;
@@ -1422,13 +1470,14 @@ class ParkourPlatform: Platform {
             }
         }
         else {
-            for (local i = 1; i <= gActor.location.totalParkourLinks.length; i++) {
-                local link = gActor.location.totalParkourLinks[i];
+            for (local i = 1; i <= currentPlat.totalParkourLinks.length; i++) {
+                local link = currentPlat.totalParkourLinks[i];
                 if (link.dst == self) {
                     return link.range;
                 }
             }
         }
+
         return nil;
     }
 
@@ -1528,7 +1577,7 @@ class ParkourPlatform: Platform {
     }
 
     handleGenericSource() {
-        if (gActorIsOnGenericPlatform) {
+        if (gActor.getParkourPlatform() == nil && gActor.location.contType != nil) {
             if (gActor.location.contType == On) {
                 // Get off of generic platforms first
                 tryImplicitAction(GetOff, gActor.location);
@@ -1540,11 +1589,32 @@ class ParkourPlatform: Platform {
         }
     }
 
+    learnLinkTo(otherPlat) {
+        for (local i = 1; i <= totalParkourLinks.length; i++) {
+            local link = totalParkourLinks[i];
+            if (link.dst == otherPlat) {
+                link.isKnown = true;
+                return;
+            }
+        }
+    }
+
+    learnLinkBetweenHereAnd(actor) {
+        local currentPlatform = actor.getParkourPlatform();
+        if (currentPlatform != nil) {
+            currentPlatform.learnLinkTo(self);
+            learnLinkTo(currentPlatform);
+        }
+        actor.setClimbKnowledgeOf(self);
+    }
+
     doClimbAction() {
+        learnLinkBetweenHereAnd(gActor);
         gActor.actionMoveInto(self);
+        gActor.setHasClimbed(self);
 
         // Only list connection strings if the inheritor won't handle it
-        if (!hasConnectionStringOverride) {
+        if (!hasConnectionStringOverride && gActor == gPlayerChar) {
             reportAfter(getConnectionString());
         }
     }
@@ -1568,6 +1638,25 @@ class ParkourPlatform: Platform {
                 break;
         }
     }
+
+    observePossibleLink() {
+        if (gActor == gPlayerChar) {
+            if (!isKnownToBeClimbableBy(gPlayerChar)) {
+                local range = getRangeFromSource();
+                if (range != nil) {
+                    local obj = self;
+                    gMessageParams(obj);
+                    local rangeString = getConnectionActionStr(self, range);
+                    learnLinkBetweenHereAnd(gActor);
+                    reportAfter('\b(It{dummy} look{s/ed} like {i} {can} ' +
+                        rangeString + ' {that obj} from {here}.) ');
+                }
+            }
+        }
+    }
+
+    //TODO: Implement unexpected accidents for parkour
+    //TODO: Implement possible difficulties for other ranges
 
     handleJumpUpDifficulty(actor) {
         //
@@ -1672,13 +1761,13 @@ class ParkourPlatform: Platform {
         }
 
         local strBfr = new StringBuffer(40);
-        local climbUpLinkList = getClimbUpLinkList();
-        local climbDownLinkList = getClimbDownLinkList();
-        local stepLinkList = getStepLinkList();
-        local jumpUpLinkList = getJumpUpLinkList();
-        local jumpDownLinkList = getJumpDownLinkList();
-        local leapLinkList = getLeapLinkList();
-        local fallLinkList = getFallLinkList();
+        local climbUpLinkList = getParkourLinkList(climbUpRange);
+        local climbDownLinkList = getParkourLinkList(climbDownRange);
+        local stepLinkList = getParkourLinkList(stepRange);
+        local jumpUpLinkList = getParkourLinkList(jumpUpRange);
+        local jumpDownLinkList = getParkourLinkList(jumpDownRange);
+        local leapLinkList = getParkourLinkList(leapRange);
+        local fallLinkList = getParkourLinkList(fallDownRange);
 
         local climbCount =
             climbUpLinkList.length +
@@ -1692,17 +1781,17 @@ class ParkourPlatform: Platform {
             fallLinkList.length;
 
         if (climbCount > 0) {
-            strBfr.append('\n<tt>(CL)</tt> <b>Climbing routes:</b>');
-            getConnectionListString(climbUpLinkList, strBfr, 'climb', &climbUpDirPrep);
-            getConnectionListString(climbDownLinkList, strBfr, 'climb', &climbDownDirPrep);
-            getConnectionListString(stepLinkList, strBfr, 'step', &stepDirPrep);
+            strBfr.append('\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>');
+            getConnectionListString(climbUpLinkList, strBfr, climbUpRange);
+            getConnectionListString(climbDownLinkList, strBfr, climbDownRange);
+            getConnectionListString(stepLinkList, strBfr, stepRange);
         }
         if (jumpCount > 0) {
-            strBfr.append('\n<tt>(JM)</tt> <b>Jumping routes:</b>');
-            getConnectionListString(jumpUpLinkList, strBfr, 'jump', &jumpUpDirPrep);
-            getConnectionListString(jumpDownLinkList, strBfr, 'jump', &jumpDownDirPrep);
-            getConnectionListString(leapLinkList, strBfr, 'leap', &leapDirPrep);
-            getConnectionListString(fallLinkList, strBfr, 'jump <i>(recklessly)</i>', &jumpDownDirPrep);
+            strBfr.append('\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>');
+            getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
+            getConnectionListString(jumpDownLinkList, strBfr, jumpDownRange);
+            getConnectionListString(leapLinkList, strBfr, leapRange);
+            getConnectionListString(fallLinkList, strBfr, fallDownRange);
         }
 
         if (climbCount == 0 && jumpCount == 0) return stuckOnPlatformMsg;
@@ -1710,17 +1799,59 @@ class ParkourPlatform: Platform {
         return toString(strBfr);
     }
 
-    getConnectionListString(lst, bfr, actionStr, prepPtr) {
+    getConnectionActionFromRange(parkourRange) {
+        switch (parkourRange) {
+            case climbUpRange:
+            case climbDownRange:
+                return 'climb';
+            case jumpUpRange:
+            case jumpDownRange:
+                return 'jump';
+            case fallDownRange:
+                return 'jump <i>(recklessly)</i>';
+            case stepRange:
+                return 'step';
+        }
+        return 'leap';
+    }
+
+    getDirPrepFromRange(parkourRange) {
+        switch (parkourRange) {
+            case climbUpRange:
+                return &climbUpDirPrep;
+            case climbDownRange:
+                return &climbDownDirPrep;
+            case jumpUpRange:
+                return &jumpUpDirPrep;
+            case jumpDownRange:
+            case fallDownRange:
+                return &jumpDownDirPrep;
+            case stepRange:
+                return &stepDirPrep;
+        }
+        return &leapDirPrep;
+    }
+
+    getGetMultiClassDirPrep(dest, parkourRange) {
+        local prepPtr = getDirPrepFromRange(parkourRange);
+        if (dest.ofKind(ParkourPlatform)) return dest.(prepPtr);
+        else if (dest.ofKind(Platform)) return 'onto';
+        return 'to';
+    }
+
+    getConnectionActionStr(dest, parkourRange) {
+        return getConnectionActionFromRange(parkourRange) + ' ' + getGetMultiClassDirPrep(dest, parkourRange);
+    }
+
+    getConnectionListString(lst, bfr, parkourRange) {
         if (lst.length == 0) return;
-        bfr.append('\n{I} {can} ');
+        local actionStr = getConnectionActionFromRange(parkourRange);
+        bfr.append('\n\t{I} {can} ');
         bfr.append(actionStr);
         bfr.append(' ');
         for (local i = 1; i <= lst.length; i++) {
             local dest = lst[i];
-            local destPrep = 'to ';
-            if (dest.ofKind(ParkourPlatform)) destPrep = dest.(prepPtr);
-            else if (dest.ofKind(Platform)) destPrep = 'onto';
-            bfr.append(destPrep);
+            bfr.append(getGetMultiClassDirPrep(dest, parkourRange));
             bfr.append(' ');
             bfr.append(dest.theName);
             if (i == lst.length) {
@@ -1745,83 +1876,34 @@ class ParkourPlatform: Platform {
         return nil;
     }
 
-    getClimbUpLinkList() {
+    getParkourLinkList(parkourRange) {
         local lst = [];
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == climbUpRange) {
-                lst += link.dst;
-            }
-        }
-        return lst;
-    }
 
-    getClimbDownLinkList() {
-        local lst = [];
-        if (height == low || height == awkward) lst += getOutermostRoom().floorObj;
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == climbDownRange) {
-                lst += link.dst;
-            }
+        local matchesRange = nil;
+        switch (height) {
+            case low:
+            case awkward:
+                matchesRange = parkourRange == climbDownRange;
+                break;
+            case high:
+                matchesRange = parkourRange == jumpDownRange;
+                break;
+            case damaging:
+                matchesRange = parkourRange == fallDownRange;
+                break;
         }
-        return lst;
-    }
+        if (matchesRange) lst += getOutermostRoom().floorObj;
 
-    getStepLinkList() {
-        local lst = [];
         for (local i = 1; i <= totalParkourLinks.length; i++) {
             local link = totalParkourLinks[i];
-            if (link.range == stepRange) {
-                lst += link.dst;
-            }
-        }
-        return lst;
-    }
 
-    getJumpUpLinkList() {
-        local lst = [];
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == jumpUpRange) {
-                lst += link.dst;
-            }
+            if (link.range != parkourRange) continue;
+            if (!link.isKnown) continue;
+            if (!gPlayerChar.knowsAbout(link.dst)) continue;
+            
+            lst += link.dst;
         }
-        return lst;
-    }
 
-    getJumpDownLinkList() {
-        local lst = [];
-        if (height == high) lst += getOutermostRoom().floorObj;
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == jumpDownRange) {
-                lst += link.dst;
-            }
-        }
-        return lst;
-    }
-
-    getLeapLinkList() {
-        local lst = [];
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == leapRange) {
-                lst += link.dst;
-            }
-        }
-        return lst;
-    }
-
-    getFallLinkList() {
-        local lst = [];
-        if (height == damaging) lst += getOutermostRoom().floorObj;
-        for (local i = 1; i <= totalParkourLinks.length; i++) {
-            local link = totalParkourLinks[i];
-            if (link.range == fallDownRange) {
-                lst += link.dst;
-            }
-        }
         return lst;
     }
 }
