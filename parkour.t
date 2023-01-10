@@ -189,8 +189,29 @@ modify VerbRule(JumpOver)
     ('jump'|'hop'|'leap'|'vault') ('over'|'across'|('on'|'over' ('the'|)) 'top' 'of'|) singleDobj :
 ;
 
+VerbRule(ShowParkourRoutes)
+    ((('show'|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search') ('all'|'available'|'known'|'familiar'|'traveled'|'travelled'|)|)
+    (
+        (('climbing'|'parkour') ('paths'|'pathways'|'options'|'routes'|'connections'|'links')) |
+        (('climbable'|'jumpable') ('paths'|'pathways'|'options'|'routes'|'connections'|'links'|'platforms'|'surfaces'|'fixtures'|'things'|'spots'|'stuff'|'objects'|'furniture'|'ledges'|'places'))
+    )) |
+    ('parkour'|'prkr'|'pkr'|'pk')
+    : VerbProduction
+    action = ShowParkourRoutes
+    verbPhrase = 'show/showing parkour routes'        
+;
+
+DefineIAction(ShowParkourRoutes)
+    execAction(cmd) {
+        local currentPlat = gActor.getParkourPlatform();
+        if (currentPlat == nil) {
+            currentPlat = gActor.getOutermostRoom();
+        }
+        "<<currentPlat.getConnectionString()>> ";
+    }
+;
+
 //TODO: Slide under
-//TODO: List parkour connections with command
 
 QParkour: Special {
     priority = 16
@@ -516,12 +537,48 @@ modify Floor {
 }
 
 modify Room {
+    knownFloorLinks = perInstance(new Vector())
+
     getParkourPlatform() {
         return nil;
     }
 
     isSomehowOnParkourPlatform() {
         return nil;
+    }
+
+    getLinksByRange(parkourRange) {
+        local lst = [];
+
+        for (local i = 1; i <= knownFloorLinks.length; i++) {
+            local link = knownFloorLinks[i];
+            if (link.range == parkourRange) {
+                lst += link.dst;
+            }
+        }
+
+        return lst;
+    }
+
+    getConnectionString() {
+        if (knownFloorLinks.length == 0) return '{I} {do} not know of any parkour routes from {here}. ';
+
+        local strBfr = new StringBuffer(40);
+        local climbUpLinkList = getLinksByRange(climbUpRange);
+        local jumpUpLinkList = getLinksByRange(jumpUpRange);
+
+        if (climbUpLinkList.length > 0) {
+            strBfr.append('\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>');
+            climbUpLinkList[1].getConnectionListString(climbUpLinkList, strBfr, climbUpRange);
+        }
+        if (jumpUpLinkList.length > 0) {
+            strBfr.append('\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>');
+            jumpUpLinkList[1].getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
+        }
+
+        //strBfr.append('\b');
+
+        return toString(strBfr);
     }
 }
 
@@ -1454,20 +1511,24 @@ class ParkourPlatform: Platform {
         return nil;
     }
 
+    getRangeFromFloor() {
+        switch (height) {
+            case low:
+                return climbUpRange;
+            case awkward:
+                return jumpUpRange;
+        }
+
+        return nil;
+    }
+
     getRangeFromSource() {
         local currentPlat = gActor.getParkourPlatform();
 
         // If we are on a generic, then we will start climbing from the floor
         // If we are already on the floor, then get range from height
         if (currentPlat == nil) {
-            switch (height) {
-                case low:
-                    return climbUpRange;
-                case awkward:
-                    return jumpUpRange;
-                default:
-                    return nil;
-            }
+            return getRangeFromFloor();
         }
         else {
             for (local i = 1; i <= currentPlat.totalParkourLinks.length; i++) {
@@ -1589,6 +1650,17 @@ class ParkourPlatform: Platform {
         }
     }
 
+    learnFloorLink() {
+        local floorRange = getRangeFromFloor();
+        if (floorRange != nil) {
+            local room = gActor.getOutermostRoom();
+            for (local i = 1; i <= room.knownFloorLinks.length; i++) {
+                if (room.knownFloorLinks[i].dst == self) return; // Already known
+            }
+            room.knownFloorLinks.append(new ParkourLink(self, floorRange));
+        }
+    }
+
     learnLinkTo(otherPlat) {
         for (local i = 1; i <= totalParkourLinks.length; i++) {
             local link = totalParkourLinks[i];
@@ -1605,6 +1677,7 @@ class ParkourPlatform: Platform {
             currentPlatform.learnLinkTo(self);
             learnLinkTo(currentPlatform);
         }
+        learnFloorLink();
         actor.setClimbKnowledgeOf(self);
     }
 
@@ -1616,6 +1689,22 @@ class ParkourPlatform: Platform {
         // Only list connection strings if the inheritor won't handle it
         if (!hasConnectionStringOverride && gActor == gPlayerChar) {
             reportAfter(getConnectionString());
+        }
+    }
+
+    observePossibleLink() {
+        if (gActor == gPlayerChar) {
+            if (!isKnownToBeClimbableBy(gPlayerChar)) {
+                local range = getRangeFromSource();
+                if (range != nil) {
+                    local obj = self;
+                    gMessageParams(obj);
+                    local rangeString = getConnectionActionStr(self, range);
+                    learnLinkBetweenHereAnd(gActor);
+                    reportAfter('\b(It{dummy} look{s/ed} like {i} {can} ' +
+                        rangeString + ' {that obj} from {here}.) ');
+                }
+            }
         }
     }
 
@@ -1636,22 +1725,6 @@ class ParkourPlatform: Platform {
             default:
                 doClimbAction();
                 break;
-        }
-    }
-
-    observePossibleLink() {
-        if (gActor == gPlayerChar) {
-            if (!isKnownToBeClimbableBy(gPlayerChar)) {
-                local range = getRangeFromSource();
-                if (range != nil) {
-                    local obj = self;
-                    gMessageParams(obj);
-                    local rangeString = getConnectionActionStr(self, range);
-                    learnLinkBetweenHereAnd(gActor);
-                    reportAfter('\b(It{dummy} look{s/ed} like {i} {can} ' +
-                        rangeString + ' {that obj} from {here}.) ');
-                }
-            }
         }
     }
 
