@@ -63,6 +63,11 @@ modify ParkourPlatform {
         soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
     }
 
+    handleLeapDifficulty(actor) {
+        if (actor != gPlayerChar) return;
+        soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
+    }
+
     handleFallDownDifficulty(actor) {
         if (actor != gPlayerChar) return;
         soundBleedCore.createSound(hardImpactNoiseProfile, getOutermostRoom(), true);

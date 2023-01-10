@@ -1118,6 +1118,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleClimbUpDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1141,6 +1142,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleClimbUpDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1164,6 +1166,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleStepDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1190,6 +1193,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleStepDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1213,6 +1217,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleClimbDownDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1236,6 +1241,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAction();
+            handleClimbDownDifficulty(gActor);
         }
         report() {
             doRepClimbChoices();
@@ -1307,7 +1313,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            handleJumpUpDifficulty(gActor);
+            handleLeapDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1331,7 +1337,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            handleJumpUpDifficulty(gActor);
+            handleLeapDifficulty(gActor);
         }
         report() {
             doRepJumpChoices();
@@ -1412,6 +1418,10 @@ class ParkourPlatform: Platform {
                     illogicalNow(wayTooHighClimbDownMsg);
                     break;
             }
+        }
+        action() {
+            inherited();
+            handleClimbDownDifficulty(gActor);
         }
         report() {
             doRepClimbDown(gActor.getOutermostRoom().floorObj);
@@ -1734,13 +1744,28 @@ class ParkourPlatform: Platform {
     }
 
     //TODO: Implement unexpected accidents for parkour
-    //TODO: Implement possible difficulties for other ranges
+
+    handleClimbUpDifficulty(actor) {
+        //
+    }
+
+    handleClimbDownDifficulty(actor) {
+        //
+    }
+
+    handleStepDifficulty(actor) {
+        //
+    }
 
     handleJumpUpDifficulty(actor) {
         //
     }
 
     handleJumpDownDifficulty(actor) {
+        //
+    }
+
+    handleLeapDifficulty(actor) {
         //
     }
 
