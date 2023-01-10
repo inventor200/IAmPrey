@@ -38,7 +38,7 @@ hardImpactNoiseProfile: SoundProfile {
 
 modify ParkourPlatform {
     getClimbAdvantageReason(preferredQuality) {
-        return preferredQuality + 'for a quieter approach';
+        return preferredQuality + ' enough for a quieter approach';
     }
 
     getJumpRisk() {
