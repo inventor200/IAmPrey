@@ -84,7 +84,7 @@ modify ParkourPlatform {
         local obj = destThing;
         gMessageParams(obj);
         "It's noisy, but {i} {hold} onto
-        <<gParkourLastPlatform.theEdgeName>>,{aac}
+        <<gParkourTheEdgeName>>,{aac}
         drop{s/?ed} to a hanging position,{aac}
         {let} go,{aac}
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
@@ -100,7 +100,7 @@ modify ParkourPlatform {
     doRepFall(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "{I} {hold} onto <<gParkourLastPlatform.theEdgeName>>,{aac}
+        "{I} {hold} onto <<gParkourTheEdgeName>>,{aac}
         drop{s/?ed} to a hanging position,{aac}
         and {let} go. The loud impact{dummy} fire{s/d} a sharp,
         lancing pain through {my} bones.
