@@ -135,7 +135,7 @@ DefineTAction(ParkourClimbUpInto)
 ;
 
 VerbRule(ParkourClimbUpTo)
-    (('get' ('on' | 'onto' | 'on' 'to')) | ('climb' ('on' | 'onto' | 'on' 'to'))) singleDobj
+    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'run'|'sprint') 'up' (('the'|) 'side' 'of'|'to'|) singleDobj
     : VerbProduction
     action = ParkourClimbUpTo
     verbPhrase = 'climb up to (what)'
@@ -203,10 +203,10 @@ modify VerbRule(JumpOver)
 VerbRule(ShowParkourRoutes)
     ((('show'|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search') ('all'|'available'|'known'|'familiar'|'traveled'|'travelled'|)|)
     (
-        (('climbing'|'parkour') ('paths'|'pathways'|'options'|'routes'|'connections'|'links')) |
-        (('climbable'|'jumpable') ('paths'|'pathways'|'options'|'routes'|'connections'|'links'|'platforms'|'surfaces'|'fixtures'|'things'|'spots'|'stuff'|'objects'|'furniture'|'ledges'|'places'))
+        (('climbing'|'parkour') ('paths'|'pathways'|'options'|'routes')) |
+        (('climbable'|'jumpable') ('paths'|'pathways'|'options'|'routes'|'platforms'|'surfaces'|'fixtures'|'things'|'spots'|'stuff'|'objects'|'furniture'|'ledges'|'places'))
     )) |
-    ('parkour'|'prkr'|'pkr'|'pk')
+    ('parkour'|'prkr'|'pkr'|'pk'|'routes'|'paths'|'pathways')
     : VerbProduction
     action = ShowParkourRoutes
     verbPhrase = 'show/showing parkour routes'        
