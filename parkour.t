@@ -295,17 +295,22 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     }
 }
 
-//TODO: Show previously-discovered climbable-from-floor parkour objects after looking around a room
+#define gParkourAvailableRange parkourCache.availableRange
+#define gParkourAttemptedRange parkourCache.attemptedRange
+#define gParkourLastPlatform parkourCache.lastPlatform
+#define gRememberLastPlatform parkourCache.rememberLastPlatform
 
-modify Thing {
-    parkourAvailableRangeCache = nil; //TODO: Move these into a core object instead
-    parkourAttemptedRangeCache = nil;
-    parkourLastPlatform = nil;
+parkourCache: object {
+    availableRange = nil
+    attemptedRange = nil
+    lastPlatform = nil
 
     rememberLastPlatform() {
-        parkourLastPlatform = getParkourPlatform();
+        lastPlatform = getParkourPlatform();
     }
+}
 
+modify Thing {
     dobjFor(ParkourClimbDownTo) asDobjFor(ParkourTo)
     dobjFor(ParkourJumpTo) asDobjFor(ParkourTo)
     dobjFor(ParkourJumpDownTo) asDobjFor(ParkourTo)
@@ -746,7 +751,7 @@ class ParkourExit: ParkourTwoSidedTravelConnector, ParkourPlatform, ParkourParti
     }
 
     travelDesc() {
-        switch (gActor.parkourAvailableRangeCache) {
+        switch (gParkourAvailableRange) {
             case climbUpRange:
                 doRepClimbUp(self);
                 break;
@@ -950,7 +955,7 @@ class ParkourPlatform: Platform {
         local obj = destThing;
         gMessageParams(obj);
         "{I} {hold} onto
-        <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        <<gParkourLastPlatform.theEdgeName>>,{aac}
         drop{s/?ed} to a hanging position,{aac}
         {let} go,{aac}
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
@@ -966,7 +971,7 @@ class ParkourPlatform: Platform {
     doRepFall(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "{I} {hold} onto <<gActor.parkourLastPlatform.theEdgeName>>,{aac}
+        "{I} {hold} onto <<gParkourLastPlatform.theEdgeName>>,{aac}
         drop{s/?ed} to a hanging position,{aac}
         and {let} go. {I} land{s/ed} hard, and{aac} {find} {myself}
         <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
@@ -1008,13 +1013,13 @@ class ParkourPlatform: Platform {
         preCond = [touchObj]
 
         verify() {
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gParkourAvailableRange = getRangeFromSource();
             verifyGeneral();
         }
         check() { }
         action() {
             if (contType == In) {
-                switch (gActor.parkourAvailableRangeCache) {
+                switch (gParkourAvailableRange) {
                     default:
                         doInstead(ParkourClimbUpInto, self);
                         break;
@@ -1030,7 +1035,7 @@ class ParkourPlatform: Platform {
                 }
             }
             else {
-                switch (gActor.parkourAvailableRangeCache) {
+                switch (gParkourAvailableRange) {
                     default:
                         doInstead(Board, self);
                         break;
@@ -1054,13 +1059,13 @@ class ParkourPlatform: Platform {
         preCond = [touchObj]
 
         verify() {
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
+            gParkourAvailableRange = getRangeFromSource();
             verifyGeneral();
         }
         check() { }
         action() {
             if (contType == In) {
-                switch (gActor.parkourAvailableRangeCache) {
+                switch (gParkourAvailableRange) {
                     default:
                         doInstead(ParkourJumpUpInto, self);
                         break;
@@ -1076,7 +1081,7 @@ class ParkourPlatform: Platform {
                 }
             }
             else {
-                switch (gActor.parkourAvailableRangeCache) {
+                switch (gParkourAvailableRange) {
                     default:
                         doInstead(ParkourJumpUp, self);
                         break;
@@ -1103,9 +1108,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbUpRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbUpRange;
             verifyGeneral();
             verifyClimb([climbUpRange], [jumpUpRange]);
         }
@@ -1126,9 +1131,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbUpRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbUpRange;
             verifyGeneral();
             verifyClimb([climbUpRange], [jumpUpRange]);
         }
@@ -1149,9 +1154,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = stepRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = stepRange;
             verifyGeneral();
             verifyClimb([stepRange], [leapRange]);
         }
@@ -1175,9 +1180,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = stepRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = stepRange;
             verifyGeneral();
             verifyClimb([stepRange], [leapRange]);
         }
@@ -1198,9 +1203,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbDownRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbDownRange;
             verifyGeneral();
             verifyClimb([climbDownRange], [jumpDownRange, fallDownRange]);
         }
@@ -1221,9 +1226,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbDownRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbDownRange;
             verifyGeneral();
             verifyClimb([climbDownRange], [jumpDownRange, fallDownRange]);
         }
@@ -1244,9 +1249,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbUpRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbUpRange;
             verifyGeneral();
             verifyJump([climbUpRange], [jumpUpRange]);
         }
@@ -1268,9 +1273,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbUpRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbUpRange;
             verifyGeneral();
             verifyJump([climbUpRange], [jumpUpRange]);
         }
@@ -1292,9 +1297,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = stepRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = stepRange;
             verifyGeneral();
             verifyJump([stepRange], [leapRange]);
         }
@@ -1316,9 +1321,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = stepRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = stepRange;
             verifyGeneral();
             verifyJump([stepRange], [leapRange]);
         }
@@ -1340,9 +1345,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(On);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbDownRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbDownRange;
             verifyGeneral();
             verifyJump([climbDownRange], [jumpDownRange, fallDownRange]);
         }
@@ -1350,7 +1355,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            if (gActor.parkourAvailableRangeCache == fallDownRange) {
+            if (gParkourAvailableRange == fallDownRange) {
                 handleFallDownDifficulty(gActor);
             }
             else {
@@ -1369,9 +1374,9 @@ class ParkourPlatform: Platform {
 
         verify() {
             verifyMinimal(In);
-            gActor.parkourAvailableRangeCache = getRangeFromSource();
-            gActor.rememberLastPlatform();
-            gActor.parkourAttemptedRangeCache = climbDownRange;
+            gParkourAvailableRange = getRangeFromSource();
+            gRememberLastPlatform();
+            gParkourAttemptedRange = climbDownRange;
             verifyGeneral();
             verifyJump([climbDownRange], [jumpDownRange, fallDownRange]);
         }
@@ -1379,7 +1384,7 @@ class ParkourPlatform: Platform {
         action() {
             handleGenericSource();
             doClimbAttempt();
-            if (gActor.parkourAvailableRangeCache == fallDownRange) {
+            if (gParkourAvailableRange == fallDownRange) {
                 handleFallDownDifficulty(gActor);
             }
             else {
@@ -1574,18 +1579,18 @@ class ParkourPlatform: Platform {
     }
 
     verifyGeneral() {
-        if (gActor.parkourAvailableRangeCache == nil) {
+        if (gParkourAvailableRange == nil) {
             illogical(cannotParkourToMsg);
         }
     }
 
     verifyClimb(climbRangeList, jumpRangeList) {
-        local isInClimbRange = (climbRangeList.indexOf(gActor.parkourAvailableRangeCache) != nil);
-        local isInJumpRange = (jumpRangeList.indexOf(gActor.parkourAvailableRangeCache) != nil);
+        local isInClimbRange = (climbRangeList.indexOf(gParkourAvailableRange) != nil);
+        local isInJumpRange = (jumpRangeList.indexOf(gParkourAvailableRange) != nil);
 
         if (!isInClimbRange) {
             if (isInJumpRange) {
-                switch (gActor.parkourAvailableRangeCache) {
+                switch (gParkourAvailableRange) {
                     case jumpUpRange:
                         illogicalNow(cannotSimplyParkourOnMsg);
                         break;
@@ -1601,7 +1606,7 @@ class ParkourPlatform: Platform {
                 }
             }
             else {
-                switch (gActor.parkourAttemptedRangeCache) {
+                switch (gParkourAttemptedRange) {
                     case climbUpRange:
                         illogical(parkourCannotClimbUpMsg);
                         break;
@@ -1619,11 +1624,11 @@ class ParkourPlatform: Platform {
     }
 
     verifyJump(climbRangeList, jumpRangeList) {
-        local isInClimbRange = (climbRangeList.indexOf(gActor.parkourAvailableRangeCache) != nil);
-        local isInJumpRange = (jumpRangeList.indexOf(gActor.parkourAvailableRangeCache) != nil);
+        local isInClimbRange = (climbRangeList.indexOf(gParkourAvailableRange) != nil);
+        local isInJumpRange = (jumpRangeList.indexOf(gParkourAvailableRange) != nil);
 
         if (!isInJumpRange && !isInClimbRange) {
-            switch (gActor.parkourAttemptedRangeCache) {
+            switch (gParkourAttemptedRange) {
                 case climbUpRange:
                     illogical(cannotJumpUp);
                     break;
@@ -1709,7 +1714,7 @@ class ParkourPlatform: Platform {
     }
 
     doClimbAttempt() {
-        switch (gActor.parkourAvailableRangeCache) {
+        switch (gParkourAvailableRange) {
             case climbUpRange:
                 extraReport('({the subj dobj} {is} ' + getClimbAdvantageReason('low') + '.)\n');
                 doInstead(ClimbUp, self);
@@ -1744,7 +1749,7 @@ class ParkourPlatform: Platform {
     }
 
     doRepClimbChoices() {
-        switch (gActor.parkourAvailableRangeCache) {
+        switch (gParkourAvailableRange) {
             case climbUpRange:
                 doRepClimbUp(self);
                 break;
@@ -1758,7 +1763,7 @@ class ParkourPlatform: Platform {
     }
 
     doRepJumpChoices() {
-        switch (gActor.parkourAvailableRangeCache) {
+        switch (gParkourAvailableRange) {
             case jumpUpRange:
                 doRepJumpUp(self);
                 break;
