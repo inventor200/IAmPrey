@@ -1,6 +1,6 @@
 enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
-soundBleedCore: object {
+soundBleedCore: InitObject {
     soundDaemon = nil
     envSounds = static new Vector(16) // Non-player sounds go here
     envSoundRooms = static new Vector(16) // Aligned room vector so new objects are not created
@@ -17,7 +17,7 @@ soundBleedCore: object {
     propagationPlayerPerceivedStrength = 0
     detectedSourceRoom = nil
 
-    activate() {
+    execute() {
         soundDaemon = new Daemon(self, &doPropagation, 0);
         soundDaemon.eventOrder = 110;
     }

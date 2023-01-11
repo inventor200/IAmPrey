@@ -117,3 +117,59 @@ defaultLabFloor: Floor { 'the floor'
 modify Room {
     floorObj = defaultLabFloor
 }
+
+modify ParkourClimbOverTo {
+    isFinnicky = true
+}
+
+modify ParkourClimbOverInto {
+    isFinnicky = true
+}
+
+modify ParkourJumpOverTo {
+    isFinnicky = true
+}
+
+modify ParkourJumpGeneric {
+    isFinnicky = true
+}
+
+modify ParkourJumpOverInto {
+    isFinnicky = true
+}
+
+modify ParkourJumpUpTo {
+    isFinnicky = true
+}
+
+modify ParkourJumpUpInto {
+    isFinnicky = true
+}
+
+modify ParkourJumpDownTo {
+    isFinnicky = true
+}
+
+modify ParkourJumpDownInto {
+    isFinnicky = true
+}
+
+modify ParkourClimbDownTo {
+    isFinnicky = true
+}
+
+modify ParkourClimbDownInto {
+    isFinnicky = true
+}
+
+modify ParkourClimbUpInto {
+    isFinnicky = true
+}
+
+modify ParkourClimbUpTo {
+    isFinnicky = true
+}
+
+modify ShowParkourRoutes {
+    skipsCheckAllSafeties = true
+}

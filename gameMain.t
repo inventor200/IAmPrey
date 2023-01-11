@@ -6,13 +6,14 @@
 #define gWasObservantAction (gAction.ofKind(SystemAction) || gActionIs(Look) || gActionIs(Listen) || gActionIs(Smell))
 #include "soundBleed.t"
 #include "parkour.t"
+#include "allHeur.t"
 #include "moduleUnion.t"
 
 gameMain: GameMainDef {
     initialPlayerChar = me
 
     showIntro() {
-        soundBleedCore.activate();
+        //
     }
 }
 
@@ -58,6 +59,7 @@ centralRoom: Room { 'Central Room'
 
 ++bottle: Thing { 'water bottle'
     "A difficult water bottle. "
+    //examined = true
 }
 
 ++dogCage: Booth { 'dog cage'
@@ -89,6 +91,10 @@ centralRoom: Room { 'Central Room'
 
 ++cup: Thing { 'cup'
     "A ceramic cup. "
+}
+
+++puzzleCube: Thing { 'puzzle cube'
+    "A 3x3 puzzle cube. "
 }
 
 +obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'

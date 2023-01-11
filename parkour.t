@@ -213,6 +213,8 @@ VerbRule(ShowParkourRoutes)
 ;
 
 DefineIAction(ShowParkourRoutes)
+    allowAll = nil
+
     execAction(cmd) {
         local currentPlat = gActor.getParkourPlatform();
         if (currentPlat == nil) {
