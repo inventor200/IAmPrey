@@ -1,12 +1,36 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
-#define gWasFreeAction (gAction.ofKind(SystemAction))
-#define gWasLenientAction (gAction.ofKind(SystemAction) || gActionIs(Look))
-#define gWasObservantAction (gAction.ofKind(SystemAction) || gActionIs(Look) || gActionIs(Listen) || gActionIs(Smell))
+#define gWasFreeAction ( \
+    gActionIs(SystemAction) || \
+    gActionIs(ShowParkourRoutes) || \
+    gActionIs(Inventory) || \
+    gActionIs(Examine) || \
+    gActionIs(Look) \
+)
+#define gWasLenientAction ( \
+    gWasFreeAction || \
+    gActionIs(Open) || \
+    gActionIs(Close) \
+)
+#define gWasObservantAction ( \
+    gWasLenientAction || \
+    gActionIs(Listen) || \
+    gActionIs(Smell) || \
+    gActionIs(Taste) || \
+    gActionIs(LookBehind) || \
+    gActionIs(LookIn) || \
+    gActionIs(LookThrough) || \
+    gActionIs(LookUnder) \
+)
 #include "soundBleed.t"
 #include "parkour.t"
-#include "allHeur.t"
+#include "trinkets.t"
+#if __DEBUG
+//
+#else
+#include "ForEveryone.t"
+#endif
 #include "moduleUnion.t"
 
 gameMain: GameMainDef {
@@ -59,7 +83,6 @@ centralRoom: Room { 'Central Room'
 
 ++bottle: Thing { 'water bottle'
     "A difficult water bottle. "
-    //examined = true
 }
 
 ++dogCage: Booth { 'dog cage'
@@ -93,7 +116,7 @@ centralRoom: Room { 'Central Room'
     "A ceramic cup. "
 }
 
-++puzzleCube: Thing { 'puzzle cube'
+++puzzleCube: Trinket { 'puzzle cube'
     "A 3x3 puzzle cube. "
 }
 

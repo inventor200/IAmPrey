@@ -37,10 +37,18 @@ soundBleedCore: InitObject {
         }
     }
 
+    freeActionPassed() {
+        return gActionIs(SystemAction) ||
+            gActionIs(ShowParkourRoutes) ||
+            gActionIs(Inventory) || 
+            gActionIs(Examine) ||
+            gActionIs(Look);
+    }
+
     doPropagation() {
         if (envSounds.length == 0 && playerSounds.length == 0) return;
 
-        if (gWasFreeAction) {
+        if (freeActionPassed()) {
             say('\b(Free action taken; skipping...)\b');
             return;
         }
@@ -334,7 +342,7 @@ class SubtleSound: Noise {
     }
 
     checkLifecycle() {
-        if (gWasFreeAction || gActionIs(Look)) {
+        if (freeActionPassed()) {
             setupFuse();
         }
         else {

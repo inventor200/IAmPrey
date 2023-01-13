@@ -3,6 +3,12 @@
  * with the goal of keeping them modular and reusable.
  */
 
+modify soundBleedCore {
+    freeActionPassed() {
+        return gWasFreeAction;
+    }
+}
+
 climbingNoiseProfile: SoundProfile {
     'the muffled racket of something clambering'
     'the nearby racket of something clambering'
@@ -116,60 +122,4 @@ defaultLabFloor: Floor { 'the floor'
 
 modify Room {
     floorObj = defaultLabFloor
-}
-
-modify ParkourClimbOverTo {
-    isFinnicky = true
-}
-
-modify ParkourClimbOverInto {
-    isFinnicky = true
-}
-
-modify ParkourJumpOverTo {
-    isFinnicky = true
-}
-
-modify ParkourJumpGeneric {
-    isFinnicky = true
-}
-
-modify ParkourJumpOverInto {
-    isFinnicky = true
-}
-
-modify ParkourJumpUpTo {
-    isFinnicky = true
-}
-
-modify ParkourJumpUpInto {
-    isFinnicky = true
-}
-
-modify ParkourJumpDownTo {
-    isFinnicky = true
-}
-
-modify ParkourJumpDownInto {
-    isFinnicky = true
-}
-
-modify ParkourClimbDownTo {
-    isFinnicky = true
-}
-
-modify ParkourClimbDownInto {
-    isFinnicky = true
-}
-
-modify ParkourClimbUpInto {
-    isFinnicky = true
-}
-
-modify ParkourClimbUpTo {
-    isFinnicky = true
-}
-
-modify ShowParkourRoutes {
-    skipsCheckAllSafeties = true
 }
