@@ -197,7 +197,7 @@ modify VerbRule(JumpOffIntransitive)
 ;
 
 modify VerbRule(JumpOver)
-    ('jump'|'hop'|'leap'|'vault') ('over'|'across'|('on'|'over' ('the'|)) 'top' 'of'|) singleDobj :
+    ('jump'|'hop'|'leap'|'vault') ('over'|) singleDobj :
 ;
 
 VerbRule(ShowParkourRoutes)
@@ -224,7 +224,42 @@ DefineIAction(ShowParkourRoutes)
     }
 ;
 
-//TODO: Slide under
+VerbRule(ParkourSlideUnder)
+    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither') 'under' singleDobj
+    : VerbProduction
+    action = ParkourSlideUnder
+    verbPhrase = 'slide under (what)'
+    missingQ = 'what do you want to slide under'
+;
+
+DefineTAction(ParkourSlideUnder)
+;
+
+VerbRule(ParkourRunAcross)
+    ('run'|'sprint'|'hop'|'go'|'walk') 'across' singleDobj
+    : VerbProduction
+    action = ParkourRunAcross
+    verbPhrase = 'run across (what)'
+    missingQ = 'what do you want to run across'
+;
+
+DefineTAction(ParkourRunAcross)
+;
+
+VerbRule(ParkourSwingOn)
+    'swing' ('on'|'under'|'with'|'using'|'via'|'across') singleDobj
+    : VerbProduction
+    action = ParkourSwingOn
+    verbPhrase = 'swing on (what)'
+    missingQ = 'what do you want to swing on'
+;
+
+DefineTAction(ParkourSwingOn)
+;
+
+//TODO: Jump over (to go between two places)
+//TODO: Run across (to go between two places)
+//TODO: Swing on (to go between two places)
 
 QParkour: Special {
     priority = 16
@@ -356,7 +391,7 @@ modify Thing {
 
         verify() { 
             if(!canClimbUpMe) {
-                illogical(cannotJumpUp);
+                illogical(cannotJumpUpMsg);
             }
         }
         action() {
@@ -378,7 +413,7 @@ modify Thing {
 
         verify() { 
             if(!canClimbUpMe) {
-                illogical(cannotJumpUp);
+                illogical(cannotJumpUpMsg);
             }
         }
         action() {
@@ -391,6 +426,60 @@ modify Thing {
         action() {
             extraReport(platformLowEnoughMsg);
             doInstead(GetOff, self);
+        }
+    }
+
+    canSlideUnderMe = nil
+
+    dobjFor(ParkourSlideUnder) {
+        preCond = [touchObj]
+
+        remap = remapUnder
+
+        verify() { 
+            if(!canSlideUnderMe) {
+                illogical(cannotSlideUnderMsg);
+            }
+        }
+        action() { }
+        report() {
+            "{I} {slide} under {the subj dobj}. ";
+        }
+    }
+
+    canRunAcrossMe = nil
+
+    dobjFor(ParkourRunAcross) {
+        preCond = [touchObj]
+
+        remap = remapOn
+
+        verify() { 
+            if(!canRunAcrossMe) {
+                illogical(cannotRunAcrossMsg);
+            }
+        }
+        action() { }
+        report() {
+            "{I} {run} across {the subj dobj}. ";
+        }
+    }
+
+    canSwingOnMe = nil
+
+    dobjFor(ParkourSwingOn) {
+        preCond = [touchObj]
+
+        remap = remapUnder
+
+        verify() { 
+            if(!canSwingOnMe) {
+                illogical(cannotSwingOnMsg);
+            }
+        }
+        action() { }
+        report() {
+            "{I} {swing} on {the subj dobj}, and {let} go. ";
         }
     }
 
@@ -463,8 +552,14 @@ modify Thing {
         {I} might need to get on something closer... ')
     platformLowEnoughMsg =
         ('({The subj dobj} {is} ' + ParkourPlatform.getClimbAdvantageReason('low') + '.)\n')
-    cannotJumpUp =
+    cannotJumpUpMsg =
         ('{The subj dobj} {is} not something {i} {can} jump up. ')
+    cannotSlideUnderMsg =
+        ('{The subj dobj} {is} not something {i} {can} slide under. ')
+    cannotRunAcrossMsg =
+        ('{The subj dobj} {is} not something {i} {can} run across. ')
+    cannotSwingOnMsg =
+        ('{The subj dobj} {is} not something {i} {can} swing on. ')
 }
 
 modify Floor {
@@ -589,7 +684,7 @@ modify Room {
         return nil;
     }
 
-    getConnectionString() {
+    getConnectionString() { //TODO: Support better listing options for screen readers
         if (knownFloorLinks.length == 0) return '{I} {do} not know of any parkour routes from {here}. ';
 
         local strBfr = new StringBuffer(40);
@@ -1423,7 +1518,7 @@ class ParkourPlatform: Platform {
         if (!isInJumpRange && !isInClimbRange) {
             switch (gParkourAttemptedRange) {
                 case climbUpRange:
-                    illogical(cannotJumpUp);
+                    illogical(cannotJumpUpMsg);
                     break;
                 case climbDownRange:
                     illogical(wayTooHighClimbDownToMsg);

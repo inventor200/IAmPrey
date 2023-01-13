@@ -106,6 +106,7 @@ centralRoom: Room { 'Central Room'
     "A simple lab desk. "
     climbUpLinks = [cabinet]
     jumpUpLinks = [cargoShelf]
+    canSlideUnderMe = true
 }
 
 +table: Platform { 'generic table'
