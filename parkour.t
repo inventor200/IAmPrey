@@ -298,6 +298,19 @@ QParkour: Special {
             }
         }
 
+        if (b.ofKind(ParkourProvider)) {
+            local currentPlat = a.getParkourPlatform();
+            if (currentPlat != nil) {
+                if (currentPlat.canTouchProvider(b)) {
+                    // We can trust the link
+                    return issues;
+                }
+                else {
+                    issues += new ReachProblemParkour(a, b, b);
+                }
+            }
+        }
+
         if (!a.canReachThroughParkour(b)) {
             issues += new ReachProblemParkour(a, b, b);
         }
@@ -352,6 +365,21 @@ parkourCache: object {
     availableRange = nil
     attemptedRange = nil
     lastPlatform = nil
+
+    requireRouteRecon = true
+
+    //TODO: Support better listing options for screen readers
+    getRoutesOfOpportunityHeader(isFirst, isLast) {
+        return '\b<tt>(->)</tt> <i>routes of opportunity:</i>';
+    }
+
+    getClimbingRoutesHeader(isFirst, isLast) {
+        return '\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>';
+    }
+
+    getJumpingRoutesHeader(isFirst, isLast) {
+        return '\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>';
+    }
 
     rememberLastPlatform() {
         lastPlatform = gActor.getParkourPlatform();
@@ -684,19 +712,21 @@ modify Room {
         return nil;
     }
 
-    getConnectionString() { //TODO: Support better listing options for screen readers
-        if (knownFloorLinks.length == 0) return '{I} {do} not know of any parkour routes from {here}. ';
+    getConnectionString() {
+        if (knownFloorLinks.length == 0) {
+            return '{I} {do} not know of any parkour routes from {here}. ';
+        }
 
         local strBfr = new StringBuffer(40);
         local climbUpLinkList = getLinksByRange(climbUpRange);
         local jumpUpLinkList = getLinksByRange(jumpUpRange);
 
         if (climbUpLinkList.length > 0) {
-            strBfr.append('\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>');
+            strBfr.append(parkourCache.getClimbingRoutesHeader(true, nil));
             climbUpLinkList[1].getConnectionListString(climbUpLinkList, strBfr, climbUpRange);
         }
         if (jumpUpLinkList.length > 0) {
-            strBfr.append('\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>');
+            strBfr.append(parkourCache.getJumpingRoutesHeader(climbUpLinkList.length == 0, nil));
             jumpUpLinkList[1].getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
         }
 
@@ -765,6 +795,67 @@ class ParkourLink: object {
     dst = nil
     range = nil
     isKnown = nil
+    provider = nil
+}
+
+parkourProviderFinder: PreinitObject {
+    execute() {
+        forEachInstance(ParkourProviderPath, {p: p.injectProvider()} );
+    }
+}
+
+//TODO: Adjust touch algorithms to include link providers // Confirm working?
+
+class ParkourProviderPath: object {
+    location = nil
+    destination = nil
+    provider = nil
+    link = nil
+
+    injectProvider() {
+        if (location == nil) return;
+        if (destination == nil) return;
+
+        link = new ParkourLink(destination.getIndirectParkourPlatform(), climbOverRange);
+        
+        link.provider = provider;
+
+        location.totalParkourLinks.appendUnique(link);
+        provider.addPath(self);
+    }
+}
+
+ParkourProviderPath template @provider ->destination;
+
+class ParkourProvider: Thing {
+    associatedPaths = perInstance(new Vector())
+    actionString = 'move{s/d} via <<theName>> to'
+
+    addPath(path) {
+        // No circular paths
+        if (path.location == path.destination) return;
+
+        for (local i = 1; i <= associatedPaths.length; i++) {
+            local oldPath = associatedPaths[i];
+            // Do not have multiple destinations from one location
+            if (path.location == oldPath.location) return;
+        }
+
+        associatedPaths.append(path);
+    }
+
+    dobjFor(Examine) {
+        action() {
+            inherited();
+            for (local i = 1; i <= associatedPaths.length; i++) {
+                associatedPaths[i].destination.observePossibleLink(true);
+            }
+        }
+    }
+
+    //TODO: Implement travel with doClimbAction
+    //TODO: Implement invisible "RemoteParkourLanding", which
+    //      overrides doClimbAction to do a travel action instead
 }
 
 // Abstract functionality for a parkour-interfacing exit.
@@ -1108,11 +1199,11 @@ class ParkourPlatform: Platform {
 
     climbUpLinks = [] // This is modified by the author
     climbDownLinks = [] // This is modified by the author
-    stepLinks = [] // This is modified by the author
+    climbOverLinks = [] // This is modified by the author
     jumpUpLinks = [] // This is modified by the author
     jumpDownLinks = [] // This is modified by the author
     fallDownLinks = [] // This is modified by the author
-    leapLinks = [] // This is modified by the author
+    jumpOverLinks = [] // This is modified by the author
     height = low
     isFixed = true
 
@@ -1435,6 +1526,35 @@ class ParkourPlatform: Platform {
         return nil;
     }
 
+    getProviderFromSource() {
+        local currentPlat = gActor.getParkourPlatform();
+
+        // Do not handle providers from the floor
+        if (currentPlat == nil) return nil;
+
+        for (local i = 1; i <= currentPlat.totalParkourLinks.length; i++) {
+            local link = currentPlat.totalParkourLinks[i];
+            if (link.dst == self) {
+                if (link.provider != nil) {
+                    return link.provider;
+                }
+            }
+        }
+
+        return nil;
+    }
+
+    canTouchProvider(provider) {
+        for (local i = 1; i <= totalParkourLinks.length; i++) {
+            local link = totalParkourLinks[i];
+            if (link.provider == provider) {
+                return true;
+            }
+        }
+
+        return nil;
+    }
+
     verifyMinimal(actionContType) {
         if (contType == In) {
             if(contType != actionContType) {
@@ -1566,6 +1686,7 @@ class ParkourPlatform: Platform {
     }
 
     knowsLinkTo(otherPlat) {
+        if (!parkourCache.requireRouteRecon) return true;
         for (local i = 1; i <= totalParkourLinks.length; i++) {
             local link = totalParkourLinks[i];
             if (link.dst == otherPlat) {
@@ -1597,7 +1718,7 @@ class ParkourPlatform: Platform {
         }
     }
 
-    observePossibleLink() {
+    observePossibleLink(fromProvider?) {
         if (gActor == gPlayerChar) {
             local currentPlat = gPlayerChar.getParkourPlatform();
             local knowsLink = nil;
@@ -1611,9 +1732,16 @@ class ParkourPlatform: Platform {
             if (knowsLink == nil) {
                 local range = getRangeFromSource();
                 if (range != nil) {
+                    local provider = getProviderFromSource();
+                    if (provider != nil && !fromProvider) {
+                        // Do not observe provider-based links by
+                        // looking at the destination.
+                        // The player must find the provider first.
+                        return;
+                    }
                     local obj = self;
                     gMessageParams(obj);
-                    local rangeString = getConnectionActionStr(self, range);
+                    local rangeString = getConnectionActionStr(self, range, provider);
                     learnLinkBetweenHereAnd(gActor);
                     reportAfter('\b(It{dummy} look{s/ed} like {i} {can} ' +
                         rangeString + ' {that obj} from {here}.) ');
@@ -1688,10 +1816,10 @@ class ParkourPlatform: Platform {
             climbDownLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, climbUpRange));
         }
-        for (local i = 1; i <= stepLinks.length; i++) {
+        for (local i = 1; i <= climbOverLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                stepLinks[i].getIndirectParkourPlatform(), climbOverRange));
-            stepLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
+                climbOverLinks[i].getIndirectParkourPlatform(), climbOverRange));
+            climbOverLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, climbOverRange));
         }
 
@@ -1716,10 +1844,10 @@ class ParkourPlatform: Platform {
         }
 
         // Init leap links
-        for (local i = 1; i <= leapLinks.length; i++) {
+        for (local i = 1; i <= jumpOverLinks.length; i++) {
             totalParkourLinks.appendUnique(new ParkourLink(
-                leapLinks[i].getIndirectParkourPlatform(), jumpOverRange));
-            leapLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
+                jumpOverLinks[i].getIndirectParkourPlatform(), jumpOverRange));
+            jumpOverLinks[i].getIndirectParkourPlatform().totalParkourLinks.appendUnique(new ParkourLink(
                 self, jumpOverRange));
         }
     }
@@ -1732,6 +1860,7 @@ class ParkourPlatform: Platform {
         }
 
         local strBfr = new StringBuffer(40);
+        local providerList = getParkourProviderList();
         local climbUpLinkList = getParkourLinkList(climbUpRange);
         local climbDownLinkList = getParkourLinkList(climbDownRange);
         local stepLinkList = getParkourLinkList(climbOverRange);
@@ -1751,21 +1880,37 @@ class ParkourPlatform: Platform {
             leapLinkList.length +
             fallLinkList.length;
 
+        if (providerList.length > 0) {
+            strBfr.append(parkourCache.getRoutesOfOpportunityHeader(true, nil));
+            for (local i = 1; i <= providerList.length; i++) {
+                local linkWithProvider = providerList[i];
+                strBfr.append('\n\t{I} {can} ');
+                strBfr.append(linkWithProvider.provider.actionString);
+                strBfr.append(' ');
+                strBfr.append(linkWithProvider.dst.theName);
+            }
+        }
+
         if (climbCount > 0) {
-            strBfr.append('\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>');
+            strBfr.append(parkourCache.getClimbingRoutesHeader(providerList.length == 0, nil));
             getConnectionListString(climbUpLinkList, strBfr, climbUpRange);
             getConnectionListString(climbDownLinkList, strBfr, climbDownRange);
             getConnectionListString(stepLinkList, strBfr, climbOverRange);
         }
         if (jumpCount > 0) {
-            strBfr.append('\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>');
+            strBfr.append(parkourCache.getJumpingRoutesHeader(
+                providerList.length == 0 && climbCount == 0,
+                providerList.length > 0 && climbCount > 0
+            ));
             getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
             getConnectionListString(jumpDownLinkList, strBfr, jumpDownRange);
             getConnectionListString(leapLinkList, strBfr, jumpOverRange);
             getConnectionListString(fallLinkList, strBfr, fallDownRange);
         }
 
-        if (climbCount == 0 && jumpCount == 0) return stuckOnPlatformMsg;
+        if (climbCount == 0 && jumpCount == 0 && providerList.length == 0) {
+            return stuckOnPlatformMsg;
+        }
 
         return toString(strBfr);
     }
@@ -1810,7 +1955,10 @@ class ParkourPlatform: Platform {
         return 'to';
     }
 
-    getConnectionActionStr(dest, parkourRange) {
+    getConnectionActionStr(dest, parkourRange, provider) {
+        if (provider != nil) {
+            return provider.actionString;
+        }
         return getConnectionActionFromRange(parkourRange) + ' ' + getGetMultiClassDirPrep(dest, parkourRange);
     }
 
@@ -1868,11 +2016,31 @@ class ParkourPlatform: Platform {
         for (local i = 1; i <= totalParkourLinks.length; i++) {
             local link = totalParkourLinks[i];
 
+            if (link.provider != nil) continue;
             if (link.range != parkourRange) continue;
-            if (!link.isKnown) continue;
+            if (parkourCache.requireRouteRecon) {
+                if (!link.isKnown) continue;
+            }
             if (!gPlayerChar.knowsAbout(link.dst)) continue;
             
             lst += link.dst;
+        }
+
+        return lst;
+    }
+
+    getParkourProviderList() {
+        local lst = [];
+
+        for (local i = 1; i <= totalParkourLinks.length; i++) {
+            local link = totalParkourLinks[i];
+
+            if (link.provider == nil) continue;
+            if (parkourCache.requireRouteRecon) {
+                if (!link.isKnown) continue;
+            }
+            
+            lst += link;
         }
 
         return lst;

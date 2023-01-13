@@ -102,12 +102,28 @@ centralRoom: Room { 'Central Room'
     }
 }
 
++metalCrate: ParkourPlatform { 'metal crate'
+    "A big metal crate, sitting alone in the corner. "
+    height = awkward
+}
+
+++ParkourProviderPath @flagPole ->desk;
+
++flagPole: ParkourProvider { 'flagpole'
+    "A barren flagpole, sticking horizontally out of the wall,
+    between the lab desk and metal crate. "
+    isListed = true
+    actionString = 'swing{s/ed} on <<theName>>,\n\t\tand leap to'
+}
+
 +desk: ParkourPlatform { 'lab desk'
     "A simple lab desk. "
     climbUpLinks = [cabinet]
     jumpUpLinks = [cargoShelf]
     canSlideUnderMe = true
 }
+
+++ParkourProviderPath @flagPole ->metalCrate;
 
 +table: Platform { 'generic table'
     "A generic table, outside of any parkour system. "
