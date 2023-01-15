@@ -3,6 +3,17 @@
  * with the goal of keeping them modular and reusable.
  */
 
+#if __DEBUG
+//
+#else
+modify screenReaderInit {
+    prepForScreenReaders() {
+        inherited();
+        parkourCache.formatForScreenReader = true;
+    }
+}
+#endif
+
 modify soundBleedCore {
     freeActionPassed() {
         return gWasFreeAction;

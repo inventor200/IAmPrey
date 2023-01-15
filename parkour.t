@@ -367,17 +367,36 @@ parkourCache: object {
     lastPlatform = nil
 
     requireRouteRecon = true
+    formatForScreenReader = nil
+
+    getCategoryOpener(isFirst, isLast) {
+        if (isFirst) return '\^';
+        if (isLast) return 'Finally, ';
+        return 'Also, ';
+    }
 
     //TODO: Support better listing options for screen readers
     getRoutesOfOpportunityHeader(isFirst, isLast) {
+        if (formatForScreenReader) {
+            return '\b' + getCategoryOpener(isFirst, isLast) +
+                'there{plural} {is} routes of opportunity. ';
+        }
         return '\b<tt>(->)</tt> <i>routes of opportunity:</i>';
     }
 
     getClimbingRoutesHeader(isFirst, isLast) {
+        if (formatForScreenReader) {
+            return '\b' + getCategoryOpener(isFirst, isLast) +
+                '{i} notice{s/d} climbing possibilities. ';
+        }
         return '\b<tt>(CL)</tt> <i>known <b>climb</b>ing routes:</i>';
     }
 
     getJumpingRoutesHeader(isFirst, isLast) {
+        if (formatForScreenReader) {
+            return '\b' + getCategoryOpener(isFirst, isLast) +
+                'there{plural} {is} spots to jump. ';
+        }
         return '\b<tt>(JM)</tt> <i>known <b>jump</b>ing routes:</i>';
     }
 
@@ -729,8 +748,6 @@ modify Room {
             strBfr.append(parkourCache.getJumpingRoutesHeader(climbUpLinkList.length == 0, nil));
             jumpUpLinkList[1].getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
         }
-
-        //strBfr.append('\b');
 
         return toString(strBfr);
     }
