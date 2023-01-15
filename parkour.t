@@ -295,15 +295,12 @@ QParkour: Special {
         }
 
         if (b.ofKind(ParkourProvider)) {
-            local currentPlat = a.getParkourPlatform();
-            if (currentPlat != nil) {
-                if (currentPlat.canTouchProvider(b)) {
-                    // We can trust the link
-                    return issues;
-                }
-                else {
-                    issues += new ReachProblemParkour(a, b, b);
-                }
+            if (b.isAccessibleFrom(a)) {
+                // We can trust the link
+                return issues;
+            }
+            else {
+                issues += new ReachProblemParkour(a, b, b);
             }
         }
 
@@ -521,7 +518,7 @@ modify Thing {
         }
         action() { }
         report() {
-            "{I} {swing} on {the subj dobj}, and {let} go. ";
+            "{I} {swing} on {the subj dobj}, and{aac} {let} go. ";
         }
     }
 
@@ -816,14 +813,6 @@ parkourProviderFinder: PreinitObject {
     }
 }
 
-//TODO: Adjust touch algorithms to include link providers // Confirm working?
-//TODO: Jump over (to go between two places)
-//TODO: Run across (to go between two places)
-//TODO: Swing on (to go between two places)
-//TODO: Parkour platforms can reject use with TravelBarriers
-//TODO: Parkour providers can reject use with TravelBarriers
-//TODO: Accidents for parkour providers
-
 class ParkourProviderPath: object {
     location = nil
     destination = nil
@@ -831,35 +820,123 @@ class ParkourProviderPath: object {
     link = nil
 
     injectProvider() {
-        if (location == nil) return;
-        if (destination == nil) return;
+        local originalLocName = '(unplaced)';
+        local originalProvName = '(nowhere)';
+        local originalDestName = '(nowhere)';
+        if (location != nil) {
+            originalLocName = location.theName;
+            location = location.getIndirectParkourPlatform();
+        }
+        if (location == nil) {
+            throw new Exception(
+                'ParkourProviderPath at <<originalLocName>> has invalid location!'
+            );
+        }
+        
+        if (provider != nil) {
+            originalProvName = provider.theName;
+        }
+        if (provider == nil) {
+            throw new Exception(
+                'ParkourProviderPath to <<originalProvName>> has invalid provider!'
+            );
+        }
 
-        link = new ParkourLink(destination.getIndirectParkourPlatform(), climbOverRange);
+        if (destination != nil) {
+            originalDestName = destination.theName;
+            destination = destination.getIndirectParkourPlatform();
+        }
+        if (destination == nil) {
+            throw new Exception(
+                'ParkourProviderPath to <<originalDestName>> has invalid destination!'
+            );
+        }
+
+        link = new ParkourLink(destination, climbOverRange);
         
         link.provider = provider;
 
         location.totalParkourLinks.appendUnique(link);
         provider.addPath(self);
     }
+
+    getTheEdgeOfStr() {
+        return '<<destination.theEdgeName>> of <<destination.theName>>';
+    }
 }
 
 ParkourProviderPath template @provider ->destination;
 
+//TODO: Parkour platforms can reject use with TravelBarriers
+//TODO: Parkour providers can reject use with TravelBarriers
+//TODO: Accidents for parkour providers
+//TODO: Implement invisible "RemoteParkourLanding", which
+//      creates a travel action instead
+//TODO: Allow ParkourProviders to be reachable from the floor
+//TODO: Allow ParkourProviders to have a floor destination
+
 class ParkourProvider: Thing {
     associatedPaths = perInstance(new Vector())
-    actionString = 'move{s/d} via <<theName>> to'
+    actionString = 'move via <<theName>>\n\t\tto reach'
+    actionPerformedMsg = '{I} move{s/d} via <<theName>>
+        to reach <<cachedDest.theName>>.<<cachedDest.landingConclusionMsg>> '
+    outOfReachMsg = '{I} attempt{s/ed}, but fail{s/ed} to reach <<theName>>. '
+
+    cachedDest = nil
+    theEdgeOfStr = nil
 
     addPath(path) {
         // No circular paths
-        if (path.location == path.destination) return;
+        if (path.location == path.destination) {
+            throw new Exception(
+                'ParkourProviderPath at <<path.location.theName>> cannot be looped!'
+            );
+        }
 
         for (local i = 1; i <= associatedPaths.length; i++) {
             local oldPath = associatedPaths[i];
             // Do not have multiple destinations from one location
-            if (path.location == oldPath.location) return;
+            if (path.location == oldPath.location) {
+                throw new Exception(
+                    'ParkourProviderPath at <<path.location.theName>> cannot have multiple destinations!'
+                );
+            }
         }
 
         associatedPaths.append(path);
+    }
+
+    doClimbAction() {
+        local currentPlat = gActor.getParkourPlatform();
+        for (local i = 1; i <= associatedPaths.length; i++) {
+            local path = associatedPaths[i];
+            if (path.location == currentPlat) {
+                theEdgeOfStr = path.getTheEdgeOfStr();
+                cachedDest = path.destination;
+                doPathAction(path.destination);
+                return;
+            }
+        }
+
+        "There{dummy} {is} no clear path. ";
+        abort;
+    }
+
+    doPathAction(dst) {
+        dst.handleGenericSource();
+        dst.doClimbAction();
+        if (dst.ofKind(ParkourTwoSidedTravelConnector)) {
+            dst.handleParkourTravelTransfer(gActor);
+        }
+    }
+
+    isAccessibleFrom(obj) {
+        local currentPlat = obj.getIndirectParkourPlatform();
+        if (currentPlat == nil) {
+            currentPlat = obj.getParkourPlatform();
+        }
+        if (currentPlat == nil) return nil;
+        return currentPlat.canTouchProvider(self);
     }
 
     dobjFor(Examine) {
@@ -871,9 +948,128 @@ class ParkourProvider: Thing {
         }
     }
 
-    //TODO: Implement travel with doClimbAction
-    //TODO: Implement invisible "RemoteParkourLanding", which
-    //      overrides doClimbAction to do a travel action instead
+    dobjFor(JumpOver) {
+        preCond = [touchObj]
+        action() {
+            doClimbAction();
+        }
+        report() {
+            "<<actionPerformedMsg>>";
+        }
+    }
+
+    dobjFor(ParkourRunAcross) {
+        preCond = [touchObj]
+        action() {
+            doClimbAction();
+        }
+        report() {
+            "<<actionPerformedMsg>>";
+        }
+    }
+
+    dobjFor(ClimbUp) asDobjFor(Climb)
+    dobjFor(ClimbDown) asDobjFor(Climb)
+    dobjFor(Board) asDobjFor(Climb)
+    dobjFor(ParkourClimbUpTo) asDobjFor(Climb)
+    dobjFor(ParkourClimbUpInto) asDobjFor(Climb)
+    dobjFor(ParkourClimbDownTo) asDobjFor(Climb)
+    dobjFor(ParkourClimbDownInto) asDobjFor(Climb)
+    dobjFor(ParkourClimbOverTo) asDobjFor(Climb)
+    dobjFor(ParkourClimbOverInto) asDobjFor(Climb)
+    dobjFor(ParkourJumpUpTo) asDobjFor(Climb)
+    dobjFor(ParkourJumpUpInto) asDobjFor(Climb)
+    dobjFor(ParkourJumpDownTo) asDobjFor(Climb)
+    dobjFor(ParkourJumpDownInto) asDobjFor(Climb)
+    dobjFor(ParkourJumpOverTo) asDobjFor(Climb)
+    dobjFor(ParkourJumpOverInto) asDobjFor(Climb)
+    dobjFor(Climb) {
+        preCond = [touchObj]
+        action() {
+            doClimbAction();
+        }
+        report() {
+            "<<actionPerformedMsg>>";
+        }
+    }
+
+    dobjFor(ParkourSlideUnder) {
+        preCond = [touchObj]
+        action() {
+            doClimbAction();
+        }
+        report() {
+            "<<actionPerformedMsg>>";
+        }
+    }
+
+    dobjFor(ParkourSwingOn) {
+        preCond = [touchObj]
+        action() {
+            doClimbAction();
+        }
+        report() {
+            "<<actionPerformedMsg>>";
+        }
+    }
+}
+
+class ParkourProviderToClimb: ParkourProvider {
+    isFixed = true
+    isListed = true
+    canClimbUpMe = true
+    actionString = 'climb <<theName>>,\n\t\tand reach'
+    actionPerformedMsg = '{I} climb{s/ed} <<theName>>,
+        finding <<theEdgeOfStr>>.<<cachedDest.landingConclusionMsg>> '
+}
+
+class ParkourProviderToRunAcross: ParkourProvider {
+    isFixed = true
+    isListed = true
+    canClimbUpMe = true
+    actionString = 'run across <<theName>>,\n\t\tto'
+    actionPerformedMsg = '{I} {run} across <<theName>>,
+        and over
+        <<theEdgeOfStr>>.<<cachedDest.landingConclusionMsg>> '
+    
+    dobjFor(Climb) asDobjFor(ParkourRunAcross)
+}
+
+class ParkourProviderToJumpOver: ParkourProvider {
+    isFixed = true
+    isListed = true
+    canJumpOverMe = true
+    actionString = 'jump over <<theName>>,\n\t\tand get to'
+    actionPerformedMsg = '{I} jump{s/ed} over <<theName>>,
+        and land{s/ed} <<cachedDest.landingDirPrep>>
+        <<cachedDest.theName>>.<<cachedDest.landingConclusionMsg>> '
+    
+    dobjFor(Climb) asDobjFor(JumpOver)
+}
+
+class ParkourProviderToSlideUnder: ParkourProvider {
+    isFixed = true
+    isListed = true
+    canSlideUnderMe = true
+    actionString = 'slide under <<theName>>,\n\t\tand stop at'
+    actionPerformedMsg = '{I} {slide} under <<theName>>,
+        coming to a stop at
+        <<cachedDest.theName>>.<<cachedDest.landingConclusionMsg>> '
+    
+    dobjFor(Climb) asDobjFor(ParkourSlideUnder)
+}
+
+class ParkourProviderToSwingOn: ParkourProvider {
+    isFixed = true
+    isListed = true
+    canSwingOnMe = true
+    actionString = 'swing on <<theName>>,\n\t\tand get to'
+    actionPerformedMsg = '{I} swing{s/ed} on <<theName>>,
+        and sail{s/ed} through the air, before landing
+        <<cachedDest.landingDirPrep>>
+        <<cachedDest.theName>>.<<cachedDest.landingConclusionMsg>> '
+    
+    dobjFor(Climb) asDobjFor(ParkourSwingOn)
 }
 
 // Abstract functionality for a parkour-interfacing exit.
@@ -1535,6 +1731,7 @@ class ParkourPlatform: Platform {
         else {
             for (local i = 1; i <= currentPlat.totalParkourLinks.length; i++) {
                 local link = currentPlat.totalParkourLinks[i];
+                if (link.provider != nil) continue;
                 if (link.dst == self) {
                     return link.range;
                 }
@@ -1749,8 +1946,8 @@ class ParkourPlatform: Platform {
 
             if (knowsLink == nil) {
                 local range = getRangeFromSource();
-                if (range != nil) {
-                    local provider = getProviderFromSource();
+                local provider = getProviderFromSource();
+                if (range != nil || provider != nil) {
                     if (provider != nil && !fromProvider) {
                         // Do not observe provider-based links by
                         // looking at the destination.
@@ -1760,9 +1957,10 @@ class ParkourPlatform: Platform {
                     local obj = self;
                     gMessageParams(obj);
                     local rangeString = getConnectionActionStr(self, range, provider);
+                    local targString = ((provider == nil) ? '{that obj}' : '{the obj}');
                     learnLinkBetweenHereAnd(gActor);
                     reportAfter('\b(It{dummy} look{s/ed} like {i} {can} ' +
-                        rangeString + ' {that obj} from {here}.) ');
+                        rangeString + ' <<targString>> from {here}.) ');
                 }
             }
         }

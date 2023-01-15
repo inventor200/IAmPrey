@@ -109,11 +109,9 @@ centralRoom: Room { 'Central Room'
 
 ++ParkourProviderPath @flagPole ->desk;
 
-+flagPole: ParkourProvider { 'flagpole'
++flagPole: ParkourProviderToSwingOn { 'flagpole'
     "A barren flagpole, sticking horizontally out of the wall,
     between the lab desk and metal crate. "
-    isListed = true
-    actionString = 'swing{s/ed} on <<theName>>,\n\t\tand leap to'
 }
 
 +desk: ParkourPlatform { 'lab desk'
