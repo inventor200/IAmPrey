@@ -257,10 +257,6 @@ VerbRule(ParkourSwingOn)
 DefineTAction(ParkourSwingOn)
 ;
 
-//TODO: Jump over (to go between two places)
-//TODO: Run across (to go between two places)
-//TODO: Swing on (to go between two places)
-
 QParkour: Special {
     priority = 16
     active = true
@@ -375,7 +371,6 @@ parkourCache: object {
         return 'Also, ';
     }
 
-    //TODO: Support better listing options for screen readers
     getRoutesOfOpportunityHeader(isFirst, isLast) {
         if (formatForScreenReader) {
             return '\b' + getCategoryOpener(isFirst, isLast) +
@@ -822,6 +817,12 @@ parkourProviderFinder: PreinitObject {
 }
 
 //TODO: Adjust touch algorithms to include link providers // Confirm working?
+//TODO: Jump over (to go between two places)
+//TODO: Run across (to go between two places)
+//TODO: Swing on (to go between two places)
+//TODO: Parkour platforms can reject use with TravelBarriers
+//TODO: Parkour providers can reject use with TravelBarriers
+//TODO: Accidents for parkour providers
 
 class ParkourProviderPath: object {
     location = nil
