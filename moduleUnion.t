@@ -93,7 +93,7 @@ modify ParkourPlatform {
     doRepJumpUp(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "It's noisy, but {i} jump{s/ed} up,{aac}
+        "It's noisy, but {i} jump{s/ed} up,
         and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
     }
 
@@ -101,9 +101,9 @@ modify ParkourPlatform {
         local obj = destThing;
         gMessageParams(obj);
         "It's noisy, but {i} {hold} onto
-        <<gParkourTheEdgeName>>,{aac}
-        drop{s/?ed} to a hanging position,{aac}
-        {let} go,{aac}
+        <<gParkourTheEdgeName>>,
+        drop{s/?ed} to a hanging position,
+        {let} go,
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
     }
 
@@ -111,14 +111,14 @@ modify ParkourPlatform {
         local obj = destThing;
         gMessageParams(obj);
         "It's noisy, but {i} jump{s/ed} <<leapDirPrep>> {the obj},
-        and{aac} tr{ies/ied} to keep {my} balance. ";
+        and tr{ies/ied} to keep {my} balance. ";
     }
 
     doRepFall(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "{I} {hold} onto <<gParkourTheEdgeName>>,{aac}
-        drop{s/?ed} to a hanging position,{aac}
+        "{I} {hold} onto <<gParkourTheEdgeName>>,
+        drop{s/?ed} to a hanging position,
         and {let} go. The loud impact{dummy} fire{s/d} a sharp,
         lancing pain through {my} bones.
         {I} {am} stunned, but then recover{s/ed}

@@ -1,5 +1,3 @@
-#include "aac.t"
-
 VerbRule(ParkourClimbOverTo)
     ('climb'|'cl'|'get'|'parkour'|'step') ('over'|'across'|'over' 'to'|'across' 'to'|'to'|'onto'|'on' 'to') (('the'|)'top' 'of'|) singleDobj
     : VerbProduction
@@ -518,7 +516,7 @@ modify Thing {
         }
         action() { }
         report() {
-            "{I} {swing} on {the subj dobj}, and{aac} {let} go. ";
+            "{I} {swing} on {the subj dobj}, and {let} go. ";
         }
     }
 
@@ -599,6 +597,8 @@ modify Thing {
         ('{The subj dobj} {is} not something {i} {can} run across. ')
     cannotSwingOnMsg =
         ('{The subj dobj} {is} not something {i} {can} swing on. ')
+    noParkourFromFloorMsg =
+        ('{I} {do} not know of any parkour routes from {here}. ')
 }
 
 modify Floor {
@@ -690,6 +690,7 @@ modify Floor {
 }
 
 modify Room {
+    floorProviderLinks = perInstance(new Vector())
     knownFloorLinks = perInstance(new Vector())
 
     getParkourPlatform() {
@@ -703,11 +704,28 @@ modify Room {
     getLinksByRange(parkourRange) {
         local lst = [];
 
-        for (local i = 1; i <= knownFloorLinks.length; i++) {
-            local link = knownFloorLinks[i];
+        for (local i = 1; i <= floorProviderLinks.length; i++) {
+            local link = floorProviderLinks[i];
             if (link.range == parkourRange) {
                 lst += link.dst;
             }
+        }
+
+        return lst;
+    }
+
+    getParkourProviderList() {
+        local lst = [];
+
+        for (local i = 1; i <= knownFloorLinks.length; i++) {
+            local link = knownFloorLinks[i];
+
+            if (link.provider == nil) continue;
+            if (parkourCache.requireRouteRecon) {
+                if (!link.isKnown) continue;
+            }
+            
+            lst += link;
         }
 
         return lst;
@@ -725,20 +743,36 @@ modify Room {
 
     getConnectionString() {
         if (knownFloorLinks.length == 0) {
-            return '{I} {do} not know of any parkour routes from {here}. ';
+            return noParkourFromFloorMsg;
         }
 
         local strBfr = new StringBuffer(40);
+        local providerList = getParkourProviderList();
         local climbUpLinkList = getLinksByRange(climbUpRange);
         local jumpUpLinkList = getLinksByRange(jumpUpRange);
 
+        if (providerList.length > 0) {
+            strBfr.append(parkourCache.getRoutesOfOpportunityHeader(true, nil));
+            for (local i = 1; i <= providerList.length; i++) {
+                local linkWithProvider = providerList[i];
+                strBfr.append('\n\t{I} {can} ');
+                strBfr.append(linkWithProvider.provider.actionString);
+                strBfr.append(' ');
+                strBfr.append(linkWithProvider.dst.theName);
+            }
+        }
         if (climbUpLinkList.length > 0) {
             strBfr.append(parkourCache.getClimbingRoutesHeader(true, nil));
             climbUpLinkList[1].getConnectionListString(climbUpLinkList, strBfr, climbUpRange);
         }
+
         if (jumpUpLinkList.length > 0) {
             strBfr.append(parkourCache.getJumpingRoutesHeader(climbUpLinkList.length == 0, nil));
             jumpUpLinkList[1].getConnectionListString(jumpUpLinkList, strBfr, jumpUpRange);
+        }
+
+        if (climbUpLinkList.length == 0 && jumpUpLinkList.length == 0 && providerList.length == 0) {
+            return noParkourFromFloorMsg;
         }
 
         return toString(strBfr);
@@ -825,7 +859,9 @@ class ParkourProviderPath: object {
         local originalDestName = '(nowhere)';
         if (location != nil) {
             originalLocName = location.theName;
-            location = location.getIndirectParkourPlatform();
+            if (!location.ofKind(Room)) {
+                location = location.getIndirectParkourPlatform();
+            }
         }
         if (location == nil) {
             throw new Exception(
@@ -844,7 +880,9 @@ class ParkourProviderPath: object {
 
         if (destination != nil) {
             originalDestName = destination.theName;
-            destination = destination.getIndirectParkourPlatform();
+            if (!destination.ofKind(Room)) {
+                destination = destination.getIndirectParkourPlatform();
+            }
         }
         if (destination == nil) {
             throw new Exception(
@@ -856,11 +894,19 @@ class ParkourProviderPath: object {
         
         link.provider = provider;
 
-        location.totalParkourLinks.appendUnique(link);
+        if (location.ofKind(Room)) {
+            location.floorProviderLinks.appendUnique(link);
+        }
+        else {
+            location.totalParkourLinks.appendUnique(link);
+        }
         provider.addPath(self);
     }
 
     getTheEdgeOfStr() {
+        if (destination.ofKind(Room)) {
+            return '<<destination.floorObj.theName>>';
+        }
         return '<<destination.theEdgeName>> of <<destination.theName>>';
     }
 }
@@ -874,6 +920,7 @@ ParkourProviderPath template @provider ->destination;
 //      creates a travel action instead
 //TODO: Allow ParkourProviders to be reachable from the floor
 //TODO: Allow ParkourProviders to have a floor destination
+//TODO: No routes found returns an explanation
 
 class ParkourProvider: Thing {
     associatedPaths = perInstance(new Vector())
@@ -908,13 +955,23 @@ class ParkourProvider: Thing {
 
     doClimbAction() {
         local currentPlat = gActor.getParkourPlatform();
-        for (local i = 1; i <= associatedPaths.length; i++) {
-            local path = associatedPaths[i];
-            if (path.location == currentPlat) {
-                theEdgeOfStr = path.getTheEdgeOfStr();
-                cachedDest = path.destination;
-                doPathAction(path.destination);
-                return;
+        if (currentPlat == nil) {
+            local room = gActor.getOutermostRoom();
+            for (local i = 1; i <= associatedPaths.length; i++) {
+                local path = associatedPaths[i];
+                if (path.location == room) {
+                    doPathAction(path);
+                    return;
+                }
+            }
+        }
+        else {
+            for (local i = 1; i <= associatedPaths.length; i++) {
+                local path = associatedPaths[i];
+                if (path.location == currentPlat) {
+                    doPathAction(path);
+                    return;
+                }
             }
         }
 
@@ -922,15 +979,41 @@ class ParkourProvider: Thing {
         abort;
     }
 
-    doPathAction(dst) {
-        dst.handleGenericSource();
-        dst.doClimbAction();
-        if (dst.ofKind(ParkourTwoSidedTravelConnector)) {
-            dst.handleParkourTravelTransfer(gActor);
+    doPathAction(path) {
+        theEdgeOfStr = path.getTheEdgeOfStr();
+        cachedDest = path.destination;
+        cachedDest.handleGenericSource();
+        cachedDest.doClimbAction();
+        if (cachedDest.ofKind(ParkourTwoSidedTravelConnector)) {
+            cachedDest.handleParkourTravelTransfer(gActor);
         }
     }
 
     isAccessibleFrom(obj) {
+        // Is obj the room, or something immediately in the room?
+        local room = obj;
+        if (!room.ofKind(Room)) {
+            if (room.location.ofKind(Room)) {
+                room = room.location;
+            }
+            else {
+                room = nil;
+            }
+        }
+
+        // If the above is true, does this even route from the floor?
+        if (room != nil) {
+            local isConnectedToFloor = nil;
+            for (local i = 1; i <= associatedPaths.length; i++) {
+                if (associatedPaths[i].location == room) {
+                    isConnectedToFloor = true;
+                    break;
+                }
+            }
+            return isConnectedToFloor;
+        }
+
+        // Otherwise, does it route from the current parkour platform?
         local currentPlat = obj.getIndirectParkourPlatform();
         if (currentPlat == nil) {
             currentPlat = obj.getParkourPlatform();
@@ -939,6 +1022,10 @@ class ParkourProvider: Thing {
         return currentPlat.canTouchProvider(self);
     }
 
+    //FIXME: Links to floor are not being observed.
+    //TODO: We need to refactor and consolidate parkour platform info-checking
+    //      functionality, by putting "parkour info" on both rooms (for floors),
+    //      platforms, and kinds of travel connectors
     dobjFor(Examine) {
         action() {
             inherited();
@@ -1430,7 +1517,7 @@ class ParkourPlatform: Platform {
     leapDirPrep = (stepDirPrep)
     theEdgeName = ('the edge')
     landingDirPrep = (contType == On ? 'on' : 'near')
-    landingConclusionMsg = (contType == On ? '' : 'From{aac} {here}, {i} climb{s/ed} through. ')
+    landingConclusionMsg = (contType == On ? '' : 'From {here}, {i} climb{s/ed} through. ')
 
     cannotParkourOnMsg =
         ('{The subj dobj} {is} not something {i} {can} get on from {here}.
@@ -1519,7 +1606,7 @@ class ParkourPlatform: Platform {
     doRepJumpUp(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "{I} jump{s/ed} up,{aac}
+        "{I} jump{s/ed} up,
         and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
     }
 
@@ -1527,9 +1614,9 @@ class ParkourPlatform: Platform {
         local obj = destThing;
         gMessageParams(obj);
         "{I} {hold} onto
-        <<gParkourTheEdgeName>>,{aac}
-        drop{s/?ed} to a hanging position,{aac}
-        {let} go,{aac}
+        <<gParkourTheEdgeName>>,
+        drop{s/?ed} to a hanging position,
+        {let} go,
         and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
     }
 
@@ -1537,15 +1624,15 @@ class ParkourPlatform: Platform {
         local obj = destThing;
         gMessageParams(obj);
         "{I} jump{s/ed} <<leapDirPrep>> {the obj},
-        and{aac} tr{ies/ied} to keep {my} balance. ";
+        and tr{ies/ied} to keep {my} balance. ";
     }
 
     doRepFall(destThing) {
         local obj = destThing;
         gMessageParams(obj);
-        "{I} {hold} onto <<gParkourTheEdgeName>>,{aac}
-        drop{s/?ed} to a hanging position,{aac}
-        and {let} go. {I} land{s/ed} hard, and{aac} {find} {myself}
+        "{I} {hold} onto <<gParkourTheEdgeName>>,
+        drop{s/?ed} to a hanging position,
+        and {let} go. {I} land{s/ed} hard, and {find} {myself}
         <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
     }
 
@@ -1613,6 +1700,7 @@ class ParkourPlatform: Platform {
         remap = remapOn
         
         verify() {
+            parkourCache.rememberLastPlatform();
             verifyMinimalJump();
             switch (height) {
                 case high:
@@ -1639,6 +1727,7 @@ class ParkourPlatform: Platform {
         remap = remapOn
         
         verify() {
+            parkourCache.rememberLastPlatform();
             verifyMinimalJump();
             if (height == lethal) {
                 illogical(wayTooHighClimbDownMsg);
@@ -2113,6 +2202,7 @@ class ParkourPlatform: Platform {
             getConnectionListString(climbDownLinkList, strBfr, climbDownRange);
             getConnectionListString(stepLinkList, strBfr, climbOverRange);
         }
+
         if (jumpCount > 0) {
             strBfr.append(parkourCache.getJumpingRoutesHeader(
                 providerList.length == 0 && climbCount == 0,

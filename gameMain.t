@@ -104,10 +104,11 @@ centralRoom: Room { 'Central Room'
 
 +metalCrate: ParkourPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
-    height = awkward
+    height = high
 }
 
-++ParkourProviderPath @flagPole ->desk;
+//++ParkourProviderPath @flagPole ->desk;
+++ParkourProviderPath @flagPole ->centralRoom;
 
 +flagPole: ParkourProviderToSwingOn { 'flagpole'
     "A barren flagpole, sticking horizontally out of the wall,
@@ -121,7 +122,8 @@ centralRoom: Room { 'Central Room'
     canSlideUnderMe = true
 }
 
-++ParkourProviderPath @flagPole ->metalCrate;
+//++ParkourProviderPath @flagPole ->metalCrate;
++ParkourProviderPath @flagPole ->metalCrate;
 
 +table: Platform { 'generic table'
     "A generic table, outside of any parkour system. "
