@@ -83,10 +83,6 @@ centralRoom: Room { 'Central Room'
 
 /*++bottle: Thing { 'water bottle'
     "A difficult water bottle. "
-}
-
-++dogCage: Booth { 'dog cage'
-    "A weird dog cage. "
 }*/
 
 /*+cabinet: ParkourMultiContainer { 'tall lab cabinet'
@@ -135,6 +131,10 @@ centralRoom: Room { 'Central Room'
 
 ++puzzleCube: Trinket { 'puzzle cube'
     "A 3x3 puzzle cube. "
+}
+
+++dogCage: Booth { 'dog cage'
+    "A weird dog cage. "
 }
 
 /*+obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'
