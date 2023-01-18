@@ -53,7 +53,7 @@ hardImpactNoiseProfile: SoundProfile {
     }
 }
 
-modify ParkourPlatform {
+/*modify ParkourPlatform {
     getClimbAdvantageReason(preferredQuality) {
         return preferredQuality + ' enough for a quieter approach';
     }
@@ -125,7 +125,7 @@ modify ParkourPlatform {
         after a moment to find {myself}
         <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
     }
-}
+}*/
 
 defaultLabFloor: Floor { 'the floor'
     //

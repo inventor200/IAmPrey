@@ -59,12 +59,12 @@ centralRoom: Room { 'Central Room'
     westMuffle = sideRoom
 }
 
-+vent: ParkourExit { 'vent;metal ventilation;grate'
+/*+vent: ParkourExit { 'vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = tallCrate
     height = damaging
     otherSide = subtleVent
-}
+}*/
 
 +hallwayDoor: Door { 'hallway door'
     "The door to the hallway. "
@@ -75,21 +75,21 @@ centralRoom: Room { 'Central Room'
     person = 2
 }
 
-+cargoShelf: ParkourPlatform { 'tall cargo shelf'
+/*+cargoShelf: ParkourPlatform { 'tall cargo shelf'
     "A tall series of cargo shelves. "
     height = damaging
     climbUpLinks = [vent]
-}
+}*/
 
-++bottle: Thing { 'water bottle'
+/*++bottle: Thing { 'water bottle'
     "A difficult water bottle. "
 }
 
 ++dogCage: Booth { 'dog cage'
     "A weird dog cage. "
-}
+}*/
 
-+cabinet: ParkourMultiContainer { 'tall lab cabinet'
+/*+cabinet: ParkourMultiContainer { 'tall lab cabinet'
     "A locked, metal cabinet, likely containing lab materials. "
 
     remapIn: SubComponent {
@@ -100,30 +100,30 @@ centralRoom: Room { 'Central Room'
         height = high
         climbUpLinks = [cargoShelf]
     }
-}
+}*/
 
-+metalCrate: ParkourPlatform { 'metal crate'
+/*+metalCrate: ParkourPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
     height = high
-}
+}*/
 
 //++ParkourProviderPath @flagPole ->desk;
-++ParkourProviderPath @flagPole ->centralRoom;
+//++ParkourProviderPath @flagPole ->centralRoom;
 
-+flagPole: ParkourProviderToSwingOn { 'flagpole'
+/*+flagPole: ParkourProviderToSwingOn { 'flagpole'
     "A barren flagpole, sticking horizontally out of the wall,
     between the lab desk and metal crate. "
-}
+}*/
 
-+desk: ParkourPlatform { 'lab desk'
+/*+desk: ParkourPlatform { 'lab desk'
     "A simple lab desk. "
     climbUpLinks = [cabinet]
     jumpUpLinks = [cargoShelf]
     canSlideUnderMe = true
-}
+}*/
 
 //++ParkourProviderPath @flagPole ->metalCrate;
-+ParkourProviderPath @flagPole ->metalCrate;
+//+ParkourProviderPath @flagPole ->metalCrate;
 
 +table: Platform { 'generic table'
     "A generic table, outside of any parkour system. "
@@ -137,12 +137,12 @@ centralRoom: Room { 'Central Room'
     "A 3x3 puzzle cube. "
 }
 
-+obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'
+/*+obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, and it's low to the floor. "
     isListed = true
     destination = shortCrate
     otherSide = lowVent
-}
+}*/
 
 sideRoom: Room { 'Side Room'
     "The additional room to the side."
@@ -183,30 +183,30 @@ subtleRoom: Room { 'Subtle Room'
     north = eastHallway
 }
 
-+subtleVent: ParkourExit { 'vent;metal ventilation;grate'
+/*+subtleVent: ParkourExit { 'vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, but kinda high up. "
     destination = cargoShelf
     height = damaging
     otherSide = vent
-}
+}*/
 
-+lowVent: ParkourExit { 'low vent;metal ventilation;grate'
+/*+lowVent: ParkourExit { 'low vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, and it's low to the floor. "
     destination = centralRoom
     height = low
     otherSide = obviousLowVent
-}
+}*/
 
-+tallCrate: ParkourPlatform { 'tall wooden crate'
+/*+tallCrate: ParkourPlatform { 'tall wooden crate'
     "A really tall wooden crate. "
     height = high
     climbUpLinks = [subtleVent]
     climbDownLinks = [shortCrate]
-}
+}*/
 
-+shortCrate: ParkourPlatform { 'short wooden crate'
+/*+shortCrate: ParkourPlatform { 'short wooden crate'
     "A short wooden crate. "
     height = low
     climbUpLinks = [lowVent]
     jumpUpLinks = [tallCrate]
-}
+}*/
