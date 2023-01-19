@@ -111,12 +111,13 @@ centralRoom: Room { 'Central Room'
     between the lab desk and metal crate. "
 }*/
 
-/*+desk: ParkourPlatform { 'lab desk'
++desk: Platform { 'lab desk'
     "A simple lab desk. "
-    climbUpLinks = [cabinet]
-    jumpUpLinks = [cargoShelf]
+    //climbUpLinks = [cabinet]
+    //jumpUpLinks = [cargoShelf]
     canSlideUnderMe = true
-}*/
+}
+++LowFloorHeight;
 
 //++ParkourProviderPath @flagPole ->metalCrate;
 //+ParkourProviderPath @flagPole ->metalCrate;

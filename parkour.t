@@ -307,75 +307,48 @@ DefineIAction(ShowParkourRoutes)
     allowAll = nil
 
     execAction(cmd) {
-        /*local currentPlat = gActor.getParkourPlatform();
-        if (currentPlat == nil) {
-            currentPlat = gActor.getOutermostRoom();
+        local closestParkourMod = gActor.location.parkourModule;
+        if (closestParkourMod != nil) {
+            if (closestParkourMod.pathVector.length > 0) {
+                local strBfr = new StringBuffer(6*closestParkourMod.pathVector.length);
+                for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
+                    local path = closestParkourMod.pathVector[i];
+
+                    strBfr.append('{I} {can} ');
+                    if (path.requiresJump) {
+                        strBfr.append('JUMP ');
+                    }
+                    else {
+                        strBfr.append('CLIMB ');
+                    }
+                    switch (path.direction) {
+                        case parkourUpDir:
+                            strBfr.append('up ');
+                            break;
+                        case parkourOverDir:
+                            strBfr.append('over ');
+                            break;
+                        case parkourDownDir:
+                            strBfr.append('down ');
+                            break;
+                    }
+                    strBfr.append('to ');
+                    strBfr.append(path.destination.parkourModule.theName);
+                    strBfr.append('. ');
+                }
+                "<<toString(strBfr)>>";
+                return;
+            }
         }
-        "<<currentPlat.getConnectionString()>> ";*/
+        "<<parkourCache.noKnownRoutesMsg>>";
     }
 ;
-
-// Mods to standard actions, so the player can use the rules they learned during parkour
-/*modify VerbRule(Board)
-    ('mount'|'board'|('get' ('on'|'onto'|'on' 'to'))|(('climb'|'cl'|'mantel'|'mantle') genericOnTopOfPrep)) singleDobj :
-;
-
-modify VerbRule(Climb)
-    ('climb'|'cl'|'mantel'|'mantle'|'mount') singleDobj :
-;
-
-modify VerbRule(ClimbUp)
-    ('climb'|'cl'|'mantel'|'mantle'|'get'|'go') genericOnTopOfPrep singleDobj |
-    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'run'|'sprint') 'up' singleDobj :
-;
-
-modify VerbRule(ClimbUpWhat)
-    ('climb'|'cl') 'up' |
-    ('mantel'|'mantle'|'mount') :
-;
-
-modify VerbRule(GetOff)
-    ('get'|'climb'|'cl') ('off'|'off' 'of'|'down' 'from') singleDobj :
-;
-
-modify VerbRule(GetOut)
-    'get' ('out'|'off'|'down') |
-    'disembark' | 'dismount' |
-    ('climb'|'cl') ('out'|'off') :
-;
-
-modify VerbRule(GetOutOf)
-    ('out' 'of'|('climb'|'cl'|'get'|'jump') 'out' 'of'|'leave'|'exit') singleDobj :
-;
-
-modify VerbRule(ClimbDown)
-    ('climb'|'cl'|'go'|'walk'|'run'|'sprint') 'down' singleDobj :
-;
-
-modify VerbRule(ClimbDownWhat)
-    ('climb'|'cl'|'go'|'walk'|'run'|'sprint') 'down' :
-;
-
-modify VerbRule(Jump)
-    'jump' | 'hop' | 'leap' :
-;
-
-modify VerbRule(JumpOff)
-    ('jump'|'hop'|'leap'|'fall'|'drop') 'off' singleDobj :
-;
-
-modify VerbRule(JumpOffIntransitive)
-    ('jump'|'hop'|'leap'|'fall'|'drop') 'off' |
-    ('fall'|'drop') :
-;
-
-modify VerbRule(JumpOver)
-    ('jump'|'hop'|'leap'|'vault') ('over'|) singleDobj :
-;*/
 
 parkourCache: object {
     requireRouteRecon = true
     formatForScreenReader = nil
+    noKnownRoutesMsg =
+        '{I} {do} not {know} any routes from here. '
 }
 
 #define dobjParkourRemap(parkourAction, remapAction) \
@@ -416,12 +389,15 @@ modify Thing {
         if (parkourModule != nil) return;
 
         parkourModule = new ParkourModule(self);
+        parkourModule.preinitThing();
     }
 
     climbOnAlternative = (isClimbable ? Climb : (canClimbUpMe ? ClimbUp : Board))
     climbOffAlternative = (canClimbUpMe ? ClimbDown : GetOff)
     enterAlternative = (canGoThroughMe ? GoThrough : Enter)
     jumpOffAlternative = JumpOff
+
+    //FIXME: We can still GET ON with an active parkour module
 
     dobjParkourRemap(ParkourClimbGeneric, climbOnAlternative)
     dobjParkourRemap(ParkourJumpGeneric, climbOnAlternative)
@@ -504,15 +480,15 @@ modify Thing {
     }
 
     cannotSlideUnderMsg =
-        ('{The subj dobj} {is} not something {i} {can} slide under. ')
+        '{The subj dobj} {is} not something {i} {can} slide under. '
     cannotRunAcrossMsg =
-        ('{The subj dobj} {is} not something {i} {can} run across. ')
+        '{The subj dobj} {is} not something {i} {can} run across. '
     cannotSwingOnMsg =
-        ('{The subj dobj} {is} not something {i} {can} swing on. ')
+        '{The subj dobj} {is} not something {i} {can} swing on. '
 }
 
 modify Room {
-    parkourModule: ParkourModule { }
+    parkourModule = perInstance(new ParkourModule(self))
 }
 
 modify SubComponent {
@@ -524,37 +500,58 @@ class ParkourModule: SubComponent {
         if (prkrParent != nil) {
             lexicalParent = prkrParent;
             parent = prkrParent;
-            testingForPreInit = true; //TODO: Remove check after test
         }
+        say('\bConstructed!\b');
         inherited();
+        preinitThing();
     }
+
+    // Stuff for vocab
+    // It seems like the init status of a room is not always
+    // timed well for the init status of a ParkourModule,
+    // so just require it to take the current info.
+    aName = (getVocabFromParent(&aName))
+    theName = (getVocabFromParent(&theName))
+    theObjName = (getVocabFromParent(&theObjName))
+    objName = (getVocabFromParent(&objName))
+    possAdj = (getVocabFromParent(&possAdj))
+    possNoun = (getVocabFromParent(&possNoun))
+    name = (getVocabFromParent(&name))
+    proper = (getVocabFromParent(&proper))
+    qualified = (getVocabFromParent(&qualified))
+    person = (getVocabFromParent(&person))
+    plural = (getVocabFromParent(&plural))
+    massNoun = (getVocabFromParent(&massNoun))
+    isHim = (getVocabFromParent(&isHim))
+    isHer = (getVocabFromParent(&isHer))
+    isIt = (getVocabFromParent(&isIt))
+    getVocabFromParent(vProp) {
+        if (parent == nil) return 'nil';
+        if (parent.ofKind(Room)) {
+            if (parent.floorObj != nil) {
+                return parent.floorObj.(vProp);
+            }
+        }
+        return parent.(vProp);
+    }
+    // End stuff for vocab
 
     parkourModule = self
 
-    testingForPreInit = nil
-
     pathVector = perInstance(new Vector())
+    preInitDone = nil
 
     preinitThing() {
+        if (preInitDone) return;
         inherited();
-        //TODO: Confirm procedural Things reach this:
-        if (testingForPreInit) {
-            say('\bParkourModule hits procedural preinitThing.\b');
-        }
+        say('\bPreinit!\b');
+        preInitDone = true;
     }
 
     // Mostly follows default SubComponent functionality
     initializeSubComponent(parent) {
         if(parent == nil) return;
         location = parent;
-
-        if (parent.ofKind(Room)) {
-            // Name us after the floor
-            nameAs(parent.floorObj);
-        }
-        else {
-            nameAs(parent);
-        }
        
         // Parkour is typically "On", arbitrarily
         contType = On;
@@ -597,6 +594,7 @@ class ParkourPathMaker: PreinitObject {
 
     execute() {
         location.prepForParkour();
+        destination.prepForParkour();
         createForwardPath();
         createBackwardPath();
     }
@@ -726,13 +724,11 @@ class AwkwardClimbDownLink: ParkourLinkMaker {
 // Floor heights
 class FloorHeight: ParkourLinkMaker {
     destination = (location.stagingLocation)
+    requiresJump = nil
+    isHarmful = nil
     requiresJumpBack = nil
     isHarmfulBack = nil
     direction = parkourDownDir
-
-    execute() {
-        inherited();
-    }
 
     createBackwardPath() {
         local backPath = getNewPathObject();
