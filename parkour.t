@@ -307,7 +307,7 @@ DefineIAction(ShowParkourRoutes)
     allowAll = nil
 
     execAction(cmd) {
-        local closestParkourMod = gActor.location.parkourModule;
+        local closestParkourMod = gActor.getParkourModule();
         if (closestParkourMod != nil) {
             if (closestParkourMod.pathVector.length > 0) {
                 local strBfr = new StringBuffer(6*closestParkourMod.pathVector.length);
@@ -344,9 +344,13 @@ DefineIAction(ShowParkourRoutes)
     }
 ;
 
+#define gParkourLastPath parkourCache.lastPath
+
 parkourCache: object {
     requireRouteRecon = true
     formatForScreenReader = nil
+
+    lastPath = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
 }
@@ -389,15 +393,47 @@ modify Thing {
         if (parkourModule != nil) return;
 
         parkourModule = new ParkourModule(self);
-        parkourModule.preinitThing();
+
+        // Make absolutely certain that everything is done
+        // through parkour now:
+        remapDobjBoard = parkourModule;
+        remapDobjGetOff = parkourModule;
+        remapDobjJumpOff = parkourModule;
+        remapDobjPutOn = parkourModule;
+        remapDobjClimb = parkourModule;
+        remapDobjClimbUp = parkourModule;
+        remapDobjClimbDown = parkourModule;
+        remapDobjJumpOver = parkourModule;
+        remapDobjSlideUnder = parkourModule;
+        remapDobjRunAcross = parkourModule;
+        remapDobjSwingOn = parkourModule;
+        remapDobjPutIn = parkourModule;
+    }
+
+    isShortContainer = nil // Allows reaching to top from inside or under
+
+    getParkourModule() {
+        if (parkourModule != nil) return parkourModule;
+        if (lexicalParent != nil) {
+            if (lexicalParent.parkourModule != nil) {
+                if (lexicalParent.remapOn == self || isShortContainer) {
+                    return lexicalParent.parkourModule;
+                }
+                return nil;
+            }
+        }
+        if (location != nil) {
+            if (location.parkourModule != nil) {
+                return location.parkourModule;
+            }
+        }
+        return nil;
     }
 
     climbOnAlternative = (isClimbable ? Climb : (canClimbUpMe ? ClimbUp : Board))
-    climbOffAlternative = (canClimbUpMe ? ClimbDown : GetOff)
+    climbOffAlternative = (canClimbDownMe ? ClimbDown : GetOff)
     enterAlternative = (canGoThroughMe ? GoThrough : Enter)
     jumpOffAlternative = JumpOff
-
-    //FIXME: We can still GET ON with an active parkour module
 
     dobjParkourRemap(ParkourClimbGeneric, climbOnAlternative)
     dobjParkourRemap(ParkourJumpGeneric, climbOnAlternative)
@@ -485,6 +521,12 @@ modify Thing {
         '{The subj dobj} {is} not something {i} {can} run across. '
     cannotSwingOnMsg =
         '{The subj dobj} {is} not something {i} {can} swing on. '
+    noParkourPathFromHereMsg =
+        '{I} {have} no path to get there. '
+    parkourNeedsJumpMsg =
+        '{I} need{s/ed} to JUMP instead, if {i} want{s/ed} to get there. '
+    parkourUnnecessaryJumpMsg =
+        '({I} {can} get there easily, so {i} decide{s/d} against jumping.) '
 }
 
 modify Room {
@@ -495,13 +537,32 @@ modify SubComponent {
     parkourModule = (lexicalParent == nil ? nil : lexicalParent.parkourModule)
 }
 
+#define verifyClimbPathFromActor(actor, canBeUnknown) \
+    verifyJumpPathFromActor(actor, canBeUnknown) \
+    if (gParkourLastPath.requiresJump) { \
+        illogical(parkourNeedsJumpMsg); \
+    }
+
+#define verifyJumpPathFromActor(actor, canBeUnknown) \
+    gParkourLastPath = getPathFrom(actor, canBeUnknown); \
+    if (gParkourLastPath == nil) { \
+        illogical(noParkourPathFromHereMsg); \
+        return; \
+    }
+
+#define tryClimbInstead(climbAction) \
+    if (!gParkourLastPath.requiresJump) { \
+        extraReport(parkourUnnecessaryJumpMsg + '\n'); \
+        doInstead(climbAction, self); \
+    }
+
 class ParkourModule: SubComponent {
     construct(prkrParent?) {
         if (prkrParent != nil) {
             lexicalParent = prkrParent;
             parent = prkrParent;
         }
-        say('\bConstructed!\b');
+        //say('\bConstructed!\b');
         inherited();
         preinitThing();
     }
@@ -526,7 +587,7 @@ class ParkourModule: SubComponent {
     isHer = (getVocabFromParent(&isHer))
     isIt = (getVocabFromParent(&isIt))
     getVocabFromParent(vProp) {
-        if (parent == nil) return 'nil';
+        if (parent == nil) return '(oops)';
         if (parent.ofKind(Room)) {
             if (parent.floorObj != nil) {
                 return parent.floorObj.(vProp);
@@ -541,10 +602,10 @@ class ParkourModule: SubComponent {
     pathVector = perInstance(new Vector())
     preInitDone = nil
 
-    preinitThing() {
+    preinitThing() { // Safety check
         if (preInitDone) return;
         inherited();
-        say('\bPreinit!\b');
+        //say('\bPreinit!\b');
         preInitDone = true;
     }
 
@@ -556,6 +617,10 @@ class ParkourModule: SubComponent {
         // Parkour is typically "On", arbitrarily
         contType = On;
         listOrder = contType.listOrder;
+    }
+
+    getParkourModule() {
+        return self;
     }
 
     addPath(parkourPath) {
@@ -572,6 +637,103 @@ class ParkourModule: SubComponent {
         }
         pathVector.append(parkourPath);
     }
+
+    provideMoveFor(actor) {
+        local plat = parent;
+        if (plat.remapOn != nil) {
+            plat = plat.remapOn;
+        }
+        actor.actionMoveInto(plat);
+    }
+
+    getPathFrom(source, canBeUnknown?) {
+        local closestParkourMod = source.getParkourModule();
+        if (closestParkourMod == nil) return nil;
+        if (closestParkourMod == self.lexicalParent) return nil;
+        local jumpPath = nil;
+        for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
+            local path = closestParkourMod.pathVector[i];
+            if (path.destination != self.lexicalParent) continue;
+            if (path.isKnown || canBeUnknown) {
+                if (path.requiresJump) {
+                    jumpPath = path;
+                }
+                else {
+                    return path; // Prioritize climbing
+                }
+            }
+        }
+
+        return jumpPath;
+    }
+
+    hasPathFrom(source, canBeUnknown?) {
+        local closestParkourMod = source.getParkourModule();
+        if (closestParkourMod == nil) return nil;
+        if (closestParkourMod == self.lexicalParent) return nil;
+        for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
+            local path = closestParkourMod.pathVector[i];
+            if (path.destination != self.lexicalParent) continue;
+            if (path.isKnown || canBeUnknown) {
+                return true;
+            }
+        }
+        return nil;
+    }
+
+    isInReachFrom(source, canBeUnknown?) { //TODO: Handle Q check
+        local closestParkourMod = source.getParkourModule();
+        if (closestParkourMod == nil) return nil; //TODO: Are we in the source's exit location?
+        if (closestParkourMod == self.lexicalParent) return true;
+        for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
+            local path = closestParkourMod.pathVector[i];
+            if (path.destination != self.lexicalParent) continue;
+            if (path.provider != nil) continue;
+            if (path.requiresJump) continue;
+            if (path.isKnown || canBeUnknown) {
+                return true;
+            }
+        }
+        return nil;
+    }
+
+    // Generic conversions
+    dobjFor(Board) asDobjFor(ParkourClimbGeneric)
+    dobjFor(Climb) asDobjFor(ParkourClimbGeneric)
+    dobjFor(ClimbUp) asDobjFor(ParkourClimbGeneric)
+    dobjFor(ClimbDown) asDobjFor(ParkourClimbOffOf)
+    dobjFor(GetOff) asDobjFor(ParkourClimbOffOf)
+    dobjFor(JumpOff) asDobjFor(ParkourJumpOffOf)
+    dobjFor(JumpOver) asDobjFor(ParkourJumpOver)
+    dobjFor(SlideUnder) asDobjFor(ParkourSlideUnder)
+    dobjFor(RunAcross) asDobjFor(ParkourRunAcross)
+    dobjFor(SwingOn) asDobjFor(ParkourSwingOn)
+
+    //TODO: Actions
+    dobjFor(ParkourClimbGeneric) {
+        preCond = [touchObj]
+        remap = nil
+        verify() {
+            verifyClimbPathFromActor(gActor, nil);
+        }
+        check() { checkInsert(gActor); }
+        action() {
+            //
+        }
+    }
+
+    dobjFor(ParkourJumpGeneric) {
+        preCond = [touchObj]
+        remap = nil
+        verify() {
+            verifyJumpPathFromActor(gActor, nil);
+        }
+        check() { checkInsert(gActor); }
+        action() {
+            tryClimbInstead(ParkourClimbGeneric);
+            //
+        }
+    }
 }
 
 enum parkourUpDir, parkourOverDir, parkourDownDir;
@@ -582,6 +744,9 @@ class ParkourPath: object {
     requiresJump = nil
     isHarmful = nil
     direction = parkourOverDir
+    isTrulyKnown = nil
+
+    isKnown = (isTrulyKnown || !parkourCache.requireRouteRecon)
 }
 
 class ParkourPathMaker: PreinitObject {
