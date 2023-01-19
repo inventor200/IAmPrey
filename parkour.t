@@ -422,11 +422,23 @@ modify Thing {
                 return nil;
             }
         }
-        if (location != nil) {
-            if (location.parkourModule != nil) {
-                return location.parkourModule;
+        if (!isLikelyContainer()) { // Likely an actor or item
+            if (location != nil) {
+                if (location.parkourModule != nil) {
+                    return location.parkourModule;
+                }
             }
         }
+        return nil;
+    }
+
+    isLikelyContainer() {
+        if (ofKind(Actor)) return nil; // Obvious
+        if (contType != nil) return true;
+        if (remapOn != nil) return true;
+        if (remapIn != nil) return true;
+        if (remapUnder != nil) return true;
+        if (remapBehind != nil) return true;
         return nil;
     }
 
@@ -649,7 +661,7 @@ class ParkourModule: SubComponent {
     getPathFrom(source, canBeUnknown?) {
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) return nil;
-        if (closestParkourMod == self.lexicalParent) return nil;
+        if (closestParkourMod == self) return nil;
         local jumpPath = nil;
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
@@ -670,7 +682,7 @@ class ParkourModule: SubComponent {
     hasPathFrom(source, canBeUnknown?) {
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) return nil;
-        if (closestParkourMod == self.lexicalParent) return nil;
+        if (closestParkourMod == self) return nil;
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
             if (path.destination != self.lexicalParent) continue;
@@ -683,8 +695,21 @@ class ParkourModule: SubComponent {
 
     isInReachFrom(source, canBeUnknown?) { //TODO: Handle Q check
         local closestParkourMod = source.getParkourModule();
-        if (closestParkourMod == nil) return nil; //TODO: Are we in the source's exit location?
-        if (closestParkourMod == self.lexicalParent) return true;
+        if (closestParkourMod == nil) {
+            // Last ditch ideas for related non-parkour containers!
+            // If the source left its current container,
+            // would it be on us?
+            if (isLikelyContainer()) {
+                if (source.exitLocation == self.lexicalParent) return true;
+                if (source.stagingLocation == self.lexicalParent) return true;
+            }
+            else if (source.location != nil) { // Likely an actor or item
+                if (source.location.exitLocation == self.lexicalParent) return true;
+                if (source.location.stagingLocation == self.lexicalParent) return true;
+            }
+            return nil;
+        }
+        if (closestParkourMod == self) return true;
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
             if (path.destination != self.lexicalParent) continue;
