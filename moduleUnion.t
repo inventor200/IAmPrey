@@ -134,3 +134,7 @@ defaultLabFloor: Floor { 'the floor'
 modify Room {
     floorObj = defaultLabFloor
 }
+
+class FixedPlatform: Platform {
+    isFixed = true
+}

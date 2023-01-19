@@ -344,6 +344,21 @@ DefineIAction(ShowParkourRoutes)
     }
 ;
 
+#if __DEBUG
+VerbRule(DebugCheckForContainer)
+    'is' singleDobj ('a'|'an'|) ('container'|'item') |
+    ('container'|'cont'|'c') 'check' ('for'|'on'|) singleDobj |
+    ('ccheck'|'cc') singleDobj
+    : VerbProduction
+    action = DebugCheckForContainer
+    verbPhrase = 'check (what) for container likelihood'
+    missingQ = 'what do you want to check for container likelihood'
+;
+
+DefineTAction(DebugCheckForContainer)
+;
+#endif
+
 #define gParkourLastPath parkourCache.lastPath
 
 parkourCache: object {
@@ -353,6 +368,37 @@ parkourCache: object {
     lastPath = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
+}
+
+QParkour: Special {
+    priority = 16
+    active = true
+
+    reachProblemVerify(a, b) {
+        local issues = [];
+
+        // Don't worry about room connections
+        if (a.ofKind(Room) || b.ofKind(Room)) return issues;
+
+        local parkourB = b.getParkourModule();
+        if (parkourB == nil) {
+            local parkourA = a.getParkourModule();
+            if (parkourA != nil) {
+                if (!parkourA.isInReachFrom(b, true)) {
+                    issues += new ReachProblemDistance(a, b);
+                    return issues;
+                }
+            }
+        }
+        else {
+            if (!parkourB.isInReachFrom(a, true)) {
+                issues += new ReachProblemDistance(a, b);
+                return issues;
+            }
+        }
+
+        return issues;
+    }
 }
 
 #define dobjParkourRemap(parkourAction, remapAction) \
@@ -433,12 +479,20 @@ modify Thing {
     }
 
     isLikelyContainer() {
-        if (ofKind(Actor)) return nil; // Obvious
-        if (contType != nil) return true;
-        if (remapOn != nil) return true;
-        if (remapIn != nil) return true;
-        if (remapUnder != nil) return true;
-        if (remapBehind != nil) return true;
+        if (parkourModule != nil) return true;
+        if (contType == Outside) return nil;
+        if (contType == Carrier) return nil;
+        if (isFixed) {
+            if (isBoardable) return true;
+            if (isEnterable) return true;
+            if (remapOn != nil) {
+                if (remapOn.isBoardable) return true;
+            }
+            if (remapIn != nil) {
+                if (remapIn.isEnterable) return true;
+            }
+            return isDecoration;
+        }
         return nil;
     }
 
@@ -527,6 +581,24 @@ modify Thing {
         }
     }
 
+    #if __DEBUG
+    dobjFor(DebugCheckForContainer) {
+        preCond = nil
+        verify() { }
+        check() { }
+        action() { }
+        report() {
+            local status = isLikelyContainer();
+            if (status) {
+                "{The subj dobj} is likely a container. ";
+            }
+            else {
+                "{The subj dobj} is likely an item. ";
+            }
+        }
+    }
+    #endif
+
     cannotSlideUnderMsg =
         '{The subj dobj} {is} not something {i} {can} slide under. '
     cannotRunAcrossMsg =
@@ -547,6 +619,16 @@ modify Room {
 
 modify SubComponent {
     parkourModule = (lexicalParent == nil ? nil : lexicalParent.parkourModule)
+    isLikelyContainer() {
+        if (parkourModule != nil) return true;
+        return lexicalParent.isLikelyContainer();
+    }
+}
+
+modify Actor {
+    isLikelyContainer() {
+        return nil;
+    }
 }
 
 #define verifyClimbPathFromActor(actor, canBeUnknown) \
@@ -693,13 +775,13 @@ class ParkourModule: SubComponent {
         return nil;
     }
 
-    isInReachFrom(source, canBeUnknown?) { //TODO: Handle Q check
+    isInReachFrom(source, canBeUnknown?) {
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) {
             // Last ditch ideas for related non-parkour containers!
             // If the source left its current container,
             // would it be on us?
-            if (isLikelyContainer()) {
+            if (source.isLikelyContainer()) {
                 if (source.exitLocation == self.lexicalParent) return true;
                 if (source.stagingLocation == self.lexicalParent) return true;
             }
@@ -709,6 +791,8 @@ class ParkourModule: SubComponent {
             }
             return nil;
         }
+
+        // Assuming source is prepared for parkour...
         if (closestParkourMod == self) return true;
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];

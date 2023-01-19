@@ -75,28 +75,38 @@ centralRoom: Room { 'Central Room'
     person = 2
 }
 
-/*+cargoShelf: ParkourPlatform { 'tall cargo shelf'
++cargoShelf: FixedPlatform { 'tall cargo shelf'
     "A tall series of cargo shelves. "
-    height = damaging
-    climbUpLinks = [vent]
-}*/
+    isListed = true
+    //height = damaging
+    //climbUpLinks = [vent]
+}
+++DangerousFloorHeight;
 
-/*++bottle: Thing { 'water bottle'
+++bottle: Thing { 'water bottle'
     "A difficult water bottle. "
-}*/
+}
 
-/*+cabinet: ParkourMultiContainer { 'tall lab cabinet'
+++dogCage: Booth { 'dog cage'
+    "A weird dog cage. "
+}
+
++cabinet: FixedPlatform { 'tall lab cabinet'
     "A locked, metal cabinet, likely containing lab materials. "
+    isListed = true
 
     remapIn: SubComponent {
         isOpenable = true
         isEnterable = true
     }
-    remapOn: SubParkourPlatform {
-        height = high
-        climbUpLinks = [cargoShelf]
+    remapOn: SubComponent {
+        //height = high
+        //climbUpLinks = [cargoShelf]
+        isBoardable = true
     }
-}*/
+}
+++HighFloorHeight;
+++ClimbUpLink -> cargoShelf;
 
 /*+metalCrate: ParkourPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
@@ -111,19 +121,23 @@ centralRoom: Room { 'Central Room'
     between the lab desk and metal crate. "
 }*/
 
-+desk: Platform { 'lab desk'
++desk: FixedPlatform { 'lab desk'
     "A simple lab desk. "
+    isListed = true
     //climbUpLinks = [cabinet]
     //jumpUpLinks = [cargoShelf]
     canSlideUnderMe = true
 }
 ++LowFloorHeight;
+++ClimbUpLink -> cabinet;
+++JumpUpLink -> cargoShelf;
 
 //++ParkourProviderPath @flagPole ->metalCrate;
 //+ParkourProviderPath @flagPole ->metalCrate;
 
-+table: Platform { 'generic table'
++table: FixedPlatform { 'generic table'
     "A generic table, outside of any parkour system. "
+    isListed = true
 }
 
 ++cup: Thing { 'cup'
@@ -132,10 +146,6 @@ centralRoom: Room { 'Central Room'
 
 ++puzzleCube: Trinket { 'puzzle cube'
     "A 3x3 puzzle cube. "
-}
-
-++dogCage: Booth { 'dog cage'
-    "A weird dog cage. "
 }
 
 /*+obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'
