@@ -362,7 +362,7 @@ DefineTAction(DebugCheckForContainer)
 #define gParkourLastPath parkourCache.lastPath
 
 parkourCache: object {
-    requireRouteRecon = true
+    requireRouteRecon = nil //FIXME: Set this to true after development is done
     formatForScreenReader = nil
 
     lastPath = nil
@@ -456,22 +456,13 @@ modify Thing {
         remapDobjPutIn = parkourModule;
     }
 
-    isShortContainer = nil // Allows reaching to top from inside or under
-
     getParkourModule() {
         if (parkourModule != nil) return parkourModule;
-        if (lexicalParent != nil) {
-            if (lexicalParent.parkourModule != nil) {
-                if (lexicalParent.remapOn == self || isShortContainer) {
-                    return lexicalParent.parkourModule;
-                }
-                return nil;
-            }
-        }
         if (!isLikelyContainer()) { // Likely an actor or item
             if (location != nil) {
-                if (location.parkourModule != nil) {
-                    return location.parkourModule;
+                local locationMod = location.getParkourModule();
+                if (locationMod != nil) {
+                    return locationMod;
                 }
             }
         }
@@ -586,14 +577,31 @@ modify Thing {
         preCond = nil
         verify() { }
         check() { }
-        action() { }
+        action() {
+            if (remapOn != nil) {
+                doNested(DebugCheckForContainer, remapOn);
+            }
+            if (remapIn != nil) {
+                doNested(DebugCheckForContainer, remapIn);
+            }
+            if (remapUnder != nil) {
+                doNested(DebugCheckForContainer, remapUnder);
+            }
+            if (remapBehind != nil) {
+                doNested(DebugCheckForContainer, remapBehind);
+            }
+        }
         report() {
             local status = isLikelyContainer();
+            local parkourStatusStr = (getParkourModule() == nil ?
+                ', and is not prepared for parkour' :
+                ', and is prepared for parkour'
+            );
             if (status) {
-                "{The subj dobj} is likely a container. ";
+                "{The subj dobj} is likely a container<<parkourStatusStr>>. ";
             }
             else {
-                "{The subj dobj} is likely an item. ";
+                "{The subj dobj} is likely an item<<parkourStatusStr>>. ";
             }
         }
     }
@@ -619,10 +627,54 @@ modify Room {
 
 modify SubComponent {
     parkourModule = (lexicalParent == nil ? nil : lexicalParent.parkourModule)
+
+    // In case the "IN" part is on the top of the container
+    partOfParkourSurface = nil
+    // For drawers on a short desk, for example
+    isInReachOfParkourSurface = (partOfParkourSurface)
+
     isLikelyContainer() {
         if (parkourModule != nil) return true;
         return lexicalParent.isLikelyContainer();
     }
+
+    getParkourModule() {
+        if (lexicalParent != nil) {
+            if (lexicalParent.remapOn == self || partOfParkourSurface) {
+                return lexicalParent.getParkourModule();
+            }
+            return nil;
+        }
+        return inherited();
+    }
+
+    #if __DEBUG
+    dobjFor(DebugCheckForContainer) {
+        preCond = nil
+        verify() { }
+        check() { }
+        action() {
+            local status = isLikelyContainer();
+            local parkourStatusStr = (getParkourModule() == nil ?
+                ', and is not prepared for parkour' :
+                ', and is prepared for parkour'
+            );
+            if (status) {
+                extraReport(
+                    '\^' + contType.prep +
+                    ' {the subj dobj} is likely a container<<parkourStatusStr>>.\n'
+                );
+            }
+            else {
+                extraReport(
+                    '\^' + contType.prep +
+                    ' {the subj dobj} is likely an item<<parkourStatusStr>>.\n'
+                );
+            }
+        }
+        report() { }
+    }
+    #endif
 }
 
 modify Actor {
@@ -776,24 +828,38 @@ class ParkourModule: SubComponent {
     }
 
     isInReachFrom(source, canBeUnknown?) {
+        //extraReport('\bTesting source: <<source.theName>> (<<source.contType.prep>>)\b');
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) {
             // Last ditch ideas for related non-parkour containers!
             // If the source left its current container,
             // would it be on us?
-            if (source.isLikelyContainer()) {
-                if (source.exitLocation == self.lexicalParent) return true;
-                if (source.stagingLocation == self.lexicalParent) return true;
+            local realSource = source;
+            if (!source.isLikelyContainer() && source.location != nil) {
+                // Likely an actor or item; test its location
+                realSource = source.location;
             }
-            else if (source.location != nil) { // Likely an actor or item
-                if (source.location.exitLocation == self.lexicalParent) return true;
-                if (source.location.stagingLocation == self.lexicalParent) return true;
+            //extraReport('\bNo parkour mod on <<realSource.theName>> (<<realSource.contType.prep>>).\b');
+
+            // Check two SubComponents a part of the same container
+            if (realSource.lexicalParent == self.lexicalParent) {
+                //extraReport('\bSame container; source: <<realSource.contType.prep>>\b');
+                // Confirmed SubComponent of same container.
+                // Can we reach the parkour module from this SubComponent?
+                return realSource.partOfParkourSurface ||
+                    realSource.isInReachOfParkourSurface;
             }
+
+            if (realSource.exitLocation == self.lexicalParent) return true;
+            if (realSource.stagingLocation == self.lexicalParent) return true;
+
             return nil;
         }
+        //extraReport('\bParkour mod found on <<closestParkourMod.theName>>.\b');
 
         // Assuming source is prepared for parkour...
         if (closestParkourMod == self) return true;
+        
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
             if (path.destination != self.lexicalParent) continue;

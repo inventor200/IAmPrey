@@ -71,14 +71,9 @@ centralRoom: Room { 'Central Room'
     otherSide = centralRoomDoor
 }
 
-+me: Actor {
-    person = 2
-}
-
 +cargoShelf: FixedPlatform { 'tall cargo shelf'
     "A tall series of cargo shelves. "
     isListed = true
-    //height = damaging
     //climbUpLinks = [vent]
 }
 ++DangerousFloorHeight;
@@ -100,13 +95,21 @@ centralRoom: Room { 'Central Room'
         isEnterable = true
     }
     remapOn: SubComponent {
-        //height = high
-        //climbUpLinks = [cargoShelf]
         isBoardable = true
     }
 }
 ++HighFloorHeight;
 ++ClimbUpLink -> cargoShelf;
+
+++cup: Thing { 'cup'
+    "A ceramic cup. "
+    subLocation = &remapIn
+}
+
+++me: Actor {
+    person = 2
+    subLocation = &remapOn
+}
 
 /*+metalCrate: ParkourPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
@@ -124,8 +127,6 @@ centralRoom: Room { 'Central Room'
 +desk: FixedPlatform { 'lab desk'
     "A simple lab desk. "
     isListed = true
-    //climbUpLinks = [cabinet]
-    //jumpUpLinks = [cargoShelf]
     canSlideUnderMe = true
 }
 ++LowFloorHeight;
@@ -138,10 +139,6 @@ centralRoom: Room { 'Central Room'
 +table: FixedPlatform { 'generic table'
     "A generic table, outside of any parkour system. "
     isListed = true
-}
-
-++cup: Thing { 'cup'
-    "A ceramic cup. "
 }
 
 ++puzzleCube: Trinket { 'puzzle cube'
