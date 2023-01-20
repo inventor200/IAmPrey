@@ -370,6 +370,8 @@ parkourCache: object {
         '{I} {do} not {know} any routes from here. '
 }
 
+#define __PARKOUR_REACH_DEBUG nil
+
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
 QParkour: Special {
@@ -524,7 +526,7 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
 #define dobjParkourRemap(parkourAction, remapAction) \
     dobjFor(parkourAction) { \
         preCond = [touchObj] \
-        remap = (parkourModule) \
+        remap = (getParkourModule()) \
         verify() { } \
         check() { } \
         action() { \
@@ -533,18 +535,20 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
         report() { } \
     }
 
-#define dobjParkourIntoRemap(parkourIntoAction, remapAction) \
-    dobjFor(parkourIntoAction) { \
+#define dobjParkourIntoRemap(remapAction, climbOrJump, parkourDir, remapDest) \
+    dobjFor(Parkour##climbOrJump##parkourDir##Into) { \
         preCond = [touchObj] \
+        remap = (remapDest) \
         verify() { } \
         check() { } \
         action() { \
             if (gActor.location != stagingLocation) { \
-                if (stagingLocation.parkourModule == nil) { \
+                local stagingParkourModule = stagingLocation.getParkourModule(); \
+                if (stagingParkourModule == nil) { \
                     tryImplicitAction(stagingLocation.climbOnAlternative, stagingLocation); \
                 } \
                 else { \
-                    tryImplicitAction(ParkourJumpGeneric, stagingLocation.parkourModule); \
+                    tryImplicitAction(Parkour##climbOrJump##parkourDir##To, stagingParkourModule); \
                 } \
             } \
             doInstead(remapAction, self); \
@@ -573,7 +577,7 @@ modify Thing {
         remapDobjSlideUnder = parkourModule;
         remapDobjRunAcross = parkourModule;
         remapDobjSwingOn = parkourModule;
-        remapDobjPutIn = parkourModule;
+        //remapDobjPutIn = parkourModule;
     }
 
     getParkourModule() {
@@ -614,21 +618,21 @@ modify Thing {
 
     dobjParkourRemap(ParkourClimbGeneric, climbOnAlternative)
     dobjParkourRemap(ParkourJumpGeneric, climbOnAlternative)
-    dobjParkourRemap(ParkourClimbOverTo, climbOnAlternative)
-    dobjParkourRemap(ParkourJumpOverTo, climbOnAlternative)
     dobjParkourRemap(ParkourClimbUpTo, climbOnAlternative)
     dobjParkourRemap(ParkourJumpUpTo, climbOnAlternative)
+    dobjParkourRemap(ParkourClimbOverTo, climbOnAlternative)
+    dobjParkourRemap(ParkourJumpOverTo, climbOnAlternative)
     dobjParkourRemap(ParkourClimbDownTo, climbOnAlternative)
     dobjParkourRemap(ParkourJumpDownTo, climbOnAlternative)
 
     //TODO: We are handling "into" differently.
     //      This time, we are chaining a parkour and gothrough action.
-    dobjParkourIntoRemap(ParkourClimbOverInto, enterAlternative)
-    dobjParkourIntoRemap(ParkourJumpOverInto, enterAlternative)
-    dobjParkourIntoRemap(ParkourClimbUpInto, enterAlternative)
-    dobjParkourIntoRemap(ParkourJumpUpInto, enterAlternative)
-    dobjParkourIntoRemap(ParkourClimbDownInto, enterAlternative)
-    dobjParkourIntoRemap(ParkourJumpDownInto, enterAlternative)
+    dobjParkourIntoRemap(enterAlternative, Climb, Up, remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Up, remapIn)
+    dobjParkourIntoRemap(enterAlternative, Climb, Over, remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Over, remapIn)
+    dobjParkourIntoRemap(enterAlternative, Climb, Down, remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Down, remapIn)
 
     dobjParkourRemap(ParkourJumpOver, JumpOver)
     dobjParkourRemap(ParkourSlideUnder, SlideUnder)
@@ -811,6 +815,9 @@ modify Actor {
     }
 }
 
+#define checkParkour(actor) \
+    checkInsert(actor)
+
 #define verifyClimbPathFromActor(actor, canBeUnknown) \
     verifyJumpPathFromActor(actor, canBeUnknown) \
     if (gParkourLastPath.requiresJump) { \
@@ -960,7 +967,9 @@ class ParkourModule: SubComponent {
     }
 
     isInReachFromVerbose(source, canBeUnknown?) {
-        //extraReport('\bTesting source: <<source.theName>> (<<source.contType.prep>>)\b');
+        #if __PARKOUR_REACH_DEBUG
+        extraReport('\bTesting source: <<source.theName>> (<<source.contType.prep>>)\b');
+        #endif
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) {
             // Last ditch ideas for related non-parkour containers!
@@ -971,11 +980,14 @@ class ParkourModule: SubComponent {
                 // Likely an actor or item; test its location
                 realSource = source.location;
             }
-            //extraReport('\bNo parkour mod on <<realSource.theName>> (<<realSource.contType.prep>>).\b');
-
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\bNo parkour mod on <<realSource.theName>> (<<realSource.contType.prep>>).\b');
+            #endif
             // Check two SubComponents a part of the same container
             if (realSource.lexicalParent == self.lexicalParent) {
-                //extraReport('\bSame container; source: <<realSource.contType.prep>>\b');
+                #if __PARKOUR_REACH_DEBUG
+                extraReport('\bSame container; source: <<realSource.contType.prep>>\b');
+                #endif
                 // Confirmed SubComponent of same container.
                 // Can we reach the parkour module from this SubComponent?
                 if (realSource.partOfParkourSurface || realSource.isInReachOfParkourSurface) {
@@ -989,7 +1001,9 @@ class ParkourModule: SubComponent {
 
             return parkourReachTopTooFar;
         }
-        //extraReport('\bParkour mod found on <<closestParkourMod.theName>>.\b');
+        #if __PARKOUR_REACH_DEBUG
+        extraReport('\bParkour mod found on <<closestParkourMod.theName>>.\b');
+        #endif
 
         // Assuming source is prepared for parkour...
         if (closestParkourMod == self) return parkourReachSuccessful;
@@ -1005,6 +1019,13 @@ class ParkourModule: SubComponent {
         }
         return parkourReachTopTooFar;
     }
+
+    dobjParkourIntoRemap(enterAlternative, Climb, Up, lexicalParent.remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Up, lexicalParent.remapIn)
+    dobjParkourIntoRemap(enterAlternative, Climb, Over, lexicalParent.remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Over, lexicalParent.remapIn)
+    dobjParkourIntoRemap(enterAlternative, Climb, Down, lexicalParent.remapIn)
+    dobjParkourIntoRemap(enterAlternative, Jump, Down, lexicalParent.remapIn)
 
     // Generic conversions
     dobjFor(Board) asDobjFor(ParkourClimbGeneric)
@@ -1025,9 +1046,19 @@ class ParkourModule: SubComponent {
         verify() {
             verifyClimbPathFromActor(gActor, nil);
         }
-        check() { checkInsert(gActor); }
+        check() { checkParkour(gActor); }
         action() {
-            //
+            switch (gParkourLastPath.direction) {
+                case parkourUpDir:
+                    doInstead(ParkourClimbUpTo);
+                    break;
+                case parkourOverDir:
+                    doInstead(ParkourClimbOverTo);
+                    break;
+                case parkourDownDir:
+                    doInstead(ParkourClimbDownTo);
+                    break;
+            }
         }
     }
 
@@ -1037,10 +1068,20 @@ class ParkourModule: SubComponent {
         verify() {
             verifyJumpPathFromActor(gActor, nil);
         }
-        check() { checkInsert(gActor); }
+        check() { checkParkour(gActor); }
         action() {
             tryClimbInstead(ParkourClimbGeneric);
-            //
+            switch (gParkourLastPath.direction) {
+                case parkourUpDir:
+                    doInstead(ParkourJumpUpTo);
+                    break;
+                case parkourOverDir:
+                    doInstead(ParkourJumpOverTo);
+                    break;
+                case parkourDownDir:
+                    doInstead(ParkourJumpDownTo);
+                    break;
+            }
         }
     }
 }
