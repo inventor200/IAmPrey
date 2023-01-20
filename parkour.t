@@ -370,6 +370,8 @@ parkourCache: object {
         '{I} {do} not {know} any routes from here. '
 }
 
+enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
+
 QParkour: Special {
     priority = 16
     active = true
@@ -380,24 +382,142 @@ QParkour: Special {
         // Don't worry about room connections
         if (a.ofKind(Room) || b.ofKind(Room)) return issues;
 
+        local aItem = nil;
+        local aLoc = nil;
+        local bItem = nil;
+        local bLoc = nil;
+
+        if (a.isLikelyContainer()) {
+            aLoc = a;
+        }
+        else {
+            aItem = a;
+            aLoc = a.location;
+        }
+
+        if (b.isLikelyContainer()) {
+            bLoc = b;
+        }
+        else {
+            bItem = b;
+            bLoc = b.location;
+        }
+
         local parkourB = b.getParkourModule();
         if (parkourB == nil) {
             local parkourA = a.getParkourModule();
             if (parkourA != nil) {
-                if (!parkourA.isInReachFrom(b, true)) {
-                    issues += new ReachProblemDistance(a, b);
+                local reachResult = parkourA.isInReachFromVerbose(b, true);
+                if (reachResult != parkourReachSuccessful) {
+                    issues += getMessageFromReachResult(
+                        a, b, aItem, bItem, aLoc, bLoc, reachResult
+                    );
                     return issues;
                 }
             }
         }
         else {
-            if (!parkourB.isInReachFrom(a, true)) {
-                issues += new ReachProblemDistance(a, b);
+            local reachResult = parkourB.isInReachFromVerbose(a, true);
+            if (reachResult != parkourReachSuccessful) {
+                issues += getMessageFromReachResult(
+                    a, b, aItem, bItem, aLoc, bLoc, reachResult
+                );
                 return issues;
             }
         }
 
         return issues;
+    }
+
+    getMessageFromReachResult(a, b, aItem, bItem, aLoc, bLoc, reachResult) {
+        switch (reachResult) {
+            case parkourReachTopTooFar:
+                return new ReachProblemParkour(
+                    a, b, aItem, bItem, aLoc, bLoc
+                );
+            case parkourSubComponentTooFar:
+                return new ReachProblemParkourFromTopOfSame(
+                    a, b, aItem, bItem, aLoc, bLoc
+                );
+        }
+        return new ReachProblemDistance(a, b);
+    }
+}
+
+class ReachProblemParkourBase: ReachProblemDistance {
+    construct(source, target, srcItem, trgItem, srcLoc, trgLoc) {
+        inherited(source, target);
+        srcItem_ = srcItem;
+        srcLoc_ = srcLoc;
+        trgItem_ = trgItem;
+        trgLoc_ = trgLoc;
+    }
+
+    srcItem_ = nil;
+    srcLoc_ = nil;
+    trgItem_ = nil;
+    trgLoc_ = nil;
+
+    trgItemName = (trgItem_.theName);
+    trgItemIs() {
+        if (trgItem_.person == 1) {
+            return '{am|was}';
+        }
+        if (trgItem_.plural || trgItem_.person == 2) {
+            return '{are|were}';
+        }
+        return '{is|was}';
+    }
+    trgItemNameIs = (trgItemName + ' ' + trgItemIs())
+
+    trgLocName = (trgLoc_.theName);
+    trgLocIs() {
+        if (trgLoc_.person == 1) {
+            return '{am|was}';
+        }
+        if (trgLoc_.plural || trgLoc_.person == 2) {
+            return '{are|were}';
+        }
+        return '{is|was}';
+    }
+    trgLocNameIs = (trgLocName + ' ' + trgLocIs())
+}
+
+// General error for being unable to reach, due to parkour limitations
+class ReachProblemParkour: ReachProblemParkourBase {
+    tooFarAwayMsg() {
+        if (trgItem_ == nil) {
+            if (trgLoc_.contType == On || trgLoc_.partOfParkourSurface) {
+                return 'The top of <<trgLocNameIs>> out of reach. ';
+            }
+            return 'That part of <<trgLocNameIs>> out of reach. ';
+        }
+
+        if (trgLoc_.contType == On) {
+            return '\^<<trgItemNameIs>> on top of <<trgLocName>>,
+                which <<trgLocIs>> out of reach. ';
+        }
+        return '\^<<trgItemNameIs>> <<trgLoc_.contType.prep>> <<trgLocName>>,
+            which <<trgLocIs>> out of reach. ';
+    }
+}
+
+// Error for attempt to reach inside of container while standing on top of it
+class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
+    tooFarAwayMsg() {
+        if (trgItem_ == nil) {
+            if (trgLoc_.contType == On || trgLoc_.partOfParkourSurface) {
+                return 'The top of <<trgLocName>> {cannot} be reached from {here}. ';
+            }
+            return 'That part of <<trgLocName>> {cannot} be reached from {here}. ';
+        }
+
+        if (trgLoc_.contType == On) {
+            return '\^<<trgItemNameIs>> on top of <<trgLocName>>,
+                and that part {cannot} be reached from {here}. ';
+        }
+        return '\^<<trgItemNameIs>> <<trgLoc_.contType.prep>> <<trgLocName>>,
+            and that part {cannot} be reached from {here}. ';
     }
 }
 
@@ -623,6 +743,14 @@ modify Thing {
 
 modify Room {
     parkourModule = perInstance(new ParkourModule(self))
+
+    isLikelyContainer() {
+        return true;
+    }
+
+    getParkourModule() {
+        return parkourModule;
+    }
 }
 
 modify SubComponent {
@@ -828,6 +956,10 @@ class ParkourModule: SubComponent {
     }
 
     isInReachFrom(source, canBeUnknown?) {
+        return isInReachFromVerbose(source, canBeUnknown) == parkourReachSuccessful;
+    }
+
+    isInReachFromVerbose(source, canBeUnknown?) {
         //extraReport('\bTesting source: <<source.theName>> (<<source.contType.prep>>)\b');
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) {
@@ -846,30 +978,32 @@ class ParkourModule: SubComponent {
                 //extraReport('\bSame container; source: <<realSource.contType.prep>>\b');
                 // Confirmed SubComponent of same container.
                 // Can we reach the parkour module from this SubComponent?
-                return realSource.partOfParkourSurface ||
-                    realSource.isInReachOfParkourSurface;
+                if (realSource.partOfParkourSurface || realSource.isInReachOfParkourSurface) {
+                    return parkourReachSuccessful;
+                }
+                return parkourSubComponentTooFar;
             }
 
-            if (realSource.exitLocation == self.lexicalParent) return true;
-            if (realSource.stagingLocation == self.lexicalParent) return true;
+            if (realSource.exitLocation == self.lexicalParent) return parkourReachSuccessful;
+            if (realSource.stagingLocation == self.lexicalParent) return parkourReachSuccessful;
 
-            return nil;
+            return parkourReachTopTooFar;
         }
         //extraReport('\bParkour mod found on <<closestParkourMod.theName>>.\b');
 
         // Assuming source is prepared for parkour...
-        if (closestParkourMod == self) return true;
-        
+        if (closestParkourMod == self) return parkourReachSuccessful;
+
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
             if (path.destination != self.lexicalParent) continue;
             if (path.provider != nil) continue;
             if (path.requiresJump) continue;
             if (path.isKnown || canBeUnknown) {
-                return true;
+                return parkourReachSuccessful;
             }
         }
-        return nil;
+        return parkourReachTopTooFar;
     }
 
     // Generic conversions

@@ -92,6 +92,7 @@ centralRoom: Room { 'Central Room'
 
     remapIn: SubComponent {
         isOpenable = true
+        isOpen = true
         isEnterable = true
     }
     remapOn: SubComponent {
@@ -103,12 +104,12 @@ centralRoom: Room { 'Central Room'
 
 ++cup: Thing { 'cup'
     "A ceramic cup. "
-    subLocation = &remapIn
+    subLocation = &remapOn
 }
 
-++me: Actor {
++me: Actor {
     person = 2
-    subLocation = &remapOn
+    //subLocation = &remapOn
 }
 
 /*+metalCrate: ParkourPlatform { 'metal crate'
