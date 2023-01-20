@@ -4,6 +4,14 @@
 #define genericOnTopOfPrep ('on'|expandedOnto|'on' 'top' 'of'|expandedOnto 'the' 'top' 'of'|'atop')
 #define genericAcrossPrep ('over'|'across'|'over' 'to'|'across' 'to'|'to'|'onto'|'on' 'to') (('the'|)'top' 'of'|)
 
+#define climbImplicitReport \
+    implicitAnnouncement(success) { \
+        if (success) { \
+            return 'climbing to {the dobj}'; \
+        } \
+        return 'failing to climb to {the dobj}'; \
+    }
+
 VerbRule(ParkourClimbOverTo)
     ('climb'|'cl'|'get'|'step') genericAcrossPrep singleDobj
     : VerbProduction
@@ -13,6 +21,7 @@ VerbRule(ParkourClimbOverTo)
 ;
 
 DefineTAction(ParkourClimbOverTo)
+    climbImplicitReport
 ;
 
 VerbRule(ParkourClimbOverInto)
@@ -24,6 +33,7 @@ VerbRule(ParkourClimbOverInto)
 ;
 
 DefineTAction(ParkourClimbOverInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpOverTo)
@@ -35,6 +45,7 @@ VerbRule(ParkourJumpOverTo)
 ;
 
 DefineTAction(ParkourJumpOverTo)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpOverInto)
@@ -46,6 +57,7 @@ VerbRule(ParkourJumpOverInto)
 ;
 
 DefineTAction(ParkourJumpOverInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpUpTo)
@@ -58,6 +70,7 @@ VerbRule(ParkourJumpUpTo)
 ;
 
 DefineTAction(ParkourJumpUpTo)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpUpInto)
@@ -70,6 +83,7 @@ VerbRule(ParkourJumpUpInto)
 ;
 
 DefineTAction(ParkourJumpUpInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpDownTo)
@@ -81,6 +95,7 @@ VerbRule(ParkourJumpDownTo)
 ;
 
 DefineTAction(ParkourJumpDownTo)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourJumpDownInto)
@@ -92,6 +107,7 @@ VerbRule(ParkourJumpDownInto)
 ;
 
 DefineTAction(ParkourJumpDownInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourClimbDownTo)
@@ -103,6 +119,7 @@ VerbRule(ParkourClimbDownTo)
 ;
 
 DefineTAction(ParkourClimbDownTo)
+    climbImplicitReport
 ;
 
 VerbRule(ParkourClimbDownInto)
@@ -114,6 +131,7 @@ VerbRule(ParkourClimbDownInto)
 ;
 
 DefineTAction(ParkourClimbDownInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourClimbUpInto)
@@ -125,6 +143,7 @@ VerbRule(ParkourClimbUpInto)
 ;
 
 DefineTAction(ParkourClimbUpInto)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourClimbUpTo)
@@ -136,6 +155,7 @@ VerbRule(ParkourClimbUpTo)
 ;
 
 DefineTAction(ParkourClimbUpTo)
+    climbImplicitReport
 ;
 
 VerbRule(ParkourJumpGeneric)
@@ -147,6 +167,7 @@ VerbRule(ParkourJumpGeneric)
 ;
 
 DefineTAction(ParkourJumpGeneric)
+    allowImplicit = nil
 ;
 
 VerbRule(ParkourClimbGeneric)
@@ -160,6 +181,7 @@ VerbRule(ParkourClimbGeneric)
 ;
 
 DefineTAction(ParkourClimbGeneric)
+    climbImplicitReport
 ;
 
 VerbRule(ParkourSlideUnder)
@@ -171,6 +193,12 @@ VerbRule(ParkourSlideUnder)
 ;
 
 DefineTAction(ParkourSlideUnder)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'sliding under {the dobj}';
+        }
+        return 'failing to slide under {the dobj}';
+    }
 ;
 
 VerbRule(ParkourJumpOver)
@@ -182,6 +210,12 @@ VerbRule(ParkourJumpOver)
 ;
 
 DefineTAction(ParkourJumpOver)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'jumping over {the dobj}';
+        }
+        return 'failing to jump over {the dobj}';
+    }
 ;
 
 VerbRule(ParkourRunAcross)
@@ -193,6 +227,12 @@ VerbRule(ParkourRunAcross)
 ;
 
 DefineTAction(ParkourRunAcross)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'running across {the dobj}';
+        }
+        return 'failing to run across {the dobj}';
+    }
 ;
 
 VerbRule(ParkourSwingOn)
@@ -204,6 +244,12 @@ VerbRule(ParkourSwingOn)
 ;
 
 DefineTAction(ParkourSwingOn)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'swinging on {the dobj}';
+        }
+        return 'failing to swing on {the dobj}';
+    }
 ;
 
 VerbRule(SlideUnder)
@@ -215,6 +261,12 @@ VerbRule(SlideUnder)
 ;
 
 DefineTAction(SlideUnder)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'sliding under {the dobj}';
+        }
+        return 'failing to slide under {the dobj}';
+    }
 ;
 
 VerbRule(RunAcross)
@@ -226,6 +278,12 @@ VerbRule(RunAcross)
 ;
 
 DefineTAction(RunAcross)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'running across {the dobj}';
+        }
+        return 'failing to run across {the dobj}';
+    }
 ;
 
 VerbRule(SwingOn)
@@ -237,6 +295,12 @@ VerbRule(SwingOn)
 ;
 
 DefineTAction(SwingOn)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'swinging on {the dobj}';
+        }
+        return 'failing to swing on {the dobj}';
+    }
 ;
 
 VerbRule(ParkourClimbOffOf)
@@ -248,6 +312,12 @@ VerbRule(ParkourClimbOffOf)
 ;
 
 DefineTAction(ParkourClimbOffOf)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'climbing off {the dobj}';
+        }
+        return 'failing to climb off {the dobj}';
+    }
 ;
 
 VerbRule(ParkourClimbOffIntransitive)
@@ -274,6 +344,12 @@ VerbRule(ParkourJumpOffOf)
 ;
 
 DefineTAction(ParkourJumpOffOf)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'jumping off of {the dobj}';
+        }
+        return 'failing to jump off of {the dobj}';
+    }
 ;
 
 VerbRule(ParkourJumpOffIntransitive)
@@ -360,12 +436,15 @@ DefineTAction(DebugCheckForContainer)
 #endif
 
 #define gParkourLastPath parkourCache.lastPath
+#define gParkourMuteNestedReports parkourCache.muteNestedReports
 
 parkourCache: object {
     requireRouteRecon = nil //FIXME: Set this to true after development is done
     formatForScreenReader = nil
+    autoPathCanDiscover = nil
 
     lastPath = nil
+    muteNestedReports = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
 }
@@ -382,7 +461,7 @@ QParkour: Special {
         local issues = [];
 
         // Don't worry about room connections
-        if (a.ofKind(Room) || b.ofKind(Room)) return issues;
+        if (a.ofKind(Room) || b.ofKind(Room)) return issues; //FIXME: Do we need this?
 
         local aItem = nil;
         local aLoc = nil;
@@ -528,6 +607,190 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
         }
         return '\^<<trgItemNameIs>> <<trgLoc_.contType.prep>> <<trgLocName>>,
             and that part {cannot} be reached from {here}. ';
+    }
+}
+
+#define __PARKOUR_PATHING_DEBUG nil
+
+// Modifying the behavior for moving actors into position
+modify actorInStagingLocation {
+    checkPreCondition(obj, allowImplicit) {
+        local stagingLoc = obj.stagingLocation;
+        local loc = gActor.location;
+
+        if (loc == stagingLoc) return true; // FREE!!
+
+        if (allowImplicit) {
+            // Handle parkour pathing
+            local getActorToFloorLst = getPathToFloor(loc, nil);
+            local getObjectToFloorLst = getPathToFloor(stagingLoc, true);
+
+            local actorGoalIndex = 1;
+            local objectStartIndex = 1;
+
+            local connectionFound = nil;
+
+            for (local i = 1; i <= getObjectToFloorLst.length; i++) {
+                local objectNode = getObjectToFloorLst[i];
+                local objectParkourMod = objectNode.getParkourModule();
+                objectStartIndex = i;
+                for (local j = 1; j <= getActorToFloorLst.length; j++) {
+                    local actorNode = getActorToFloorLst[j];
+                    local actorParkourMod = actorNode.getParkourModule();
+                    actorGoalIndex = j;
+
+                    // Do we happen to connect?
+                    if (objectNode == actorNode) {
+                        connectionFound = true;
+                        break;
+                    }
+
+                    // Are we both parkour-capable?
+                    if ((objectParkourMod != nil) && (actorParkourMod != nil)) {
+                        local connPath = objectParkourMod.getPathFrom(
+                            actorNode, parkourCache.autoPathCanDiscover
+                        );
+                        if (connPath != nil) {
+                            // Do not require the player to take jump routes
+                            if (!connPath.requiresJump) {
+                                connectionFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (connectionFound) break;
+            }
+
+            // Valid path found!
+            if (connectionFound) {
+                local stepSuccess = nil;
+                #if __PARKOUR_PATHING_DEBUG
+                extraReport('CONNECTION FOUND!\n');
+                #endif
+
+                // Perform path
+                for (local i = 1; i <= actorGoalIndex; i++) {
+                    local nextLoc = getActorToFloorLst[i];
+                    stepSuccess = doPathStep(gActor, nextLoc, nil);
+                    if (!stepSuccess) break;
+                }
+                if (stepSuccess) {
+                    for (local i = objectStartIndex; i >= 1; i--) {
+                        local nextLoc = getObjectToFloorLst[i];
+                        stepSuccess = doPathStep(gActor, nextLoc, true);
+                        if (!stepSuccess) break;
+                    }
+                }
+
+                if (gActor.location == stagingLoc) return true;
+            }
+        }
+
+        gMessageParams(stagingLoc);
+        say('{I} need{s/ed} to be <<if stagingLoc.ofKind(Room)>> directly <<end>>
+            {in stagingloc} to do that. ');
+        return nil;
+    }
+
+    doPathStep(actor, nextLoc, goingUp) {
+        local oldLoc = actor.location;
+
+        if (oldLoc == nextLoc) return true;
+
+        local action = nil;
+        local nextParkourMod = nextLoc.getParkourModule();
+
+        if ((oldLoc.getParkourModule() != nil) && (nextParkourMod != nil)) {
+            tryImplicitAction(ParkourClimbGeneric, nextParkourMod);
+        }
+        else if (goingUp) {
+            // Entering nextLoc ins, and boarding nextLoc ons
+            action = nextLoc.contType == In ? Enter : Board;
+        }
+        else {
+            // Getting out of oldLoc ins, and getting off of oldLoc ons
+            action = oldLoc.contType == In ? GetOutOf : GetOff;
+        }
+
+        if (action != nil) {
+            tryImplicitAction(action, goingUp ? nextLoc : oldLoc);
+        }
+
+        return actor.location == nextLoc;
+    }
+
+    #if __PARKOUR_PATHING_DEBUG
+    reportLocList(lst) {
+        for (local i = 1; i <= lst.length; i++) {
+            extraReport(lst[i].theName + ' (' + lst[i].contType.prep + ')\n');
+        }
+    }
+    #endif
+
+    getPathToFloor(loc, goingUp) {
+        #if __PARKOUR_PATHING_DEBUG
+        extraReport('\bPATH TO FLOOR (' + (goingUp ? 'going up' : 'going down') + ')\n');
+        #endif
+        local travelProp = goingUp ? &stagingLocation : &exitLocation;
+        local lst = [];
+        local room = loc;
+        if (!room.ofKind(Room)) {
+            room = room.getOutermostRoom();
+        }
+
+        if (loc == room) {
+            lst += loc;
+            #if __PARKOUR_PATHING_DEBUG
+            reportLocList(lst);
+            #endif
+            return lst;
+        }
+
+        local nextParkourMod = loc.getParkourModule();
+
+        while (loc != room) {
+            lst += loc;
+            local next = loc.(travelProp);
+            local locParkourMod = nextParkourMod;
+            nextParkourMod = next.getParkourModule();
+
+            // Verify parkour path
+            if (locParkourMod != nil && nextParkourMod != nil) {
+                // Make sure we are not asking for jumps.
+                // Also, direction matters, so find our start and end:
+                local parkourStart = goingUp ? nextParkourMod : locParkourMod;
+                local parkourEnd = goingUp ? locParkourMod : nextParkourMod;
+
+                local path = parkourEnd.getPathFrom(
+                    parkourStart, parkourCache.autoPathCanDiscover
+                );
+                if (path == nil) {
+                    // Looks this is as far as we go!
+                    if (lst.length == 0) lst += loc;
+                    #if __PARKOUR_PATHING_DEBUG
+                    reportLocList(lst);
+                    #endif
+                    return lst;
+                }
+                if (path.requiresJump) {
+                    // Do not require jump to proceed!!
+                    if (lst.length == 0) lst += loc;
+                    #if __PARKOUR_PATHING_DEBUG
+                    reportLocList(lst);
+                    #endif
+                    return lst;
+                }
+            }
+
+            loc = next;
+        }
+
+        lst += loc;
+        #if __PARKOUR_PATHING_DEBUG
+        reportLocList(lst);
+        #endif
+        return lst;
     }
 }
 
@@ -901,7 +1164,8 @@ modify Actor {
 #define tryClimbInstead(climbAction) \
     if (!gParkourLastPath.requiresJump) { \
         extraReport(parkourUnnecessaryJumpMsg + '\n'); \
-        doInstead(climbAction, self); \
+        doNested(climbAction, self); \
+        return; \
     }
 
 #define learnPath(path, reportMethod) \
@@ -915,7 +1179,12 @@ modify Actor {
     provideMoveFor(actor)
 
 #define reportParkour \
-    "<<gParkourLastPath.getPerformMsg()>>"
+    if (!gParkourMuteNestedReports) { \
+        "<<gParkourLastPath.getPerformMsg()>>"; \
+    } \
+    else { \
+        gParkourMuteNestedReports = nil; \
+    }
 
 #define parkourSimplyClimb(parkourDir) \
     dobjFor(ParkourClimb##parkourDir##To) { \
@@ -993,9 +1262,6 @@ class ParkourModule: SubComponent {
 
     pathVector = perInstance(new Vector())
     preInitDone = nil
-
-    //TODO: Set stagingLocation procedurally, according to the easiest
-    //      place for the player to travel from.
 
     preinitThing() { // Safety check
         if (preInitDone) return;
@@ -1160,25 +1426,32 @@ class ParkourModule: SubComponent {
     dobjFor(SwingOn) asDobjFor(ParkourSwingOn)
 
     //TODO: PutOn
+    // Try placing a ghost object on the destination,
+    // and if the gActor can reach the ghost, then they
+    // can place the object.
     dobjFor(ParkourClimbGeneric) {
         parkourActionIntro
         verify() {
-            verifyClimbPathFromActor(gActor, nil);
+            verifyClimbPathFromActor(gActor, parkourCache.autoPathCanDiscover);
         }
         check() { checkParkour(gActor); }
         action() {
+            if (gAction.isImplicit) {
+                gParkourMuteNestedReports = true;
+            }
             switch (gParkourLastPath.direction) {
                 case parkourUpDir:
-                    doInstead(ParkourClimbUpTo, self);
-                    break;
+                    doNested(ParkourClimbUpTo, self);
+                    return;
                 case parkourOverDir:
-                    doInstead(ParkourClimbOverTo, self);
-                    break;
+                    doNested(ParkourClimbOverTo, self);
+                    return;
                 case parkourDownDir:
-                    doInstead(ParkourClimbDownTo, self);
-                    break;
+                    doNested(ParkourClimbDownTo, self);
+                    return;
             }
         }
+        report() { }
     }
 
     parkourSimplyClimb(Up)
@@ -1188,23 +1461,27 @@ class ParkourModule: SubComponent {
     dobjFor(ParkourJumpGeneric) {
         parkourActionIntro
         verify() {
-            verifyJumpPathFromActor(gActor, nil);
+            verifyJumpPathFromActor(gActor, parkourCache.autoPathCanDiscover);
         }
         check() { checkParkour(gActor); }
         action() {
+            if (gAction.isImplicit) {
+                gParkourMuteNestedReports = true;
+            }
             tryClimbInstead(ParkourClimbGeneric);
             switch (gParkourLastPath.direction) {
                 case parkourUpDir:
-                    doInstead(ParkourJumpUpTo, self);
-                    break;
+                    doNested(ParkourJumpUpTo, self);
+                    return;
                 case parkourOverDir:
-                    doInstead(ParkourJumpOverTo, self);
-                    break;
+                    doNested(ParkourJumpOverTo, self);
+                    return;
                 case parkourDownDir:
-                    doInstead(ParkourJumpDownTo, self);
-                    break;
+                    doNested(ParkourJumpDownTo, self);
+                    return;
             }
         }
+        report() { }
     }
 
     parkourSimplyJump(Up)
