@@ -1525,16 +1525,14 @@ class ParkourModule: SubComponent {
             if(!gActor.isIn(myOn) || myOn.contType != On) {
                 illogicalNow(actorNotOnMsg);
             }
-            //TODO: Block if jump was required
         }
-
         action() {
-            gActor.actionMoveInto(exitLocation);
+            if (gAction.isImplicit) {
+                gParkourMuteNestedReports = true;
+            }
+            doInstead(ParkourClimbDownTo, exitLocation);
         }
-        
-        report() {
-            say(okayGetOutOfMsg);
-        }
+        report() { }
     }
 
     dobjFor(ParkourJumpOffOf) {
@@ -1544,16 +1542,13 @@ class ParkourModule: SubComponent {
                 illogicalNow(actorNotOnMsg);
             }
         }
-
         action() {
-            //TODO: Do climb, if able
-            //TODO: Also check for falls
-            gActor.actionMoveInto(exitLocation);
+            if (gAction.isImplicit) {
+                gParkourMuteNestedReports = true;
+            }
+            doInstead(ParkourJumpDownTo, exitLocation);
         }
-        
-        report() {
-            say(okayGetOutOfMsg);
-        }
+        report() { }
     }
 
     dobjFor(ParkourJumpOver) {
@@ -1585,48 +1580,58 @@ class ParkourPath: object {
 
     isKnown = (isTrulyKnown || !parkourCache.requireRouteRecon)
 
+    //TODO: Per-path messages
+    injectedDiscoverMsg = nil
+    injectedPerformMsg = nil
+
     getDiscoverMsg() {
+        if (injectedDiscoverMsg != nil) {
+            return injectedDiscoverMsg;
+        }
         if (requiresJump) {
             switch (direction) {
                 case parkourUpDir:
-                    return destination.getJumpUpDiscoverMsg();
+                    return destination.parkourModule.getJumpUpDiscoverMsg();
                 case parkourOverDir:
-                    return destination.getJumpOverDiscoverMsg();
+                    return destination.parkourModule.getJumpOverDiscoverMsg();
                 case parkourDownDir:
-                    return destination.getJumpDownDiscoverMsg();
+                    return destination.parkourModule.getJumpDownDiscoverMsg();
             }
         }
 
         switch (direction) {
             case parkourOverDir:
-                return destination.getClimbOverDiscoverMsg();
+                return destination.parkourModule.getClimbOverDiscoverMsg();
             case parkourDownDir:
-                return destination.getClimbDownDiscoverMsg();
+                return destination.parkourModule.getClimbDownDiscoverMsg();
         }
 
-        return destination.getClimbUpDiscoverMsg();
+        return destination.parkourModule.getClimbUpDiscoverMsg();
     }
 
     getPerformMsg() {
+        if (injectedPerformMsg != nil) {
+            return injectedPerformMsg;
+        }
         if (requiresJump) {
             switch (direction) {
                 case parkourUpDir:
-                    return destination.getJumpUpMsg();
+                    return destination.parkourModule.getJumpUpMsg();
                 case parkourOverDir:
-                    return destination.getJumpOverMsg();
+                    return destination.parkourModule.getJumpOverMsg();
                 case parkourDownDir:
-                    return destination.getJumpDownMsg();
+                    return destination.parkourModule.getJumpDownMsg();
             }
         }
 
         switch (direction) {
             case parkourOverDir:
-                return destination.getClimbOverMsg();
+                return destination.parkourModule.getClimbOverMsg();
             case parkourDownDir:
-                return destination.getClimbDownMsg();
+                return destination.parkourModule.getClimbDownMsg();
         }
 
-        return destination.getClimbUpMsg();
+        return destination.parkourModule.getClimbUpMsg();
     }
 }
 
@@ -1637,6 +1642,9 @@ class ParkourPathMaker: PreinitObject {
     requiresJump = nil
     isHarmful = nil
     direction = parkourOverDir
+
+    discoverMsg = nil
+    performMsg = nil
 
     execute() {
         location.prepForParkour();
@@ -1653,6 +1661,12 @@ class ParkourPathMaker: PreinitObject {
 
     getNewPathObject() {
         local path = new ParkourPath();
+        if (discoverMsg != nil) {
+            path.injectedDiscoverMsg = discoverMsg;
+        }
+        if (performMsg != nil) {
+            path.injectedPerformMsg = performMsg;
+        }
         path.destination = destination;
         path.provider = provider;
         path.requiresJump = requiresJump;
@@ -1713,8 +1727,21 @@ class ParkourLinkMaker: ParkourPathMaker {
     requiresJumpBack = (requiresJump)
     isHarmfulBack = (isHarmful)
 
+    discoverMsg = (discoverForwardMsg)
+    performMsg = (performForwardMsg)
+    discoverForwardMsg = nil // Just to circumvent mistakes
+    performForwardMsg = nil // Just to circumvent mistakes
+    discoverBackwardMsg = nil
+    performBackwardMsg = nil
+
     createBackwardPath() {
         local backPath = getNewPathObject();
+        if (discoverMsg != nil) {
+            backPath.injectedDiscoverMsg = discoverBackwardMsg;
+        }
+        if (performMsg != nil) {
+            backPath.injectedPerformMsg = performBackwardMsg;
+        }
         backPath.destination = location;
         backPath.requiresJump = requiresJumpBack;
         backPath.isHarmful = isHarmfulBack;
