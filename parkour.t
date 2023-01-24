@@ -449,6 +449,10 @@ parkourCache: object {
         '{I} {do} not {know} any routes from here. '
 }
 
+reachGhostTest_: Thing {
+    //
+}
+
 #define __PARKOUR_REACH_DEBUG nil
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
@@ -864,7 +868,6 @@ modify Thing {
         remapDobjBoard = parkourModule;
         remapDobjGetOff = parkourModule;
         remapDobjJumpOff = parkourModule;
-        remapDobjPutOn = parkourModule;
         remapDobjClimb = parkourModule;
         remapDobjClimbUp = parkourModule;
         remapDobjClimbDown = parkourModule;
@@ -872,7 +875,6 @@ modify Thing {
         remapDobjSlideUnder = parkourModule;
         remapDobjRunAcross = parkourModule;
         remapDobjSwingOn = parkourModule;
-        //remapDobjPutIn = parkourModule;
     }
 
     getParkourModule() {
@@ -920,8 +922,6 @@ modify Thing {
     dobjParkourRemap(ParkourClimbDownTo, climbOnAlternative)
     dobjParkourRemap(ParkourJumpDownTo, climbOnAlternative)
 
-    //TODO: We are handling "into" differently.
-    //      This time, we are chaining a parkour and gothrough action.
     dobjParkourIntoRemap(enterAlternative, Climb, Up, remapIn)
     dobjParkourIntoRemap(enterAlternative, Jump, Up, remapIn)
     dobjParkourIntoRemap(enterAlternative, Climb, Over, remapIn)
@@ -936,6 +936,32 @@ modify Thing {
 
     dobjParkourRemap(ParkourClimbOffOf, climbOffAlternative)
     dobjParkourRemap(ParkourJumpOffOf, jumpOffAlternative)
+
+    // Simulate an object on top of this IObj, and do a reach test.
+    passesGhostReachTest() {
+        reachGhostTest_.moveInto(self);
+        local canReachResult = Q.canReach(gActor, reachGhostTest_);
+        reachGhostTest_.moveInto(nil);
+        return canReachResult;
+    }
+
+    iobjFor(PutOn) {
+        verift() {
+            if (!passesGhostReachTest()) {
+                illogical('{I} {cannot} reach the top of {the iobj}. ');
+            }
+            inherited();
+        }
+    }
+
+    iobjFor(PutIn) {
+        verift() {
+            if (!passesGhostReachTest()) {
+                illogical('{I} {cannot} reach inside of {the iobj}. ');
+            }
+            inherited();
+        }
+    }
 
     canSlideUnderMe = nil
 
@@ -1425,10 +1451,6 @@ class ParkourModule: SubComponent {
     dobjFor(RunAcross) asDobjFor(ParkourRunAcross)
     dobjFor(SwingOn) asDobjFor(ParkourSwingOn)
 
-    //TODO: PutOn
-    // Try placing a ghost object on the destination,
-    // and if the gActor can reach the ghost, then they
-    // can place the object.
     dobjFor(ParkourClimbGeneric) {
         parkourActionIntro
         verify() {
@@ -1484,9 +1506,71 @@ class ParkourModule: SubComponent {
         report() { }
     }
 
+    //TODO: Are we checking for falls?
     parkourSimplyJump(Up)
     parkourSimplyJump(Over)
     parkourSimplyJump(Down)
+
+    getStandardOn() {
+        local res = lexicalParent;
+        if (res.remapOn != nil) {
+            res = res.remapOn;
+        }
+        return res;
+    }
+
+    dobjFor(ParkourClimbOffOf) {
+        verify() {
+            local myOn = getStandardOn();
+            if(!gActor.isIn(myOn) || myOn.contType != On) {
+                illogicalNow(actorNotOnMsg);
+            }
+            //TODO: Block if jump was required
+        }
+
+        action() {
+            gActor.actionMoveInto(exitLocation);
+        }
+        
+        report() {
+            say(okayGetOutOfMsg);
+        }
+    }
+
+    dobjFor(ParkourJumpOffOf) {
+        verify() {
+            local myOn = getStandardOn();
+            if(!gActor.isIn(myOn) || myOn.contType != On) {
+                illogicalNow(actorNotOnMsg);
+            }
+        }
+
+        action() {
+            //TODO: Do climb, if able
+            //TODO: Also check for falls
+            gActor.actionMoveInto(exitLocation);
+        }
+        
+        report() {
+            say(okayGetOutOfMsg);
+        }
+    }
+
+    dobjFor(ParkourJumpOver) {
+        //TODO: Implement
+    }
+
+    dobjFor(ParkourSlideUnder) {
+        //TODO: Implement
+    }
+
+    dobjFor(ParkourRunAcross) {
+        //TODO: Implement
+    }
+
+    dobjFor(ParkourSwingOn) {
+        //TODO: Implement
+    }
 }
 
 enum parkourUpDir, parkourOverDir, parkourDownDir;
