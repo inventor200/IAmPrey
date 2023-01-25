@@ -507,19 +507,31 @@ QParkour: Special {
         if (a.isLikelyContainer()) {
             aLoc = a;
             doNotFactorJumpForA = true;
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\b(LOC A: <<aLoc.theName>> (<<aLoc.contType.prep>>).)\b');
+            #endif
         }
         else {
             aItem = a;
             aLoc = a.location;
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\b(ITEM A: <<aItem.theName>> (<<aItem.contType.prep>>).)\b');
+            #endif
         }
 
         if (b.isLikelyContainer()) {
             bLoc = b;
             doNotFactorJumpForB = true;
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\b(LOC B: <<bLoc.theName>> (<<bLoc.contType.prep>>).)\b');
+            #endif
         }
         else {
             bItem = b;
             bLoc = b.location;
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\b(ITEM B: <<bItem.theName>> (<<bItem.contType.prep>>).)\b');
+            #endif
         }
 
         local parkourB = b.getParkourModule();
@@ -644,7 +656,19 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     }
 }
 
-#define __PARKOUR_PATHING_DEBUG nil
+#define __PARKOUR_PATHING_DEBUG true
+
+class parkourPathStep: object {
+    construct(nextLoc_, nextParkourMod_, parkourDir_) {
+        nextLoc = nextLoc_;
+        nextParkourMod = nextParkourMod_;
+        parkourDir = parkourDir_;
+    }
+
+    nextLoc = nil;
+    nextParkourMod = nil;
+    parkourDir = nil;
+}
 
 // Modifying the behavior for moving actors into position
 modify actorInStagingLocation {
@@ -661,6 +685,8 @@ modify actorInStagingLocation {
         }
 
         if (allowImplicit) {
+            local tookSteps = nil;
+
             // Handle parkour pathing
             local getActorToFloorLst = getPathToFloor(loc, nil);
             local getObjectToFloorLst = getPathToFloor(stagingLoc, true);
@@ -672,34 +698,56 @@ modify actorInStagingLocation {
 
             for (local i = 1; i <= getObjectToFloorLst.length; i++) {
                 local objectNode = getObjectToFloorLst[i];
-                local objectParkourMod = objectNode.getParkourModule();
+                local objectParkourMod = objectNode.nextParkourMod;
                 objectStartIndex = i;
                 for (local j = 1; j <= getActorToFloorLst.length; j++) {
                     local actorNode = getActorToFloorLst[j];
-                    local actorParkourMod = actorNode.getParkourModule();
+                    local actorParkourMod = actorNode.nextParkourMod;
                     actorGoalIndex = j;
 
                     // Do we happen to connect?
-                    if (objectNode == actorNode) {
+                    if (objectNode.nextLoc == actorNode.nextLoc) {
                         connectionFound = true;
                         break;
                     }
 
-                    // Are we both parkour-capable?
-                    if ((objectParkourMod != nil) && (actorParkourMod != nil)) {
-                        local connPath = objectParkourMod.getPathFrom(
-                            actorNode, parkourCache.autoPathCanDiscover
-                        );
-                        if (connPath != nil) {
-                            // Do not require the player to take jump routes
-                            if (!connPath.requiresJump) {
-                                connectionFound = true;
-                                break;
-                            }
-                        }
+                    local connPath = getValidPathStep(
+                        actorNode.nextLoc, objectNode.nextLoc,
+                        actorParkourMod, objectParkourMod, nil
+                    );
+
+                    if (connPath != nil) {
+                        #if __PARKOUR_PATHING_DEBUG
+                        extraReport('ConnPath ' +
+                            actorNode.nextLoc.theName +
+                            'to ' +
+                            objectNode.nextLoc.theName + ' found!\n');
+                        #endif
+                        getActorToFloorLst += connPath;
+                        connectionFound = true;
+                        break;
                     }
                 }
                 if (connectionFound) break;
+            }
+
+            // Hail-Mary Clause
+            if (!connectionFound) {
+                local connPath = getValidPathStep(
+                    loc, stagingLoc,
+                    loc.getParkourModule(), stagingLoc.getParkourModule(), nil
+                );
+
+                if (connPath != nil) {
+                    #if __PARKOUR_PATHING_DEBUG
+                    extraReport('Hail Mary ConnPath from ' +
+                        loc.theName +
+                        ' to ' +
+                        stagingLoc.theName + ' found!\n');
+                    #endif
+                    getActorToFloorLst += connPath;
+                    connectionFound = true;
+                }
             }
 
             // Valid path found!
@@ -711,38 +759,88 @@ modify actorInStagingLocation {
 
                 // Perform path
                 for (local i = 1; i <= actorGoalIndex; i++) {
-                    local nextLoc = getActorToFloorLst[i];
-                    stepSuccess = doPathStep(gParkourRunner, nextLoc, nil);
+                    local nextStep = getActorToFloorLst[i];
+                    #if __PARKOUR_PATHING_DEBUG
+                    extraReport('Next stop: ' + nextStep.nextLoc.theName + '\n');
+                    #endif
+                    stepSuccess = doPathStep(gParkourRunner, nextStep, nil);
                     if (!stepSuccess) break;
-                }
-                if (stepSuccess) {
-                    for (local i = objectStartIndex; i >= 1; i--) {
-                        local nextLoc = getObjectToFloorLst[i];
-                        stepSuccess = doPathStep(gParkourRunner, nextLoc, true);
-                        if (!stepSuccess) break;
+                    else {
+                        tookSteps = true;
                     }
                 }
 
                 if (gParkourRunner.location == stagingLoc) return true;
+
+                if (getObjectToFloorLst.length > 0) {
+                    /*
+                     * Honestly, if a connection was found and the object-side
+                     * path is empty, then the actor-side path should have brought
+                     * victory. There should be absolutely no reason why we are
+                     * here, unless something went hilariously-wrong on the actor-
+                     * side calculation, which should be airtight.
+                     * Either way, I'm include the above length check for cleaner
+                     * error report, and perfectionism.
+                     */
+                    if (stepSuccess) {
+                        for (local i = objectStartIndex; i >= 1; i--) {
+                            local nextStep = getObjectToFloorLst[i];
+                            #if __PARKOUR_PATHING_DEBUG
+                            extraReport('Next stop: ' + nextStep.nextLoc.theName + '\n');
+                            #endif
+                            stepSuccess = doPathStep(gParkourRunner, nextStep, true);
+                            if (!stepSuccess) break;
+                            else {
+                                tookSteps = true;
+                            }
+                        }
+                    }
+
+                    if (gParkourRunner.location == stagingLoc) return true;
+                }
+            }
+
+            if (tookSteps && gParkourRunner.location != stagingLoc) {
+                extraReport('\n({I} {get} as far as
+                    <<gParkourRunner.location.theName>>
+                    before the path {becomes|became} too uncertain.)\n');
             }
         }
 
-        gMessageParams(stagingLoc);
-        say('{I} need{s/ed} to be <<if stagingLoc.ofKind(Room)>> directly <<end>>
-            {in stagingloc} to do that. ');
+        local realStagingLocation = stagingLoc;
+        local stagingMod = realStagingLocation.getParkourModule();
+        if (stagingMod != nil) {
+            realStagingLocation = stagingMod;
+        }
+
+        say('{I} need{s/ed} to be
+            <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
+            to do that. ');
         return nil;
     }
 
-    doPathStep(actor, nextLoc, goingUp) {
+    doPathStep(actor, nextStep, goingUp) {
         local oldLoc = actor.location;
+        local nextLoc = nextStep.nextLoc;
 
         if (oldLoc == nextLoc) return true;
 
         local action = nil;
-        local nextParkourMod = nextLoc.getParkourModule();
+        local nextParkourMod = nextStep.nextParkourMod;
 
-        if ((oldLoc.getParkourModule() != nil) && (nextParkourMod != nil)) {
-            tryImplicitAction(ParkourClimbGeneric, nextParkourMod);
+        // All parkour steps will have a registered direction
+        if (nextStep.parkourDir != nil) {
+            switch (nextStep.parkourDir) {
+                case parkourUpDir:
+                    tryImplicitAction(ParkourClimbUpTo, nextParkourMod);
+                    break;
+                case parkourOverDir:
+                    tryImplicitAction(ParkourClimbOverTo, nextParkourMod);
+                    break;
+                case parkourDownDir:
+                    tryImplicitAction(ParkourClimbDownTo, nextParkourMod);
+                    break;
+            }
         }
         else if (goingUp) {
             // Entering nextLoc ins, and boarding nextLoc ons
@@ -763,7 +861,7 @@ modify actorInStagingLocation {
     #if __PARKOUR_PATHING_DEBUG
     reportLocList(lst) {
         for (local i = 1; i <= lst.length; i++) {
-            extraReport(lst[i].theName + ' (' + lst[i].contType.prep + ')\n');
+            extraReport(lst[i].nextLoc.theName + ' (' + lst[i].nextLoc.contType.prep + ')\n');
         }
     }
     #endif
@@ -779,8 +877,10 @@ modify actorInStagingLocation {
             room = room.getOutermostRoom();
         }
 
+        // Start us with our current spot
+        //lst += new parkourPathStep(loc, nil);
+
         if (loc == room) {
-            lst += loc;
             #if __PARKOUR_PATHING_DEBUG
             reportLocList(lst);
             #endif
@@ -789,54 +889,82 @@ modify actorInStagingLocation {
 
         local nextParkourMod = loc.getParkourModule();
 
-        while (loc != room) {
-            lst += loc;
+        do {
             local next = loc.(travelProp);
             local locParkourMod = nextParkourMod;
             nextParkourMod = next.getParkourModule();
 
-            // Verify parkour path
-            if (locParkourMod != nil && nextParkourMod != nil) {
-                // Make sure we are not asking for jumps.
-                // Also, direction matters, so find our start and end:
-                local parkourStart = goingUp ? nextParkourMod : locParkourMod;
-                local parkourEnd = goingUp ? locParkourMod : nextParkourMod;
+            local pathStep = getValidPathStep(
+                loc, next, locParkourMod, nextParkourMod, goingUp
+            );
 
-                local path = parkourEnd.getPathFrom(
-                    parkourStart, parkourCache.autoPathCanDiscover
-                );
-                if (path == nil) {
-                    // Looks this is as far as we go!
-                    if (lst.length == 0) lst += loc;
-                    #if __PARKOUR_PATHING_DEBUG
-                    reportLocList(lst);
-                    #endif
-                    return lst;
-                }
-                if (path.requiresJump) {
-                    // Do not require jump to proceed!!
-                    if (lst.length == 0) lst += loc;
-                    #if __PARKOUR_PATHING_DEBUG
-                    reportLocList(lst);
-                    #endif
-                    return lst;
-                }
+            if (pathStep != nil) {
+                lst += pathStep;
+            }
+            else {
+                break;
             }
 
             loc = next;
-        }
+        } while (loc != room);
 
-        lst += loc;
         #if __PARKOUR_PATHING_DEBUG
         reportLocList(lst);
         #endif
         return lst;
     }
+
+    getValidPathStep(loc, next, locParkourMod, nextParkourMod, goingUp) {
+        local directionFound = nil;
+
+        // Verify parkour path
+        if (locParkourMod != nil && nextParkourMod != nil) {
+            // Make sure we are not asking for jumps.
+            // Also, direction matters, so find our start and end:
+            local parkourStart = goingUp ? nextParkourMod : locParkourMod;
+            local parkourEnd = goingUp ? locParkourMod : nextParkourMod;
+
+            local path = parkourEnd.getPathFrom(
+                parkourStart, parkourCache.autoPathCanDiscover
+            );
+
+            // Failed path
+            if (path == nil) {
+                // Looks this is as far as we go!
+                return nil;
+            }
+
+            // Jump path
+            if (path.requiresJump) {
+                // Do not require jump to proceed!!
+                return nil;
+            }
+
+            // Valid path
+            directionFound = path.direction;
+        }
+
+        // Check valid simple path
+        if (directionFound == nil) {
+            if (goingUp) {
+                if (loc.stagingLocation != next) return nil;
+            }
+            else {
+                if (loc.exitLocation != next) return nil;
+            }
+        }
+
+        return new parkourPathStep(
+            goingUp ? loc : next,
+            goingUp ? locParkourMod : nextParkourMod, directionFound);
+    }
 }
+
+#define parkourPreCond touchObj
 
 #define dobjParkourRemap(parkourAction, remapAction) \
     dobjFor(parkourAction) { \
-        preCond = [touchObj] \
+        preCond = [parkourPreCond] \
         remap = (getParkourModule()) \
         verify() { } \
         check() { } \
@@ -848,7 +976,7 @@ modify actorInStagingLocation {
 
 #define dobjParkourIntoRemap(remapAction, climbOrJump, parkourDir, remapDest) \
     dobjFor(Parkour##climbOrJump##parkourDir##Into) { \
-        preCond = [touchObj] \
+        preCond = [parkourPreCond] \
         remap = (remapDest) \
         verify() { } \
         check() { \
@@ -1036,7 +1164,7 @@ modify Thing {
     canSlideUnderMe = nil
 
     dobjFor(SlideUnder) {
-        preCond = [touchObj]
+        preCond = [parkourPreCond]
 
         remap = remapUnder
 
@@ -1054,7 +1182,7 @@ modify Thing {
     canRunAcrossMe = nil
 
     dobjFor(RunAcross) {
-        preCond = [touchObj]
+        preCond = [parkourPreCond]
 
         remap = remapOn
 
@@ -1072,7 +1200,7 @@ modify Thing {
     canSwingOnMe = nil
 
     dobjFor(SwingOn) {
-        preCond = [touchObj]
+        preCond = [parkourPreCond]
 
         remap = remapUnder
 
@@ -1260,7 +1388,7 @@ modify Actor {
     doParkourCheck(actor, gParkourLastPath)
 
 #define parkourActionIntro \
-    preCond = [touchObj] \
+    preCond = [parkourPreCond] \
     remap = nil
 
 #define verifyClimbPathFromActor(actor, canBeUnknown) \
@@ -1353,8 +1481,9 @@ modify Actor {
 //TODO: Complete, and implement for providers
 #define parkourSimpleUseProviderFromDest(providedAction) \
     dobjFor(Parkour##providedAction) { \
+        /* FIXME: If we are just redirecting, do we need this PreCond? */ \
         preCond = [touchObj] \
-        verify() {  \
+        verify() { \
             if(!can##providedAction##Me) { \
                 illogical(cannot##providedAction##Msg); \
             } \
@@ -1563,6 +1692,9 @@ class ParkourModule: SubComponent {
     }
 
     isInReachFromVerbose(source, canBeUnknown?, doNotFactorJump?) {
+        #if __PARKOUR_REACH_DEBUG
+        extraReport('\bREACH TO: <<theName>>\b');
+        #endif
         if (source == gActor) {
             parkourCache.cacheParkourRunner(source);
             source = gParkourRunner;
@@ -1596,8 +1728,8 @@ class ParkourModule: SubComponent {
                 return parkourSubComponentTooFar;
             }
 
-            if (realSource.exitLocation == self.lexicalParent) return parkourReachSuccessful;
-            if (realSource.stagingLocation == self.lexicalParent) return parkourReachSuccessful;
+            if (checkStagingExitLocationConnection(realSource.stagingLocation)) return parkourReachSuccessful;
+            if (checkStagingExitLocationConnection(realSource.exitLocation)) return parkourReachSuccessful;
 
             return parkourReachTopTooFar;
         }
@@ -1616,7 +1748,14 @@ class ParkourModule: SubComponent {
 
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
-            if (path.destination != self.lexicalParent) continue;
+            if (path.destination != lexicalParent) {
+                #if __PARKOUR_REACH_DEBUG
+                extraReport('\n<<closestParkourMod.theName>> goes to
+                    <<path.destination.theName>>, which is not me
+                    (<<theName>>).\n');
+                #endif
+                continue;
+            }
             if (path.provider != nil) continue;
             if (path.requiresJump && !doNotFactorJump) continue;
             if (path.isKnown || canBeUnknown) {
@@ -1624,6 +1763,32 @@ class ParkourModule: SubComponent {
             }
         }
         return parkourReachTopTooFar;
+    }
+
+    checkStagingExitLocationConnection(stagingExitLocation) {
+        if (stagingExitLocation == self.lexicalParent) return true;
+        if (stagingExitLocation == self.lexicalParent.remapOn) return true;
+        if (checkStagingExitLocationConnectionRemap(
+            stagingExitLocation, self.lexicalParent.remapIn
+        )) return true;
+        if (checkStagingExitLocationConnectionRemap(
+            stagingExitLocation, self.lexicalParent.remapUnder
+        )) return true;
+        if (checkStagingExitLocationConnectionRemap(
+            stagingExitLocation, self.lexicalParent.remapBehind
+        )) return true;
+
+        return nil;
+    }
+
+    checkStagingExitLocationConnectionRemap(stagingExitLocation, remapLoc) {
+        if (remapLoc != nil) {
+            if (remapLoc.partOfParkourSurface || remapLoc.isInReachOfParkourSurface) {
+                return stagingExitLocation == remapLoc;
+            }
+        }
+
+        return nil;
     }
 
     dobjParkourIntoRemap(enterAlternative, Climb, Up, lexicalParent.remapIn)
@@ -1797,15 +1962,29 @@ class ParkourPathMaker: PreinitObject {
     performMsg = nil
     parkourBarriers = nil
 
+    getTrueLocation() {
+        if (location.ofKind(SubComponent)) {
+            return location.lexicalParent;
+        }
+        return location;
+    }
+
+    getTrueDestination() {
+        if (destination.ofKind(SubComponent)) {
+            return destination.lexicalParent;
+        }
+        return destination;
+    }
+
     execute() {
-        location.prepForParkour();
-        destination.prepForParkour();
+        getTrueLocation().prepForParkour();
+        getTrueDestination().prepForParkour();
         createForwardPath();
         createBackwardPath();
     }
 
     createForwardPath() {
-        location.parkourModule.addPath(getNewPathObject());
+        getTrueLocation().parkourModule.addPath(getNewPathObject());
     }
 
     createBackwardPath() { }
@@ -1815,7 +1994,7 @@ class ParkourPathMaker: PreinitObject {
         path.injectedDiscoverMsg = discoverMsg;
         path.injectedPerformMsg = performMsg;
         path.injectedParkourBarriers = parkourBarriers;
-        path.destination = destination;
+        path.destination = getTrueDestination();
         path.provider = provider;
         path.requiresJump = requiresJump;
         path.isHarmful = isHarmful;
@@ -1890,7 +2069,7 @@ class ParkourLinkMaker: ParkourPathMaker {
         backPath.injectedDiscoverMsg = discoverBackwardMsg;
         backPath.injectedPerformMsg = performBackwardMsg;
         backPath.injectedParkourBarriers = backwardParkourBarriers;
-        backPath.destination = location;
+        backPath.destination = getTrueLocation();
         backPath.requiresJump = requiresJumpBack;
         backPath.isHarmful = isHarmfulBack;
         switch (backPath.direction) {
@@ -1901,7 +2080,7 @@ class ParkourLinkMaker: ParkourPathMaker {
                 backPath.direction = parkourUpDir;
                 break;
         }
-        destination.parkourModule.addPath(backPath);
+        getTrueDestination().parkourModule.addPath(backPath);
     }
 }
 

@@ -103,6 +103,19 @@ centralRoom: Room { 'Central Room'
 ++HighFloorHeight;
 ++ClimbUpLink -> cargoShelf;
 
+++grayCrate: FixedPlatform { 'gray crate;grey'
+    "A gray crate. It looks suspiciously-boring to climb on. "
+    subLocation = &remapOn
+    isListed = true
+}
+
+++blueCrate: FixedPlatform { 'blue crate'
+    "A gray crate. It looks suspiciously-fun to climb on. "
+    subLocation = &remapOn
+    isListed = true
+}
++++LowFloorHeight;
+
 ++cup: Thing { 'cup'
     "A ceramic cup. "
     subLocation = &remapOn
