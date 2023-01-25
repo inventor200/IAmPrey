@@ -23,6 +23,7 @@
     gActionIs(LookThrough) || \
     gActionIs(LookUnder) \
 )
+#include "awareVehicles.t"
 #include "soundBleed.t"
 #include "parkour.t"
 #include "trinkets.t"
@@ -110,6 +111,11 @@ centralRoom: Room { 'Central Room'
 +me: Actor {
     person = 2
     //subLocation = &remapOn
+}
+
++exosuit: CoveredVehicle { 'exosuit;small exo;suit'
+    "A small exosuit, not much larger than a person. "
+    fitForParkour = true
 }
 
 /*+metalCrate: ParkourPlatform { 'metal crate'

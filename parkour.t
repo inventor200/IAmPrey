@@ -449,8 +449,8 @@ parkourCache: object {
 
     cacheParkourRunner(actor) {
         local potentialVehicle = actor.location;
-        while(potentialVehicle != nil && !potentialVehicle.ofKind(Room)) {
-            if(potentialVehicle.isVehicle) {
+        while (potentialVehicle != nil && !potentialVehicle.ofKind(Room)) {
+            if (potentialVehicle.isVehicle) {
                 currentParkourRunner = potentialVehicle;
                 return;
             }
@@ -657,7 +657,7 @@ modify actorInStagingLocation {
 
         // Attempting to do parkour in invalid vehicle
         if (!gParkourRunner.fitForParkour) {
-            sayParkourRunnerError(gActor);
+            parkourCache.sayParkourRunnerError(gActor);
         }
 
         if (allowImplicit) {
@@ -960,6 +960,7 @@ modify Thing {
         if (contType == Outside) return nil;
         if (contType == Carrier) return nil;
         if (isFixed) {
+            if (gParkourRunner == self) return nil;
             if (isBoardable) return true;
             if (isEnterable) return true;
             if (remapOn != nil) {
@@ -1461,8 +1462,7 @@ class ParkourModule: SubComponent {
 
     //TODO: Provider-specific checks
     doParkourCheck(actor, path) {
-        local traveler = gParkourRunner;
-        local source = traveler.getParkourModule();
+        local source = gParkourRunner.getParkourModule();
 
         if (gParkourRunner.fitForParkour) {
             if (source.checkLeaving(actor, gParkourRunner, path)) {
@@ -1493,7 +1493,7 @@ class ParkourModule: SubComponent {
             }
         }
         else {
-            sayParkourRunnerError(actor);
+            parkourCache.sayParkourRunnerError(actor);
             return nil;
         }
 
