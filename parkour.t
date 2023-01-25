@@ -441,11 +441,13 @@ DefineTAction(DebugCheckForContainer)
 ;
 #endif
 
-//TODO: Mute parkour reports during implicit actions
 parkourCache: object {
     requireRouteRecon = nil //FIXME: Set this to true after development is done
     formatForScreenReader = nil
     autoPathCanDiscover = nil
+    //TODO: Auto-parkour?
+    // Maybe a precond to add to parkourPreCond
+    reachingCausesAutoClimb = nil
 
     cacheParkourRunner(actor) {
         local potentialVehicle = actor.location;
@@ -495,7 +497,7 @@ QParkour: Special {
         local issues = [];
 
         // Don't worry about room connections
-        if (a.ofKind(Room) || b.ofKind(Room)) return issues; //FIXME: Do we need this?
+        if (a.ofKind(Room) || b.ofKind(Room)) return issues;
 
         local aItem = nil;
         local aLoc = nil;
@@ -656,7 +658,7 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     }
 }
 
-#define __PARKOUR_PATHING_DEBUG true
+#define __PARKOUR_PATHING_DEBUG nil
 
 class parkourPathStep: object {
     construct(nextLoc_, nextParkourMod_, parkourDir_) {
@@ -670,31 +672,142 @@ class parkourPathStep: object {
     parkourDir = nil;
 }
 
-// Modifying the behavior for moving actors into position
-modify actorInStagingLocation {
-    checkPreCondition(obj, allowImplicit) {
+parkourPathFinder: object {
+    lastStagingLocation = nil
+    lastActorLocation = nil
+
+    getActorToFloorCache = static new Vector()
+    getObjectToFloorCache = static new Vector()
+    failedLastTime = nil
+
+    getActorToFloorLst = []
+    getObjectToFloorLst = []
+    actorGoalIndex = 1
+    objectStartIndex = 1
+    tookSteps = nil
+
+    dumpedFromCache = nil
+
+    enRoute = nil
+
+    mapBetween(actor, obj, allowMoves, rememberFailure) {
+        if (enRoute) return true;
         local stagingLoc = obj.stagingLocation;
-        parkourCache.cacheParkourRunner(gActor);
+        parkourCache.cacheParkourRunner(actor);
         local loc = gParkourRunner.location;
+
+        if (obj.ofKind(ParkourModule)) {
+            stagingLoc = obj.getStandardOn();
+        }
+
+        #if __PARKOUR_PATHING_DEBUG
+        if (loc == nil) {
+            extraReport('\nNIL LOC\n');
+        }
+        if (obj == nil) {
+            extraReport('\nNIL OBJ\n');
+        }
+        else if (obj.ofKind(SubComponent)) {
+            if (obj.ofKind(ParkourModule)) {
+                extraReport('\nobj is ParkourModule.\n');
+            }
+            else {
+                extraReport('\nobj is SubComponent.\n');
+            }
+        }
+        if (stagingLoc == nil) {
+            extraReport('\nNIL STAGINGLOC\n');
+        }
+        #endif
 
         if (loc == stagingLoc) return true; // FREE!!
 
         // Attempting to do parkour in invalid vehicle
         if (!gParkourRunner.fitForParkour) {
-            parkourCache.sayParkourRunnerError(gActor);
+            parkourCache.sayParkourRunnerError(actor);
         }
 
-        if (allowImplicit) {
-            local tookSteps = nil;
+        tookSteps = nil;
+        dumpedFromCache = nil;
 
-            // Handle parkour pathing
-            local getActorToFloorLst = getPathToFloor(loc, nil);
-            local getObjectToFloorLst = getPathToFloor(stagingLoc, true);
+        local connectionFound = planRoute(loc, stagingLoc, rememberFailure);
 
-            local actorGoalIndex = 1;
-            local objectStartIndex = 1;
+        if (connectionFound) {
+            if (!dumpedFromCache) {
+                // Cache
+                if (getActorToFloorLst.length > 0) {
+                    getActorToFloorLst.removeRange(1, -1);
+                }
+                if (getObjectToFloorLst.length > 0) {
+                    getObjectToFloorLst.removeRange(1, -1);
+                }
+                for (local i = 1; i <= getActorToFloorLst.length; i++) {
+                    getActorToFloorCache.append(getActorToFloorLst[i]);
+                }
+                for (local i = 1; i <= getObjectToFloorLst.length; i++) {
+                    getObjectToFloorCache.append(getObjectToFloorLst[i]);
+                }
+            }
 
-            local connectionFound = nil;
+            if (allowMoves) {
+                enRoute = true;
+                local success = performSteps(stagingLoc);
+                enRoute = nil;
+                return success;
+            }
+        }
+        else {
+            if (rememberFailure) {
+                lastStagingLocation = stagingLoc;
+                lastActorLocation = loc;
+                failedLastTime = true;
+            }
+            else {
+                lastStagingLocation = nil;
+                lastActorLocation = nil;
+                failedLastTime = nil;
+            }
+        }
+
+        return connectionFound;
+    }
+
+    planRoute(loc, stagingLoc, rememberFailure) {
+        if (lastStagingLocation == stagingLoc && lastActorLocation == loc) {
+            if (failedLastTime && rememberFailure) {
+                return nil;
+            }
+            dumpedFromCache = true;
+            getActorToFloorLst = valToList(getActorToFloorCache);
+            getObjectToFloorLst = valToList(getObjectToFloorCache);
+            return true;
+        }
+
+        lastStagingLocation = stagingLoc;
+        lastActorLocation = loc;
+        actorGoalIndex = 1;
+        objectStartIndex = 1;
+        failedLastTime = nil;
+
+        // Try easiest idea
+        local easyPath = getValidPathStep(
+            loc, stagingLoc,
+            loc.getParkourModule(), stagingLoc.getParkourModule(), nil
+        );
+
+        if (easyPath != nil) {
+            #if __PARKOUR_PATHING_DEBUG
+            extraReport('EasyPath from ' +
+                loc.theName +
+                ' to ' +
+                stagingLoc.theName + ' found!\n');
+            #endif
+            getActorToFloorLst += easyPath;
+            return true;
+        }
+        else {
+            getActorToFloorLst += getPathToFloor(loc, nil);
+            getObjectToFloorLst += getPathToFloor(stagingLoc, true);
 
             for (local i = 1; i <= getObjectToFloorLst.length; i++) {
                 local objectNode = getObjectToFloorLst[i];
@@ -707,8 +820,7 @@ modify actorInStagingLocation {
 
                     // Do we happen to connect?
                     if (objectNode.nextLoc == actorNode.nextLoc) {
-                        connectionFound = true;
-                        break;
+                        return true;
                     }
 
                     local connPath = getValidPathStep(
@@ -724,98 +836,86 @@ modify actorInStagingLocation {
                             objectNode.nextLoc.theName + ' found!\n');
                         #endif
                         getActorToFloorLst += connPath;
-                        connectionFound = true;
-                        break;
+                        return true;
                     }
                 }
-                if (connectionFound) break;
             }
+        }
 
-            // Hail-Mary Clause
-            if (!connectionFound) {
-                local connPath = getValidPathStep(
-                    loc, stagingLoc,
-                    loc.getParkourModule(), stagingLoc.getParkourModule(), nil
-                );
+        // Hail-Mary Clause
+        local hailMaryPath = getValidPathStep(
+            loc, stagingLoc,
+            loc.getParkourModule(), stagingLoc.getParkourModule(), nil
+        );
 
-                if (connPath != nil) {
-                    #if __PARKOUR_PATHING_DEBUG
-                    extraReport('Hail Mary ConnPath from ' +
-                        loc.theName +
-                        ' to ' +
-                        stagingLoc.theName + ' found!\n');
-                    #endif
-                    getActorToFloorLst += connPath;
-                    connectionFound = true;
-                }
+        if (hailMaryPath != nil) {
+            #if __PARKOUR_PATHING_DEBUG
+            extraReport('Hail Mary Path from ' +
+                loc.theName +
+                ' to ' +
+                stagingLoc.theName + ' found!\n');
+            #endif
+            getActorToFloorLst += hailMaryPath;
+            return true;
+        }
+
+        return nil;
+    }
+
+    performSteps(stagingLoc) {
+        local stepSuccess = nil;
+        #if __PARKOUR_PATHING_DEBUG
+        extraReport('CONNECTION FOUND!\n');
+        #endif
+
+        // Perform path
+        for (local i = 1; i <= actorGoalIndex; i++) {
+            local nextStep = getActorToFloorLst[i];
+            #if __PARKOUR_PATHING_DEBUG
+            extraReport('Next stop: ' + nextStep.nextLoc.theName + '\n');
+            #endif
+            stepSuccess = doPathStep(gParkourRunner, nextStep, nil);
+            if (!stepSuccess) break;
+            else {
+                tookSteps = true;
             }
+        }
 
-            // Valid path found!
-            if (connectionFound) {
-                local stepSuccess = nil;
-                #if __PARKOUR_PATHING_DEBUG
-                extraReport('CONNECTION FOUND!\n');
-                #endif
+        if (gParkourRunner.location == stagingLoc) return true;
 
-                // Perform path
-                for (local i = 1; i <= actorGoalIndex; i++) {
-                    local nextStep = getActorToFloorLst[i];
+        if (getObjectToFloorLst.length > 0) {
+            /*
+                * Honestly, if a connection was found and the object-side
+                * path is empty, then the actor-side path should have brought
+                * victory. There should be absolutely no reason why we are
+                * here, unless something went hilariously-wrong on the actor-
+                * side calculation, which should be airtight.
+                * Either way, I'm include the above length check for cleaner
+                * error report, and perfectionism.
+                */
+            if (stepSuccess) {
+                for (local i = objectStartIndex; i >= 1; i--) {
+                    local nextStep = getObjectToFloorLst[i];
                     #if __PARKOUR_PATHING_DEBUG
                     extraReport('Next stop: ' + nextStep.nextLoc.theName + '\n');
                     #endif
-                    stepSuccess = doPathStep(gParkourRunner, nextStep, nil);
+                    stepSuccess = doPathStep(gParkourRunner, nextStep, true);
                     if (!stepSuccess) break;
                     else {
                         tookSteps = true;
                     }
                 }
-
-                if (gParkourRunner.location == stagingLoc) return true;
-
-                if (getObjectToFloorLst.length > 0) {
-                    /*
-                     * Honestly, if a connection was found and the object-side
-                     * path is empty, then the actor-side path should have brought
-                     * victory. There should be absolutely no reason why we are
-                     * here, unless something went hilariously-wrong on the actor-
-                     * side calculation, which should be airtight.
-                     * Either way, I'm include the above length check for cleaner
-                     * error report, and perfectionism.
-                     */
-                    if (stepSuccess) {
-                        for (local i = objectStartIndex; i >= 1; i--) {
-                            local nextStep = getObjectToFloorLst[i];
-                            #if __PARKOUR_PATHING_DEBUG
-                            extraReport('Next stop: ' + nextStep.nextLoc.theName + '\n');
-                            #endif
-                            stepSuccess = doPathStep(gParkourRunner, nextStep, true);
-                            if (!stepSuccess) break;
-                            else {
-                                tookSteps = true;
-                            }
-                        }
-                    }
-
-                    if (gParkourRunner.location == stagingLoc) return true;
-                }
             }
 
-            if (tookSteps && gParkourRunner.location != stagingLoc) {
-                extraReport('\n({I} {get} as far as
-                    <<gParkourRunner.location.theName>>
-                    before the path {becomes|became} too uncertain.)\n');
-            }
+            if (gParkourRunner.location == stagingLoc) return true;
         }
 
-        local realStagingLocation = stagingLoc;
-        local stagingMod = realStagingLocation.getParkourModule();
-        if (stagingMod != nil) {
-            realStagingLocation = stagingMod;
+        if (tookSteps && gParkourRunner.location != stagingLoc) {
+            extraReport('\n({I} {get} as far as
+                <<gParkourRunner.location.theName>>
+                before the path {becomes|became} too uncertain.)\n');
         }
 
-        say('{I} need{s/ed} to be
-            <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
-            to do that. ');
         return nil;
     }
 
@@ -827,6 +927,12 @@ modify actorInStagingLocation {
 
         local action = nil;
         local nextParkourMod = nextStep.nextParkourMod;
+
+        if (nextParkourMod != nil) {
+            if (oldLoc.getParkourModule() == nextParkourMod.getParkourModule()) {
+                return true;
+            }
+        }
 
         // All parkour steps will have a registered direction
         if (nextStep.parkourDir != nil) {
@@ -957,6 +1063,25 @@ modify actorInStagingLocation {
         return new parkourPathStep(
             goingUp ? loc : next,
             goingUp ? locParkourMod : nextParkourMod, directionFound);
+    }
+}
+
+// Modifying the behavior for moving actors into position
+modify actorInStagingLocation {
+    checkPreCondition(obj, allowImplicit) {
+        if (parkourPathFinder.mapBetween(gActor, obj, true, nil)) return true;
+
+        local realStagingLocation = obj.stagingLocation;
+        local stagingMod = realStagingLocation.getParkourModule();
+        if (stagingMod != nil) {
+            realStagingLocation = stagingMod;
+        }
+
+        say('{I} need{s/ed} to be
+            <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
+            to do that. ');
+        
+        return nil;
     }
 }
 
