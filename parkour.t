@@ -1,3 +1,6 @@
+#define gParkourLastPath parkourCache.lastPath
+#define gParkourRunner parkourCache.currentParkourRunner
+
 #define expandedOnto ('onto'|'on' 'to')
 #define expandedInto ('in'|'into'|'in' 'to'|'through')
 #define expandedUpSideOf (('the'|) 'side' 'of'|'to'|)
@@ -331,7 +334,8 @@ DefineIAction(ParkourClimbOffIntransitive)
     allowAll = nil
 
     execAction(cmd) {
-        doInstead(ParkourClimbOffOf, gActor.location);
+        parkourCache.cacheParkourRunner(gActor);
+        doInstead(ParkourClimbOffOf, gParkourRunner.location);
     }
 ;
 
@@ -363,7 +367,8 @@ DefineIAction(ParkourJumpOffIntransitive)
     allowAll = nil
 
     execAction(cmd) {
-        doInstead(ParkourJumpOffOf, gActor.location);
+        parkourCache.cacheParkourRunner(gActor);
+        doInstead(ParkourJumpOffOf, gParkourRunner.location);
     }
 ;
 
@@ -383,7 +388,8 @@ DefineIAction(ShowParkourRoutes)
     allowAll = nil
 
     execAction(cmd) {
-        local closestParkourMod = gActor.getParkourModule();
+        parkourCache.cacheParkourRunner(gActor);
+        local closestParkourMod = gParkourRunner.getParkourModule();
         if (closestParkourMod != nil) {
             if (closestParkourMod.pathVector.length > 0) {
                 local strBfr = new StringBuffer(6*closestParkourMod.pathVector.length);
@@ -435,22 +441,46 @@ DefineTAction(DebugCheckForContainer)
 ;
 #endif
 
-#define gParkourLastPath parkourCache.lastPath
-#define gParkourMuteNestedReports parkourCache.muteNestedReports
-
+//TODO: Mute parkour reports during implicit actions
 parkourCache: object {
     requireRouteRecon = nil //FIXME: Set this to true after development is done
     formatForScreenReader = nil
     autoPathCanDiscover = nil
 
+    cacheParkourRunner(actor) {
+        local potentialVehicle = actor.location;
+        while(potentialVehicle != nil && !potentialVehicle.ofKind(Room)) {
+            if(potentialVehicle.isVehicle) {
+                currentParkourRunner = potentialVehicle;
+                return;
+            }
+            potentialVehicle = potentialVehicle.location;
+        }
+        
+        currentParkourRunner = actor;
+    }
+
+    sayParkourRunnerError(actor) {
+        if (gParkourRunner != actor) {
+            say(gParkourRunner.cannotDoParkourInMsg);
+            return;
+        }
+
+        say(actor.cannotDoParkourMsg);
+    }
+
     lastPath = nil
-    muteNestedReports = nil
+    currentParkourRunner = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
 }
 
 reachGhostTest_: Thing {
-    //
+    isListed = nil
+    isFixed = nil
+    isLikelyContainer() {
+        return nil;
+    }
 }
 
 #define __PARKOUR_REACH_DEBUG nil
@@ -620,9 +650,15 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
 modify actorInStagingLocation {
     checkPreCondition(obj, allowImplicit) {
         local stagingLoc = obj.stagingLocation;
-        local loc = gActor.location;
+        parkourCache.cacheParkourRunner(gActor);
+        local loc = gParkourRunner.location;
 
         if (loc == stagingLoc) return true; // FREE!!
+
+        // Attempting to do parkour in invalid vehicle
+        if (!gParkourRunner.fitForParkour) {
+            sayParkourRunnerError(gActor);
+        }
 
         if (allowImplicit) {
             // Handle parkour pathing
@@ -676,18 +712,18 @@ modify actorInStagingLocation {
                 // Perform path
                 for (local i = 1; i <= actorGoalIndex; i++) {
                     local nextLoc = getActorToFloorLst[i];
-                    stepSuccess = doPathStep(gActor, nextLoc, nil);
+                    stepSuccess = doPathStep(gParkourRunner, nextLoc, nil);
                     if (!stepSuccess) break;
                 }
                 if (stepSuccess) {
                     for (local i = objectStartIndex; i >= 1; i--) {
                         local nextLoc = getObjectToFloorLst[i];
-                        stepSuccess = doPathStep(gActor, nextLoc, true);
+                        stepSuccess = doPathStep(gParkourRunner, nextLoc, true);
                         if (!stepSuccess) break;
                     }
                 }
 
-                if (gActor.location == stagingLoc) return true;
+                if (gParkourRunner.location == stagingLoc) return true;
             }
         }
 
@@ -815,9 +851,14 @@ modify actorInStagingLocation {
         preCond = [touchObj] \
         remap = (remapDest) \
         verify() { } \
-        check() { } \
+        check() { \
+            parkourCache.cacheParkourRunner(gActor); \
+            if (!gParkourRunner.fitForParkour) { \
+                parkourCache.sayParkourRunnerError(gActor); \
+            } \
+        } \
         action() { \
-            if (gActor.location != stagingLocation) { \
+            if (gParkourRunner.location != stagingLocation) { \
                 local stagingParkourModule = stagingLocation.getParkourModule(); \
                 if (stagingParkourModule == nil) { \
                     tryImplicitAction(stagingLocation.climbOnAlternative, stagingLocation); \
@@ -1228,7 +1269,8 @@ modify Actor {
     }
 
 #define verifyJumpPathFromActor(actor, canBeUnknown) \
-    gParkourLastPath = getPathFrom(actor, canBeUnknown); \
+    parkourCache.cacheParkourRunner(actor); \
+    gParkourLastPath = getPathFrom(gParkourRunner, canBeUnknown); \
     if (gParkourLastPath == nil) { \
         illogical(noParkourPathFromHereMsg); \
         return; \
@@ -1274,12 +1316,7 @@ modify Actor {
     provideMoveFor(actor)
 
 #define reportParkour \
-    if (!gParkourMuteNestedReports) { \
-        "<<gParkourLastPath.getPerformMsg()>>"; \
-    } \
-    else { \
-        gParkourMuteNestedReports = nil; \
-    }
+    "<<gParkourLastPath.getPerformMsg()>>";
 
 #define parkourSimplyClimb(parkourDir) \
     dobjFor(ParkourClimb##parkourDir##To) { \
@@ -1289,7 +1326,7 @@ modify Actor {
         } \
         check() { checkParkour(gActor); } \
         action() { \
-            doClimbFor(gActor); \
+            doClimbFor(gParkourRunner); \
         } \
         report() { \
             reportParkour; \
@@ -1305,7 +1342,7 @@ modify Actor {
         check() { checkParkour(gActor); } \
         action() { \
             tryClimbInstead(ParkourClimb##parkourDir##To); \
-            doClimbFor(gActor); \
+            doClimbFor(gParkourRunner); \
         } \
         report() { \
             reportParkour; \
@@ -1323,11 +1360,26 @@ modify Actor {
             /*TODO: Check for known providers*/ \
         } \
         action() { \
-            doClimbFor(gActor); \
+            doClimbFor(gParkourRunner); \
         } \
         report() { \
             reportParkour; \
         } \
+    }
+
+#define parkourReshapeGetOff(originalAction, redirectAction) \
+    dobjFor(originalAction) { \
+        verify() { \
+            parkourCache.cacheParkourRunner(gActor); \
+            local myOn = getStandardOn(); \
+            if(!gParkourRunner.isIn(myOn) || myOn.contType != On) { \
+                illogicalNow(actorNotOnMsg); \
+            } \
+        } \
+        action() { \
+            doInstead(redirectAction, exitLocation); \
+        } \
+        report() { } \
     }
 
 class ParkourModule: SubComponent {
@@ -1397,17 +1449,7 @@ class ParkourModule: SubComponent {
         return self;
     }
 
-    getTraveler(actor) {
-        local potentialVehicle = actor.location;
-        while(potentialVehicle != nil && !potentialVehicle.ofKind(Room)) {
-            if(potentialVehicle.isVehicle) {
-                return potentialVehicle;
-            }
-            potentialVehicle = potentialVehicle.location;
-        }
-        
-        return actor;
-    }
+    //TODO: Parkour punishments and accidents
 
     checkLeaving(actor, traveler, path) {
         return true;
@@ -1417,13 +1459,14 @@ class ParkourModule: SubComponent {
         return true;
     }
 
+    //TODO: Provider-specific checks
     doParkourCheck(actor, path) {
-        local traveler = getTraveler(actor);
-        local source = actor.getParkourModule();
+        local traveler = gParkourRunner;
+        local source = traveler.getParkourModule();
 
-        if (traveler.fitForParkour) {
-            if (source.checkLeaving(actor, traveler, path)) {
-                if (checkArriving(actor, traveler, path)) {
+        if (gParkourRunner.fitForParkour) {
+            if (source.checkLeaving(actor, gParkourRunner, path)) {
+                if (checkArriving(actor, gParkourRunner, path)) {
                     local passed = true;
                     local barriers = [];
                     barriers += valToList(parkourBarriers);
@@ -1433,8 +1476,11 @@ class ParkourModule: SubComponent {
                         local barrier = barriers[i];
                         // Note: Args are traveler, path
                         // instead of     traveler, connector
-                        passed = barrier.checkTravelBarrier(traveler, path);
-                        if (!passed) break;
+                        passed = barrier.checkTravelBarrier(gParkourRunner, path);
+                        if (!passed) {
+                            barrier.explainTravelBarrier(gParkourRunner, path);
+                            break;
+                        }
                     }
                     if (!passed) return nil;
                 }
@@ -1447,12 +1493,7 @@ class ParkourModule: SubComponent {
             }
         }
         else {
-            if (traveler != actor) {
-                say(traveler.cannotDoParkourInMsg);
-            }
-            else {
-                say(actor.cannotDoParkourMsg);
-            }
+            sayParkourRunnerError(actor);
             return nil;
         }
 
@@ -1479,8 +1520,7 @@ class ParkourModule: SubComponent {
         if (plat.remapOn != nil) {
             plat = plat.remapOn;
         }
-        local traveler = getTraveler(actor);
-        traveler.actionMoveInto(plat);
+        actor.actionMoveInto(plat);
     }
 
     getPathFrom(source, canBeUnknown?) {
@@ -1523,6 +1563,10 @@ class ParkourModule: SubComponent {
     }
 
     isInReachFromVerbose(source, canBeUnknown?, doNotFactorJump?) {
+        if (source == gActor) {
+            parkourCache.cacheParkourRunner(source);
+            source = gParkourRunner;
+        }
         #if __PARKOUR_REACH_DEBUG
         extraReport('\bTesting source: <<source.theName>> (<<source.contType.prep>>)\b');
         #endif
@@ -1608,9 +1652,6 @@ class ParkourModule: SubComponent {
         }
         check() { checkParkour(gActor); }
         action() {
-            if (gAction.isImplicit) {
-                gParkourMuteNestedReports = true;
-            }
             switch (gParkourLastPath.direction) {
                 case parkourUpDir:
                     doNested(ParkourClimbUpTo, self);
@@ -1637,9 +1678,6 @@ class ParkourModule: SubComponent {
         }
         check() { checkParkour(gActor); }
         action() {
-            if (gAction.isImplicit) {
-                gParkourMuteNestedReports = true;
-            }
             tryClimbInstead(ParkourClimbGeneric);
             switch (gParkourLastPath.direction) {
                 case parkourUpDir:
@@ -1668,37 +1706,8 @@ class ParkourModule: SubComponent {
         return res;
     }
 
-    dobjFor(ParkourClimbOffOf) {
-        verify() {
-            local myOn = getStandardOn();
-            if(!gActor.isIn(myOn) || myOn.contType != On) {
-                illogicalNow(actorNotOnMsg);
-            }
-        }
-        action() {
-            if (gAction.isImplicit) {
-                gParkourMuteNestedReports = true;
-            }
-            doInstead(ParkourClimbDownTo, exitLocation);
-        }
-        report() { }
-    }
-
-    dobjFor(ParkourJumpOffOf) {
-        verify() {
-            local myOn = getStandardOn();
-            if(!gActor.isIn(myOn) || myOn.contType != On) {
-                illogicalNow(actorNotOnMsg);
-            }
-        }
-        action() {
-            if (gAction.isImplicit) {
-                gParkourMuteNestedReports = true;
-            }
-            doInstead(ParkourJumpDownTo, exitLocation);
-        }
-        report() { }
-    }
+    parkourReshapeGetOff(ParkourClimbOffOf, ParkourClimbDownTo)
+    parkourReshapeGetOff(ParkourJumpOffOf, ParkourJumpDownTo)
 
     parkourSimpleUseProviderFromDest(JumpOver)
     parkourSimpleUseProviderFromDest(SlideUnder)
