@@ -445,8 +445,7 @@ parkourCache: object {
     requireRouteRecon = nil //FIXME: Set this to true after development is done
     formatForScreenReader = nil
     autoPathCanDiscover = nil
-    //TODO: Auto-parkour?
-    // Maybe a precond to add to parkourPreCond
+    //TODO: Reduce auto-parkour to one step only, but save current pathing code
     reachingCausesAutoClimb = nil
 
     cacheParkourRunner(actor) {
