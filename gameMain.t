@@ -4,6 +4,7 @@
 #define gWasFreeAction ( \
     gActionIs(SystemAction) || \
     gActionIs(ShowParkourRoutes) || \
+    gActionIs(ShowParkourKey) || \
     gActionIs(Inventory) || \
     gActionIs(Examine) || \
     gActionIs(Look) \
@@ -131,18 +132,42 @@ centralRoom: Room { 'Central Room'
     fitForParkour = true
 }
 
-/*+metalCrate: ParkourPlatform { 'metal crate'
++metalCrate: FixedPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
-    height = high
-}*/
+    //parkourBarriers = [fragileCrateBarrier]
+}
+++LowFloorHeight;
+
++fragileCrateBarrier: TravelBarrier {
+    canTravelerPass(actor, connector) {
+        return nil;
+    }
+    
+    explainTravelBarrier(actor, connector) {
+        "The crate doesn't seem very sturdy... ";
+    }
+}
 
 //++ParkourProviderPath @flagPole ->desk;
 //++ParkourProviderPath @flagPole ->centralRoom;
 
-/*+flagPole: ParkourProviderToSwingOn { 'flagpole'
++flagPole: Fixture { 'flagpole'
     "A barren flagpole, sticking horizontally out of the wall,
     between the lab desk and metal crate. "
-}*/
+    isListed = true
+    canSwingOnMe = true
+    //parkourBarriers = [fragilePoleBarrier]
+}
+
++fragilePoleBarrier: TravelBarrier {
+    canTravelerPass(actor, connector) {
+        return nil;
+    }
+    
+    explainTravelBarrier(actor, connector) {
+        "The pole seems flimsy... ";
+    }
+}
 
 +desk: FixedPlatform { 'lab desk'
     "A simple lab desk. "
@@ -151,10 +176,10 @@ centralRoom: Room { 'Central Room'
 }
 ++LowFloorHeight;
 ++ClimbUpLink -> cabinet;
-++JumpUpLink -> cargoShelf;
-
-//++ParkourProviderPath @flagPole ->metalCrate;
-//+ParkourProviderPath @flagPole ->metalCrate;
+++JumpUpLink -> cargoShelf
+    pathDescription = 'scale the cargo shelves'
+;
+++ProviderLink @flagPole ->metalCrate;
 
 +table: FixedPlatform { 'generic table'
     "A generic table, outside of any parkour system. "
