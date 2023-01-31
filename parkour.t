@@ -388,6 +388,7 @@ VerbRule(ShowParkourRoutes)
 
 DefineIAction(ShowParkourRoutes)
     allowAll = nil
+    turnsTaken = 0
 
     execAction(cmd) {
         parkourCache.cacheParkourRunner(gActor);
@@ -409,6 +410,7 @@ VerbRule(ShowParkourKey)
 
 DefineIAction(ShowParkourKey)
     allowAll = nil
+    turnsTaken = 0
 
     execAction(cmd) {
         if (parkourCache.formatForScreenReader) {
@@ -434,12 +436,13 @@ VerbRule(DebugCheckForContainer)
 ;
 
 DefineTAction(DebugCheckForContainer)
+    turnsTaken = 0
 ;
 #endif
 
 parkourCache: object {
     requireRouteRecon = nil //FIXME: Set this to true after development is done
-    formatForScreenReader = nil
+    formatForScreenReader = true
     autoPathCanDiscover = (!requireRouteRecon)
     announceRouteAfterTrying = nil
     maxReconsPerTurn = 3
@@ -498,6 +501,7 @@ parkourCache: object {
     lastPath = nil
     currentParkourRunner = nil
     showNewRoute = nil
+    hadAccident = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
 }
@@ -876,13 +880,15 @@ modify actorInStagingLocation {
     }
 
 #define reportParkour \
-    if (parkourCache.printRoutesAfterParkour) { \
-        reportAfter( \
-            gParkourLastPath.destination \
-            .getParkourModule().getRouteListString() \
-        ); \
-    } \
-    "<<gParkourLastPath.getPerformMsg()>>"
+    if (!parkourCache.hadAccident) { \
+        if (parkourCache.printRoutesAfterParkour) { \
+            reportAfter( \
+                gParkourLastPath.destination \
+                .getParkourModule().getRouteListString() \
+            ); \
+        } \
+        "<<gParkourLastPath.getPerformMsg()>>"; \
+    }
 
 #define verifyParkourProviderFromActor(actor, ProviderAction) \
     local realProvider = getParkourProvider(nil, nil); \
@@ -907,6 +913,7 @@ modify actorInStagingLocation {
     }
 
 #define beginParkour(announceNewRoute) \
+    parkourCache.hadAccident = nil; \
     parkourCache.showNewRoute = announceNewRoute; \
     local parkourDestination = \
         gParkourLastPath.destination.getParkourModule(); \
@@ -939,7 +946,12 @@ modify actorInStagingLocation {
             } \
         } \
         action() { \
-            doParkourThroughProvider(gActor); \
+            if (checkProviderAccident(gActor, gParkourRunner, gParkourLastPath)) { \
+                doParkourThroughProvider(gActor); \
+                parkourDestination.doAllPunishmentsAndAccidents( \
+                    gActor, gParkourRunner, gParkourLastPath \
+                ); \
+            } \
         } \
         report() { \
             reportParkour; \
@@ -1129,6 +1141,34 @@ modify Thing {
 
         local pm = getParkourModule();
         if (pm != nil) pm.doRecon();
+    }
+
+    checkProviderAccident(actor, traveler, path) {
+        local hadAccident = gOutStream.watchForOutput({:
+            doProviderAccident(actor, traveler, path)
+        });
+        parkourCache.hadAccident = parkourCache.hadAccident || hadAccident;
+        return !hadAccident;
+    }
+
+    doProviderAccident(actor, traveler, path) {
+        // For author implementation
+    }
+
+    doAccident(actor, traveler, path) {
+        // For author implementation
+    }
+
+    doClimbPunishment(actor, traveler, path) {
+        // For author implementation
+    }
+
+    doJumpPunishment(actor, traveler, path) {
+        // For author implementation
+    }
+
+    doHarmfulPunishment(actor, traveler, path) {
+        // For author implementation
     }
 
     checkAsParkourProvider(actor, traveler, path) {
@@ -1459,6 +1499,7 @@ modify Actor {
         check() { checkParkour(gActor); } \
         action() { \
             doClimbFor(gParkourRunner); \
+            doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \
         } \
         report() { \
             reportParkour; \
@@ -1475,6 +1516,7 @@ modify Actor {
         action() { \
             tryClimbInstead(ParkourClimb##parkourDir##To); \
             doClimbFor(gParkourRunner); \
+            doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \
         } \
         report() { \
             reportParkour; \
@@ -1604,8 +1646,23 @@ class ParkourModule: SubComponent {
         }
     }
 
-    //TODO: Parkour punishments and accidents
-    // (Make sure providers also support these)
+    doAllPunishmentsAndAccidents(actor, traveler, path) {
+        if (lexicalParent == nil) return true;
+        if (path.requiresJump) {
+            lexicalParent.doJumpPunishment(actor, traveler, path);
+        }
+        else {
+            lexicalParent.doClimbPunishment(actor, traveler, path);
+        }
+        if (path.isHarmful) {
+            lexicalParent.doHarmfulPunishment(actor, traveler, path);
+        }
+        local hadAccident = gOutStream.watchForOutput({:
+            lexicalParent.doAccident(actor, traveler, path)
+        });
+        parkourCache.hadAccident = parkourCache.hadAccident || hadAccident;
+        return !hadAccident;
+    }
 
     checkLeaving(actor, traveler, path) {
         return true;
@@ -1671,23 +1728,56 @@ class ParkourModule: SubComponent {
         local describedPaths = [];
         local describedHarmfulPaths = [];
 
+        local blindEasyPaths = [];
+        local blindEasyDescribedPaths = [];
+        local blindJumpPaths = [];
+        local blindJumpDescribedPaths = [];
+        local blindHarmfulPaths = [];
+        local blindHarmfulDescribedPaths = [];
+        local blindHarmfulJumpPaths = [];
+        local blindHarmfulJumpDescribedPaths = [];
+
         for (local i = 1; i <= pathVector.length; i++) {
             local path = pathVector[i];
             if (path.isKnown) {
                 if (path.injectedPathDescription != nil) {
                     if (path.isHarmful) {
                         describedHarmfulPaths += path;
+                        if (path.requiresJump) {
+                            blindHarmfulJumpDescribedPaths += path;
+                        }
+                        else {
+                            blindHarmfulDescribedPaths += path;
+                        }
                     }
                     else {
                         describedPaths += path;
+                        if (path.requiresJump) {
+                            blindJumpDescribedPaths += path;
+                        }
+                        else {
+                            blindEasyDescribedPaths += path;
+                        }
                     }
                 }
                 else if (path.provider != nil) {
                     if (path.isHarmful) {
                         providerHarmfulPaths += path;
+                        if (path.requiresJump) {
+                            blindHarmfulJumpPaths += path;
+                        }
+                        else {
+                            blindHarmfulPaths += path;
+                        }
                     }
                     else {
                         providerPaths += path;
+                        if (path.requiresJump) {
+                            blindJumpPaths += path;
+                        }
+                        else {
+                            blindEasyPaths += path;
+                        }
                     }
                 }
                 else if (path.requiresJump) {
@@ -1697,18 +1787,22 @@ class ParkourModule: SubComponent {
                         }
                         else {
                             jumpHarmfulPaths += path;
+                            blindHarmfulJumpPaths += path;
                         }
                     }
                     else {
                         jumpPaths += path;
+                        blindJumpPaths += path;
                     }
                 }
                 else {
                     if (path.isHarmful) {
                         climbHarmfulPaths += path;
+                        blindHarmfulPaths += path;
                     }
                     else {
                         climbPaths += path;
+                        blindEasyPaths += path;
                     }
                 }
             }
@@ -1729,10 +1823,47 @@ class ParkourModule: SubComponent {
             strBfr.append(parkourCache.noKnownRoutesMsg);
         }
         else {
-            strBfr.append('{I} review{s/ed} the routes {i} {can} go from {here}...');
+            blindEasyPaths += blindEasyDescribedPaths;
+            blindJumpPaths += blindJumpDescribedPaths;
+            blindHarmfulPaths += blindHarmfulDescribedPaths;
+            blindHarmfulJumpPaths += blindHarmfulJumpDescribedPaths;
+            local routeCount =
+                blindEasyPaths.length +
+                blindJumpPaths.length +
+                blindHarmfulPaths.length +
+                blindHarmfulJumpPaths.length;
+            strBfr.append('<i>{I} review{s/ed} the parkour routes {i} {can} use from {here}...</i>');
             if (parkourCache.formatForScreenReader) {
                 strBfr.append('\b');
-                //TODO: Do screen reader version
+                strBfr.append(
+                    'In total, {i} {see} <<spellNumber(routeCount)>>
+                    viable <<getRouteCase(routeCount)>>
+                    from here.'
+                );
+                getBlindRouteDescription(strBfr, blindEasyPaths,
+                    'can be performed with ease. '
+                );
+                getBlindRouteDescription(strBfr, blindJumpPaths,
+                    'can be performed with difficulty. '
+                );
+                getBlindRouteDescription(strBfr, blindHarmfulPaths,
+                    'can be performed at the risk of injury. '
+                );
+                getBlindRouteDescription(strBfr, blindHarmfulJumpPaths,
+                    'can be performed with both great difficulty and risk of injury. '
+                );
+                strBfr.append(
+                    '<<first time>>\b\t<tt><b>REMEMBER:</b></tt>\n
+                    <i>You can use parkour shorthand to enter commands faster!</i>\b
+                    <b>CLIMB</b> can be shortened to <b>CL</b> (spelled <q>C L</q>),
+                    and
+                    <b>JUMP</b> can be shortened to <b>JM</b> (spelled <q>J M</q>)!\b
+                    \t<tt><b>EXAMPLES:</b></tt>\n
+                    <b>CL UP DESK</b> for an <i>explicit</i> climb-up, or just
+                    <b>CL DESK</b> for an <i>implicit</i> climb, which picks the
+                    most appropriate direction, but only if it was used before.
+                    <<only>>'
+                );
             }
             else {
                 strBfr.append('\n<small>');
@@ -1800,6 +1931,11 @@ class ParkourModule: SubComponent {
         return toString(strBfr);
     }
 
+    getRouteCase(count) {
+        if (count == 1) return 'route';
+        return 'routes';
+    }
+
     getBulletPoint(path) {
         if (path.isHarmful && path.requiresJump) return '\n&nbsp;<tt><b>[!*]</b></tt> ';
         if (path.isHarmful) return '\n&nbsp;<tt><b>[!!]</b></tt> ';
@@ -1820,6 +1956,17 @@ class ParkourModule: SubComponent {
                 return 'over ';
             case parkourDownDir:
                 return 'down ';
+        }
+    }
+
+    getBetterPrepFromPath(path) {
+        switch (path.direction) {
+            case parkourUpDir:
+                return 'atop ';
+            default:
+                return 'over to ';
+            case parkourDownDir:
+                return 'down to ';
         }
     }
 
@@ -1868,6 +2015,48 @@ class ParkourModule: SubComponent {
             commandText = getProviderVerb(provider);
         }
         return aHrefAlt(getProviderCommand(provider), commandText, commandText);
+    }
+
+    getBlindRouteDescription(strBfr, routeList, routeSuffix) {
+        if (routeList.length > 0) {
+            strBfr.append('\b');
+            for (local i = 1; i <= routeList.length; i++) {
+                local path = routeList[i];
+                if (path.provider == nil) {
+                    strBfr.append('<b>');
+                    strBfr.append(getVerbFromPath(path));
+                    strBfr.append(getBetterPrepFromPath(path).toUpper());
+                    strBfr.append(path.destination.parkourModule.theName.toUpper());
+                    strBfr.append('</b>');
+                }
+                else {
+                    local provider = path.provider.getParkourProvider(nil, nil);
+                    strBfr.append('<b>');
+                    strBfr.append(getProviderVerb(provider).toUpper());
+                    strBfr.append('</b>');
+                    if (path.injectedPathDescription == nil) {
+                        strBfr.append(' <i>(which leads to ');
+                        strBfr.append(path.destination.parkourModule.theName);
+                        strBfr.append(')</i>');
+                    }
+                }
+                /*if (path.injectedPathDescription != nil) {
+                    strBfr.append(' (to <i>');
+                    strBfr.append(path.injectedPathDescription);
+                    strBfr.append('</i>)');
+                }*/
+                if (i == routeList.length) {
+                    strBfr.append(' ');
+                }
+                else if (i == routeList.length - 1) {
+                    strBfr.append(', and ');
+                }
+                else {
+                    strBfr.append(', ');
+                }
+            }
+            strBfr.append(routeSuffix);
+        }
     }
 
     provideMoveFor(actor) {

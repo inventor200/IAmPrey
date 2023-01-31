@@ -138,3 +138,15 @@ modify Room {
 class FixedPlatform: Platform {
     isFixed = true
 }
+
+modify Inventory {
+    turnsTaken = 0
+}
+
+modify Examine {
+    turnsTaken = 0
+}
+
+modify Look {
+    turnsTaken = 0
+}
