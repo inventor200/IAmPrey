@@ -213,6 +213,16 @@ centralRoom: Room { 'Central Room'
     otherSide = lowVent
 }*/
 
+//FIXME: Get inter-room parkour working
+
++eastGap: Fixture { 'east gap;eastern;divide'
+    "The eastern wall has a hole, and a sudden drop-off meets the floor there. "
+    isListed = true
+    canJumpOverMe = true
+}
+
++AwkwardProviderPath @eastGap ->subtleRoom;
+
 sideRoom: Room { 'Side Room'
     "The additional room to the side."
 
@@ -247,10 +257,19 @@ eastHallway: Room { 'Hallway (East)'
     regions = [longHallway]
 }
 
+// East of central room
 subtleRoom: Room { 'Subtle Room'
     "Just a subtle room. "
     north = eastHallway
 }
+
++westGap: Fixture { 'west gap;western;divide'
+    "The western wall has a hole, and a sudden drop-off meets the floor there. "
+    isListed = true
+    canJumpOverMe = true
+}
+
++AwkwardProviderPath @westGap ->centralRoom;
 
 /*+subtleVent: ParkourExit { 'vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, but kinda high up. "
