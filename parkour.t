@@ -501,6 +501,7 @@ parkourCache: object {
     currentParkourRunner = nil
     showNewRoute = nil
     hadAccident = nil
+    lookAroundAfter = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} any routes from here. '
 }
@@ -897,9 +898,9 @@ modify actorInStagingLocation {
 #define learnPath(path, reportMethod) \
     if (!path.isAcknowledged) { \
         if (path.isKnown) { \
-            path.isAcknowledged = true; \
+            path.acknowledge(); \
             if (parkourCache.showNewRoute) { \
-                reportMethod(path.getDiscoverMsg()); \
+                reportMethod(path.getDiscoverMsg() + '\b'); \
             } \
         } \
     }
@@ -912,7 +913,11 @@ modify actorInStagingLocation {
                 .getParkourModule().getRouteListString() \
             ); \
         } \
-        "<<gParkourLastPath.getPerformMsg()>>"; \
+        "<<gParkourLastPath.getPerformMsg()>>\b"; \
+        if (parkourCache.lookAroundAfter != nil) { \
+            parkourCache.lookAroundAfter.lookAroundWithin(); \
+            parkourCache.lookAroundAfter = nil; \
+        } \
     }
 
 #define verifyAlreadyAtDestination(actor) \
@@ -952,11 +957,11 @@ modify actorInStagingLocation {
     beginParkourReset(announceNewRoute); \
     local parkourDestination = \
         gParkourLastPath.destination.getParkourModule(); \
-    parkourDestination.lexicalParent.hasParkourRecon = true; \
+    parkourDestination.lexicalParent.applyRecon(); \
     if (gParkourLastPath.provider != nil) { \
-        gParkourLastPath.provider.hasParkourRecon = true; \
+        gParkourLastPath.provider.applyRecon(); \
     } \
-    learnPath(gParkourLastPath, reportAfter)
+    learnPath(gParkourLastPath, extraReport)
 
 #define doParkourThroughProvider(actor) \
     beginParkour(parkourCache.announceRouteAfterTrying); \
@@ -973,9 +978,8 @@ modify actorInStagingLocation {
             local parkourDestination = \
                 gParkourLastPath.destination.getParkourModule(); \
             if (checkParkourProviderBarriers(gActor, gParkourLastPath)) { \
-                hasParkourRecon = true; \
-                gParkourLastPath.destination.hasParkourRecon = true; \
-                gParkourLastPath.isAcknowledged = true; \
+                applyRecon(); \
+                gParkourLastPath.destination.applyRecon(); \
                 parkourDestination.checkInsert(gActor); \
                 parkourDestination.doParkourCheck(gActor, gParkourLastPath); \
             } \
@@ -1106,6 +1110,19 @@ modify Thing {
     parkourBarriers = nil
     // Was this Thing recon'd for parkour?
     hasParkourRecon = (!parkourCache.requireRouteRecon)
+    // Other Things that this will share recon with
+    shareReconWith = []
+    // This gets added to the above list, and should not be touched by authors
+    shareReconWithProcedural = perInstance(new Vector())
+
+    applyRecon() {
+        hasParkourRecon = true;
+        local reconLst = valToList(shareReconWith);
+        reconLst += valToList(shareReconWithProcedural);
+        for (local i = 1; i <= reconLst.length; i++) {
+            reconLst[i].hasParkourRecon = true;
+        }
+    }
 
     dobjFor(Examine) {
         action() {
@@ -1703,7 +1720,7 @@ class ParkourModule: SubComponent {
             if (clear) {
                 local path = getPathFrom(gParkourRunner.getParkourModule(), true, true);
                 if (path != nil) {
-                    lexicalParent.hasParkourRecon = true;
+                    lexicalParent.applyRecon();
                     parkourCache.cacheParkourRunner(gActor);
                     parkourCache.showNewRoute = true;
                     learnPath(path, reportAfter);
@@ -1721,7 +1738,7 @@ class ParkourModule: SubComponent {
                 jumpPath = path;
             }
             else {
-                provider.hasParkourRecon = true;
+                provider.applyRecon();
                 parkourCache.showNewRoute = true;
                 learnPath(path, reportAfter);
                 return;
@@ -1729,7 +1746,7 @@ class ParkourModule: SubComponent {
         }
 
         if (jumpPath != nil) {
-            provider.hasParkourRecon = true;
+            provider.applyRecon();
             parkourCache.showNewRoute = true;
             learnPath(jumpPath, reportAfter);
         }
@@ -2195,8 +2212,6 @@ class ParkourModule: SubComponent {
                 actor.lastTravelInfo = [oldLoc, gParkourLastPath];
             }
 
-            extraReport(gParkourLastPath.getPerformMsg() + '\b');
-
             actor.actionMoveInto(plat);
 
             if (playerIsOrIsInActor) {
@@ -2204,14 +2219,7 @@ class ParkourModule: SubComponent {
                 notifyList.forEach({a: a.pcArrivalTurn = gTurns });
                 
                 if (lookAroundOnEntering) {
-                    roomB.lookAroundWithin();
-                }
-
-                if (parkourCache.printRoutesAfterParkour) {
-                    extraReport(
-                        gParkourLastPath.destination
-                        .getParkourModule().getRouteListString() + '\b'
-                    );
+                    parkourCache.lookAroundAfter = roomB;
                 }
             }
             else if (roomA == oldLoc) {
@@ -2498,6 +2506,16 @@ class ParkourPath: object {
     isHarmful = nil
     direction = parkourOverDir
     isAcknowledged = (!parkourCache.requireRouteRecon)
+    maker = nil
+    cachedOtherSide = nil
+    isBackward = nil
+    otherSide() {
+        if (maker != nil) {
+            cachedOtherSide = maker.createdOtherSide(isBackward);
+            maker = nil;
+        }
+        return cachedOtherSide;
+    }
 
     isProviderKnown = (provider == nil ? nil : provider.hasParkourRecon)
     isProviderEffectivelyKnown = (provider == nil ? true : provider.hasParkourRecon)
@@ -2507,6 +2525,13 @@ class ParkourPath: object {
     injectedPerformMsg = nil
     injectedParkourBarriers = nil
     injectedPathDescription = nil
+
+    acknowledge() {
+        isAcknowledged = true;
+        if (otherSide() != nil) {
+            otherSide().isAcknowledged = true;
+        }
+    }
 
     getDiscoverMsg() {
         if (injectedDiscoverMsg != nil) {
@@ -2615,6 +2640,14 @@ class ParkourPathMaker: PreinitObject {
 
     startKnown = nil
 
+    otherSide = nil
+    createdForward = nil
+    createdBackward = (otherSide != nil ? otherSide.createdForward : nil)
+    createdOtherSide(isBackward) {
+        if (isBackward) return createdForward;
+        return createdBackward;
+    }
+
     getTrueLocation() {
         if (location.ofKind(SubComponent)) {
             return location.lexicalParent;
@@ -2637,7 +2670,9 @@ class ParkourPathMaker: PreinitObject {
     }
 
     createForwardPath() {
-        getTrueLocation().parkourModule.addPath(getNewPathObject(startKnown));
+        createdForward = getNewPathObject(startKnown);
+        createdForward.maker = self;
+        getTrueLocation().parkourModule.addPath(createdForward);
     }
 
     createBackwardPath() { }
@@ -2748,23 +2783,25 @@ class ParkourLinkMaker: ParkourPathMaker {
     startBackwardKnown = nil
 
     createBackwardPath() {
-        local backPath = getNewPathObject(startBackwardKnown);
-        backPath.injectedPathDescription = backwardPathDescription;
-        backPath.injectedDiscoverMsg = discoverBackwardMsg;
-        backPath.injectedPerformMsg = performBackwardMsg;
-        backPath.injectedParkourBarriers = backwardParkourBarriers;
-        backPath.destination = getTrueLocation();
-        backPath.requiresJump = requiresJumpBack;
-        backPath.isHarmful = isHarmfulBack;
-        switch (backPath.direction) {
+        createdBackward = getNewPathObject(startBackwardKnown);
+        createdBackward.maker = self;
+        createdBackward.isBackward = true;
+        createdBackward.injectedPathDescription = backwardPathDescription;
+        createdBackward.injectedDiscoverMsg = discoverBackwardMsg;
+        createdBackward.injectedPerformMsg = performBackwardMsg;
+        createdBackward.injectedParkourBarriers = backwardParkourBarriers;
+        createdBackward.destination = getTrueLocation();
+        createdBackward.requiresJump = requiresJumpBack;
+        createdBackward.isHarmful = isHarmfulBack;
+        switch (createdBackward.direction) {
             case parkourUpDir:
-                backPath.direction = parkourDownDir;
+                createdBackward.direction = parkourDownDir;
                 break;
             case parkourDownDir:
-                backPath.direction = parkourUpDir;
+                createdBackward.direction = parkourUpDir;
                 break;
         }
-        getTrueDestination().parkourModule.addPath(backPath);
+        getTrueDestination().parkourModule.addPath(createdBackward);
     }
 }
 
@@ -2865,4 +2902,71 @@ class DangerousFloorHeight: FloorHeight {
     isHarmful = true
 
     createBackwardPath() { } // No way up
+}
+
+// Two-way bridges
+class ParkourBridgeMaker: ParkourLinkMaker {
+    backwardProvider = nil
+
+    createBackwardPath() {
+        createdBackward = getNewPathObject(startBackwardKnown);
+        createdBackward.maker = self;
+        createdBackward.isBackward = true;
+        createdBackward.injectedPathDescription = backwardPathDescription;
+        createdBackward.injectedDiscoverMsg = discoverBackwardMsg;
+        createdBackward.injectedPerformMsg = performBackwardMsg;
+        createdBackward.injectedParkourBarriers = backwardParkourBarriers;
+        createdBackward.destination = getTrueLocation();
+        createdBackward.provider = backwardProvider;
+        createdBackward.requiresJump = requiresJumpBack;
+        createdBackward.isHarmful = isHarmfulBack;
+        switch (createdBackward.direction) {
+            case parkourUpDir:
+                createdBackward.direction = parkourDownDir;
+                break;
+            case parkourDownDir:
+                createdBackward.direction = parkourUpDir;
+                break;
+        }
+        createdForward.provider.shareReconWithProcedural.appendUnique(
+            createdBackward.provider
+        );
+        createdBackward.provider.shareReconWithProcedural.appendUnique(
+            createdForward.provider
+        );
+        getTrueDestination().parkourModule.addPath(createdBackward);
+        #if __DEBUG
+        if (provider == backwardProvider && provider != nil) {
+            if (!provider.ofKind(MultiLoc)) {
+                "WARNING: There is a provider bridge (initialized in
+                <<location.getOutermostRoom().theName>>) which has a
+                matching forward provider and backward provider. There
+                are two likely mistakes at play here:\n
+                <ol>
+                <li>This single provider wasn't a MultiLoc.</li>
+                <li>A copy-and-paste error filled set the same provider
+                for both directions in a template.</li>
+                </ol>";
+            }
+        }
+        #endif
+    }
+}
+
+ProviderBridge template @provider ->destination @backwardProvider;
+class ProviderBridge: ParkourBridgeMaker {
+    direction = parkourOverDir
+}
+
+AwkwardProviderBridge template @provider ->destination @backwardProvider;
+class AwkwardProviderBridge: ParkourBridgeMaker {
+    direction = parkourOverDir
+    requiresJump = true
+}
+
+DangerousProviderBridge template @provider ->destination @backwardProvider;
+class DangerousProviderBridge: ParkourBridgeMaker {
+    direction = parkourOverDir
+    requiresJump = true
+    isHarmful = true
 }

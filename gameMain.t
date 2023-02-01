@@ -219,7 +219,7 @@ centralRoom: Room { 'Central Room'
     canJumpOverMe = true
 }
 
-+AwkwardProviderPath @eastGap ->subtleRoom;
++AwkwardProviderBridge @eastGap ->subtleRoom @westGap;
 
 sideRoom: Room { 'Side Room'
     "The additional room to the side."
@@ -266,8 +266,6 @@ subtleRoom: Room { 'Subtle Room'
     isListed = true
     canJumpOverMe = true
 }
-
-+AwkwardProviderPath @westGap ->centralRoom;
 
 /*+subtleVent: ParkourExit { 'vent;metal ventilation;grate'
     "A metal ventilation grate. It seems passable, but kinda high up. "
