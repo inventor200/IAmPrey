@@ -140,11 +140,11 @@ centralRoom: Room { 'Central Room'
 +metalCrate: FixedPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
     //parkourBarriers = [fragileCrateBarrier]
-    doAccident(actor, traveler, path) {
+    /*doAccident(actor, traveler, path) {
         traveler.moveInto(centralRoom);
         "{I} {swing} on the flagpole, and land{s/ed} on the metal crate,
         but it collapses, and {i} {am} thrown to the floor. ";
-    }
+    }*/
 }
 ++LowFloorHeight;
 
@@ -167,15 +167,15 @@ centralRoom: Room { 'Central Room'
     isListed = true
     canSwingOnMe = true
     //parkourBarriers = [fragilePoleBarrier]
-    doProviderAccident(actor, traveler, path) {
+    /*doProviderAccident(actor, traveler, path) {
         traveler.moveInto(centralRoom);
         "{I} {swing} on the flagpole, but only for a moment.
         With a horrible, metal-wrenching sound, the pole snaps
         free of the wall, dropping {me} to the floor. ";
-    }
+    }*/
 }
 
-+fragilePoleBarrier: TravelBarrier {
+/*+fragilePoleBarrier: TravelBarrier {
     canTravelerPass(actor, connector) {
         return nil;
     }
@@ -183,7 +183,7 @@ centralRoom: Room { 'Central Room'
     explainTravelBarrier(actor, connector) {
         "The pole seems flimsy... ";
     }
-}
+}*/
 
 +desk: FixedPlatform { 'lab desk'
     "A simple lab desk. "
@@ -212,8 +212,6 @@ centralRoom: Room { 'Central Room'
     destination = shortCrate
     otherSide = lowVent
 }*/
-
-//FIXME: Get inter-room parkour working
 
 +eastGap: Fixture { 'east gap;eastern;divide'
     "The eastern wall has a hole, and a sudden drop-off meets the floor there. "

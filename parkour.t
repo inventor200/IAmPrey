@@ -40,7 +40,7 @@ DefineTAction(ParkourClimbOverInto)
 ;
 
 VerbRule(ParkourJumpOverTo)
-    ('jump'|'hop'|'leap') genericAcrossPrep singleDobj
+    ('jump'|'jm'|'hop'|'leap') genericAcrossPrep singleDobj
     : VerbProduction
     action = ParkourJumpOverTo
     verbPhrase = 'jump to (what)'
@@ -52,7 +52,7 @@ DefineTAction(ParkourJumpOverTo)
 ;
 
 VerbRule(ParkourJumpOverInto)
-    ('jump'|'hop'|'leap') expandedInto singleDobj
+    ('jump'|'jm'|'hop'|'leap') expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpOverInto
     verbPhrase = 'jump through (what)'
@@ -64,8 +64,8 @@ DefineTAction(ParkourJumpOverInto)
 ;
 
 VerbRule(ParkourJumpUpTo)
-    ('jump'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun') 'up' expandedUpSideOf singleDobj |
-    'clamber' singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'scale'|'run'|'sprint') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj |
+    ('clamber'|'scale') singleDobj
     : VerbProduction
     action = ParkourJumpUpTo
     verbPhrase = 'jump up (what)'
@@ -77,8 +77,7 @@ DefineTAction(ParkourJumpUpTo)
 ;
 
 VerbRule(ParkourJumpUpInto)
-    ('jump'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'scale') 'up' expandedInto singleDobj |
-    ('clamber'|'scale') singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'scale'|'run'|'sprint') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpUpInto
     verbPhrase = 'jump up into (what)'
@@ -90,7 +89,7 @@ DefineTAction(ParkourJumpUpInto)
 ;
 
 VerbRule(ParkourJumpDownTo)
-    ('jump'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' 'to' singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' 'to' singleDobj
     : VerbProduction
     action = ParkourJumpDownTo
     verbPhrase = 'jump down to (what)'
@@ -102,7 +101,7 @@ DefineTAction(ParkourJumpDownTo)
 ;
 
 VerbRule(ParkourJumpDownInto)
-    ('jump'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' expandedInto singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpDownInto
     verbPhrase = 'jump down into (what)'
@@ -138,7 +137,7 @@ DefineTAction(ParkourClimbDownInto)
 ;
 
 VerbRule(ParkourClimbUpInto)
-    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'run'|'sprint') 'up' expandedInto singleDobj
+    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbUpInto
     verbPhrase = 'climb up into (what)'
@@ -150,7 +149,7 @@ DefineTAction(ParkourClimbUpInto)
 ;
 
 VerbRule(ParkourClimbUpTo)
-    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'run'|'sprint') 'up' expandedUpSideOf singleDobj
+    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj
     : VerbProduction
     action = ParkourClimbUpTo
     verbPhrase = 'climb up to (what)'
@@ -165,7 +164,7 @@ VerbRule(ParkourJumpGeneric)
     ('jump'|'hop'|'leap'|'jm') singleDobj
     : VerbProduction
     action = ParkourJumpGeneric
-    verbPhrase = 'jump to (what)'
+    verbPhrase = 'jump somehow to (what)'
     missingQ = 'what do you want to jump to'
 ;
 
@@ -175,8 +174,8 @@ DefineTAction(ParkourJumpGeneric)
 
 VerbRule(ParkourClimbGeneric)
     ('climb'|'cl'|'mantel'|'mantle'|'mount'|'board') singleDobj |
-    ('climb'|'cl'|'mantel'|'mantle'|'get'|'go') genericOnTopOfPrep singleDobj |
-    'parkour' ('to'|'on'|) singleDobj
+    /*('climb'|'cl'|'mantel'|'mantle'|'get'|'go') genericOnTopOfPrep singleDobj |*/
+    'parkour' ('to'|) singleDobj
     : VerbProduction
     action = ParkourClimbGeneric
     verbPhrase = 'parkour to (what)'
@@ -205,7 +204,7 @@ DefineTAction(ParkourSlideUnder)
 ;
 
 VerbRule(ParkourJumpOver)
-    ('jump'|'hop'|'leap'|'vault') ('over'|) singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'vault') ('over'|) singleDobj
     : VerbProduction
     action = ParkourJumpOver
     verbPhrase = 'jump over (what)'
@@ -441,10 +440,10 @@ DefineTAction(DebugCheckForContainer)
 #endif
 
 parkourCache: object {
-    requireRouteRecon = nil //FIXME: Set this to true after development is done
+    requireRouteRecon = true
     formatForScreenReader = nil
     autoPathCanDiscover = (!requireRouteRecon)
-    announceRouteAfterTrying = nil
+    announceRouteAfterTrying = true
     maxReconsPerTurn = 3
     printRoutesAfterParkour = true
 
@@ -521,7 +520,7 @@ reachGhostTest_: Thing {
     }
 }
 
-#define __PARKOUR_REACH_DEBUG true
+#define __PARKOUR_REACH_DEBUG nil
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
@@ -543,7 +542,8 @@ QParkour: Special {
         local doNotFactorJumpForB = nil;
 
         #if __PARKOUR_REACH_DEBUG
-        extraReport('\n(Start special reach check...)\n');
+        extraReport('\n(Start special reach check for:
+            <<gCommand.verbProd.verbPhrase>>)\n');
         #endif
 
         if (a.isLikelyContainer()) {
@@ -804,6 +804,23 @@ modify actorInStagingLocation {
         report() { } \
     }
 
+#define dobjParkourJumpOverRemapFix(parkourAction, remapAction) \
+    dobjFor(parkourAction) { \
+        preCond = [parkourPreCond] \
+        remap = (canJumpOverMe ? nil : getParkourModule()) \
+        verify() { } \
+        check() { } \
+        action() { \
+            if (canJumpOverMe) { \
+                doInstead(JumpOver, self); \
+            } \
+            else { \
+                doInstead(remapAction, self); \
+            } \
+        } \
+        report() { } \
+    }
+
 #define dobjParkourIntoRemap(remapAction, climbOrJump, parkourDir, remapDest) \
     dobjFor(Parkour##climbOrJump##parkourDir##Into) { \
         preCond = [parkourPreCond] \
@@ -1034,11 +1051,11 @@ modify Thing {
     jumpOffAlternative = JumpOff
 
     dobjParkourRemap(ParkourClimbGeneric, climbOnAlternative)
-    dobjParkourRemap(ParkourJumpGeneric, climbOnAlternative)
+    dobjParkourJumpOverRemapFix(ParkourJumpGeneric, climbOnAlternative)
     dobjParkourRemap(ParkourClimbUpTo, climbOnAlternative)
     dobjParkourRemap(ParkourJumpUpTo, climbOnAlternative)
     dobjParkourRemap(ParkourClimbOverTo, climbOnAlternative)
-    dobjParkourRemap(ParkourJumpOverTo, climbOnAlternative)
+    dobjParkourJumpOverRemapFix(ParkourJumpOverTo, climbOnAlternative)
     dobjParkourRemap(ParkourClimbDownTo, climbOnAlternative)
     dobjParkourRemap(ParkourJumpDownTo, climbOnAlternative)
 
@@ -1299,13 +1316,34 @@ modify Thing {
         '{I} {cannot} do parkour right now. '
     alreadyOnParkourModuleMsg =
         '{I} {am} already on {that dobj}. '
+    
+    getBetterDestinationName(destination, usePrep?, intelOverride?) {
+        local roomA = gParkourRunner.getOutermostRoom();
+        local roomB = destination.getOutermostRoom();
+        local prep = destination.objInPrep + ' ';
+
+        if (roomA == roomB) {
+            return (usePrep ? prep : '') + destination.theName;
+        }
+        if (roomB.visited || intelOverride) {
+            if (destination.lexicalParent.ofKind(Room)) {
+                prep = destination.lexicalParent.objInPrep + ' ';
+                return (usePrep ? prep : '') + destination.lexicalParent.theName;
+            }
+            return (usePrep ? prep : '') + '<<destination.theName>>
+                (<<roomB.objInPrep>> <<roomB.theName>>)';
+        }
+
+        prep = 'to ';
+        return (usePrep ? prep : '') + 'another location';
+    }
 
     getProviderGoalDiscoverClause(destination) {
-        return 'which will let {me} reach <<destination.theName>>';
+        return 'which will let{dummy} {me} reach <<getBetterDestinationName(destination)>>';
     }
 
     getProviderGoalClause(destination) {
-        return 'which{dummy} place{s/d} {me} on <<destination.theName>>';
+        return 'which{dummy} land{s/d} {me} <<getBetterDestinationName(destination, true, true)>>';
     }
 
     getJumpOverToDiscoverMsg(destination) {
@@ -1770,7 +1808,20 @@ class ParkourModule: SubComponent {
                 }
             }
         }
+        checkForValidFloor();
+        parkourPath.destination.checkForValidFloor();
         pathVector.append(parkourPath);
+    }
+
+    checkForValidFloor() {
+        if (lexicalParent.ofKind(Room)) {
+            if (lexicalParent.floorObj == nil) {
+                throw new Exception(
+                    'Attempted parkour surface from missing floor in ' +
+                    lexicalParent.theName + '!'
+                );
+            }
+        }
     }
 
     getRouteListString() {
@@ -1877,7 +1928,9 @@ class ParkourModule: SubComponent {
             describedHarmfulPaths.length;
         
         if (totalCount == 0) {
-            strBfr.append(parkourCache.noKnownRoutesMsg);
+            if (gActionIs(ShowParkourRoutes)) {
+                strBfr.append(parkourCache.noKnownRoutesMsg);
+            }
         }
         else {
             blindEasyPaths += blindEasyDescribedPaths;
@@ -1958,7 +2011,7 @@ class ParkourModule: SubComponent {
                         strBfr.append(getBulletPoint(path));
                         strBfr.append(getProviderHTML(provider));
                         strBfr.append('\n\t<i>leads to ');
-                        strBfr.append(path.destination.theName);
+                        strBfr.append(getBetterDestinationName(path.destination.parkourModule));
                         strBfr.append('</i>');
                     }
                 }
@@ -2097,7 +2150,7 @@ class ParkourModule: SubComponent {
                     strBfr.append('</b>');
                     if (path.injectedPathDescription == nil) {
                         strBfr.append(' <i>(which leads to ');
-                        strBfr.append(path.destination.parkourModule.theName);
+                        strBfr.append(getBetterDestinationName(path.destination.parkourModule));
                         strBfr.append(')</i>');
                     }
                 }
@@ -2142,8 +2195,7 @@ class ParkourModule: SubComponent {
                 actor.lastTravelInfo = [oldLoc, gParkourLastPath];
             }
 
-            // The Room code has a note of traversal here;
-            // shouldn't be needed, tho
+            extraReport(gParkourLastPath.getPerformMsg() + '\b');
 
             actor.actionMoveInto(plat);
 
@@ -2153,6 +2205,13 @@ class ParkourModule: SubComponent {
                 
                 if (lookAroundOnEntering) {
                     roomB.lookAroundWithin();
+                }
+
+                if (parkourCache.printRoutesAfterParkour) {
+                    extraReport(
+                        gParkourLastPath.destination
+                        .getParkourModule().getRouteListString() + '\b'
+                    );
                 }
             }
             else if (roomA == oldLoc) {
