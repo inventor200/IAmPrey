@@ -371,14 +371,15 @@ DefineIAction(ParkourJumpOffIntransitive)
     }
 ;
 
-#define expandableRouteRoot ('parkour'|'prkr'|'pkr'|'pk'|'routes'|'paths'|'pathways')
+#define expandableLocalPlats 'platforms'|'plats'|'surfaces'
+#define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search'|'scan')
+#define expandableParkourAvailability ('available'|'known'|'familiar'|'traveled'|'travelled'|)
+#define expandableRouteRoot ('parkour'|'prkr'|'pkr'|'pk'|expandableParkourTargetShort)
+#define expandableParkourTargetShort 'paths'|'pathways'|'routes'|expandableLocalPlats
 
 VerbRule(ShowParkourRoutes)
-    ((('show'|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search') ('all'|'available'|'known'|'familiar'|'traveled'|'travelled'|)|)
-    (
-        (('climbing'|'parkour') ('paths'|'pathways'|'options'|'routes')) |
-        (('climbable'|'jumpable') ('paths'|'pathways'|'options'|'routes'|'platforms'|'surfaces'|'fixtures'|'things'|'spots'|'stuff'|'objects'|'furniture'|'ledges'|'places'))
-    )) |
+    expandableParkourShowList expandableParkourAvailability (expandableParkourTargetShort) |
+    expandableParkourShowList (expandableParkourTargetShort) |
     expandableRouteRoot
     : VerbProduction
     action = ShowParkourRoutes
@@ -391,9 +392,9 @@ DefineIAction(ShowParkourRoutes)
 
     execAction(cmd) {
         parkourCache.cacheParkourRunner(gActor);
-        local closestParkourMod = gParkourRunner.getParkourModule();
-        if (closestParkourMod != nil) {
-            "<<closestParkourMod.getRouteListString()>>";
+        local str = gParkourRunner.location.getRouteListString();
+        if (str.length > 0) {
+            "<<str>>";
             return;
         }
         "<<parkourCache.noKnownRoutesMsg>>";
@@ -423,6 +424,67 @@ DefineIAction(ShowParkourKey)
     }
 ;
 
+VerbRule(ShowParkourLocalPlatforms)
+    ('show'|'list'|) (expandableRouteRoot|) (('local'|'near'|'nearby') (expandableLocalPlats)|expandableLocalPlats|'local'|'locals'|'near'|'nearby')
+    : VerbProduction
+    action = ShowParkourLocalPlatforms
+    verbPhrase = 'show/showing parkour local platforms'        
+;
+
+DefineIAction(ShowParkourLocalPlatforms)
+    allowAll = nil
+    turnsTaken = 0
+
+    execAction(cmd) {
+        local platList = parkourCache.getLocalPlatforms();
+        if (platList.length == 0) {
+            "\b{I} notice{s/d} no (known) surfaces in easy reach,
+            other than the one {i} {stand} on.\b";
+            return;
+        }
+        "\bThe following surfaces{plural} {is} both in easy reach,
+        and rest{s/ed} on the same surface that {i} {do}:\b";
+        if (parkourCache.formatForScreenReader) {
+            "<<makeListStr(platList, &theName, 'and')>>";
+        }
+        else {
+            local strBfr = new StringBuffer();
+            for (local i = 1; i <= platList.length; i++) {
+                local plat = platList[i];
+                strBfr.append('\n\t');
+                strBfr.append(aHrefAlt(
+                    'CL ' + plat.theName.toUpper(),
+                    plat.theName,
+                    plat.theName
+                ));
+            }
+            "<<toString(strBfr)>>";
+        }
+    }
+;
+
+#define parkourAll ('all'|'each'|'every'|'full' ('list' ('of'|)|))
+
+VerbRule(ShowAllParkourRoutes)
+    expandableParkourShowList parkourAll expandableParkourAvailability (expandableParkourTargetShort) |
+    expandableParkourShowList parkourAll (expandableParkourTargetShort) |
+    parkourAll expandableRouteRoot |
+    expandableRouteRoot ('all'|'full' ('list'|))
+    : VerbProduction
+    action = ShowAllParkourRoutes
+    verbPhrase = 'show/showing parkour routes'        
+;
+
+DefineIAction(ShowAllParkourRoutes)
+    allowAll = nil
+    turnsTaken = 0
+
+    execAction(cmd) {
+        ShowParkourRoutes.execAction(cmd);
+        ShowParkourLocalPlatforms.execAction(cmd);
+    }
+;
+
 #if __DEBUG
 VerbRule(DebugCheckForContainer)
     'is' singleDobj ('a'|'an'|) ('container'|'item') |
@@ -439,6 +501,8 @@ DefineTAction(DebugCheckForContainer)
 ;
 #endif
 
+//TODO: Put links in the discovery messages for non-screen-mode
+//TODO: Option to add points for discovered routes
 parkourCache: object {
     requireRouteRecon = true
     formatForScreenReader = nil
@@ -497,13 +561,72 @@ parkourCache: object {
         return toString(strBfr);
     }
 
+    loadParkourKeyHint(strBfr) {
+        strBfr.append('\n');
+        strBfr.append(aHrefAlt(
+            'show parkour list key',
+            '<small>Click here for bullet symbol key!</small> ',
+            '(Enter <b>PARKOUR KEY</b> for help with bullet symbols.) '
+        ));
+        strBfr.append('\b');
+    }
+
+    loadLocalPlatformsHint(strBfr) {
+        if (getLocalPlatforms().length == 0) return;
+        if (formatForScreenReader) {
+            "\b(Enter <b>LOCALS</b> for a list of nearby, accessible surfaces.)\b";
+            return;
+        }
+        if (hasShownHiddenPlatformsHint) {
+            strBfr.append('\b');
+            strBfr.append(aHrefAlt(
+                'show local surfaces',
+                '<small>Click here for possible unmentioned surfaces</small>',
+                '(Enter <b>LOCALS</b> for a list of nearby, accessible surfaces.) '
+            ));
+        }
+        else {
+            strBfr.append('\bSome local surfaces might have been omitted from
+                the above list, to keep a focus on more difficult routes. ');
+            strBfr.append(aHrefAlt(
+                'show local surfaces',
+                'Click here to list them, or use the LOCALS command! ',
+                'Enter <b>LOCALS</b> for a list of nearby, accessible surfaces. '
+            ));
+            hasShownHiddenPlatformsHint = true;
+        }
+        strBfr.append('\b');
+    }
+
+    getLocalPlatforms() {
+        parkourCache.cacheParkourRunner(gActor);
+        return gParkourRunner.getLocalPlatforms();
+    }
+
+    loadAbbreviationReminder(strBfr) {
+        if (hasShownClimbAbbreviationHint) return;
+        strBfr.append(
+            '\b\t<tt><b>REMEMBER:</b></tt>\n
+            <i>You can use parkour shorthand to enter commands faster!</i>\b
+            <b>CLIMB</b> can be shortened to <b>CL</b>, and
+            <b>JUMP</b> can be shortened to <b>JM</b>!\b
+            \t<tt><b>EXAMPLES:</b></tt>\n
+            <b>CL UP DESK</b> for an <i>explicit</i> climb-up, or just
+            <b>CL DESK</b> for an <i>implicit</i> climb, which picks the
+            most appropriate direction, but only if it was used before.'
+        );
+        hasShownClimbAbbreviationHint = true;
+    }
+
     lastPath = nil
     currentParkourRunner = nil
     showNewRoute = nil
     hadAccident = nil
     lookAroundAfter = nil
+    hasShownClimbAbbreviationHint = nil
+    hasShownHiddenPlatformsHint = nil
     noKnownRoutesMsg =
-        '{I} {do} not {know} any routes from here. '
+        '{I} {do} not {know} of any interesting routes from {here}. '
 }
 
 modify Examine {
@@ -909,8 +1032,7 @@ modify actorInStagingLocation {
     if (!parkourCache.hadAccident) { \
         if (parkourCache.printRoutesAfterParkour) { \
             reportAfter( \
-                gParkourLastPath.destination \
-                .getParkourModule().getRouteListString() \
+                gParkourLastPath.destination.getRouteListString() \
             ); \
         } \
         "<<gParkourLastPath.getPerformMsg()>>\b"; \
@@ -918,6 +1040,13 @@ modify actorInStagingLocation {
             parkourCache.lookAroundAfter.lookAroundWithin(); \
             parkourCache.lookAroundAfter = nil; \
         } \
+    }
+
+#define reportStandardWithRoutes(destination) \
+    inherited(); \
+    if (parkourCache.printRoutesAfterParkour && destination != nil) { \
+        local routeStr = destination.getRouteListString(); \
+        "<<routeStr>>"; \
     }
 
 #define verifyAlreadyAtDestination(actor) \
@@ -1078,17 +1207,9 @@ modify Thing {
     dobjParkourRemap(ParkourClimbOffOf, climbOffAlternative)
     dobjParkourRemap(ParkourJumpOffOf, jumpOffAlternative)
 
-    // Simulate an object on top of this IObj, and do a reach test.
-    passesGhostReachTest() {
-        reachGhostTest_.moveInto(self);
-        local canReachResult = Q.canReach(gActor, reachGhostTest_);
-        reachGhostTest_.moveInto(nil);
-        return canReachResult;
-    }
-
     iobjFor(PutOn) {
         verift() {
-            if (!passesGhostReachTest()) {
+            if (!passesGhostReachTest(gActor)) {
                 illogical('{I} {cannot} reach the top of {the iobj}. ');
             }
             inherited();
@@ -1097,7 +1218,7 @@ modify Thing {
 
     iobjFor(PutIn) {
         verift() {
-            if (!passesGhostReachTest()) {
+            if (!passesGhostReachTest(gActor)) {
                 illogical('{I} {cannot} reach inside of {the iobj}. ');
             }
             inherited();
@@ -1114,6 +1235,8 @@ modify Thing {
     shareReconWith = []
     // This gets added to the above list, and should not be touched by authors
     shareReconWithProcedural = perInstance(new Vector())
+    // Do not show get off option (standard containers)
+    doNotSuggestGetOff = nil
 
     applyRecon() {
         hasParkourRecon = true;
@@ -1128,6 +1251,24 @@ modify Thing {
         action() {
             doRecon();
             inherited();
+        }
+    }
+
+    dobjFor(Board) {
+        report() {
+            reportStandardWithRoutes(self);
+        }
+    }
+
+    dobjFor(GetOff) {
+        report() {
+            reportStandardWithRoutes(exitLocation);
+        }
+    }
+
+    dobjFor(JumpOff) {
+        report() {
+            reportStandardWithRoutes(exitLocation);
         }
     }
 
@@ -1195,12 +1336,160 @@ modify Thing {
         if (pm != nil) pm.doRecon();
     }
 
+    isStandardPlatform(moduleChecked?, confirmedParkourModule?) {
+        if (moduleChecked) {
+            if (confirmedParkourModule) return nil;
+        }
+        else {
+            if (getParkourModule() != nil) return nil;
+        }
+        if (remapOn != nil) {
+            return remapOn.isStandardPlatform(moduleChecked, confirmedParkourModule);
+        }
+        if (!isBoardable) return nil;
+        if (isVehicle) return nil;
+        if (contType != On) return nil;
+        return true;
+    }
+
+    standardDoNotSuggestGetOff() {
+        if (doNotSuggestGetOff) return true;
+        if (remapOn != nil) {
+            return remapOn.doNotSuggestGetOff;
+        }
+        return nil;
+    }
+
+    getRouteListString() {
+        local closestParkourMod = getParkourModule();
+        if (!isStandardPlatform(true, closestParkourMod != nil)) {
+            if (closestParkourMod != nil) {
+                return closestParkourMod.getRouteListString();
+            }
+            return '';
+        }
+
+        if (remapOn != nil) {
+            return remapOn.getRouteListString();
+        }
+
+        // Standard platform alternative
+        if (standardDoNotSuggestGetOff()) {
+            if (gActionIs(ShowParkourRoutes) || gActionIs(ShowAllParkourRoutes)) {
+                return parkourCache.noKnownRoutesMsg;
+            }
+            return '';
+        }
+
+        local strBfr = new StringBuffer(20);
+        if (!parkourCache.formatForScreenReader) {
+            parkourCache.loadParkourKeyHint(strBfr);
+        }
+        loadGetOffSuggestion(strBfr, nil, nil);
+        parkourCache.loadLocalPlatformsHint(strBfr);
+        parkourCache.loadLocalPlatformsHint(strBfr);
+        parkourCache.loadAbbreviationReminder(strBfr);
+        return toString(strBfr);
+    }
+
+    loadGetOffSuggestion(strBfr, requiresJump, isHarmful) {
+        if (standardDoNotSuggestGetOff()) return;
+        if (parkourCache.formatForScreenReader) {
+            strBfr.append('\nFrom {here}, {i} {can} <b>');
+            if (requiresJump) {
+                strBfr.append('JUMP OFF');
+            }
+            else {
+                strBfr.append('GET OFF');
+            }
+            strBfr.append('</b> to reach ');
+            strBfr.append(getExitLocationName());
+            strBfr.append('. ');
+            if (isHarmful) {
+                strBfr.append('However, this action seems dangerous. ');
+            }
+        }
+        else {
+            strBfr.append(getBulletPoint(requiresJump, isHarmful));
+            local commandText = 'GET OFF';
+            if (requiresJump) {
+                commandText = 'JUMP OFF';
+            }
+            strBfr.append(aHrefAlt(commandText, commandText, commandText));
+        }
+    }
+
+    getBulletPoint(requiresJump, isHarmful) {
+        if (isHarmful && requiresJump) return '\n&nbsp;<tt><b>[!*]</b></tt> ';
+        if (isHarmful) return '\n&nbsp;<tt><b>[!!]</b></tt> ';
+        if (requiresJump) return '\n&nbsp;<tt><b>[**]</b></tt> ';
+        return '\n&nbsp;<tt><b>[&gt;&gt;]</b></tt> ';
+    }
+
     checkProviderAccident(actor, traveler, path) {
         local hadAccident = gOutStream.watchForOutput({:
             doProviderAccident(actor, traveler, path)
         });
         parkourCache.hadAccident = parkourCache.hadAccident || hadAccident;
         return !hadAccident;
+    }
+
+    getStandardOn() {
+        if (remapOn != nil) {
+            return remapOn;
+        }
+
+        return self;
+    }
+
+    getGhostReachDestination() {
+        return self;
+    }
+
+    // Simulate an object on top of this IObj, and do a reach test.
+    passesGhostReachTest(actor) {
+        reachGhostTest_.moveInto(getGhostReachDestination());
+        local canReachResult = Q.canReach(actor, reachGhostTest_);
+        reachGhostTest_.moveInto(nil);
+        return canReachResult;
+    }
+
+    getLocalPlatforms() { // Used for actors and non-containers only
+        local masterPlatform = location;
+        if (masterPlatform == nil) return [];
+        // Find outermost platform or room
+        // in case in another non-platform container
+        while (!(masterPlatform.contType == On || masterPlatform.ofKind(Room))) {
+            masterPlatform = masterPlatform.exitLocation;
+            if (masterPlatform == nil) return [];
+        }
+
+        if (masterPlatform == nil) return [];
+
+        local platList = [];
+        local contentList = valToList(masterPlatform.contents);
+
+        // A local platform will be in the location's contents,
+        // and pass the ghost reach test from an actor
+        for (local i = 1; i <= contentList.length; i++) {
+            local obj = contentList[i];
+            local pm = obj.getParkourModule();
+            local validPlatform = true;
+            local otherOn = (pm != nil ? pm.getStandardOn() : obj.getStandardOn());
+            if (!otherOn.isLikelyContainer()) continue;
+            if (otherOn == masterPlatform) continue;
+            if (pm == nil) {
+                validPlatform = obj.isStandardPlatform(true, nil);
+            }
+            if (!validPlatform) continue;
+            reachGhostTest_.moveInto(otherOn.getGhostReachDestination());
+            if (!Q.canReach(self, reachGhostTest_)) continue;
+            platList += otherOn;
+        }
+
+        reachGhostTest_.moveInto(nil);
+
+        return platList;
     }
 
     doProviderAccident(actor, traveler, path) {
@@ -1333,6 +1622,15 @@ modify Thing {
         '{I} {cannot} do parkour right now. '
     alreadyOnParkourModuleMsg =
         '{I} {am} already on {that dobj}. '
+
+    getExitLocationName() {
+        if (exitLocation == nil) return 'the void';
+        local pm = exitLocation.getParkourModule();
+        if (pm != nil) {
+            return getBetterDestinationName(pm);
+        }
+        return exitLocation.theName;
+    }
     
     getBetterDestinationName(destination, usePrep?, intelOverride?) {
         local roomA = gParkourRunner.getOutermostRoom();
@@ -1418,6 +1716,10 @@ modify Room {
     getParkourModule() {
         return parkourModule;
     }
+
+    isStandardPlatform(moduleChecked?, confirmedParkourModule?) {
+        return nil;
+    }
 }
 
 // floorActions allow for extended decoration actions.
@@ -1473,6 +1775,26 @@ modify SubComponent {
         return inherited();
     }
 
+    loadGetOffSuggestion(strBfr, requiresJump, isHarmful) {
+        if (lexicalParent == nil) return;
+        lexicalParent.loadGetOffSuggestion(strBfr, requiresJump, isHarmful);
+    }
+
+    standardDoNotSuggestGetOff() {
+        if (lexicalParent != nil) {
+            return lexicalParent.standardDoNotSuggestGetOff();
+        }
+        return nil;
+    }
+
+    getStandardOn() {
+        local res = lexicalParent;
+        if (res.remapOn != nil) {
+            res = res.remapOn;
+        }
+        return res;
+    }
+
     #if __DEBUG
     dobjFor(DebugCheckForContainer) {
         preCond = nil
@@ -1506,6 +1828,10 @@ modify Actor {
     fitForParkour = true
 
     isLikelyContainer() {
+        return nil;
+    }
+
+    isStandardPlatform(moduleChecked?, confirmedParkourModule?) {
         return nil;
     }
 }
@@ -1711,6 +2037,10 @@ class ParkourModule: SubComponent {
         return self;
     }
 
+    getGhostReachDestination() {
+        return getStandardOn();
+    }
+
     doRecon() {
         if (lexicalParent != nil) {
             local clear = nil;
@@ -1862,8 +2192,37 @@ class ParkourModule: SubComponent {
         local blindHarmfulJumpPaths = [];
         local blindHarmfulJumpDescribedPaths = [];
 
+        local exitPath = nil;
+        local currPlat = getStandardOn();
+        local outerPlat = currPlat.exitLocation;
+        local outerPM = nil;
+        if (outerPlat != nil) outerPM = outerPlat.getParkourModule();
+        local canSuggestExits = !standardDoNotSuggestGetOff();
+
         for (local i = 1; i <= pathVector.length; i++) {
             local path = pathVector[i];
+            // Do not suggest stupid paths
+            if (path.destination.parkourModule == self) continue;
+
+            // Reserve the GET/JUMP OFF path
+            if (outerPM != nil) {
+                if (path.destination.parkourModule == outerPM) {
+                    if (canSuggestExits && exitPath == nil) {
+                        exitPath = path;
+                    }
+                    continue; // Do not add any other exit paths
+                }
+            }
+
+            // Do not suggest basic climb-on actions
+            if (!path.requiresJump && !path.isHarmful) {
+                local destPlat = path.destination.getStandardOn();
+                if (destPlat.stagingLocation != nil) {
+                    if (destPlat.stagingLocation == currPlat) continue;
+                }
+            }
+
+            // Filter:
             if (path.isKnown) {
                 if (path.injectedPathDescription != nil) {
                     if (path.isHarmful) {
@@ -1944,8 +2303,10 @@ class ParkourModule: SubComponent {
             describedPaths.length +
             describedHarmfulPaths.length;
         
+        if (exitPath != nil) totalCount++;
+        
         if (totalCount == 0) {
-            if (gActionIs(ShowParkourRoutes)) {
+            if (gActionIs(ShowParkourRoutes) || gActionIs(ShowAllParkourRoutes)) {
                 strBfr.append(parkourCache.noKnownRoutesMsg);
             }
         }
@@ -1967,6 +2328,11 @@ class ParkourModule: SubComponent {
                     viable <<getRouteCase(routeCount)>>
                     from here.'
                 );
+                if (exitPath != nil) {
+                    loadGetOffSuggestion(
+                        strBfr, exitPath.requiresJump, exitPath.isHarmful
+                    );
+                }
                 getBlindRouteDescription(strBfr, blindEasyPaths,
                     'can be performed with ease. '
                 );
@@ -1979,31 +2345,21 @@ class ParkourModule: SubComponent {
                 getBlindRouteDescription(strBfr, blindHarmfulJumpPaths,
                     'can be performed with both great difficulty and risk of injury. '
                 );
-                strBfr.append(
-                    '<<first time>>\b\t<tt><b>REMEMBER:</b></tt>\n
-                    <i>You can use parkour shorthand to enter commands faster!</i>\b
-                    <b>CLIMB</b> can be shortened to <b>CL</b>, and
-                    <b>JUMP</b> can be shortened to <b>JM</b>!\b
-                    \t<tt><b>EXAMPLES:</b></tt>\n
-                    <b>CL UP DESK</b> for an <i>explicit</i> climb-up, or just
-                    <b>CL DESK</b> for an <i>implicit</i> climb, which picks the
-                    most appropriate direction, but only if it was used before.
-                    <<only>>'
-                );
+                parkourCache.loadLocalPlatformsHint(strBfr);
             }
             else {
-                strBfr.append('\n<small>');
-                strBfr.append(aHrefAlt(
-                    'show parkour list key',
-                    'Click here for bullet symbol key',
-                    'Enter PARKOUR KEY for help with bullet symbols.'
-                ));
-                strBfr.append('</small>\b');
+                parkourCache.loadParkourKeyHint(strBfr);
                 climbPaths += climbHarmfulPaths;
                 jumpPaths += jumpHarmfulPaths;
                 jumpPaths += fallPaths;
                 providerPaths += providerHarmfulPaths;
                 describedPaths += describedHarmfulPaths;
+
+                if (exitPath != nil) {
+                    loadGetOffSuggestion(
+                        strBfr, exitPath.requiresJump, exitPath.isHarmful
+                    );
+                }
 
                 if (climbPaths.length > 0) {
                     strBfr.append('\b<tt><b>(CL)</b> CLIMB ROUTES:</tt>');
@@ -2025,7 +2381,7 @@ class ParkourModule: SubComponent {
                         local path = providerPaths[i];
                         local provider = path.provider.getParkourProvider(nil, nil);
                         if (provider == nil) continue;
-                        strBfr.append(getBulletPoint(path));
+                        strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
                         strBfr.append(getProviderHTML(provider));
                         strBfr.append('\n\t<i>leads to ');
                         strBfr.append(getBetterDestinationName(path.destination.parkourModule));
@@ -2037,7 +2393,7 @@ class ParkourModule: SubComponent {
                     strBfr.append('\b<tt>MISC ROUTES:</tt>');
                     for (local i = 1; i <= describedPaths.length; i++) {
                         local path = describedPaths[i];
-                        strBfr.append(getBulletPoint(path));
+                        strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
                         if (path.provider == nil) {
                             strBfr.append(getClimbHTML(
                                 path, path.injectedPathDescription.toUpper()
@@ -2051,7 +2407,9 @@ class ParkourModule: SubComponent {
                         }
                     }
                 }
+                parkourCache.loadLocalPlatformsHint(strBfr);
             }
+            parkourCache.loadAbbreviationReminder(strBfr);
         }
 
         return toString(strBfr);
@@ -2060,13 +2418,6 @@ class ParkourModule: SubComponent {
     getRouteCase(count) {
         if (count == 1) return 'route';
         return 'routes';
-    }
-
-    getBulletPoint(path) {
-        if (path.isHarmful && path.requiresJump) return '\n&nbsp;<tt><b>[!*]</b></tt> ';
-        if (path.isHarmful) return '\n&nbsp;<tt><b>[!!]</b></tt> ';
-        if (path.requiresJump) return '\n&nbsp;<tt><b>[**]</b></tt> ';
-        return '\n&nbsp;<tt><b>[&gt;&gt;]</b></tt> ';
     }
 
     getVerbFromPath(path) {
@@ -2097,7 +2448,7 @@ class ParkourModule: SubComponent {
     }
 
     formatForBulletPoint(strBfr, path) {
-        strBfr.append(getBulletPoint(path));
+        strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
         local destName = path.destination.parkourModule.theName;
         local commandAlt = getBetterPrepFromPath(path) + destName;
         strBfr.append(aHrefAlt(getClimbCommand(path), commandAlt, commandAlt));
@@ -2232,24 +2583,25 @@ class ParkourModule: SubComponent {
         local closestParkourMod = source.getParkourModule();
         if (closestParkourMod == nil) return nil;
         if (closestParkourMod == self) return nil;
-        local jumpPath = nil;
+
+        // This used to do sorting, but we also can't have two paths
+        // with the same location and destination, so I don't think
+        // there is a point to sorting this, really.
         for (local i = 1; i <= closestParkourMod.pathVector.length; i++) {
             local path = closestParkourMod.pathVector[i];
             if (path.destination != self.lexicalParent) continue;
+            // Past this point, we KNOW we have the right path.
+            // It's just a question of feasibility.
             if (!allowProviders) {
-                if (path.provider != nil) continue;
+                if (path.provider != nil) return nil;
             }
             if (path.isKnown || canBeUnknown) {
-                if (path.requiresJump) {
-                    jumpPath = path;
-                }
-                else {
-                    return path; // Prioritize climbing
-                }
+                return path;
             }
+            return nil;
         }
 
-        return jumpPath;
+        return nil;
     }
 
     getPathThrough(provider) {
@@ -2485,14 +2837,6 @@ class ParkourModule: SubComponent {
     parkourSimplyJump(Over)
     parkourSimplyJump(Down)
 
-    getStandardOn() {
-        local res = lexicalParent;
-        if (res.remapOn != nil) {
-            res = res.remapOn;
-        }
-        return res;
-    }
-
     parkourReshapeGetOff(ParkourClimbOffOf, ParkourClimbDownTo)
     parkourReshapeGetOff(ParkourJumpOffOf, ParkourJumpDownTo)
 }
@@ -2531,6 +2875,14 @@ class ParkourPath: object {
         if (otherSide() != nil) {
             otherSide().isAcknowledged = true;
         }
+    }
+
+    getScore() {
+        local score = 0;
+        if (isHarmful) score += 4;
+        if (requiresJump) score += 2;
+        if (provider != nil) score++;
+        return score;
     }
 
     getDiscoverMsg() {
@@ -2884,7 +3236,7 @@ class FloorHeight: ParkourLinkMaker {
 }
 
 class LowFloorHeight: FloorHeight {
-    //
+    startKnown = true; // Maintain functional parity with standard platforms
 }
 
 class AwkwardFloorHeight: FloorHeight {
