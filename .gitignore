@@ -1,5 +1,6 @@
 misc/
 obj/
+obj/*
 Scripts/
 run.sh
 gameMain.t3
