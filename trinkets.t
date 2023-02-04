@@ -1,1 +1,1 @@
-/home/jessica/tads3projects/extensions/trinkets/trinkets.t
+../extensions/awareVehicles/trinkets.t
