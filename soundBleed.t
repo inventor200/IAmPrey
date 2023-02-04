@@ -1,7 +1,6 @@
 enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
-soundBleedCore: InitObject {
-    soundDaemon = nil
+soundBleedCore: object {
     envSounds = static new Vector(16) // Non-player sounds go here
     envSoundRooms = static new Vector(16) // Aligned room vector so new objects are not created
     playerSounds = static new Vector(16) // Player sounds go here
@@ -16,13 +15,6 @@ soundBleedCore: InitObject {
 
     propagationPlayerPerceivedStrength = 0
     detectedSourceRoom = nil
-
-    lastTurnCount = 0
-
-    execute() {
-        soundDaemon = new Daemon(self, &doPropagation, 0);
-        soundDaemon.eventOrder = 110;
-    }
 
     createSound(soundProfile, room, causedByPlayer?) {
         if (causedByPlayer) {
@@ -39,14 +31,8 @@ soundBleedCore: InitObject {
         }
     }
 
-    freeActionPassed() {
-        return gTurns == lastTurnCount;
-    }
-
     doPropagation() {
         if (envSounds.length == 0 && playerSounds.length == 0) return;
-
-        if (freeActionPassed()) return;
         
         if (envSounds.length > 0) {
             for (local i = 1; i <= envSounds.length; i++) {
@@ -65,8 +51,6 @@ soundBleedCore: InitObject {
             playerSounds.removeRange(1, -1);
             playerSoundRooms.removeRange(1, -1);
         }
-
-        lastTurnCount = gTurns;
     }
 
     doPropagationForPlayer(soundProfile, startRoom) {
@@ -284,6 +268,7 @@ class SoundProfile: object {
 
 SubtleSound template 'basicName' 'missedMsg'?;
 
+//FIXME: Work this into the freeTurnCore system
 class SubtleSound: Noise {
     construct() {
         vocab = basicName + ';muffled distant nearby;echo';
@@ -339,15 +324,10 @@ class SubtleSound: Noise {
     }
 
     checkLifecycle() {
-        if (freeActionPassed()) {
-            setupFuse();
+        if (!wasPerceived) {
+            endLifecycle();
         }
-        else {
-            if (!wasPerceived) {
-                endLifecycle();
-            }
-            lifecycleFuse = nil;
-        }
+        lifecycleFuse = nil;
     }
 
     endLifecycle() {

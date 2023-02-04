@@ -30,6 +30,7 @@
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
+#include "freeTurnCore.t"
 #include "soundBleed.t"
 #include "parkour.t"
 #include "trinkets.t"
@@ -80,6 +81,35 @@ versionInfo: GameID {
         <a href='https://www.ifwiki.org/Eric_Eve'>Eric Eve</a>\n
         Special thanks to my partners, friends, as well as the excellent community
         over at <a href='https://intfiction.org/'>Intfiction Forum</a>!";
+    }
+}
+
+modify statusLine {
+    showStatusHtml() {
+        "<<statusHTML(0)>><<aHref('look around', nil, nil, AHREF_Plain)>>";
+        showStatusLeft();
+            
+        /* 
+         *   end the left portion and start the right portion, then
+         *   generate the <A HREF> to link the score to a FULL SCORE
+         *   command 
+         */
+        //"<./a></a><<statusHTML(1)>><<aHref('full score', nil, nil, AHREF_Plain)>>";
+        "<./a></a><<statusHTML(1)>>";
+        showStatusRight();
+
+        "<./a></a><<statusHTML(2)>>";
+
+        /* add the status-line exit list, if desired */
+        if (gPlayerChar.location!= nil) {
+            gPlayerChar.location.showStatuslineExits();
+        }
+    }
+
+    showStatusRight() {
+        local turnStr = 'turn';
+        if (gTurns != 1) turnStr += 's';
+        "<b><<gTurns>> <<turnStr>> survived</b>";
     }
 }
 

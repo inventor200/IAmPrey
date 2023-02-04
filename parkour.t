@@ -473,6 +473,8 @@ DefineTAction(DebugCheckForContainer)
 #endif
 
 //TODO: Tutorial hinting
+//TODO: Rename this to parkourCore
+//TODO: Go through all of our fucking \b chars, and replace them with <.p> chars
 parkourCache: object {
     requireRouteRecon = true
     formatForScreenReader = (gFormatForScreenReader)
