@@ -1,8 +1,8 @@
 class Cutscene: object {
-    script = []
+    script = perInstance(new Vector())
 
     addPage(page) {
-        script += new CutscenePage(page);
+        script.append(new CutscenePage(page));
     }
 
     play() {
@@ -11,7 +11,7 @@ class Cutscene: object {
             "\b";
             script[i].page();
             "\b<b><tt>(pg <<i>> of <<len>>)</tt></b>\n";
-            morePrompt();
+            inputManager.pauseForMore();
         }
     }
 }

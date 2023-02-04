@@ -502,10 +502,12 @@ DefineTAction(DebugCheckForContainer)
 #endif
 
 //TODO: Put links in the discovery messages for non-screen-mode
-//TODO: Option to add points for discovered routes
+//TODO: Cooperate with verbose/brief mode setting
+//TODO: Looking around AS AN ACTION also performs parkour full
+//TODO: Open up parkour hints to external modification
 parkourCache: object {
     requireRouteRecon = true
-    formatForScreenReader = nil
+    formatForScreenReader = (gFormatForScreenReader)
     autoPathCanDiscover = (!requireRouteRecon)
     announceRouteAfterTrying = true
     maxReconsPerTurn = 3
@@ -574,7 +576,9 @@ parkourCache: object {
     loadLocalPlatformsHint(strBfr) {
         if (getLocalPlatforms().length == 0) return;
         if (formatForScreenReader) {
-            "\b(Enter <b>LOCALS</b> for a list of nearby, accessible surfaces.)\b";
+            strBfr.append(
+                '\b(Enter <b>LOCALS</b> for a list of nearby,
+                accessible surfaces.)\b');
             return;
         }
         if (hasShownHiddenPlatformsHint) {
@@ -1395,7 +1399,7 @@ modify Thing {
     loadGetOffSuggestion(strBfr, requiresJump, isHarmful) {
         if (standardDoNotSuggestGetOff()) return;
         if (parkourCache.formatForScreenReader) {
-            strBfr.append('\nFrom {here}, {i} {can} <b>');
+            strBfr.append('\n{I} believe{s/d} {i} {can} <b>');
             if (requiresJump) {
                 strBfr.append('JUMP OFF');
             }
@@ -2325,8 +2329,7 @@ class ParkourModule: SubComponent {
                 strBfr.append('\b');
                 strBfr.append(
                     'In total, {i} {see} <<spellNumber(routeCount)>>
-                    viable <<getRouteCase(routeCount)>>
-                    from here.'
+                    viable <<getRouteCase(routeCount)>>.'
                 );
                 if (exitPath != nil) {
                     loadGetOffSuggestion(

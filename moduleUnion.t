@@ -3,23 +3,6 @@
  * with the goal of keeping them modular and reusable.
  */
 
-#if __DEBUG
-//
-#else
-modify screenReaderInit {
-    prepForScreenReaders() {
-        inherited();
-        parkourCache.formatForScreenReader = true;
-    }
-}
-#endif
-
-modify soundBleedCore {
-    freeActionPassed() {
-        return gWasFreeAction;
-    }
-}
-
 climbingNoiseProfile: SoundProfile {
     'the muffled racket of something clambering'
     'the nearby racket of something clambering'

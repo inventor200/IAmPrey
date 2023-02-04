@@ -17,6 +17,8 @@ soundBleedCore: InitObject {
     propagationPlayerPerceivedStrength = 0
     detectedSourceRoom = nil
 
+    lastTurnCount = 0
+
     execute() {
         soundDaemon = new Daemon(self, &doPropagation, 0);
         soundDaemon.eventOrder = 110;
@@ -38,20 +40,13 @@ soundBleedCore: InitObject {
     }
 
     freeActionPassed() {
-        return gActionIs(SystemAction) ||
-            gActionIs(ShowParkourRoutes) ||
-            gActionIs(Inventory) || 
-            gActionIs(Examine) ||
-            gActionIs(Look);
+        return gTurns == lastTurnCount;
     }
 
     doPropagation() {
         if (envSounds.length == 0 && playerSounds.length == 0) return;
 
-        if (freeActionPassed()) {
-            say('\b(Free action taken; skipping...)\b');
-            return;
-        }
+        if (freeActionPassed()) return;
         
         if (envSounds.length > 0) {
             for (local i = 1; i <= envSounds.length; i++) {
@@ -70,6 +65,8 @@ soundBleedCore: InitObject {
             playerSounds.removeRange(1, -1);
             playerSoundRooms.removeRange(1, -1);
         }
+
+        lastTurnCount = gTurns;
     }
 
     doPropagationForPlayer(soundProfile, startRoom) {

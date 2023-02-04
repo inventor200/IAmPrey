@@ -1,47 +1,32 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+#define gFormatForScreenReader gameMain.formatForScreenReader
+#include "betterChoices.t"
+#if __DEBUG
+#define __SHOW_PROLOGUE true
+#else
+// DO NOT ALTER:
+#define __SHOW_PROLOGUE true
+#endif
+#if __SHOW_PROLOGUE
+#include "forEveryone.t"
+#endif
 #include "cutsceneCore.t"
-#define gWasFreeAction ( \
-    gActionIs(SystemAction) || \
-    (gAction.turnsTaken <= 0) \
-)
-#define gWasLenientAction ( \
-    gWasFreeAction || \
-    gActionIs(Open) || \
-    gActionIs(Close) \
-)
-#define gWasObservantAction ( \
-    gWasLenientAction || \
-    gActionIs(Listen) || \
-    gActionIs(Smell) || \
-    gActionIs(Taste) || \
-    gActionIs(LookBehind) || \
-    gActionIs(LookIn) || \
-    gActionIs(LookThrough) || \
-    gActionIs(LookUnder) \
-)
 #include "awareVehicles.t"
 #include "soundBleed.t"
 #include "parkour.t"
 #include "trinkets.t"
-#if __DEBUG
-//
-#else
-#include "ForEveryone.t"
-#endif
 #include "moduleUnion.t"
-
-#if __DEBUG
-#define __SHOW_PROLOGUE nil
-#else
-#define __SHOW_PROLOGUE true
-#endif
-
 #include "prologue.t"
+
+enum superTutorial, tutorial, easyMode, mediumMode, hardMode, nightmareMode;
 
 gameMain: GameMainDef {
     initialPlayerChar = me
+
+    gameDifficulty = mediumMode
+    formatForScreenReader = nil
 
     showIntro() {
         showPrologue;
@@ -55,8 +40,31 @@ versionInfo: GameID {
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
     version = '1'
     authorEmail = 'josephcsoftware@gmail.com'
-    desc = 'A cat-and-mouse science fiction horror game.'
-    htmlDesc = 'A cat-and-mouse science fiction horror game.'
+    desc = 'A horror-lite science fiction game of evasion.'
+    htmlDesc = 'A horror-lite science fiction game of evasion.'
+    showAbout() {
+        "I Am Prey is a game about situational awareness, evasion, and
+        escape.\b
+        Parkour mechanics are available for the complex navigation of obstacles,
+        and spreading soundwaves reward a stealthy playstyle,
+        especially because the predator is <i>always listening!</i>\b
+        Ideally, the player will <i>never</i> want to be seen,
+        but last-minute tricks can be used to ditch the predator during a chase!\b
+        Find all seven (7) pieces of the environment suit, and escape through the
+        emergency airlock to win!\b
+        <i>This game is designed for replayability, and can normally be finished
+        in one sitting!</i>";
+    }
+    showCredit() {
+        "Author:
+        <a href='mailto:josephcsoftware@gmail.com'>Joey Cramsey</a>\n
+        TADS 3:
+        <a href='https://www.ifwiki.org/Michael_J._Roberts'>Michael J Roberts</a>\n
+        Adv3Lite library:
+        <a href='https://www.ifwiki.org/Eric_Eve'>Eric Eve</a>\n
+        Special thanks to my partners, friends, as well as the excellent community
+        over at <a href='https://intfiction.org/'>Intfiction Forum</a>!";
+    }
 }
 
 centralRoom: Room { 'Central Room'
