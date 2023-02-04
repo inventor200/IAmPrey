@@ -1,1 +1,1 @@
-../extensions/awareVehicles/trinkets.t
+../extensions/trinkets/trinkets.t
