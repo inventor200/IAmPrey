@@ -391,13 +391,7 @@ DefineIAction(ShowParkourRoutes)
     turnsTaken = 0
 
     execAction(cmd) {
-        parkourCache.cacheParkourRunner(gActor);
-        local str = gParkourRunner.location.getRouteListString();
-        if (str.length > 0) {
-            "<<str>>";
-            return;
-        }
-        "<<parkourCache.noKnownRoutesMsg>>";
+        parkourCache.printParkourRoutes();
     }
 ;
 
@@ -413,14 +407,7 @@ DefineIAction(ShowParkourKey)
     turnsTaken = 0
 
     execAction(cmd) {
-        if (parkourCache.formatForScreenReader) {
-            "This command does nothing in screen reader mode.
-            Outside of screen reader mode, it clarifies some
-            ASCII symbols used when describing routes. ";
-        }
-        else {
-            "<<parkourCache.getKeyString()>>";
-        }
+        parkourCache.printParkourKey();
     }
 ;
 
@@ -436,30 +423,7 @@ DefineIAction(ShowParkourLocalPlatforms)
     turnsTaken = 0
 
     execAction(cmd) {
-        local platList = parkourCache.getLocalPlatforms();
-        if (platList.length == 0) {
-            "\b{I} notice{s/d} no (known) surfaces in easy reach,
-            other than the one {i} {stand} on.\b";
-            return;
-        }
-        "\bThe following surfaces{plural} {is} both in easy reach,
-        and rest{s/ed} on the same surface that {i} {do}:\b";
-        if (parkourCache.formatForScreenReader) {
-            "<<makeListStr(platList, &theName, 'and')>>";
-        }
-        else {
-            local strBfr = new StringBuffer();
-            for (local i = 1; i <= platList.length; i++) {
-                local plat = platList[i];
-                strBfr.append('\n\t');
-                strBfr.append(aHrefAlt(
-                    'CL ' + plat.theName.toUpper(),
-                    plat.theName,
-                    plat.theName
-                ));
-            }
-            "<<toString(strBfr)>>";
-        }
+        parkourCache.printLocalPlatforms();
     }
 ;
 
@@ -480,10 +444,17 @@ DefineIAction(ShowAllParkourRoutes)
     turnsTaken = 0
 
     execAction(cmd) {
-        ShowParkourRoutes.execAction(cmd);
-        ShowParkourLocalPlatforms.execAction(cmd);
+        parkourCache.printParkourRoutes();
+        parkourCache.printLocalPlatforms();
     }
 ;
+
+/*modify Look {
+    execAction(cmd) {
+        inherited(cmd);
+        ShowAllParkourRoutes.execAction(cmd);
+    }
+}*/
 
 #if __DEBUG
 VerbRule(DebugCheckForContainer)
@@ -501,17 +472,13 @@ DefineTAction(DebugCheckForContainer)
 ;
 #endif
 
-//TODO: Put links in the discovery messages for non-screen-mode
-//TODO: Cooperate with verbose/brief mode setting
-//TODO: Looking around AS AN ACTION also performs parkour full
-//TODO: Open up parkour hints to external modification
+//TODO: Tutorial hinting
 parkourCache: object {
     requireRouteRecon = true
     formatForScreenReader = (gFormatForScreenReader)
     autoPathCanDiscover = (!requireRouteRecon)
     announceRouteAfterTrying = true
     maxReconsPerTurn = 3
-    printRoutesAfterParkour = true
 
     cacheParkourRunner(actor) {
         local potentialVehicle = actor.location;
@@ -573,33 +540,35 @@ parkourCache: object {
         strBfr.append('\b');
     }
 
-    loadLocalPlatformsHint(strBfr) {
-        if (getLocalPlatforms().length == 0) return;
-        if (formatForScreenReader) {
-            strBfr.append(
-                '\b(Enter <b>LOCALS</b> for a list of nearby,
-                accessible surfaces.)\b');
-            return;
-        }
-        if (hasShownHiddenPlatformsHint) {
-            strBfr.append('\b');
-            strBfr.append(aHrefAlt(
-                'show local surfaces',
-                '<small>Click here for possible unmentioned surfaces</small>',
-                '(Enter <b>LOCALS</b> for a list of nearby, accessible surfaces.) '
-            ));
+    printParkourKey() {
+        if (parkourCache.formatForScreenReader) {
+            "This command does nothing in screen reader mode.
+            Outside of screen reader mode, it clarifies some
+            ASCII symbols used when describing routes. ";
         }
         else {
-            strBfr.append('\bSome local surfaces might have been omitted from
-                the above list, to keep a focus on more difficult routes. ');
-            strBfr.append(aHrefAlt(
-                'show local surfaces',
-                'Click here to list them, or use the LOCALS command! ',
-                'Enter <b>LOCALS</b> for a list of nearby, accessible surfaces. '
-            ));
-            hasShownHiddenPlatformsHint = true;
+            "<<getKeyString()>>";
         }
-        strBfr.append('\b');
+    }
+
+    //TODO: Rework this into a hint for using the verb.
+    printParkourFullRoutesHint() {
+        "(Parkour verb hint will go here) ";
+        /*return aHrefAlt(
+            'all routes',
+            '\n<small>Click here for all known routes!</small>\b',
+            ''
+        );*/
+    }
+
+    printParkourRoutes() {
+        cacheParkourRunner(gActor);
+        local str = gParkourRunner.location.getRouteListString();
+        if (str.length > 0) {
+            "<<str>>";
+            return;
+        }
+        "<<noKnownRoutesMsg>>";
     }
 
     getLocalPlatforms() {
@@ -607,6 +576,34 @@ parkourCache: object {
         return gParkourRunner.getLocalPlatforms();
     }
 
+    printLocalPlatforms() {
+        local platList = getLocalPlatforms();
+        if (platList.length == 0) {
+            "\b{I} notice{s/d} no (known) surfaces in easy reach,
+            other than the one {i} {stand} on.\b";
+            return;
+        }
+        "\bThe following surfaces{plural} {is} both in easy reach,
+        and rest{s/ed} on the same surface that {i} {do}:\b";
+        if (formatForScreenReader) {
+            "<<makeListStr(platList, &theName, 'and')>>";
+        }
+        else {
+            local strBfr = new StringBuffer();
+            for (local i = 1; i <= platList.length; i++) {
+                local plat = platList[i];
+                strBfr.append('\n\t');
+                strBfr.append(aHrefAlt(
+                    'cl ' + plat.theName.toLower(),
+                    plat.theName,
+                    plat.theName
+                ));
+            }
+            "<<toString(strBfr)>>";
+        }
+    }
+
+    //TODO: Find a better way to print this hint
     loadAbbreviationReminder(strBfr) {
         if (hasShownClimbAbbreviationHint) return;
         strBfr.append(
@@ -628,7 +625,6 @@ parkourCache: object {
     hadAccident = nil
     lookAroundAfter = nil
     hasShownClimbAbbreviationHint = nil
-    hasShownHiddenPlatformsHint = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} of any interesting routes from {here}. '
 }
@@ -977,13 +973,19 @@ modify actorInStagingLocation {
 
 #define fastParkourClimbMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getClimbUpDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + upPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
+            '!) '; \
     } \
     getClimbOverDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + overPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
+            '!) '; \
     } \
     getClimbDownDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + downPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
+            '!) '; \
     } \
     getClimbUpMsg() { \
         return '{I} ' + conjActionString + ' ' + upPrep + ' <<theName>>. '; \
@@ -997,13 +999,19 @@ modify actorInStagingLocation {
 
 #define fastParkourJumpMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getJumpUpDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + upPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
+            '!) '; \
     } \
     getJumpOverDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + overPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
+            '!) '; \
     } \
     getJumpDownDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + capsActionStr + ' ' + downPrep + ' <<theName>>!) '; \
+        return '(It seems that {i} {can} ' + \
+            gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
+            '!) '; \
     }
 
 #define fastParkourMessages(upPrep, overPrep, downPrep) \
@@ -1032,13 +1040,9 @@ modify actorInStagingLocation {
         } \
     }
 
+// Actual parkour reporting
 #define reportParkour \
     if (!parkourCache.hadAccident) { \
-        if (parkourCache.printRoutesAfterParkour) { \
-            reportAfter( \
-                gParkourLastPath.destination.getRouteListString() \
-            ); \
-        } \
         "<<gParkourLastPath.getPerformMsg()>>\b"; \
         if (parkourCache.lookAroundAfter != nil) { \
             parkourCache.lookAroundAfter.lookAroundWithin(); \
@@ -1046,12 +1050,9 @@ modify actorInStagingLocation {
         } \
     }
 
+// Fake parkour reporting
 #define reportStandardWithRoutes(destination) \
-    inherited(); \
-    if (parkourCache.printRoutesAfterParkour && destination != nil) { \
-        local routeStr = destination.getRouteListString(); \
-        "<<routeStr>>"; \
-    }
+    inherited()
 
 #define verifyAlreadyAtDestination(actor) \
     if (actor.getParkourModule() == self) { \
@@ -1379,9 +1380,6 @@ modify Thing {
 
         // Standard platform alternative
         if (standardDoNotSuggestGetOff()) {
-            if (gActionIs(ShowParkourRoutes) || gActionIs(ShowAllParkourRoutes)) {
-                return parkourCache.noKnownRoutesMsg;
-            }
             return '';
         }
 
@@ -1390,9 +1388,6 @@ modify Thing {
             parkourCache.loadParkourKeyHint(strBfr);
         }
         loadGetOffSuggestion(strBfr, nil, nil);
-        parkourCache.loadLocalPlatformsHint(strBfr);
-        parkourCache.loadLocalPlatformsHint(strBfr);
-        parkourCache.loadAbbreviationReminder(strBfr);
         return toString(strBfr);
     }
 
@@ -1419,7 +1414,7 @@ modify Thing {
             if (requiresJump) {
                 commandText = 'JUMP OFF';
             }
-            strBfr.append(aHrefAlt(commandText, commandText, commandText));
+            strBfr.append(gDirectCmdStr(commandText));
         }
     }
 
@@ -1666,7 +1661,8 @@ modify Thing {
     }
 
     getJumpOverToDiscoverMsg(destination) {
-        return '(It seems that {i} {can} JUMP OVER <<theName>>,
+        return '(It seems that {i} {can}
+            <<gDirectCmdStr('jump over ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -1676,7 +1672,8 @@ modify Thing {
     }
 
     getRunAcrossToDiscoverMsg(destination) {
-        return '(It seems that {i} {can} RUN ACROSS <<theName>>,
+        return '(It seems that {i} {can}
+            <<gDirectCmdStr('run across ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -1686,7 +1683,8 @@ modify Thing {
     }
 
     getSwingOnToDiscoverMsg(destination) {
-        return '(It seems that {i} {can} SWING ON <<theName>>,
+        return '(It seems that {i} {can}
+            <<gDirectCmdStr('swing on ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -1696,7 +1694,8 @@ modify Thing {
     }
 
     getSlideUnderToDiscoverMsg(destination) {
-        return '(It seems that {i} {can} SLIDE UNDER <<theName>>,
+        return '(It seems that {i} {can}
+            <<gDirectCmdStr('slide under ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -1705,7 +1704,7 @@ modify Thing {
             <<getProviderGoalClause(destination)>>. ';
     }
 
-    fastParkourMessages('up to the top of', 'over to', 'down to')
+    fastParkourMessages('atop', 'over to', 'down to')
 }
 
 modify Room {
@@ -2309,12 +2308,7 @@ class ParkourModule: SubComponent {
         
         if (exitPath != nil) totalCount++;
         
-        if (totalCount == 0) {
-            if (gActionIs(ShowParkourRoutes) || gActionIs(ShowAllParkourRoutes)) {
-                strBfr.append(parkourCache.noKnownRoutesMsg);
-            }
-        }
-        else {
+        if (totalCount > 0) {
             blindEasyPaths += blindEasyDescribedPaths;
             blindJumpPaths += blindJumpDescribedPaths;
             blindHarmfulPaths += blindHarmfulDescribedPaths;
@@ -2348,7 +2342,6 @@ class ParkourModule: SubComponent {
                 getBlindRouteDescription(strBfr, blindHarmfulJumpPaths,
                     'can be performed with both great difficulty and risk of injury. '
                 );
-                parkourCache.loadLocalPlatformsHint(strBfr);
             }
             else {
                 parkourCache.loadParkourKeyHint(strBfr);
@@ -2410,9 +2403,7 @@ class ParkourModule: SubComponent {
                         }
                     }
                 }
-                parkourCache.loadLocalPlatformsHint(strBfr);
             }
-            parkourCache.loadAbbreviationReminder(strBfr);
         }
 
         return toString(strBfr);
@@ -2454,11 +2445,14 @@ class ParkourModule: SubComponent {
         strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
         local destName = path.destination.parkourModule.theName;
         local commandAlt = getBetterPrepFromPath(path) + destName;
-        strBfr.append(aHrefAlt(getClimbCommand(path), commandAlt, commandAlt));
+        strBfr.append(aHrefAlt(
+            getClimbCommand(path).toLower(),
+            commandAlt, commandAlt
+        ));
     }
 
     getClimbCommand(path) {
-        return getVerbFromPath(path).toLower() +
+        return getVerbFromPath(path) +
             getBetterPrepFromPath(path) +
             path.destination.parkourModule.theName;
     }
@@ -2469,7 +2463,7 @@ class ParkourModule: SubComponent {
                 getPrepFromPath(path) + 'to ' +
                 path.destination.parkourModule.theName;
         }
-        return aHrefAlt(getClimbCommand(path), commandText, commandText);
+        return aHrefAlt(getClimbCommand(path).toLower(), commandText, commandText);
     }
 
     getProviderCommand(provider) {
@@ -2494,7 +2488,10 @@ class ParkourModule: SubComponent {
         if (commandText == nil) {
             commandText = getProviderVerb(provider);
         }
-        return aHrefAlt(getProviderCommand(provider), commandText, commandText);
+        return aHrefAlt(
+            getProviderCommand(provider),
+            commandText, commandText
+        );
     }
 
     getBlindRouteDescription(strBfr, routeList, routeSuffix) {

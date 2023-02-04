@@ -6,12 +6,17 @@ prologueCore: PreinitObject {
     play() {
         cls();
         #if __SHOW_PROLOGUE
-        "<b>Content warning:</b>
-        <ul>
-            <li>Violence</li>
-            <li>Crude Language</li>
-        </ul>\b
-        <b>Anxiety warning:</b>\n
+        "<b>Content warning:</b>";
+        if (gFormatForScreenReader) {
+            " For violence and crude language.";
+        }
+        else {
+            "<ul>
+                <li>Violence</li>
+                <li>Crude Language</li>
+            </ul>";
+        }
+        "\b<b>Anxiety warning:</b>\n
         This game features an active antagonist,
         so your turns must be spent wisely!\b
         <b>Note on randomness and UNDO:</b>\n
@@ -88,7 +93,6 @@ prologueCore: PreinitObject {
             introCutscene.play();
         }
         "\b";
-        #endif
         /*"<center><b><tt>IF HELP IS NEEDED</tt></b></center>\b
         For those new to interactive fiction and text games, use the HELP
         command to get a crash-course, specifically written with this game
@@ -100,16 +104,18 @@ prologueCore: PreinitObject {
         If you ever forget how to do something, the VERBS command provides
         a reference for all the other commands, verbs, and actions available
         to you.";*/
-        "\b<i>Remeber to use the</i> <b>VERBS</b> <i>command for a reference
-        screen of any actions and commands that are useful for this game!</i>
-        \b\b\b
-        <center><small>WELCOME TO...</small>\b
+        "\b\b\b<i>Remeber to use the</i> <b>VERBS</b> <i>command, which will provide
+        a reference for all actions and commands that are useful throughout
+        this game!</i>
+        \b\b\b";
+        #endif
+        "<center><small>WELCOME TO...</small>\b
         <b><tt>I AM PREY</tt></b>\b
         A game of evasion, by Joey Cramsey\b
         <i><q>This is based on a recurring nightmare of mine,
         so now it's your problem, too!</q></i></center>\b
-        ABOUT for a general summary.\n
-        CREDITS for author and tester credits.";
+        <<gDirectCmdStr('about')>> for a general summary.\n
+        <<gDirectCmdStr('credits')>> for author and tester credits.";
         "\b";
     }
 

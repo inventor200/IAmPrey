@@ -8,6 +8,7 @@
 
 screenReaderInit: InitObject {
     execute() {
+        #if __SHOW_PROLOGUE
         if (ChoiceGiver.staticAsk(
             'Are you using a screen reader to play this story?', nil, true
         )) {
@@ -15,6 +16,7 @@ screenReaderInit: InitObject {
             gFormatForScreenReader = true;
             prepForScreenReaders();
         }
+        #endif
     }
 
     prepForScreenReaders() {

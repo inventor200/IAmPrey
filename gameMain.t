@@ -1,17 +1,33 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+
 #define gFormatForScreenReader gameMain.formatForScreenReader
+
+#define gDirectCmdStr(command) \
+    (gFormatForScreenReader ? \
+        ('<b>' + (command).toUpper() + '</b>') : \
+        aHrefAlt((command).toLower(), (command).toUpper(), \
+        '<b>' + (command).toUpper() + '</b>') \
+    )
+
 #include "betterChoices.t"
+
 #if __DEBUG
-#define __SHOW_PROLOGUE true
+///////////////////////////////////////////////
+////        PROLOGUE CONTROLLER:          ////
+/////////////////////////////////////////////
+/*()*/  #define __SHOW_PROLOGUE nil   /*()*/
+///////////////////////////////////////////
+
+
 #else
 // DO NOT ALTER:
 #define __SHOW_PROLOGUE true
+// ^- This is the non-debug behavior!!!
 #endif
-#if __SHOW_PROLOGUE
+
 #include "forEveryone.t"
-#endif
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
 #include "soundBleed.t"
@@ -50,7 +66,7 @@ versionInfo: GameID {
         especially because the predator is <i>always listening!</i>\b
         Ideally, the player will <i>never</i> want to be seen,
         but last-minute tricks can be used to ditch the predator during a chase!\b
-        Find all seven (7) pieces of the environment suit, and escape through the
+        Find all seven pieces of the environment suit, and escape through the
         emergency airlock to win!\b
         <i>This game is designed for replayability, and can normally be finished
         in one sitting!</i>";
@@ -208,6 +224,7 @@ centralRoom: Room { 'Central Room'
 +table: FixedPlatform { 'generic table'
     "A generic table, outside of any parkour system. "
     isListed = true
+    //doNotSuggestGetOff = true
 }
 
 ++puzzleCube: Trinket { 'puzzle cube'
