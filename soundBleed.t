@@ -8,6 +8,8 @@ soundBleedCore: object {
 
     propagatedRooms = static new Vector(64)
 
+    activeSubtleSounds = static new Vector(16)
+
     selectedDirection = nil
     selectedConnector = nil
     selectedDestination = nil
@@ -32,6 +34,10 @@ soundBleedCore: object {
     }
 
     doPropagation() {
+        for (local i = 1; i <= activeSubtleSounds.length; i++) {
+            activeSubtleSounds[i].checkLifecycle();
+        }
+
         if (envSounds.length == 0 && playerSounds.length == 0) return;
         
         if (envSounds.length > 0) {
@@ -268,7 +274,6 @@ class SoundProfile: object {
 
 SubtleSound template 'basicName' 'missedMsg'?;
 
-//FIXME: Work this into the freeTurnCore system
 class SubtleSound: Noise {
     construct() {
         vocab = basicName + ';muffled distant nearby;echo';
@@ -278,6 +283,7 @@ class SubtleSound: Noise {
             }
             location = nil;
         }
+        soundBleedCore.activeSubtleSounds.append(self);
         inherited();
     }
     desc() {
@@ -294,6 +300,7 @@ class SubtleSound: Noise {
     wasPerceived = nil
 
     lifecycleFuse = nil
+    isBroadcasting = nil
 
     doAfterPerception() {
         // For setting off actions based on player observation
@@ -303,7 +310,7 @@ class SubtleSound: Noise {
         moveInto(room);
         caughtMsg = _caughtMsg;
         wasPerceived = nil;
-        setupFuse();
+        isBroadcasting = true;
     }
 
     attemptPerception() {
@@ -318,16 +325,12 @@ class SubtleSound: Noise {
         }
     }
 
-    setupFuse() {
-        if (lifecycleFuse != nil) lifecycleFuse.removeEvent();
-        lifecycleFuse = new Fuse(self, &checkLifecycle, 1);
-    }
-
     checkLifecycle() {
+        if (!isBroadcasting) return;
         if (!wasPerceived) {
             endLifecycle();
         }
-        lifecycleFuse = nil;
+        isBroadcasting = nil;
     }
 
     endLifecycle() {

@@ -7,7 +7,7 @@ climbingNoiseProfile: SoundProfile {
     'the muffled racket of something clambering'
     'the nearby racket of something clambering'
     'the distant reverberations of clambering'
-    strength = 4
+    strength = 3
 
     afterEmission(room) {
         say('\b(Emitted climbing noise in <<room.roomTitle>>.)');
@@ -36,79 +36,38 @@ hardImpactNoiseProfile: SoundProfile {
     }
 }
 
-/*modify ParkourPlatform {
-    getClimbAdvantageReason(preferredQuality) {
-        return preferredQuality + ' enough for a quieter approach';
+modify parkourCore {
+    certifyDiscovery(actor, path) {
+        freeTurnCore.revokeFreeTurn();
+    }
+}
+
+modify Thing {
+    doJumpPunishment(actor, traveler, path) {
+        if (path.direction == parkourDownDir) {
+            soundBleedCore.createSound(
+                impactNoiseProfile,
+                traveler.getOutermostRoom(),
+                actor == gPlayerChar
+            );
+        }
+        else {
+            soundBleedCore.createSound(
+                climbingNoiseProfile,
+                traveler.getOutermostRoom(),
+                actor == gPlayerChar
+            );
+        }
     }
 
-    getJumpRisk() {
-        return ', but {i} might make a lot of noise...  ';
+    doHarmfulPunishment(actor, traveler, path) {
+        soundBleedCore.createSound(
+            hardImpactNoiseProfile,
+            traveler.getOutermostRoom(),
+            actor == gPlayerChar
+        );
     }
-
-    getFallRisk() {
-        return ', but {i} might risk injury and make a lot of noise... ';
-    }
-
-    getPlummetRisk() {
-        return '{I} certainly {cannot} JUMP OFF, without risking death. ';
-    }
-
-    handleJumpUpDifficulty(actor) {
-        if (actor != gPlayerChar) return;
-        soundBleedCore.createSound(climbingNoiseProfile, getOutermostRoom(), true);
-    }
-
-    handleJumpDownDifficulty(actor) {
-        if (actor != gPlayerChar) return;
-        soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
-    }
-
-    handleLeapDifficulty(actor) {
-        if (actor != gPlayerChar) return;
-        soundBleedCore.createSound(impactNoiseProfile, getOutermostRoom(), true);
-    }
-
-    handleFallDownDifficulty(actor) {
-        if (actor != gPlayerChar) return;
-        soundBleedCore.createSound(hardImpactNoiseProfile, getOutermostRoom(), true);
-    }
-
-    doRepJumpUp(destThing) {
-        local obj = destThing;
-        gMessageParams(obj);
-        "It's noisy, but {i} jump{s/ed} up,
-        and clamber{s/ed} <<jumpUpDirPrep>> {the obj}. ";
-    }
-
-    doRepJumpDown(destThing) {
-        local obj = destThing;
-        gMessageParams(obj);
-        "It's noisy, but {i} {hold} onto
-        <<gParkourTheEdgeName>>,
-        drop{s/?ed} to a hanging position,
-        {let} go,
-        and land{s/ed} hard <<landingDirPrep>> {the obj} below. <<landingConclusionMsg>>";
-    }
-
-    doRepLeap(destThing) {
-        local obj = destThing;
-        gMessageParams(obj);
-        "It's noisy, but {i} jump{s/ed} <<leapDirPrep>> {the obj},
-        and tr{ies/ied} to keep {my} balance. ";
-    }
-
-    doRepFall(destThing) {
-        local obj = destThing;
-        gMessageParams(obj);
-        "{I} {hold} onto <<gParkourTheEdgeName>>,
-        drop{s/?ed} to a hanging position,
-        and {let} go. The loud impact{dummy} fire{s/d} a sharp,
-        lancing pain through {my} bones.
-        {I} {am} stunned, but then recover{s/ed}
-        after a moment to find {myself}
-        <<landingDirPrep>> {the obj}. <<landingConclusionMsg>>";
-    }
-}*/
+}
 
 defaultLabFloor: Floor { 'the floor'
     //
