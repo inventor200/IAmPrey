@@ -46,7 +46,7 @@ soundBleedCore: object {
         if (playerSounds.length > 0) {
             for (local i = 1; i <= playerSounds.length; i++) {
                 playerSounds[i].afterEmission(playerSoundRooms[i]);
-                doPropagationForHunter(playerSounds[i], playerSoundRooms[i]);
+                doPropagationForSkashek(playerSounds[i], playerSoundRooms[i]);
             }
             playerSounds.removeRange(1, -1);
             playerSoundRooms.removeRange(1, -1);
@@ -63,9 +63,9 @@ soundBleedCore: object {
         clearRooms();
     }
 
-    doPropagationForHunter(soundProfile, startRoom) {
+    doPropagationForSkashek(soundProfile, startRoom) {
         detectedSourceRoom = nil;
-        propagateRoomForHunter(startRoom, soundProfile, soundProfile.strength, nil);
+        propagateRoomForSkashek(startRoom, soundProfile, soundProfile.strength, nil);
         clearRooms();
     }
 
@@ -179,8 +179,8 @@ soundBleedCore: object {
         }
     }
 
-    propagateRoomForHunter(room, profile, strength, sourceDirection) {
-        //TODO: Test for hunter
+    propagateRoomForSkashek(room, profile, strength, sourceDirection) {
+        //TODO: Test for Skashek
 
         if (strength > 1) {
             for (local i = 1; i <= 12; i++) {
@@ -193,7 +193,7 @@ soundBleedCore: object {
                     if (nextSourceDir != nil) {
                         if (!checkPropagationStep(selectedMuffleDestination, nextStrength)) continue;
 
-                        propagateRoomForHunter(selectedMuffleDestination, profile, nextStrength, nextSourceDir);
+                        propagateRoomForSkashek(selectedMuffleDestination, profile, nextStrength, nextSourceDir);
                     }
                 }
 
@@ -213,7 +213,7 @@ soundBleedCore: object {
 
                         if (!checkPropagationStep(selectedDestination, nextStrength)) continue;
 
-                        propagateRoomForHunter(selectedDestination, profile, nextStrength, nextSourceDir);
+                        propagateRoomForSkashek(selectedDestination, profile, nextStrength, nextSourceDir);
                     }
                 }
             }

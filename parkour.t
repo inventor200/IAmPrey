@@ -1,5 +1,5 @@
-#define gParkourLastPath parkourCache.lastPath
-#define gParkourRunner parkourCache.currentParkourRunner
+#define gParkourLastPath parkourCore.lastPath
+#define gParkourRunner parkourCore.currentParkourRunner
 
 #define expandedOnto ('onto'|'on' 'to')
 #define expandedInto ('in'|'into'|'in' 'to'|'through')
@@ -333,7 +333,7 @@ DefineIAction(ParkourClimbOffIntransitive)
     allowAll = nil
 
     execAction(cmd) {
-        parkourCache.cacheParkourRunner(gActor);
+        parkourCore.cacheParkourRunner(gActor);
         doInstead(ParkourClimbOffOf, gParkourRunner.location);
     }
 ;
@@ -366,7 +366,7 @@ DefineIAction(ParkourJumpOffIntransitive)
     allowAll = nil
 
     execAction(cmd) {
-        parkourCache.cacheParkourRunner(gActor);
+        parkourCore.cacheParkourRunner(gActor);
         doInstead(ParkourJumpOffOf, gParkourRunner.location);
     }
 ;
@@ -391,7 +391,7 @@ DefineIAction(ShowParkourRoutes)
     turnsTaken = 0
 
     execAction(cmd) {
-        parkourCache.printParkourRoutes();
+        parkourCore.printParkourRoutes();
     }
 ;
 
@@ -407,7 +407,7 @@ DefineIAction(ShowParkourKey)
     turnsTaken = 0
 
     execAction(cmd) {
-        parkourCache.printParkourKey();
+        parkourCore.printParkourKey();
     }
 ;
 
@@ -423,7 +423,7 @@ DefineIAction(ShowParkourLocalPlatforms)
     turnsTaken = 0
 
     execAction(cmd) {
-        parkourCache.printLocalPlatforms();
+        parkourCore.printLocalPlatforms();
     }
 ;
 
@@ -444,8 +444,8 @@ DefineIAction(ShowAllParkourRoutes)
     turnsTaken = 0
 
     execAction(cmd) {
-        parkourCache.printParkourRoutes();
-        parkourCache.printLocalPlatforms();
+        parkourCore.printParkourRoutes();
+        parkourCore.printLocalPlatforms();
     }
 ;
 
@@ -473,9 +473,8 @@ DefineTAction(DebugCheckForContainer)
 #endif
 
 //TODO: Tutorial hinting
-//TODO: Rename this to parkourCore
 //TODO: Go through all of our fucking \b chars, and replace them with <.p> chars
-parkourCache: object {
+parkourCore: object {
     requireRouteRecon = true
     formatForScreenReader = (gFormatForScreenReader)
     autoPathCanDiscover = (!requireRouteRecon)
@@ -543,7 +542,7 @@ parkourCache: object {
     }
 
     printParkourKey() {
-        if (parkourCache.formatForScreenReader) {
+        if (parkourCore.formatForScreenReader) {
             "This command does nothing in screen reader mode.
             Outside of screen reader mode, it clarifies some
             ASCII symbols used when describing routes. ";
@@ -574,7 +573,7 @@ parkourCache: object {
     }
 
     getLocalPlatforms() {
-        parkourCache.cacheParkourRunner(gActor);
+        parkourCore.cacheParkourRunner(gActor);
         return gParkourRunner.getLocalPlatforms();
     }
 
@@ -634,7 +633,7 @@ parkourCache: object {
 modify Examine {
     reset() {
         inherited();
-        parkourCache.startRecon();
+        parkourCore.startRecon();
     }
 }
 
@@ -833,7 +832,7 @@ modify actorInStagingLocation {
     checkPreCondition(obj, allowImplicit) {
         //if (parkourPathFinder.mapBetween(gActor, obj, true, nil)) return true;
         local stagingLoc = obj.stagingLocation;
-        parkourCache.cacheParkourRunner(gActor);
+        parkourCore.cacheParkourRunner(gActor);
         local loc = gParkourRunner.location;
 
         local actorParkourMod = gParkourRunner.getParkourModule();
@@ -851,11 +850,11 @@ modify actorInStagingLocation {
 
             // Attempting to do parkour in invalid vehicle
             if (!gParkourRunner.fitForParkour) {
-                parkourCache.sayParkourRunnerError(actor);
+                parkourCore.sayParkourRunnerError(actor);
             }
             else if (actorParkourMod != nil && objectParkourMod != nil) {
                 local connPath = objectParkourMod.getPathFrom(
-                    actorParkourMod, parkourCache.autoPathCanDiscover
+                    actorParkourMod, parkourCore.autoPathCanDiscover
                 );
 
                 if (connPath != nil) {
@@ -953,9 +952,9 @@ modify actorInStagingLocation {
         remap = (remapDest) \
         verify() { } \
         check() { \
-            parkourCache.cacheParkourRunner(gActor); \
+            parkourCore.cacheParkourRunner(gActor); \
             if (!gParkourRunner.fitForParkour) { \
-                parkourCache.sayParkourRunnerError(gActor); \
+                parkourCore.sayParkourRunnerError(gActor); \
             } \
         } \
         action() { \
@@ -1036,7 +1035,7 @@ modify actorInStagingLocation {
     if (!path.isAcknowledged) { \
         if (path.isKnown) { \
             path.acknowledge(); \
-            if (parkourCache.showNewRoute) { \
+            if (parkourCore.showNewRoute) { \
                 reportMethod(path.getDiscoverMsg() + '\b'); \
             } \
         } \
@@ -1044,11 +1043,11 @@ modify actorInStagingLocation {
 
 // Actual parkour reporting
 #define reportParkour \
-    if (!parkourCache.hadAccident) { \
+    if (!parkourCore.hadAccident) { \
         "<<gParkourLastPath.getPerformMsg()>>\b"; \
-        if (parkourCache.lookAroundAfter != nil) { \
-            parkourCache.lookAroundAfter.lookAroundWithin(); \
-            parkourCache.lookAroundAfter = nil; \
+        if (parkourCore.lookAroundAfter != nil) { \
+            parkourCore.lookAroundAfter.lookAroundWithin(); \
+            parkourCore.lookAroundAfter = nil; \
         } \
     }
 
@@ -1072,7 +1071,7 @@ modify actorInStagingLocation {
         illogical(cannot##ProviderAction##Msg); \
         return; \
     } \
-    parkourCache.cacheParkourRunner(actor); \
+    parkourCore.cacheParkourRunner(actor); \
     local pm = gParkourRunner.getParkourModule(); \
     if (pm == nil) { \
         illogical(useless##ProviderAction##Msg); \
@@ -1086,8 +1085,8 @@ modify actorInStagingLocation {
     }
 
 #define beginParkourReset(announceNewRoute) \
-    parkourCache.hadAccident = nil; \
-    parkourCache.showNewRoute = announceNewRoute
+    parkourCore.hadAccident = nil; \
+    parkourCore.showNewRoute = announceNewRoute
 
 #define beginParkour(announceNewRoute) \
     beginParkourReset(announceNewRoute); \
@@ -1100,7 +1099,7 @@ modify actorInStagingLocation {
     learnPath(gParkourLastPath, extraReport)
 
 #define doParkourThroughProvider(actor) \
-    beginParkour(parkourCache.announceRouteAfterTrying); \
+    beginParkour(parkourCore.announceRouteAfterTrying); \
     parkourDestination.provideMoveFor(actor)
 
 #define parkourProviderAction(ProviderAction, remapPrep) \
@@ -1237,7 +1236,7 @@ modify Thing {
     // A list of TravelBarriers that prevent parkour with this Thing
     parkourBarriers = nil
     // Was this Thing recon'd for parkour?
-    hasParkourRecon = (!parkourCache.requireRouteRecon)
+    hasParkourRecon = (!parkourCore.requireRouteRecon)
     // Other Things that this will share recon with
     shareReconWith = []
     // This gets added to the above list, and should not be touched by authors
@@ -1330,11 +1329,11 @@ modify Thing {
         if (provider != nil) {
             local clear = nil;
             if (!provider.hasParkourRecon) {
-                clear = parkourCache.accountForRecon();
+                clear = parkourCore.accountForRecon();
             }
             
             if (clear) {
-                parkourCache.cacheParkourRunner(gActor);
+                parkourCore.cacheParkourRunner(gActor);
                 gParkourRunner.getParkourModule().doReconForProvider(provider);
             }
         }
@@ -1386,8 +1385,8 @@ modify Thing {
         }
 
         local strBfr = new StringBuffer(20);
-        if (!parkourCache.formatForScreenReader) {
-            parkourCache.loadParkourKeyHint(strBfr);
+        if (!parkourCore.formatForScreenReader) {
+            parkourCore.loadParkourKeyHint(strBfr);
         }
         loadGetOffSuggestion(strBfr, nil, nil);
         return toString(strBfr);
@@ -1395,7 +1394,7 @@ modify Thing {
 
     loadGetOffSuggestion(strBfr, requiresJump, isHarmful) {
         if (standardDoNotSuggestGetOff()) return;
-        if (parkourCache.formatForScreenReader) {
+        if (parkourCore.formatForScreenReader) {
             strBfr.append('\n{I} believe{s/d} {i} {can} <b>');
             if (requiresJump) {
                 strBfr.append('JUMP OFF');
@@ -1431,7 +1430,7 @@ modify Thing {
         local hadAccident = gOutStream.watchForOutput({:
             doProviderAccident(actor, traveler, path)
         });
-        parkourCache.hadAccident = parkourCache.hadAccident || hadAccident;
+        parkourCore.hadAccident = parkourCore.hadAccident || hadAccident;
         return !hadAccident;
     }
 
@@ -1518,7 +1517,7 @@ modify Thing {
     }
 
     checkParkourProviderBarriers(actor, path) {
-        if (parkourCache.doParkourRunnerCheck(actor)) {
+        if (parkourCore.doParkourRunnerCheck(actor)) {
             if (checkAsParkourProvider(actor, gParkourRunner, path)) {
                 local barriers = valToList(parkourBarriers);
 
@@ -1850,7 +1849,7 @@ modify Actor {
     remap = nil
 
 #define verifyJumpPathFromActor(actor, canBeUnknown) \
-    parkourCache.cacheParkourRunner(actor); \
+    parkourCore.cacheParkourRunner(actor); \
     gParkourLastPath = nil; \
     verifyAlreadyAtDestination(gParkourRunner); \
     local closestParkourMod = gParkourRunner.getParkourModule(); \
@@ -1914,7 +1913,7 @@ modify Actor {
 
 #define doGetOffParkourAlt(actor) \
     local closestSurface = gParkourRunner.location; \
-    beginParkourReset(parkourCache.announceRouteAfterTrying); \
+    beginParkourReset(parkourCore.announceRouteAfterTrying); \
     doNested(GetOff, closestSurface)
 
 #define doClimbFor(actor) \
@@ -1923,7 +1922,7 @@ modify Actor {
         doGetOffParkourAlt(actor); \
     } \
     else { \
-        beginParkour(parkourCache.announceRouteAfterTrying); \
+        beginParkour(parkourCore.announceRouteAfterTrying); \
         provideMoveFor(actor); \
     }
 
@@ -1963,7 +1962,7 @@ modify Actor {
 #define parkourReshapeGetOff(originalAction, redirectAction) \
     dobjFor(originalAction) { \
         verify() { \
-            parkourCache.cacheParkourRunner(gActor); \
+            parkourCore.cacheParkourRunner(gActor); \
             local myOn = getStandardOn(); \
             if(!gParkourRunner.isIn(myOn) || myOn.contType != On) { \
                 illogicalNow(actorNotOnMsg); \
@@ -2050,14 +2049,14 @@ class ParkourModule: SubComponent {
         if (lexicalParent != nil) {
             local clear = nil;
             if (!lexicalParent.hasParkourRecon) {
-                clear = parkourCache.accountForRecon();
+                clear = parkourCore.accountForRecon();
             }
             if (clear) {
                 local path = getPathFrom(gParkourRunner.getParkourModule(), true, true);
                 if (path != nil) {
                     lexicalParent.applyRecon();
-                    parkourCache.cacheParkourRunner(gActor);
-                    parkourCache.showNewRoute = true;
+                    parkourCore.cacheParkourRunner(gActor);
+                    parkourCore.showNewRoute = true;
                     learnPath(path, reportAfter);
                 }
             }
@@ -2074,7 +2073,7 @@ class ParkourModule: SubComponent {
             }
             else {
                 provider.applyRecon();
-                parkourCache.showNewRoute = true;
+                parkourCore.showNewRoute = true;
                 learnPath(path, reportAfter);
                 return;
             }
@@ -2082,7 +2081,7 @@ class ParkourModule: SubComponent {
 
         if (jumpPath != nil) {
             provider.applyRecon();
-            parkourCache.showNewRoute = true;
+            parkourCore.showNewRoute = true;
             learnPath(jumpPath, reportAfter);
         }
     }
@@ -2101,7 +2100,7 @@ class ParkourModule: SubComponent {
         local hadAccident = gOutStream.watchForOutput({:
             lexicalParent.doAccident(actor, traveler, path)
         });
-        parkourCache.hadAccident = parkourCache.hadAccident || hadAccident;
+        parkourCore.hadAccident = parkourCore.hadAccident || hadAccident;
         return !hadAccident;
     }
 
@@ -2116,7 +2115,7 @@ class ParkourModule: SubComponent {
     doParkourCheck(actor, path) {
         local source = gParkourRunner.getParkourModule();
 
-        if (parkourCache.doParkourRunnerCheck(actor)) {
+        if (parkourCore.doParkourRunnerCheck(actor)) {
             local clearedLeaving = true;
             if (source != nil) {
                 clearedLeaving = source.checkLeaving(actor, gParkourRunner, path);
@@ -2321,7 +2320,7 @@ class ParkourModule: SubComponent {
                 blindHarmfulPaths.length +
                 blindHarmfulJumpPaths.length;
             strBfr.append('<i>{I} review{s/ed} the parkour routes {i} {can} use from {here}...</i>');
-            if (parkourCache.formatForScreenReader) {
+            if (parkourCore.formatForScreenReader) {
                 strBfr.append('\b');
                 strBfr.append(
                     'In total, {i} {see} <<spellNumber(routeCount)>>
@@ -2346,7 +2345,7 @@ class ParkourModule: SubComponent {
                 );
             }
             else {
-                parkourCache.loadParkourKeyHint(strBfr);
+                parkourCore.loadParkourKeyHint(strBfr);
                 climbPaths += climbHarmfulPaths;
                 jumpPaths += jumpHarmfulPaths;
                 jumpPaths += fallPaths;
@@ -2572,7 +2571,7 @@ class ParkourModule: SubComponent {
                 notifyList.forEach({a: a.pcArrivalTurn = gTurns });
                 
                 if (lookAroundOnEntering) {
-                    parkourCache.lookAroundAfter = roomB;
+                    parkourCore.lookAroundAfter = roomB;
                 }
             }
             else if (roomA == oldLoc) {
@@ -2639,7 +2638,7 @@ class ParkourModule: SubComponent {
         extraReport('\nREACH TO: <<theName>>\n');
         #endif
         if (source == gActor) {
-            parkourCache.cacheParkourRunner(source);
+            parkourCore.cacheParkourRunner(source);
             source = gParkourRunner;
         }
         #if __PARKOUR_REACH_DEBUG
@@ -2784,7 +2783,7 @@ class ParkourModule: SubComponent {
     dobjFor(ParkourClimbGeneric) {
         parkourActionIntro
         verify() {
-            verifyClimbPathFromActor(gActor, parkourCache.autoPathCanDiscover);
+            verifyClimbPathFromActor(gActor, parkourCore.autoPathCanDiscover);
         }
         check() { checkParkour(gActor); }
         action() {
@@ -2815,7 +2814,7 @@ class ParkourModule: SubComponent {
     dobjFor(ParkourJumpGeneric) {
         parkourActionIntro
         verify() {
-            verifyJumpPathFromActor(gActor, parkourCache.autoPathCanDiscover);
+            verifyJumpPathFromActor(gActor, parkourCore.autoPathCanDiscover);
         }
         check() { checkParkour(gActor); }
         action() {
@@ -2851,7 +2850,7 @@ class ParkourPath: object {
     requiresJump = nil
     isHarmful = nil
     direction = parkourOverDir
-    isAcknowledged = (!parkourCache.requireRouteRecon)
+    isAcknowledged = (!parkourCore.requireRouteRecon)
     maker = nil
     cachedOtherSide = nil
     isBackward = nil
