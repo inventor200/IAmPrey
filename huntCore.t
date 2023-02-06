@@ -1,4 +1,4 @@
-freeTurnCore: object {
+huntCore: object {
     lastTurnCount = -1
     revokedFreeTurn = nil
 
@@ -69,21 +69,60 @@ modify Action {
     freeTurnAlertsRemaining = 3
 
     turnSequence() {
-        freeTurnCore.lastTurnCount = libGlobal.totalTurns;
+        huntCore.lastTurnCount = libGlobal.totalTurns;
         inherited();
         local wasCostlyTurn =
-            (freeTurnCore.lastTurnCount != libGlobal.totalTurns) ||
-            freeTurnCore.revokedFreeTurn;
+            (huntCore.lastTurnCount != libGlobal.totalTurns) ||
+            huntCore.revokedFreeTurn;
         
         if (wasCostlyTurn) {
-            freeTurnCore.advanceTurns();
-            freeTurnCore.offerTrickAction();
-            freeTurnCore.handleSkashekAction();
+            huntCore.advanceTurns();
+            huntCore.offerTrickAction();
+            huntCore.handleSkashekAction();
         }
         else {
             if (!gAction.ofKind(SystemAction)) {
-                freeTurnCore.handleFreeTurn();
-                freeTurnCore.offerTrickAction();
+                huntCore.handleFreeTurn();
+                huntCore.offerTrickAction();
+            }
+        }
+    }
+}
+
+modify Inventory {
+    turnsTaken = 0
+}
+
+modify Examine {
+    turnsTaken = 0
+}
+
+modify LookThrough {
+    turnsTaken = 0
+}
+
+modify Look {
+    turnsTaken = 0
+}
+
+modify Read {
+    turnsTaken = 0
+}
+
+modify Thing {
+    wasRead = nil
+
+    dobjFor(Read) {
+        action() {
+            if (propType(&readDesc) == TypeNil) {
+                say(cannotReadMsg);
+            }
+            else {
+                display(&readDesc);
+                if (!wasRead) {
+                    huntCore.revokeFreeTurn();
+                }
+                wasRead = true;
             }
         }
     }

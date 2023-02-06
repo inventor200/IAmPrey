@@ -30,7 +30,7 @@
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
-#include "freeTurnCore.t"
+#include "huntCore.t"
 #include "soundBleed.t"
 #include "parkour.t"
 #include "trinkets.t"
@@ -259,6 +259,11 @@ centralRoom: Room { 'Central Room'
 
 ++puzzleCube: Trinket { 'puzzle cube'
     "A 3x3 puzzle cube. "
+}
+
+++postItNote: Thing { 'note;postit post-it post sticky'
+    "A simple note. "
+    readDesc = "Hello world!"
 }
 
 /*+obviousLowVent: ParkourEasyExit { 'low vent;metal ventilation;grate'

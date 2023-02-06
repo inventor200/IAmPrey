@@ -38,7 +38,7 @@ hardImpactNoiseProfile: SoundProfile {
 
 modify parkourCore {
     certifyDiscovery(actor, path) {
-        freeTurnCore.revokeFreeTurn();
+        huntCore.revokeFreeTurn();
     }
 }
 
@@ -79,16 +79,4 @@ modify Room {
 
 class FixedPlatform: Platform {
     isFixed = true
-}
-
-modify Inventory {
-    turnsTaken = 0
-}
-
-modify Examine {
-    turnsTaken = 0
-}
-
-modify Look {
-    turnsTaken = 0
 }
