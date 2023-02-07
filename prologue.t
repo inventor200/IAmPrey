@@ -1,9 +1,12 @@
 #define showPrologue prologueCore.play()
 
-prologueCore: PreinitObject {
+prologueCore: InitObject {
     introCutscene = nil
+    catCutscene = nil
 
-    play() {
+    execBeforeMe = [screenReaderInit]
+
+    selectDifficulty() {
         cls();
         #if __SHOW_PROLOGUE
         "<b>Content warning:</b>";
@@ -28,18 +31,17 @@ prologueCore: PreinitObject {
         inputManager.pauseForMore();
         cls();
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
-        difficultyQuestion.add('1', 'Full Tutorial',
+        difficultyQuestion.add('1', 'Basic Tutorial',
             'You are new to interactive fiction, and are not versed in
             the usual controls or mechanics of parser-based text games.\b
+            <i>(You play as the predator\'s pet cat.)</i>'
+        );
+        difficultyQuestion.add('2', 'Prey Tutorial',
+            'You are new to <i>I Am Prey</i>, and have not used the parkour,
+            stealth, or chase mechanics before.\b
             <i>(The predator will offer you a second chance,
             allow you a single pop-out escape,
             and can be stalled by doors up to five times.)</i>'
-        );
-        difficultyQuestion.add('2', 'Partial Tutorial',
-            'You are new to <i>I Am Prey</i>, and have not used the parkour,
-            stealth, or chase mechanics before.\b
-            <i>(The predator will be just as lenient as in
-            the Full Tutorial choice.)</i>'
         );
         difficultyQuestion.add('3', 'Easy Mode',
             'The predator has had a string of victories, and will go
@@ -70,29 +72,37 @@ prologueCore: PreinitObject {
         local result = difficultyQuestion.ask();
         switch (result) {
             case 1:
-                gameMain.gameDifficulty = superTutorial;
+                huntCore.difficulty = basicTutorial;
                 break;
             case 2:
-                gameMain.gameDifficulty = tutorial;
+                huntCore.difficulty = preyTutorial;
                 break;
             case 3:
-                gameMain.gameDifficulty = easyMode;
+                huntCore.difficulty = easyMode;
                 break;
             case 4:
-                gameMain.gameDifficulty = mediumMode;
+                huntCore.difficulty = mediumMode;
                 break;
             case 5:
-                gameMain.gameDifficulty = hardMode;
+                huntCore.difficulty = hardMode;
                 break;
             case 6:
-                gameMain.gameDifficulty = nightmareMode;
+                huntCore.difficulty = nightmareMode;
                 break;
         }
         cls();
-        if (result < 5) {
+        if (result == 1) {
+            catCutscene.play();
+        }
+        else if (result < 5) {
             introCutscene.play();
         }
         "\b";
+        #endif
+    }
+
+    play() {
+        #if __SHOW_PROLOGUE
         /*"<center><b><tt>IF HELP IS NEEDED</tt></b></center>\b
         For those new to interactive fiction and text games, use the HELP
         command to get a crash-course, specifically written with this game
@@ -110,10 +120,10 @@ prologueCore: PreinitObject {
         \b\b\b";
         #endif
         "<center><small>WELCOME TO...</small>\b
-        <b><tt>I AM PREY</tt></b>\b
-        A game of evasion, by Joey Cramsey\b
+        <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\b
+        A game of evasion, by Joey Cramsey<<if !gCatMode>>\b
         <i><q>This is based on a recurring nightmare of mine,
-        so now it's your problem, too!</q></i></center>\b
+        so now it's your problem, too!</q></i><<end>></center>\b
         <<gDirectCmdStr('about')>> for a general summary.\n
         <<gDirectCmdStr('credits')>> for author and tester credits.";
         "\b";
@@ -170,6 +180,44 @@ prologueCore: PreinitObject {
             Something gives way, and the waking world washes away the final
             shreds of whatever dream or nightmare that was being injected into you..."
         });
+
+        catCutscene = new Cutscene();
+        catCutscene.addPage({:
+            "<center><b><tt>PROLOGUE (CAT EDITION)</tt></b></center>\b
+            Your domain used to have a lot more life. You trusted these creatures,
+            for the most part, but they probably only stayed in line under your
+            careful watch. They did strange things, made weird sounds, and moved
+            around a lot.\b
+            Then, there was a rather <i>tense</i> period, where one half of the
+            inhabitants showed clear signs of aggression, while the other half
+            continued to withhold basic needs, and remain oblivious.\b
+            Then, there was blood. A <i>lot</i> of blood. You weren't scared,
+            of course; you didn't do anything wrong, and the starving ones only
+            showed you the appropriate amounts of respect and personal space."
+        });
+        catCutscene.addPage({:
+            "However, there was a clear conflict occurring, and it was being
+            resolved through incredible violence, and you thought it was best
+            to give the combatants some necessary space. Once the screams,
+            wailing, and begging cries finally subsided, you decided the
+            situation had gotten sufficiently-calm.\b
+            When you returned to your role as watchful ruler, only a few short
+            fights remained between the other inhabitants. Eventually, a single
+            creature remained, graciously sharing the world with you."
+        });
+        catCutscene.addPage({:
+            "You're not as nimble as you used to be, but this final citizen
+            provides good care for you. Ages ago, your original food supply had
+            stopped. This displeased you, but your citizen simply chopped pieces
+            off the corpses (which he kept in the Freezing Place), tossed them
+            into the Hot Box, and placed the pieces in your dish.\b
+            <i>What a wonderful, obedient citizen!</i>\b
+            The remains of the previous citizens tasted <i>different</i>, for
+            sure, but the flavor was similar enough to your original food supply,
+            so you concluded that you could forgive this change in routine.\b
+            You decide to test your aging joints, and take a tour of your domain."
+        });
+        selectDifficulty();
     }
 }
     

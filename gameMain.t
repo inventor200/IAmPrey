@@ -35,14 +35,13 @@
 #include "parkour.t"
 #include "trinkets.t"
 #include "moduleUnion.t"
+#include "preyPlayer.t"
+#include "cat.t"
 #include "prologue.t"
 
-enum superTutorial, tutorial, easyMode, mediumMode, hardMode, nightmareMode;
-
 gameMain: GameMainDef {
-    initialPlayerChar = me
+    initialPlayerChar = (gCatMode ? pgCat: prey)
 
-    gameDifficulty = mediumMode
     formatForScreenReader = nil
 
     showIntro() {
@@ -73,14 +72,15 @@ versionInfo: GameID {
         in one sitting!</i>";
     }
     showCredit() {
-        "Author:
+        "<i>I stand on the shoulders of giants...</i>\n
+        Author:
         <a href='mailto:josephcsoftware@gmail.com'>Joey Cramsey</a>\n
-        TADS 3:
-        <a href='https://www.ifwiki.org/Michael_J._Roberts'>Michael J Roberts</a>\n
+        Special thanks to my partners, friends, as well as the excellent community
+        over at <a href='https://intfiction.org/'>Intfiction Forum</a>!\n
         Adv3Lite library:
         <a href='https://www.ifwiki.org/Eric_Eve'>Eric Eve</a>\n
-        Special thanks to my partners, friends, as well as the excellent community
-        over at <a href='https://intfiction.org/'>Intfiction Forum</a>!";
+        TADS 3:
+        <a href='https://www.ifwiki.org/Michael_J._Roberts'>Michael J Roberts</a>";
     }
 }
 
@@ -179,11 +179,6 @@ centralRoom: Room { 'Central Room'
 ++cup: Thing { 'cup'
     "A ceramic cup. "
     subLocation = &remapOn
-}
-
-+me: Actor {
-    person = 2
-    //subLocation = &remapOn
 }
 
 +exosuit: CoveredVehicle { 'exosuit;small exo;suit'

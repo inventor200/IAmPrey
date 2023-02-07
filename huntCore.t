@@ -1,6 +1,12 @@
+enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
+#define gCatMode huntCore.inCatMode
+
 huntCore: object {
     lastTurnCount = -1
     revokedFreeTurn = nil
+    inMapMode = nil
+    inCatMode = (difficulty == basicTutorial)
+    difficulty = basicTutorial //TODO: Make a cat game preprocessor switch
 
     // Generically handle free action
     handleFreeTurn() {
@@ -19,7 +25,7 @@ huntCore: object {
 
     // Generically handle turn-based action
     advanceTurns() {
-        if (revokedFreeTurn) {
+        if (revokedFreeTurn) { //TODO: Print this before the results of the action
             "<.p><i>(That would normally be a FREE action,
             but the consequences cost a turn!)</i>";
         }
@@ -69,8 +75,12 @@ modify Action {
     freeTurnAlertsRemaining = 3
 
     turnSequence() {
+        // Map mode is done with everything frozen in time
+        if (huntCore.inMapMode) return;
         huntCore.lastTurnCount = libGlobal.totalTurns;
+
         inherited();
+
         local wasCostlyTurn =
             (huntCore.lastTurnCount != libGlobal.totalTurns) ||
             huntCore.revokedFreeTurn;
@@ -114,15 +124,23 @@ modify Thing {
 
     dobjFor(Read) {
         action() {
-            if (propType(&readDesc) == TypeNil) {
-                say(cannotReadMsg);
+            if (self != catNameTag && gCatMode) {
+                "The strange hairless citizens make odd chants while
+                staring at these odd shapes, sometimes for hours
+                at a time. You're not sure what <i>this</i> particular
+                example would do to them, but you resent it anyway.";
             }
             else {
-                display(&readDesc);
-                if (!wasRead) {
-                    huntCore.revokeFreeTurn();
+                if (propType(&readDesc) == TypeNil) {
+                    say(cannotReadMsg);
                 }
-                wasRead = true;
+                else {
+                    display(&readDesc);
+                    if (!wasRead) {
+                        huntCore.revokeFreeTurn();
+                    }
+                    wasRead = true;
+                }
             }
         }
     }
