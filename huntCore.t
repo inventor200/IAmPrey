@@ -1,23 +1,46 @@
 enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define gCatMode huntCore.inCatMode
 
-huntCore: object {
-    lastTurnCount = -1
+huntCore: InitObject {
     revokedFreeTurn = nil
     inMapMode = nil
     inCatMode = (difficulty == basicTutorial)
-    difficulty = basicTutorial //TODO: Make a cat game preprocessor switch
+    wasBathTimeAnnounced = nil
+    #if __IS_CAT_GAME
+    difficulty = basicTutorial
+    #else
+    difficulty = mediumMode
+    #endif
+
+    execBeforeMe = [prologueCore]
+    bathTimeFuse = nil
+
+    execute() {
+        if (inCatMode) {
+            bathTimeFuse = new Fuse(self, &startBathTime, 9);
+        }
+    }
+
+    startBathTime() {
+        wasBathTimeAnnounced = true;
+        "<.p>The voice of your Royal Subject is heard over the facility's
+        intercom:\n
+        <q>Piergiorgio...! It's bath time! I can smell you from the other
+        side of the hunting zone!</q>\b
+        Oh no. You fucking <i>hate</i> bath time...!! Time to make
+        the Royal Subject <i>work for it!!</i>";
+        bathTimeFuse = nil;
+    }
 
     // Generically handle free action
     handleFreeTurn() {
         if (gAction.freeTurnAlertsRemaining > 0) {
             if (gAction.freeTurnAlertsRemaining > 1) {
-                "<.p><i>(That action used a FREE TURN!)</i><.p>";
+                "<.p><i>(You used this turn for FREE!)</i><.p>";
             }
             else {
-                "<.p><i>(That action used a FREE TURN,
-                <b>but this notification will now be muted
-                for actions of that kind!)</b></i><.p>";
+                "<.p><i>(From now-on, you will only be alerted if
+                this action </i>wasn't<i> a FREE turn!)</i><.p>";
             }
             gAction.freeTurnAlertsRemaining--;
         }
@@ -25,11 +48,10 @@ huntCore: object {
 
     // Generically handle turn-based action
     advanceTurns() {
-        if (revokedFreeTurn) { //TODO: Print this before the results of the action
-            "<.p><i>(That would normally be a FREE action,
-            but the consequences cost a turn!)</i>";
+        if (revokedFreeTurn) {
+            "<.p><i>(These particular consequences have cost you a turn!
+                Normally, you would have gotten this for FREE!)</i>";
         }
-        revokedFreeTurn = nil;
         handleSoundPropagation();
     }
 
@@ -71,31 +93,34 @@ huntCore: object {
 //      without you decrements the long-streak.
 //TODO: Passing through a door while being chased asks the player for an evasion action.
 
+#define gHadRevokedFreeAction (turnsTaken == 0 && huntCore.revokedFreeTurn)
+#define gActionWasCostly (turnsTaken > 0 || gHadRevokedFreeAction)
+
 modify Action {
-    freeTurnAlertsRemaining = 3
+    freeTurnAlertsRemaining = 2
 
     turnSequence() {
         // Map mode is done with everything frozen in time
-        if (huntCore.inMapMode) return;
-        huntCore.lastTurnCount = libGlobal.totalTurns;
+        if (huntCore.inMapMode) {
+            revokedFreeTurn = nil;
+            return;
+        }
 
         inherited();
-
-        local wasCostlyTurn =
-            (huntCore.lastTurnCount != libGlobal.totalTurns) ||
-            huntCore.revokedFreeTurn;
         
-        if (wasCostlyTurn) {
+        if (gActionWasCostly) {
             huntCore.advanceTurns();
             huntCore.offerTrickAction();
             huntCore.handleSkashekAction();
         }
         else {
-            if (!gAction.ofKind(SystemAction)) {
-                huntCore.handleFreeTurn();
-                huntCore.offerTrickAction();
-            }
+            huntCore.handleFreeTurn();
+            huntCore.offerTrickAction();
         }
+
+        if (gHadRevokedFreeAction) libGlobal.totalTurns++;
+
+        huntCore.revokedFreeTurn = nil;
     }
 }
 

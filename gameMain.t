@@ -13,6 +13,9 @@
 
 #include "betterChoices.t"
 
+// Begin compile modes
+#define __IS_CAT_GAME true
+
 #if __DEBUG
 ///////////////////////////////////////////////
 ////        PROLOGUE CONTROLLER:          ////
@@ -20,6 +23,7 @@
 /*()*/  #define __SHOW_PROLOGUE nil   /*()*/
 ///////////////////////////////////////////
 
+// End compile modes
 
 #else
 // DO NOT ALTER:
@@ -107,9 +111,18 @@ modify statusLine {
     }
 
     showStatusRight() {
+        local turnVerb = 'survived';
+        if (gCatMode) {
+            if (huntCore.wasBathTimeAnnounced) {
+                turnVerb = 'stinky!';
+            }
+            else {
+                turnVerb = 'explored';
+            }
+        }
         local turnStr = 'turn';
         if (gTurns != 1) turnStr += 's';
-        "<b><<gTurns>> <<turnStr>> survived</b>";
+        "<b><<gTurns>> <<turnStr>> <<turnVerb>></b>";
     }
 }
 
