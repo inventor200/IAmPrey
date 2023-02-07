@@ -14,10 +14,18 @@ huntCore: InitObject {
 
     execBeforeMe = [prologueCore]
     bathTimeFuse = nil
+    apologyGivenToPG = nil
+    apologyFuse = nil
+    allNormalDoors = static new Vector(10)
 
     execute() {
         if (inCatMode) {
             bathTimeFuse = new Fuse(self, &startBathTime, 9);
+            // Cats cannot open doors, so we'll have them open
+            // by default.
+            for (local i = 1; i <= allNormalDoors.length; i++) {
+                allNormalDoors[i].isOpen = true;
+            }
         }
     }
 
@@ -25,11 +33,26 @@ huntCore: InitObject {
         wasBathTimeAnnounced = true;
         "<.p>The voice of your Royal Subject is heard over the facility's
         intercom:\n
-        <q>Piergiorgio...! It's bath time! I can smell you from the other
+        <q><<gCatName>>...! It's bath time! I can smell you from the other
         side of the hunting zone!</q>\b
         Oh no. You fucking <i>hate</i> bath time...!! Time to make
         the Royal Subject <i>work for it!!</i>";
         bathTimeFuse = nil;
+    }
+
+    printApologyNoteForPG() {
+        if (!apologyGivenToPG) {
+            apologyFuse = new Fuse(self, &apologyMethod, 0);
+            apologyGivenToPG = true;
+        }
+        return cat.actualName;
+    }
+
+    apologyMethod() {
+        "<.p><i>(<b>Note for the real Piergiorgio:</b>
+        Don't worry; I will change the cat's name to something else before I
+        upload this anywhere! This silly joke was for testers only!)</i><.p>";
+        apologyFuse = nil;
     }
 
     // Generically handle free action
@@ -76,6 +99,15 @@ huntCore: InitObject {
     // as costly.
     revokeFreeTurn() {
         revokedFreeTurn = true;
+    }
+}
+
+modify Door {
+    preinitThing() {
+        inherited();
+        if (!isLocked) {
+            huntCore.allNormalDoors.append(self);
+        }
     }
 }
 
@@ -146,6 +178,48 @@ modify Read {
 
 modify Thing {
     wasRead = nil
+
+    dobjFor(Open) {
+        verify() {
+            if (gCatMode) {
+                illogical('You are a simple cat, and cannot open that. ');
+                return;
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(Close) {
+        verify() {
+            if (gCatMode) {
+                illogical('As a cat, you don\'t want to make things inaccessible later! ');
+                return;
+            }
+            inherited();
+        }
+    }
+
+    catInventoryMsg = 'Carrying that in your mouth would only slow you down. ';
+
+    dobjFor(Take) {
+        verify() {
+            if (gCatMode) {
+                illogical(catInventoryMsg);
+                return;
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(TakeFrom) {
+        verify() {
+            if (gCatMode) {
+                illogical(catInventoryMsg);
+                return;
+            }
+            inherited();
+        }
+    }
 
     dobjFor(Read) {
         action() {

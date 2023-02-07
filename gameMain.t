@@ -12,6 +12,7 @@
     )
 
 #include "betterChoices.t"
+#define gCatName (huntCore.printApologyNoteForPG())
 
 // Begin compile modes
 #define __IS_CAT_GAME true
@@ -44,7 +45,7 @@
 #include "prologue.t"
 
 gameMain: GameMainDef {
-    initialPlayerChar = (gCatMode ? pgCat: prey)
+    initialPlayerChar = (gCatMode ? cat: prey)
 
     formatForScreenReader = nil
 

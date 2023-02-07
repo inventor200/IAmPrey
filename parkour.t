@@ -1036,7 +1036,7 @@ modify actorInStagingLocation {
             path.acknowledge(); \
             parkourCore.certifyDiscovery(gActor, path); \
             if (parkourCore.showNewRoute) { \
-                reportMethod(path.getDiscoverMsg() + '<.p>'); \
+                reportMethod('<.p>' + path.getDiscoverMsg() + '<.p>'); \
             } \
         } \
     }
@@ -1044,7 +1044,7 @@ modify actorInStagingLocation {
 // Actual parkour reporting
 #define reportParkour \
     if (!parkourCore.hadAccident) { \
-        "<<gParkourLastPath.getPerformMsg()>><.p>"; \
+        "<.p><<gParkourLastPath.getPerformMsg()>><.p>"; \
         if (parkourCore.lookAroundAfter != nil) { \
             parkourCore.lookAroundAfter.lookAroundWithin(); \
             parkourCore.lookAroundAfter = nil; \

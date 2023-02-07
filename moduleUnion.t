@@ -44,6 +44,7 @@ modify parkourCore {
 
 modify Thing {
     doJumpPunishment(actor, traveler, path) {
+        if (gCatMode) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
                 impactNoiseProfile,
@@ -61,6 +62,7 @@ modify Thing {
     }
 
     doHarmfulPunishment(actor, traveler, path) {
+        if (gCatMode) return; // Cats are silent!
         soundBleedCore.createSound(
             hardImpactNoiseProfile,
             traveler.getOutermostRoom(),
