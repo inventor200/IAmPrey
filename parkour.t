@@ -307,6 +307,8 @@ DefineTAction(SwingOn)
     }
 ;
 
+//TODO: Climb/squeeze/crawl through
+
 VerbRule(ParkourClimbOffOf)
     ('get'|'climb'|'cl'|'parkour') ('off'|'off' 'of'|'down' 'from') singleDobj
     : VerbProduction

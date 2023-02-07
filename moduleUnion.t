@@ -10,7 +10,7 @@ climbingNoiseProfile: SoundProfile {
     strength = 3
 
     afterEmission(room) {
-        say('\b(Emitted climbing noise in <<room.roomTitle>>.)');
+        //say('\b(Emitted climbing noise in <<room.roomTitle>>.)');
     }
 }
 
@@ -21,7 +21,7 @@ impactNoiseProfile: SoundProfile {
     strength = 4
 
     afterEmission(room) {
-        say('\b(Emitted impact noise in <<room.roomTitle>>.)');
+        //say('\b(Emitted impact noise in <<room.roomTitle>>.)');
     }
 }
 
@@ -32,7 +32,7 @@ hardImpactNoiseProfile: SoundProfile {
     strength = 5
 
     afterEmission(room) {
-        say('\b(Emitted hard impact noise in <<room.roomTitle>>.)');
+        //say('\b(Emitted hard impact noise in <<room.roomTitle>>.)');
     }
 }
 
@@ -44,7 +44,7 @@ modify parkourCore {
 
 modify Thing {
     doJumpPunishment(actor, traveler, path) {
-        if (gCatMode) return; // Cats are silent!
+        if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
                 impactNoiseProfile,
@@ -62,7 +62,7 @@ modify Thing {
     }
 
     doHarmfulPunishment(actor, traveler, path) {
-        if (gCatMode) return; // Cats are silent!
+        if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         soundBleedCore.createSound(
             hardImpactNoiseProfile,
             traveler.getOutermostRoom(),

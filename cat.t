@@ -4,8 +4,8 @@
 #define catRealName 'Piergiorgio'
 #define catNicknameVocab ('pg pigi peegee pier giorg giorge giorgio piergiorgio')
 #else
-#define catRealName 'Kahn'
-#define catNicknameVocab ('kahn king')
+#define catRealName 'Arthur'
+#define catNicknameVocab ('king arthur')
 #endif
 
 cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>' @subtleRoom

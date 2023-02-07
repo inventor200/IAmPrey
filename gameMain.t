@@ -35,13 +35,14 @@
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
-#include "huntCore.t"
 #include "soundBleed.t"
+#include "huntCore.t"
 #include "parkour.t"
 #include "trinkets.t"
 #include "moduleUnion.t"
 #include "preyPlayer.t"
 #include "cat.t"
+#include "skashek.t"
 #include "prologue.t"
 
 gameMain: GameMainDef {
@@ -142,7 +143,7 @@ centralRoom: Room { 'Central Room'
 }*/
 
 +hallwayDoor: Door { 'hallway door'
-    "The door to the hallway. "
+    "The door to the hallway. <<catFlapDesc>> "
     otherSide = centralRoomDoor
 }
 
@@ -312,7 +313,7 @@ centerHallway: Room { 'Hallway (Center)'
 }
 
 +centralRoomDoor: Door { 'central room door'
-    "The door to the central room. "
+    "The door to the central room. <<catFlapDesc>> "
     otherSide = hallwayDoor
 }
 

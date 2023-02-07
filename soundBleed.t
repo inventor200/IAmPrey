@@ -1,5 +1,7 @@
 enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
+#define __DEBUG_SOUND_PLAYER_SIDE nil
+
 soundBleedCore: object {
     envSounds = static new Vector(16) // Non-player sounds go here
     envSoundRooms = static new Vector(16) // Aligned room vector so new objects are not created
@@ -20,16 +22,24 @@ soundBleedCore: object {
 
     createSound(soundProfile, room, causedByPlayer?) {
         if (causedByPlayer) {
-            if (playerSounds.indexOf(soundProfile) == nil) {
-                playerSounds.append(soundProfile);
-                playerSoundRooms.append(room);
+            for (local i = 1; i <= playerSounds.length; i++) {
+                if (playerSounds[i] == soundProfile &&
+                    playerSoundRooms[i] == room) {
+                    return;
+                }
             }
+            playerSounds.append(soundProfile);
+            playerSoundRooms.append(room);
         }
         else {
-            if (envSounds.indexOf(soundProfile) == nil) {
-                envSounds.append(soundProfile);
-                envSoundRooms.append(room);
+            for (local i = 1; i <= envSounds.length; i++) {
+                if (envSounds[i] == soundProfile &&
+                    envSoundRooms[i] == room) {
+                    return;
+                }
             }
+            envSounds.append(soundProfile);
+            envSoundRooms.append(room);
         }
     }
 
@@ -65,6 +75,9 @@ soundBleedCore: object {
         if (startRoom == gPlayerChar.getOutermostRoom()) return;
         
         propagationPlayerPerceivedStrength = 0;
+        #if __DEBUG_SOUND_PLAYER_SIDE
+        "<.p>(Propagating into <<startRoom.roomTitle>>)<.p>";
+        #endif
         propagateRoomForPlayer(startRoom, soundProfile, bleedSource, 3, nil);
         clearRooms();
     }
@@ -97,6 +110,9 @@ soundBleedCore: object {
 
     propagateRoomForPlayer(room, profile, form, strength, sourceDirection) {
         if (room == gPlayerChar.getOutermostRoom()) {
+            #if __DEBUG_SOUND_PLAYER_SIDE
+            "<.p>(Found player in <<room.roomTitle>>)<.p>";
+            #endif
             // Only reveal to the player if it wasn't heard louder before
             if (propagationPlayerPerceivedStrength < strength) {
                 propagationPlayerPerceivedStrength = strength;
@@ -111,9 +127,11 @@ soundBleedCore: object {
 
                 profile.doPlayerPerception(form, sourceDirection, throughDoor);
             }
+            // It doesn't matter if we were accepted; we just got there
+            return true;
         }
 
-        if (strength == 1) return;
+        if (strength == 1) return nil;
 
         local priorityFlag = nil;
 
@@ -135,14 +153,19 @@ soundBleedCore: object {
                         // 5 = source
                         if (!checkPropagationStep(selectedMuffleDestination, 2)) continue;
                         
-                        propagateRoomForPlayer(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
-                        priorityFlag = true; // Gets priority.
+                        #if __DEBUG_SOUND_PLAYER_SIDE
+                        "<.p>(Muffling into <<selectedMuffleDestination.roomTitle>>)<.p>";
+                        #endif
+
+                        if (propagateRoomForPlayer(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir)) {
+                            priorityFlag = true; // Gets priority.
+                        }
                     }
                 }
             }
         }
 
-        if (priorityFlag) return;
+        if (priorityFlag) return true;
 
         if (strength >= 2) {
             // Muffle through closed doors propagation
@@ -155,8 +178,13 @@ soundBleedCore: object {
                             if (!selectedConnector.isOpen) {
                                 if (!checkPropagationStep(selectedDestination, 3)) continue;
 
-                                propagateRoomForPlayer(selectedDestination, profile, wallMuffle, 1, nextSourceDir);
-                                priorityFlag = true; // Gets priority.
+                                #if __DEBUG_SOUND_PLAYER_SIDE
+                                "<.p>(Door-muffling into <<selectedDestination.roomTitle>>)<.p>";
+                                #endif
+                                
+                                if (propagateRoomForPlayer(selectedDestination, profile, wallMuffle, 1, nextSourceDir)) {
+                                    priorityFlag = true; // Gets priority.
+                                }
                             }
                         }
                     }
@@ -164,7 +192,7 @@ soundBleedCore: object {
             }
         }
 
-        if (priorityFlag) return;
+        if (priorityFlag) return true;
 
         // Echo propagation
         for (local i = 1; i <= 12; i++) {
@@ -178,11 +206,19 @@ soundBleedCore: object {
 
                     if (!checkPropagationStep(selectedDestination, fakeNextStrength)) continue;
 
+                    #if __DEBUG_SOUND_PLAYER_SIDE
+                    "<.p>(Echoing into <<selectedDestination.roomTitle>>)<.p>";
+                    #endif
+
                     local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
-                    propagateRoomForPlayer(selectedDestination, profile, nextForm, nextStrength, nextSourceDir);
+                    if (propagateRoomForPlayer(selectedDestination, profile, nextForm, nextStrength, nextSourceDir)) {
+                        return true;
+                    }
                 }
             }
         }
+
+        return nil;
     }
 
     propagateRoomForSkashek(room, profile, strength, sourceDirection) {
