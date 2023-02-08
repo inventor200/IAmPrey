@@ -38,6 +38,7 @@ hardImpactNoiseProfile: SoundProfile {
 
 modify parkourCore {
     certifyDiscovery(actor, path) {
+        if (gActor != gPlayerChar) return;
         huntCore.revokeFreeTurn();
     }
 }
@@ -48,6 +49,7 @@ modify Thing {
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
                 impactNoiseProfile,
+                getSoundSource(),
                 traveler.getOutermostRoom(),
                 actor == gPlayerChar
             );
@@ -55,6 +57,7 @@ modify Thing {
         else {
             soundBleedCore.createSound(
                 climbingNoiseProfile,
+                getSoundSource(),
                 traveler.getOutermostRoom(),
                 actor == gPlayerChar
             );
@@ -65,6 +68,7 @@ modify Thing {
         if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         soundBleedCore.createSound(
             hardImpactNoiseProfile,
+            getSoundSource(),
             traveler.getOutermostRoom(),
             actor == gPlayerChar
         );

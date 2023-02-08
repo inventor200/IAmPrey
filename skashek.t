@@ -3,4 +3,8 @@ skashek: Actor { 'Skashek;;predator hunter royal[weak] subject' @centralRoom
     isHim = true
 
     globalParamName = (gCatMode ? 'the Royal Subject' : 'the Predator')
+
+    doPerception() {
+        //TODO: Handle Skashek perception
+    }
 }

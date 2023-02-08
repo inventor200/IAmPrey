@@ -375,7 +375,7 @@ DefineIAction(ParkourJumpOffIntransitive)
     }
 ;
 
-#define expandableLocalPlats 'platforms'|'plats'|'surfaces'
+#define expandableLocalPlats 'platforms'|'plats'|'surfaces'|'supporters'
 #define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search'|'scan')
 #define expandableParkourAvailability ('available'|'known'|'familiar'|'traveled'|'travelled'|)
 #define expandableRouteRoot ('parkour'|'prkr'|'pkr'|'pk'|expandableParkourTargetShort)
@@ -2458,7 +2458,8 @@ class ParkourModule: SubComponent {
         local commandAlt = getBetterPrepFromPath(path) + destName;
         strBfr.append(aHrefAlt(
             getClimbCommand(path).toLower(),
-            commandAlt, commandAlt
+            commandAlt,
+            '<b>' + getClimbCommand(path).toUpper() + '</b>'
         ));
     }
 
@@ -2474,7 +2475,11 @@ class ParkourModule: SubComponent {
                 getPrepFromPath(path) + 'to ' +
                 path.destination.parkourModule.theName;
         }
-        return aHrefAlt(getClimbCommand(path).toLower(), commandText, commandText);
+        return aHrefAlt(
+            getClimbCommand(path).toLower(),
+            commandText,
+            '<b>' + commandText.toUpper() + '</b>'
+        );
     }
 
     getProviderCommand(provider) {

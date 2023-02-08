@@ -1,5 +1,11 @@
 enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define gCatMode huntCore.inCatMode
+#define gPlayerAction huntCore.playerAction
+#define gPlayerActionActor huntCore.playerActionActor
+#define gPlayerDobj huntCore.playerAction.curDobj
+#define gPlayerIobj huntCore.playerAction.curIobj
+#define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
+#define __DEBUG_SKASHEK_ACTIONS nil
 
 huntCore: InitObject {
     revokedFreeTurn = nil
@@ -19,6 +25,10 @@ huntCore: InitObject {
     apologyFuse = nil
     #endif
 
+    //playerCommand = nil
+    playerAction = nil
+    playerActionActor = nil
+
     execute() {
         if (inCatMode) {
             bathTimeFuse = new Fuse(self, &startBathTime, 9);
@@ -29,21 +39,21 @@ huntCore: InitObject {
         wasBathTimeAnnounced = true;
         "<.p>The voice of your Royal Subject is heard over the facility's
         intercom:\n
-        <q><<gCatName>>...! It's bath time! I can smell you from the other
-        side of the hunting zone!</q>\b
+        <q><<gCatNickname>>...!
+        It's bath time! I can smell you from the other side of the facility!</q>\b
         Oh no. You fucking <i>hate</i> bath time...!! Time to make
         the Royal Subject <i>work for it!!</i>";
         bathTimeFuse = nil;
     }
 
-    printApologyNoteForPG() {
+    printApologyNoteForPG(nickname?) {
         #if __DEBUG
         if (!apologyGivenToPG) {
             apologyFuse = new Fuse(self, &apologyMethod, 0);
             apologyGivenToPG = true;
         }
         #endif
-        return cat.actualName;
+        return nickname ? cat.nickname : cat.actualName;
     }
 
     #if __DEBUG
@@ -85,7 +95,9 @@ huntCore: InitObject {
 
     // Shashek's actions go here
     handleSkashekAction() {
-        //
+        if (gTurns == 6) {
+            doSkashekAction(Open, hallwayDoor);
+        }
         handleSoundPropagation();
     }
 
@@ -100,364 +112,88 @@ huntCore: InitObject {
     revokeFreeTurn() {
         revokedFreeTurn = true;
     }
-}
 
-doorSlamCloseNoiseProfile: SoundProfile {
-    'the muffled <i>ka-thud</i> of a door automatically closing'
-    'the echoing <i>ka-chunk</i> of a door automatically closing'
-    'the reverberating <i>thud</i> of a door automatically closing'
-    strength = 5
+    // Build and execute an action for Skashek
+    doSkashekAction(action, dobj?, iobj?) {
+        // Save what the player's command execution was for later
+        playerActionActor = gActor;
+        playerAction = gAction;
+        //playerCommand = gCommand;
 
-    afterEmission(room) {
-        //say('\b(Emitted door slam in <<room.roomTitle>>.)');
-    }
-}
+        // Do Skashek's action
+        gActor = skashek;
+        gCommand.actor = skashek;
+        gAction = action.createInstance();
+        gDobj = dobj;
+        gIobj = iobj;
+        //routeSkashekAction();
 
-#define peekExpansion ('peek'|'peer'|'spy'|'check'|'watch')
-
-VerbRule(PeekThrough)
-    peekExpansion ('through'|'thru'|) singleDobj
-    : VerbProduction
-    action = PeekThrough
-    verbPhrase = 'peek/peeking through (what)'
-    missingQ = 'what do you want to peek through'    
-;
-
-DefineTAction(PeekThrough)
-    turnsTaken = 0
-;
-
-VerbRule(PeekInto)
-    [badness 100] peekExpansion ('in'|'into'|'inside' 'of') singleDobj
-    : VerbProduction
-    action = PeekInto
-    verbPhrase = 'peek/peeking into (what)'
-    missingQ = 'what do you want to peek into'    
-;
-
-DefineTAction(PeekInto)
-;
-
-VerbRule(PeekDirection)
-    peekExpansion singleDir
-    : VerbProduction
-    action = PeekDirection
-    verbPhrase = 'peek/peeking {where)'  
-;
-
-DefineTAction(PeekDirection)
-    turnsTaken = 0
-    direction = nil
-
-    execCycle(cmd) {
-        direction = cmd.verbProd.dirMatch.dir; 
+        // Verify (privately)
+        local clear = true;
+        if (dobj != nil) {
+            gAction.verifyTab = new LookupTable;
+            #if __DEBUG_SKASHEK_ACTIONS
+            if (!gAction.verifyObjRole(dobj, DirectObject)) clear = nil;
+            #else
+            local verResult = gAction.verify(dobj, DirectObject);
+            if (!verResult.allowAction) clear = nil;
+            #endif
+        }
+        if (iobj != nil) {
+            gAction.verifyTab = new LookupTable;
+            #if __DEBUG_SKASHEK_ACTIONS
+            if (!gAction.verifyObjRole(iobj, IndirectObject)) clear = nil;
+            #else
+            local verResult = gAction.verify(iobj, IndirectObject);
+            if (!verResult.allowAction) clear = nil;
+            #endif
+        }
         
-        IfDebug(actions, "[Executing PeekDirection <<direction.name>>]\n");
-        
-        inherited(cmd);
-    }
-
-    execAction(cmd) {
-        parkourCore.cacheParkourRunner(gActor);
-        local loc = parkourCore.currentParkourRunner.getOutermostRoom();
-        local conn = nil;
-
-        // Get destination
-        if (loc.propType(direction.dirProp) == TypeObject) {
-            conn = loc.(direction.dirProp);
-
-            local clear = true;
-            if (conn == nil) clear = nil;
-            if (conn != nil) {
-                if (!conn.isConnectorApparent) {
-                    clear = nil;
+        // All clear? Proceed!
+        if (clear) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            local actionName = actionTab.symbolToVal(action);
+            "<.p>SKASHEK: Performing [<<actionName>>]!<.p>";
+            #endif
+            if (dobj == nil) {
+                gAction.doIntransitiveSkashek();
+                #if __DEBUG_SKASHEK_ACTIONS
+                gAction.reportIntransitiveSkashek();
+                #else
+                if (gPlayerChar.canSee(skashek)) {
+                    gAction.reportIntransitiveSkashek();
                 }
-            }
-
-            if (!clear) {
-                "{I} {cannot} peek that way. ";
-                abort;
-            }
-        }
-
-        local dest = conn.destination;
-
-        // Exhaust all possible Things that might be connecting
-        local scpList = Q.scopeList(gActor).toList();
-        for (local i = 1; i <= scpList.length; i++) {
-            local obj = scpList[i];
-            if (obj.ofKind(TravelConnector) && obj.ofKind(Thing)) {
-                if (obj.destination == dest) {
-                    doNested(PeekThrough, obj);
-                    return;
-                }
-            }
-        }
-
-        // At this point, it is a simple room connection
-        if (!parkourCore.currentParkourRunner.location.ofKind(Room)) {
-            local terraFirmaName = 'the floor';
-            if (loc != nil) {
-                if (loc.floorObj != nil) {
-                    terraFirmaName = loc.floorObj.theName;
-                }
-            }
-            "{I} need{s/ed} to be on <<terraFirmaName>> to do that. ";
-            abort;
-        }
-
-        "{I} carefully peek <<direction.name>>...\b";
-        conn.destination.getOutermostRoom().peekInto();
-    }
-;
-
-modify Thing {
-    dobjFor(PeekThrough) asDobjFor(LookThrough)
-    dobjFor(PeekInto) asDobjFor(LookIn)
-}
-
-#define catFlapDesc 'At the bottom of this door is a cat flap.'
-
-modify Door {
-    hasCatFlap = nil
-    catFlap = nil
-    closingFuse = nil
-    lastToTouch = nil
-
-    preinitThing() {
-        inherited();
-        if ((hasCatFlap || !isLocked) && catFlap == nil) {
-            hasCatFlap = true;
-            otherSide.hasCatFlap = true;
-            catFlap = new CatFlap(self);
-            catFlap.preinitThing();
-        }
-    }
-
-    makeOpen(stat) {
-        inherited(stat);
-
-        if (closingFuse != nil) {
-            closingFuse.removeEvent();
-            closingFuse = nil;
-        }
-
-        if (otherSide != nil) {
-            if (otherSide.closingFuse != nil) {
-                otherSide.closingFuse.removeEvent();
-                otherSide.closingFuse = nil;
-            }
-        }
-
-        if (stat) {
-            closingFuse = new Fuse(self, &autoClose, 3);
-        }
-    }
-
-    autoClose() {
-        makeOpen(nil);
-        if (gPlayerChar.canSee(self) || gPlayerChar.canSee(otherSide)) {
-            local obj = self;
-            gMessageParams(obj);
-            "<.p>{The subj obj} sighs mechanically closed,
-            ending with a noisy <i>ka-chunk</i>. ";
-        }
-
-        // Be NOISY!!! :D
-        if (lastToTouch == gPlayerChar) {
-            soundBleedCore.createSound(
-                doorSlamCloseNoiseProfile,
-                getOutermostRoom(),
-                true
-            );
-            if (otherSide != nil) {
-                soundBleedCore.createSound(
-                    doorSlamCloseNoiseProfile,
-                    otherSide.getOutermostRoom(),
-                    true
-                );
-            }
-        }
-
-        // Always listen to consequences
-        soundBleedCore.createSound(
-            doorSlamCloseNoiseProfile,
-            getOutermostRoom(),
-            nil
-        );
-        if (otherSide != nil) {
-            soundBleedCore.createSound(
-                doorSlamCloseNoiseProfile,
-                otherSide.getOutermostRoom(),
-                nil
-            );
-        }
-
-        lastToTouch = nil;
-    }
-
-    dobjFor(Open) {
-        verify() {
-            if (gActor == cat) {
-                illogical('{That subj dobj} {is} too heavy for an old cat to open.<<
-                if hasCatFlap>> That\'s probably why the Royal Subject installed a cat
-                flap<<first time>> <i>(cut a ragged square hold into the bottom with
-                power tools)</i><<only>>.<<end>> ');
-                return;
-            }
-            inherited();
-        }
-        action() {
-            lastToTouch = gActor;
-            inherited();
-        }
-    }
-
-    dobjFor(Close) {
-        verify() {
-            if (gActor == cat) {
-                illogical('{That subj dobj} {is} too heavy for an old cat to close.
-                It\'s fortunate that these close on their own, instead. ');
-                return;
-            }
-            inherited();
-        }
-        action() {
-            lastToTouch = nil;
-            inherited();
-        }
-        report() {
-            if (gActor == gPlayerChar) {
-                "{I} gently close{s/d} the door,
-                so that it{dummy} {do} not make a sound. ";
+                #endif
             }
             else {
-                inherited();
-            }
-        }
-    }
-
-    dobjFor(GoThrough) { // Assume the cat is using the cat flap
-        preCond = (gActor == cat ? [travelPermitted, touchObj] :
-            [travelPermitted, touchObj, objOpen])
-    }
-
-    dobjFor(PeekInto) asDobjFor(LookThrough)
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        preCond = [touchObj]
-        remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
-        verify() {
-            if (!isOpen && !hasCatFlap && !isTransparent) {
-                illogical('{I} {cannot} peek through an opaque door. ');
-            }
-        }
-        action() { }
-        report() {
-            if (isTransparent || isOpen) {
-                "{I} peek{s/ed} through <<theName>>...\b";
-            }
-            else {
-                "{I} peek{s/ed} through the cat flap of <<theName>>...\b";
-            }
-            lexicalParent.otherSide.getOutermostRoom().peekInto();
-        }
-    }
-
-    isActuallyPassable(traveler) {
-        if (traveler == cat) {
-            return hasCatFlap;
-        }
-        return isOpen;
-    }
-
-    replace checkTravelBarriers(traveler) {
-        if(inherited(traveler) == nil) {
-            return nil;
-        }
-        
-        if (!isActuallyPassable(traveler)) {
-            if (gPlayerChar.isOrIsIn(traveler)) {
-                if (tryImplicitAction(Open, self)) {
-                    "<<gAction.buildImplicitActionAnnouncement(true)>>";
+                dobj.(gAction.skashekActionProp);
+                if (iobj != nil) {
+                    iobj.(gAction.skashekActionProp);
                 }
+                #if __DEBUG_SKASHEK_ACTIONS
+                dobj.(gAction.skashekReportProp);
+                if (iobj != nil) {
+                    iobj.(gAction.skashekReportProp);
+                }
+                #else
+                if (gPlayerChar.canSee(skashek)) {
+                    dobj.(gAction.skashekReportProp);
+                    if (iobj != nil) {
+                        iobj.(gAction.skashekReportProp);
+                    }
+                }
+                #endif
             }
-            else if (tryImplicitActorAction(traveler, Open, self)) { }
-            else if (gPlayerChar.canSee(traveler)) {
-                local obj = self;
-                gMessageParams(obj);
-
-                say(cannotGoThroughClosedDoorMsg);
-            }
-        }
-        
-        return isActuallyPassable(traveler);
-    }
-
-    replace noteTraversal(actor) {
-        if(actor == gPlayerChar && !(gAction.isPushTravelAction && suppressTravelDescForPushTravel)) {
-            if (!gOutStream.watchForOutput({:travelDesc}) && actor == cat) {
-                local obj = gActor;
-                gMessageParams(obj);
-                "{The subj obj} carefully climb{s/ed} through the cat flap of <<theName>>.";
-            }
-            "<.p>";
         }
 
-        local travelers = (actor.location && actor.location.isVehicle)
-            ? [actor, actor.location] : [actor];
-
-        traversedBy = traversedBy.appendUnique(travelers);
-    }
-}
-
-class CatFlap: Decoration {
-    construct(door) {
-        owner = door;
-        ownerNamed = true;
-        vocab = 'cat flap;pet kitty;door[weak] catflap petflap';
-        inherited();
-        lexicalParent = door;
-        moveInto(door);
-    }
-
-    desc = "A ragged, square hole that has been cut into the bottom of the thick, industrial
-    door. It must have required a combination of incredible power tools, <i>lots</i> of
-    free time, and a radiant, heartfelt fondness for a certain cat."
-
-    decorationActions = [Examine, GoThrough, Enter, PeekThrough, LookThrough, PeekInto, LookIn]
-
-    canGoThroughMe = true
-
-    dobjFor(Enter) asDobjFor(GoThrough)
-    dobjFor(GoThrough) {
-        remap = lexicalParent
-    }
-
-    dobjFor(PeekInto) asDobjFor(LookThrough)
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        preCond = [touchObj]
-        verify() {
-            logical;
-        }
-        action() { }
-        report() {
-            "{I} peek{s/ed} through the cat flap of <<lexicalParent.theName>>...\b";
-            lexicalParent.otherSide.getOutermostRoom().peekInto();
-        }
-    }
-}
-
-modify Room {
-    peekInto() {
-        if (skashek.getOutermostRoom() == self) {
-            "<i>\^<<skashek.globalParamName>> is in there!</i> ";
-            //TODO: Roll for catching!
-        }
-        else {
-            "<i>Seems safe!</i> ";
-        }
+        // Restore the player's command execution
+        //gCommand = playerCommand;
+        gAction = playerAction;
+        gCommand.actor = playerActionActor;
+        gActor = playerActionActor;
+        //playerCommand = nil;
+        playerAction = nil;
+        playerActionActor = nil;
     }
 }
 
@@ -480,6 +216,11 @@ modify Room {
 
 modify Action {
     freeTurnAlertsRemaining = 2
+    skashekActionProp = nil
+    skashekReportProp = nil
+
+    doIntransitiveSkashek() { }
+    reportIntransitiveSkashek() { }
 
     turnSequence() {
         // Map mode is done with everything frozen in time
@@ -526,74 +267,29 @@ modify Read {
     turnsTaken = 0
 }
 
+#define gSkashekGPName skashek.globalParamName
+
+#define reinventForSkashek(action) \
+    modify action { \
+        skashekActionProp = &dobjForDoSkashek##action \
+        skashekReportProp = &dobjForReportSkashek##action \
+    } \
+    modify Thing { \
+        dobjForDoSkashek##action##() { \
+            local actionName = actionTab.symbolToVal(action); \
+            "<.p>ERROR: MISSING ACTION <<actionName>>!<.p>"; \
+        } \
+        dobjForReportSkashek##action##() { } \
+    }
+
+reinventForSkashek(Open)
+
 modify Thing {
-    wasRead = nil
-
-    dobjFor(Open) {
-        report() {
-            if (gActor == cat) {
-                "After gingerly whapping {him dobj} with {my} paws,
-                {I} finally open{s/ed} <<gActionListStr>>. ";
-                return;
-            }
-            inherited();
-        }
+    dobjForDoSkashekOpen() {
+        makeOpen(true);
     }
 
-    dobjFor(Close) {
-        report() {
-            if (gActor == cat) {
-                "After careful taps with {my} paws,
-                {I} manage{s/d} to close <<gActionListStr>>. ";
-                return;
-            }
-            inherited();
-        }
-    }
-
-    //TODO: Add limited inventory to cat
-    catInventoryMsg = 'Carrying that in your mouth would only slow you down. ';
-
-    dobjFor(Take) {
-        verify() {
-            if (gActor == cat) {
-                illogical(catInventoryMsg);
-                return;
-            }
-            inherited();
-        }
-    }
-
-    dobjFor(TakeFrom) {
-        verify() {
-            if (gActor == cat) {
-                illogical(catInventoryMsg);
-                return;
-            }
-            inherited();
-        }
-    }
-
-    dobjFor(Read) {
-        action() {
-            if (self != catNameTag && gActor == cat) {
-                "The strange hairless citizens make odd chants while
-                staring at these odd shapes, sometimes for hours
-                at a time. {I'm} not sure what <i>this</i> particular
-                example would do to them, but {i} resent it anyway.";
-            }
-            else {
-                if (propType(&readDesc) == TypeNil) {
-                    say(cannotReadMsg);
-                }
-                else {
-                    display(&readDesc);
-                    if (!wasRead) {
-                        huntCore.revokeFreeTurn();
-                    }
-                    wasRead = true;
-                }
-            }
-        }
+    dobjForReportSkashekOpen() {
+        "\^<<gSkashekGPName>> opens <<theName>>! ";
     }
 }

@@ -2,9 +2,11 @@
 
 #if __DEBUG
 #define catRealName 'Piergiorgio'
+#define catNickname catRealName
 #define catNicknameVocab ('pg pigi peegee pier giorg giorge giorgio piergiorgio')
 #else
 #define catRealName 'Arthur'
+#define catNickname 'King Arthur'
 #define catNicknameVocab ('king arthur')
 #endif
 
@@ -13,6 +15,8 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>' @subtleRoom
     isHim = true
 
     actualName = catRealName
+    nickname = catNickname
+    globalParamName = 'the cat'
 }
 
 +catNameTag: Fixture { 'nametag;name;tag collar pendant plate badge card'

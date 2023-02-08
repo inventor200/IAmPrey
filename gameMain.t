@@ -13,9 +13,10 @@
 
 #include "betterChoices.t"
 #define gCatName (huntCore.printApologyNoteForPG())
+#define gCatNickname (huntCore.printApologyNoteForPG(true))
 
 // Begin compile modes
-#define __IS_CAT_GAME true
+#define __IS_CAT_GAME nil
 
 #if __DEBUG
 ///////////////////////////////////////////////
@@ -36,6 +37,7 @@
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
 #include "soundBleed.t"
+#include "sneakyDoors.t"
 #include "huntCore.t"
 #include "parkour.t"
 #include "trinkets.t"
