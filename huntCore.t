@@ -158,31 +158,45 @@ huntCore: InitObject {
             if (dobj == nil) {
                 gAction.doIntransitiveSkashek();
                 #if __DEBUG_SKASHEK_ACTIONS
-                gAction.reportIntransitiveSkashek();
+                local intVis = nil;
                 #else
-                if (gPlayerChar.canSee(skashek)) {
+                local intVis = gAction.isVisibleAsSkashek();
+                #endif
+                if (intVis) {
                     gAction.reportIntransitiveSkashek();
                 }
-                #endif
             }
             else {
-                dobj.(gAction.skashekActionProp);
+                // Do actions
+                dobj.(gAction.skashekActionDProp);
                 if (iobj != nil) {
-                    iobj.(gAction.skashekActionProp);
+                    iobj.(gAction.skashekActionIProp);
                 }
+                
+                // Check visibility and report
                 #if __DEBUG_SKASHEK_ACTIONS
-                dobj.(gAction.skashekReportProp);
-                if (iobj != nil) {
-                    iobj.(gAction.skashekReportProp);
-                }
+                local dVis = true;
                 #else
-                if (gPlayerChar.canSee(skashek)) {
-                    dobj.(gAction.skashekReportProp);
-                    if (iobj != nil) {
-                        iobj.(gAction.skashekReportProp);
+                local dVis = gAction.isVisibleAsSkashek() ||
+                    dobj.(gAction.skashekVisibilityDProp);
+                #endif
+                
+                if (dVis) {
+                    dobj.(gAction.skashekReportDProp);
+                }
+
+                if (iobj != nil) {
+                    #if __DEBUG_SKASHEK_ACTIONS
+                    local iVis = true;
+                    #else
+                    local iVis = gAction.isVisibleAsSkashek() ||
+                        iobj.(gAction.skashekVisibilityIProp);
+                    #endif
+
+                    if (iVis) {
+                        iobj.(gAction.skashekReportDProp);
                     }
                 }
-                #endif
             }
         }
 
@@ -216,11 +230,20 @@ huntCore: InitObject {
 
 modify Action {
     freeTurnAlertsRemaining = 2
-    skashekActionProp = nil
-    skashekReportProp = nil
+
+    skashekActionDProp = nil
+    skashekVisibilityDProp = nil
+    skashekReportDProp = nil
+    skashekActionIProp = nil
+    skashekVisibilityIProp = nil
+    skashekReportIProp = nil
 
     doIntransitiveSkashek() { }
     reportIntransitiveSkashek() { }
+
+    isVisibleAsSkashek() {
+        return gPlayerChar.canSee(skashek);
+    }
 
     turnSequence() {
         // Map mode is done with everything frozen in time
@@ -271,22 +294,71 @@ modify Read {
 
 #define reinventForSkashek(action) \
     modify action { \
-        skashekActionProp = &dobjForDoSkashek##action \
-        skashekReportProp = &dobjForReportSkashek##action \
+        skashekActionDProp = &dobjForDoSkashek##action \
+        skashekVisibilityDProp = &dobjForVisibilitySkashek##action \
+        skashekReportDProp = &dobjForReportSkashek##action \
+        skashekActionIProp = &iobjForDoSkashek##action \
+        skashekVisibilityIProp = &iobjForVisibilitySkashek##action \
+        skashekReportIProp = &iobjForReportSkashek##action \
     } \
     modify Thing { \
         dobjForDoSkashek##action##() { \
             local actionName = actionTab.symbolToVal(action); \
-            "<.p>ERROR: MISSING ACTION <<actionName>>!<.p>"; \
+            "<.p>ERROR: MISSING DOBJ SKASHEK ACTION <<actionName>>!<.p>"; \
+        } \
+        dobjForVisibilitySkashek##action##() { \
+            return dobjForVisibilitySkashekDefault(); \
         } \
         dobjForReportSkashek##action##() { } \
+        iobjForDoSkashek##action##() { \
+            local actionName = actionTab.symbolToVal(action); \
+            "<.p>ERROR: MISSING IOBJ SKASHEK ACTION <<actionName>>!<.p>"; \
+        } \
+        iobjForVisibilitySkashek##action##() { \
+            return iobjForVisibilitySkashekDefault(); \
+        } \
+        iobjForReportSkashek##action##() { } \
     }
 
 reinventForSkashek(Open)
 
 modify Thing {
+    dobjForVisibilitySkashekDefault() {
+        return gPlayerChar.canSee(self);
+    }
+
+    iobjForVisibilitySkashekDefault() {
+        return gPlayerChar.canSee(self);
+    }
+
     dobjForDoSkashekOpen() {
         makeOpen(true);
+    }
+
+    dobjForReportSkashekOpen() {
+        "\^<<gSkashekGPName>> opens <<theName>>. ";
+    }
+
+    dobjForDoSkashekClose() {
+        makeOpen(nil);
+    }
+
+    dobjForReportSkashekClose() {
+        "\^<<gSkashekGPName>> closes <<theName>>. ";
+    }
+}
+
+modify Door {
+    dobjForVisibilitySkashekDefault() {
+        local otherVis = nil;
+        if (otherSide != nil) otherVis = gPlayerChar.canSee(otherSide);
+        return gPlayerChar.canSee(self) || otherVis;
+    }
+
+    iobjForVisibilitySkashekDefault() {
+        local otherVis = nil;
+        if (otherSide != nil) otherVis = gPlayerChar.canSee(otherSide);
+        return gPlayerChar.canSee(self) || otherVis;
     }
 
     dobjForReportSkashekOpen() {

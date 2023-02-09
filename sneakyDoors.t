@@ -145,7 +145,11 @@ VerbRule(SlamClosed)
 ;
 
 DefineTAction(SlamClosed)
+    turnsTaken = 0
 ;
+
+//TODO: When entering a room with open doors, list the doors,
+// and account for expectations
 
 modify Thing {
     dobjFor(PeekThrough) asDobjFor(LookThrough)
@@ -304,9 +308,11 @@ modify Door {
     witnessClosing() {
         clearFuse(&closingFuse);
         if (canEitherBeSeenBy(gPlayerChar)) {
+            wasPlayerExpectingAClose = true;
             clearFuse(&playerCloseExpectationFuse);
         }
         if (canEitherBeSeenBy(skashek)) {
+            wasSkashekExpectingAClose = true;
             clearFuse(&skashekCloseExpectationFuse);
         }
     }
@@ -370,11 +376,40 @@ modify Door {
     slamClosingMsg =
         '{The subj dobj} <i>slams</i> shut! '
     
+    randomThoughtOnset =
+        '<<one of>>...<<or>><<at random>>'
+    
+    realizationExclamation =
+        '<<randomThoughtOnset>><<
+        one of>>Wait<<or>>Wait a moment<<or>>Wait a second<<or>>Wait a sec<<
+        or>>Hey<<or>>Hold on<<at random>>'
+
+    suspicionMsgAlt1 =
+        '<i><<one of>>supposed<<or>>meant<<at random>></i> to hear
+        that<<one of>> happen<<or>> just now<<or>> just then<<or>><<at random>>'
+
+    suspicionMsgAlt2 =
+        'the <<one of>>one who<<or>>cause of<<or>>cause for<<or>>reason for<<at random
+        >><<one of>>opened<<or>>caused<<at random>>'
+    
+    suspicionMsgQuestionGrp1 = 'were you
+        <<one of>><<suspicionMsgAlt1>><<or>><<suspicionMsgAlt2>>
+        that<<at random>>'
+    
+    suspicionMsgQuestionGrp2 = 'was that
+        <<one of>><i>your</i> door<<or>>one of <i>your</i>
+        doors<<one of>> from before<<or>> from earlier<<or>><<at random>><<at random>>'
+    
     suspicionMsg =
-        '...Wait, were you <i>supposed</i> to hear that...?'
+        '<<realizationExclamation>>, <<one of>><<suspicionMsgQuestionGrp1>><<or
+        >><<suspicionMsgQuestionGrp2>><<at random>>...?'
     
     suspiciousSilenceMsg =
-        'Hey, isn\'t <<theName>> supposed to <i>close itself</i> by now...?'
+        '<<realizationExclamation>>,
+        <<one of>>isn\'t<<or>>wasn\'t<<at random>> <<theName>>
+        <<one of>>supposed<<or>>meant<<or>>scheduled<<at random>>
+        to <i><<one of>>close<<or>>shut<<at random>> itself</i>
+        <<one of>>by<<or>>right about<<or>>around<<at random>> now...?'
 
     makePlayerSuspicious() {
         if (canEitherBeHeardBy(gPlayerChar)) {
@@ -428,7 +463,6 @@ modify Door {
                 }
             }
         }
-        //primedPlayerAudio = nil;
     }
 
     emitNormalClosingSound() {
@@ -552,9 +586,6 @@ modify Door {
         action() {
             slam();
         }
-        /*report() {
-            say(slamClosingMsg);
-        }*/
     }
 
     dobjFor(GoThrough) { // Assume the cat is using the cat flap
