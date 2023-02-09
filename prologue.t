@@ -32,18 +32,33 @@ prologueCore: InitObject {
         catCutscene.play();
         #else
         cls();
+        "\b<b>Definition of AUTO-SNEAKING:</b>\n
+        Players must remember to perform <i>all</i> precautions
+        for <i>stealth</i> and <i>safety</i>, as a core part of this game!\b
+        However, there are a few to
+        remember&mdash;<i>especially while under pressure</i>&mdash;so
+        both tutorial modes offer <b>AUTO-SNEAKING</b>, which will perform these
+        precautions <i>automatically</i>, giving new players a chance to explore
+        and get used to other mechanics first.\b
+        Once the player feels comfortable enough to remember these
+        precautions for themselves, the non-tutorial modes will prevent use
+        of the <b>SNEAK</b> action <i>entirely</i>.\b";
+        inputManager.pauseForMore();
+        "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
         difficultyQuestion.add('1', 'Basic Tutorial',
             'You are new to interactive fiction (<q><tt>IF</tt></q>), and are not
             versed in the usual controls or mechanics of parser-based text games.\n
             <b>This tutorial will also introduce you to the game\'s parkour
-            movement mechanics!</b>\b
+            movement mechanics!\n
+            \t(AUTO-SNEAKING IS AVAILABLE)</b>\b
             <i>(You play as the Predator\'s pet cat, attempting to avoid bath time.)</i>'
         );
         difficultyQuestion.add('2', 'Prey Tutorial',
             'You are new to <i>I Am Prey</i>, and have not used the parkour,
-            stealth, or chase mechanics before.\b
-            <i>(The Predator will offer you a second chance,
+            stealth, or chase mechanics before.\n
+            \t<b>(AUTO-SNEAKING IS AVAILABLE)</b>\b
+            <i>(The Predator will only
             allow you a single pop-out escape,
             and can be stalled by doors up to five times.)</i>'
         );
@@ -77,9 +92,11 @@ prologueCore: InitObject {
         switch (result) {
             case 1:
                 huntCore.difficulty = basicTutorial;
+                sneakyCore.sneakSafetyOn = true;
                 break;
             case 2:
                 huntCore.difficulty = preyTutorial;
+                sneakyCore.sneakSafetyOn = true;
                 break;
             case 3:
                 huntCore.difficulty = easyMode;
@@ -135,6 +152,17 @@ prologueCore: InitObject {
         "</center>\b
         <<gDirectCmdStr('about')>> for a general summary.\n
         <<gDirectCmdStr('credits')>> for author and tester credits.";
+        if (sneakyCore.sneakSafetyOn) {
+            "\n\t<b>AUTO-SNEAK is ENABLED!</b>\n
+            Use the <b>SNEAK</b> (or <q><b>SN</b></q>) command to automatically
+            sneak around the map! For example:\n
+            \t<b>SNEAK NORTH</b>\n
+            \t<b>SN THRU DOOR</b>\n
+            <b>REMEMBER:</b> This is a <i>learning tool!</i> The <b>SNEAK</b>
+            command <i>will be disabled outside of tutorial modes,</i>
+            meaning you will need to remember to <b>LISTEN</b>, <b>PEEK</b>,
+            and <b>CLOSE DOOR</b> on your own!";
+        }
         "\b";
     }
 

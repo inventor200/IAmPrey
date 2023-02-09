@@ -26,7 +26,6 @@ huntCore: InitObject {
     apologyFuse = nil
     #endif
 
-    //playerCommand = nil
     playerAction = nil
     playerActionActor = nil
 
@@ -119,7 +118,6 @@ huntCore: InitObject {
         // Save what the player's command execution was for later
         playerActionActor = gActor;
         playerAction = gAction;
-        //playerCommand = gCommand;
 
         // Do Skashek's action
         gActor = skashek;
@@ -127,7 +125,6 @@ huntCore: InitObject {
         gAction = action.createInstance();
         gDobj = dobj;
         gIobj = iobj;
-        //routeSkashekAction();
 
         // Verify (privately)
         local clear = true;
@@ -202,11 +199,9 @@ huntCore: InitObject {
         }
 
         // Restore the player's command execution
-        //gCommand = playerCommand;
         gAction = playerAction;
         gCommand.actor = playerActionActor;
         gActor = playerActionActor;
-        //playerCommand = nil;
         playerAction = nil;
         playerActionActor = nil;
     }
@@ -227,7 +222,8 @@ huntCore: InitObject {
 //TODO: Passing through a door while being chased asks the player for an evasion action.
 
 #define gHadRevokedFreeAction (turnsTaken == 0 && huntCore.revokedFreeTurn)
-#define gActionWasCostly (turnsTaken > 0 || gHadRevokedFreeAction)
+#define gActionWasCostly ((turnsTaken > 0 || gHadRevokedFreeAction) \
+    && !actionFailed)
 
 modify Action {
     freeTurnAlertsRemaining = 2
@@ -248,7 +244,7 @@ modify Action {
 
     turnSequence() {
         // Map mode is done with everything frozen in time
-        if (huntCore.inMapMode) {
+        if (huntCore.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;
             return;
         }

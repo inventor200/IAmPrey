@@ -46,6 +46,12 @@ VerbRule(PeekThrough)
 
 DefineTAction(PeekThrough)
     turnsTaken = 0
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'peeking through {the dobj}';
+        }
+        return 'failing to peek through {the dobj}';
+    }
 ;
 
 VerbRule(PeekInto)
@@ -57,6 +63,12 @@ VerbRule(PeekInto)
 ;
 
 DefineTAction(PeekInto)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'peeking into {the dobj}';
+        }
+        return 'failing to peek into {the dobj}';
+    }
 ;
 
 VerbRule(PeekDirection)
@@ -71,7 +83,13 @@ DefineTAction(PeekDirection)
     direction = nil
 
     execCycle(cmd) {
-        direction = cmd.verbProd.dirMatch.dir; 
+        if (sneakyCore.sneakDirection != nil) {
+            direction = sneakyCore.sneakDirection; 
+            sneakyCore.sneakDirection = nil;
+        }
+        else {
+            direction = cmd.verbProd.dirMatch.dir;
+        }
         
         IfDebug(actions, "[Executing PeekDirection <<direction.name>>]\n");
         
@@ -79,6 +97,11 @@ DefineTAction(PeekDirection)
     }
 
     execAction(cmd) {
+        if (sneakyCore.sneakDirection != nil) {
+            direction = sneakyCore.sneakDirection; 
+            sneakyCore.sneakDirection = nil;
+        }
+
         parkourCore.cacheParkourRunner(gActor);
         local loc = parkourCore.currentParkourRunner.getOutermostRoom();
         local conn = nil;
@@ -97,7 +120,7 @@ DefineTAction(PeekDirection)
 
             if (!clear) {
                 "{I} {cannot} peek that way. ";
-                abort;
+                exit;
             }
         }
 
@@ -116,21 +139,90 @@ DefineTAction(PeekDirection)
         }
 
         // At this point, it is a simple room connection
+        // Make sure we are on the floor
         if (!parkourCore.currentParkourRunner.location.ofKind(Room)) {
-            local terraFirmaName = 'the floor';
-            if (loc != nil) {
-                if (loc.floorObj != nil) {
-                    terraFirmaName = loc.floorObj.theName;
-                }
-            }
-            "{I} need{s/ed} to be on <<terraFirmaName>> to do that. ";
-            abort;
+            showTerraFirmaError(loc);
+            exit;
         }
 
-        "{I} carefully peek <<direction.name>>...\b";
+        "{I} carefully peek <<direction.name>>...<.p>";
         conn.destination.getOutermostRoom().peekInto();
     }
 ;
+
+modify TravelAction {
+    execCycle(cmd) {
+        actionFailed = nil;
+        parkourCore.cacheParkourRunner(gActor);
+        local traveler = parkourCore.currentParkourRunner;
+        local oldLoc = traveler.location;
+        try {
+            inherited(cmd);
+        } catch(ExitSignal ex) {
+            actionFailed = true;
+        }
+        if (oldLoc == traveler.location) {
+            // We didn't move. We failed.
+            actionFailed = true;
+        }
+    }
+
+    execAction(cmd) {
+        easeIntoTravel();
+        doTravel();
+    }
+
+    easeIntoTravel() {
+        local getOutAction;
+
+        // Re-interpreting getting out?
+        if (!gActor.location.ofKind(Room) && direction == outDir) {
+            getOutAction = gActor.location.contType == On ? GetOff : GetOutOf;
+            replaceAction(getOutAction, gActor.location);
+            return;
+        }
+
+        local traveler = parkourCore.currentParkourRunner;
+
+        if (!traveler.location.ofKind(Room)) {
+            showTerraFirmaError(traveler.location);
+            exit;
+        }
+    }
+
+    doTravel() {
+        local loc = gActor.getOutermostRoom();
+        local conn;
+        local illum = loc.allowDarkTravel || loc.isIlluminated;
+        local traveler = parkourCore.currentParkourRunner;
+        if (loc.propType(direction.dirProp) == TypeObject) {
+            conn = loc.(direction.dirProp);
+            if (conn.isConnectorVisible) {
+                if (gActor == gPlayerChar) {
+                    sneakyCore.doSneakStart(conn, direction);
+                    conn.travelVia(traveler);
+                    sneakyCore.doSneakEnd(conn);
+                }
+                else {
+                    sneakyCore.disarmSneaking();
+                    gActor.travelVia(conn);
+                }
+            }
+            else if (illum && gActor == gPlayerChar) {
+                sneakyCore.disarmSneaking();
+                loc.cannotGoThatWay(direction);
+            }
+            else if (gActor == gPlayerChar) {
+                sneakyCore.disarmSneaking();
+                loc.cannotGoThatWayInDark(direction);
+            }
+        }
+        else {
+            sneakyCore.disarmSneaking();
+            nonTravel(loc, direction);
+        }
+    }
+}
 
 #define slamAdverbsExpansion 'violently'|'loudly'|'forcefully'
 
@@ -148,16 +240,197 @@ DefineTAction(SlamClosed)
     turnsTaken = 0
 ;
 
-//TODO: Sneak actions
+#define sneakVerbExpansion ('sneak'|'snk'|'sn'|'tiptoe'|'tip toe'|'tt')
+
+VerbRule(SneakThrough)
+    sneakVerbExpansion ('through'|'thru'|'into'|'via'|) singleDobj
+    : VerbProduction
+    action = SneakThrough
+    verbPhrase = 'sneak/sneaking through (what)'
+    missingQ = 'what do you want to sneak through'    
+;
+
+DefineTAction(SneakThrough)
+    execCycle(cmd) {
+        inherited(cmd);
+        if (actionFailed) {
+            sneakyCore.disarmSneaking();
+            exit;
+        }
+    }
+;
+
+VerbRule(SneakDirection)
+    sneakVerbExpansion singleDir
+    : VerbProduction
+    action = SneakDirection
+    verbPhrase = 'sneak/sneaking {where)'  
+;
+
+class SneakDirection: TravelAction {
+    execAction(cmd) {
+        sneakyCore.trySneaking();
+        inherited(cmd);
+    }
+}
+
 sneakyCore: object {
-    sneakSafetyOn = nil //TODO: Set sneak according to difficulty
+    sneakSafetyOn = nil
+    armSneaking = nil // If travel is happening, are sneaking first?
+    armEndSneaking = nil
+    sneakDirection = nil
+    sneakVerbosity = 3
+
+    showTerraFirmaError(loc) {
+        local terraFirmaName = 'the floor';
+        if (loc != nil) {
+            if (loc.floorObj != nil) {
+                terraFirmaName = loc.floorObj.theName;
+            }
+        }
+        "{I} need{s/ed} to be on <<terraFirmaName>> to do that. ";
+    }
 
     getDefaultTravelAction() {
-        return sneakSafetyOn ? 'sneak' : 'go';
+        return sneakSafetyOn ? 'sn' : 'go';
     }
 
     getDefaultDoorTravelAction() {
-        return sneakSafetyOn ? 'sneak through' : 'go through';
+        return sneakSafetyOn ? 'sn through' : 'go through';
+    }
+
+    trySneaking() {
+        if (sneakSafetyOn) {
+            armSneaking = true;
+            return;
+        }
+        "<.p><i><b>(Auto-sneaking is disabled outside of tutorial modes!)</b></i>\b
+        <b>REMEMBER:</b> If the Predator expects <b>silence</b>, then
+        <b>maintain the silence</b>!
+        If the Predator expects a door to <b>slam shut</b>,
+        then <b>let the door slam shut</b>!\b
+        Reducing your trace on the environment
+        is crucial for maintaining excellent stealth!\b
+        Good luck!<.p>";
+        exit;
+    }
+
+    disarmSneaking() {
+        armSneaking = nil;
+        armEndSneaking = nil;
+        sneakDirection = nil;
+    }
+
+    heardDangerFromDirection(actor, direction) {
+        if (direction == nil) return nil;
+        local scopeList = Q.scopeList(actor);
+        for (local i = 1; i <= scopeList.length; i++) {
+            local obj = scopeList[i];
+            if (!obj.ofKind(SubtleSound)) continue;
+            if (!actor.canHear(obj)) continue;
+            if (obj.isBroadcasting && obj.isSuspicious) {
+                if (obj.lastDirection == direction) {
+                    return true;
+                }
+            }
+        }
+        return nil;
+    }
+
+    getSneakLine(line) {
+        return '<.p>\t<i><tt>(' + line + ')</tt></i><.p>';
+    }
+
+    getSneakStep(number, line, actionText) {
+        local fullLine = '';
+        if (sneakVerbosity >= 1) {
+            fullLine += getSneakLine('<b>STEP ' + number + ': </b>' + line);
+        }
+        if (gFormatForScreenReader) {
+            return fullLine +
+                '<.p><i>({I} automatically tr{ies/ied}
+                the <q><b>' + actionText +
+                '</b></q> action.</i>)<.p>';
+        }
+        return fullLine + '<.p><i>&gt;' + actionText + '</i><.p>';
+    }
+
+    beginSneakLine() {
+        if (sneakVerbosity >= 2) {
+            "<<getSneakLine('{I} {am} <b>SNEAKING</b>, so {i} perform{s/ed}
+                the necessary safety precautions, as a reflex...')>>";
+        }
+        else {
+            "<<getSneakLine('Sneaking...!')>>";
+        }
+    }
+
+    concludeSneakLine() {
+        if (sneakVerbosity < 2) return;
+        "<<getSneakLine('And thus concludes the art of <b>SNEAKING</b>!')>>";
+    }
+
+    doSneakStart(conn, direction) {
+        if (armSneaking) {
+            sneakVerbosity--;
+            armEndSneaking = true;
+            armSneaking = nil;
+            beginSneakLine();
+            "<<getSneakStep(1, '<b>LISTEN</b> for nearby threats!', 'listen')>>";
+            local listenPrecache = heardDangerFromDirection(
+                gActor, direction
+            );
+            nestedAction(Listen);
+            if (listenPrecache) {
+                "<.p>It sounds rather dangerous that way...
+                Maybe {i} should go another way...";
+                concludeSneakLine();
+                exit;
+            }
+
+            local peekComm = direction.name;
+            if (conn.ofKind(Door)) {
+                peekComm = conn.name;
+            }
+            peekComm = (gFormatForScreenReader ? 'peek ' : 'p ') + peekComm;
+
+            "<<getSneakStep(2, '<b>PEEK</b>, just to be sure!', peekComm)>>";
+            local peekPrecache = conn.destination.getOutermostRoom().hasDanger();
+            if (direction.ofKind(Door)) {
+                nestedAction(PeekThrough, conn);
+            }
+            else {
+                sneakDirection = direction;
+                nestedAction(PeekDirection);
+            }
+            if (peekPrecache) {
+                "Maybe {i} should go another way...<.p>";
+                concludeSneakLine();
+                exit;
+            }
+            "<.p>";
+        }
+    }
+
+    doSneakEnd(conn) {
+        if (armEndSneaking) {
+            armEndSneaking = nil;
+            if (conn.ofKind(Door)) {
+                //TODO: If Skashek expects this door to be open,
+                // then do not close it!
+                local closingSide = conn.otherSide;
+                if (closingSide == nil) closingSide = conn;
+                else if (!gActor.canReach(closingSide)) closingSide = conn;
+
+                if (closingSide != nil) {
+                    "<<getSneakStep(3, 'Quietly <b>CLOSE</b>
+                        the door{dummy} behind {me}!',
+                        'close ' + closingSide.name)>>";
+                    nestedAction(Close, closingSide);
+                }
+            }
+            concludeSneakLine();
+        }
     }
 }
 
@@ -168,7 +441,9 @@ modify statuslineExitLister {
             htmlSay('<FONT COLOR="<<unvisitedExitColour>>">');
         }
 
-        "<<aHref(obj.dir_.name, obj.dir_.name,
+        "<<aHref(
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            obj.dir_.name,
             sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
             AHREF_Plain)>>";
 
@@ -180,19 +455,32 @@ modify statuslineExitLister {
 
 modify lookAroundTerseExitLister {
     showListItem(obj, options, pov, infoTab) {
-        htmlSay('<<aHref(obj.dir_.name, obj.dir_.name,
-            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name, 0)>>');
+        htmlSay('<<aHref(
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            obj.dir_.name,
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            0)>>'
+        );
     }
 }
 
 modify explicitExitLister {
     showListItem(obj, options, pov, infoTab) {
-        htmlSay('<<aHref(obj.dir_.name, obj.dir_.name,
-            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name, 0)>>');
+        htmlSay('<<aHref(
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            obj.dir_.name,
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            0)>>'
+        );
     }
 }
 
 modify Thing {
+    dobjFor(SneakThrough) {
+        verify() {
+            illogical('{That dobj} {is} not something to sneak through. ');
+        }
+    }
     dobjFor(PeekThrough) asDobjFor(LookThrough)
     dobjFor(PeekInto) asDobjFor(LookIn)
     dobjFor(SlamClosed) {
@@ -628,6 +916,18 @@ modify Door {
         primedPlayerAudio = nil;
     }
 
+    dobjFor(SneakThrough) {
+        verify() {
+            logical;
+        }
+        action() {
+            sneakyCore.trySneaking();
+            sneakyCore.doSneakStart(self, self);
+            doNested(TravelVia, self);
+            sneakyCore.doSneakEnd(self);
+        }
+    }
+
     dobjFor(Open) {
         verify() {
             if (gActor == cat) {
@@ -694,7 +994,7 @@ modify Door {
             else {
                 "{I} peek{s/ed} through the cat flap of <<theName>>...\b";
             }
-            lexicalParent.otherSide.getOutermostRoom().peekInto();
+            otherSide.getOutermostRoom().peekInto();
         }
     }
 
@@ -784,8 +1084,12 @@ class CatFlap: Decoration {
 }
 
 modify Room {
+    hasDanger() {
+        return skashek.getOutermostRoom() == self;
+    }
+
     peekInto() {
-        if (skashek.getOutermostRoom() == self) {
+        if (hasDanger()) {
             "<i>\^<<skashek.globalParamName>> is in there!</i> ";
             //TODO: Peek consequence mechanics
         }

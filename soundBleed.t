@@ -511,6 +511,7 @@ modify Actor {
             if (impact.soundProfile.subtleSound != nil) {
                 impact.soundProfile.subtleSound.perceiveIn(
                     gPlayerChar.getOutermostRoom(),
+                    impact.sourceDirection,
                     impact.soundProfile.getReportString(
                         impact.form,
                         impact.sourceDirection,
@@ -621,7 +622,7 @@ class SoundProfile: object {
         }
         else {
             // LISTEN perception only
-            subtleSound.perceiveIn(gPlayerChar.getOutermostRoom(), reportStr);
+            subtleSound.perceiveIn(gPlayerChar.getOutermostRoom(), sourceDirection, reportStr);
         }
     }
 
@@ -692,16 +693,19 @@ class SubtleSound: Noise {
 
     lifecycleFuse = nil
     isBroadcasting = nil
+    isSuspicious = nil
+    lastDirection = nil
 
     doAfterPerception() {
         // For setting off actions based on player observation
     }
 
-    perceiveIn(room, _caughtMsg) {
+    perceiveIn(room, dir, _caughtMsg) {
         moveInto(room);
         caughtMsg = _caughtMsg;
         wasPerceived = nil;
         isBroadcasting = true;
+        lastDirection = dir;
     }
 
     attemptPerception() {
