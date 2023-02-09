@@ -148,8 +148,49 @@ DefineTAction(SlamClosed)
     turnsTaken = 0
 ;
 
-//TODO: When entering a room with open doors, list the doors,
-// and account for expectations
+//TODO: Sneak actions
+sneakyCore: object {
+    sneakSafetyOn = nil //TODO: Set sneak according to difficulty
+
+    getDefaultTravelAction() {
+        return sneakSafetyOn ? 'sneak' : 'go';
+    }
+
+    getDefaultDoorTravelAction() {
+        return sneakSafetyOn ? 'sneak through' : 'go through';
+    }
+}
+
+// Modify the normal exit listers, to be courteous of sneaking
+modify statuslineExitLister {
+    showListItem(obj, options, pov, infoTab) {
+        if (highlightUnvisitedExits && (obj.dest_ == nil || !obj.dest_.seen)) {
+            htmlSay('<FONT COLOR="<<unvisitedExitColour>>">');
+        }
+
+        "<<aHref(obj.dir_.name, obj.dir_.name,
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name,
+            AHREF_Plain)>>";
+
+        if (highlightUnvisitedExits && (obj.dest_ == nil || !obj.dest_.seen)) {
+            htmlSay('</FONT>');
+        }
+    }
+}
+
+modify lookAroundTerseExitLister {
+    showListItem(obj, options, pov, infoTab) {
+        htmlSay('<<aHref(obj.dir_.name, obj.dir_.name,
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name, 0)>>');
+    }
+}
+
+modify explicitExitLister {
+    showListItem(obj, options, pov, infoTab) {
+        htmlSay('<<aHref(obj.dir_.name, obj.dir_.name,
+            sneakyCore.getDefaultTravelAction() + ' ' + obj.dir_.name, 0)>>');
+    }
+}
 
 modify Thing {
     dobjFor(PeekThrough) asDobjFor(LookThrough)
@@ -273,6 +314,26 @@ modify Door {
         }
     }
 
+    getScanName() {
+        local direction = getOutermostRoom().getDirection(self);
+        if (direction != nil) {
+            if (exitLister.enableHyperlinks) {
+                return theName + ' (' + aHrefAlt(
+                    sneakyCore.getDefaultTravelAction() +
+                    ' ' + direction.name, direction.name, direction.name
+                ) + ')';
+            }
+            return theName + ' (' + direction.name + ')';
+        }
+        if (exitLister.enableHyperlinks) {
+            return aHrefAlt(
+                sneakyCore.getDefaultDoorTravelAction() +
+                ' ' + direction.name, theName, theName
+            );
+        }
+        return theName;
+    }
+
     clearMyClosingFuse(fuseProp) {
         if (self.(fuseProp) != nil) {
             self.(fuseProp).removeEvent();
@@ -317,13 +378,20 @@ modify Door {
         }
     }
 
-    endPlayerExpectation() {
-        wasPlayerExpectingAClose = true;
-        local isSuspicious = nil;
+    getExpectedCloseFuse() {
         local expectedClosingFuse = closingFuse;
         if (expectedClosingFuse == nil && otherSide != nil) {
             expectedClosingFuse = otherSide.closingFuse;
         }
+        return expectedClosingFuse;
+    }
+
+    //TODO: Refactor
+
+    endPlayerExpectation() {
+        wasPlayerExpectingAClose = true;
+        local isSuspicious = nil;
+        local expectedClosingFuse = getExpectedCloseFuse();
         if (expectedClosingFuse == nil) {
             isSuspicious = true;
         }
@@ -336,13 +404,19 @@ modify Door {
         }
     }
 
+    isStatusSuspiciousToPlayer() {
+        if (!canEitherBeSeenBy(gPlayerChar)) return nil;
+        local otherExpectation = nil;
+        if (otherSide != nil) otherExpectation = otherSide.playerCloseExpectationFuse;
+        local hasOpenExpectation =
+            (playerCloseExpectationFuse != nil) || (otherExpectation != nil);
+        return isOpen != hasOpenExpectation;
+    }
+
     endSkashekExpectation() {
         wasSkashekExpectingAClose = true;
         local isSuspicious = nil;
-        local expectedClosingFuse = closingFuse;
-        if (expectedClosingFuse == nil && otherSide != nil) {
-            expectedClosingFuse = otherSide.closingFuse;
-        }
+        local expectedClosingFuse = getExpectedCloseFuse();
         if (expectedClosingFuse == nil) {
             isSuspicious = true;
         }
@@ -353,6 +427,15 @@ modify Door {
         if (isSuspicious) {
             makeSkashekSuspicious();
         }
+    }
+
+    isStatusSuspiciousToSkashek() {
+        if (!canEitherBeSeenBy(skashek)) return nil;
+        local otherExpectation = nil;
+        if (otherSide != nil) otherExpectation = otherSide.skashekCloseExpectationFuse;
+        local hasOpenExpectation =
+            (skashekCloseExpectationFuse != nil) || (otherExpectation != nil);
+        return isOpen != hasOpenExpectation;
     }
 
     checkClosingExpectations() {
@@ -708,6 +791,143 @@ modify Room {
         }
         else {
             "<i>Seems safe!</i> ";
+        }
+    }
+
+    doorScanFuse = nil
+
+    startDoorScan() {
+        doorScanFuse = new Fuse(self, &doDoorScan, 0);
+        doorScanFuse.eventOrder = 80;
+    }
+
+    travelerEntering(traveler, origin) {
+        if (gPlayerChar.isOrIsIn(traveler)) {
+            startDoorScan();
+        }
+    }
+
+    lookAroundWithin() {
+        inherited();
+        if (doorScanFuse == nil) {
+            doDoorScan(true);
+        }
+    }
+
+    getSuspiciousDoorsForSkashek() {
+        local scopeList = Q.scopeList(skashek);
+        local suspiciousDoors = new Vector(8);
+
+        for (local i = 1; i <= scopeList.length; i++) {
+            local obj = scopeList[i];
+            if (!gPlayerChar.canSee(obj)) continue;
+            if (!obj.ofKind(Door)) continue;
+            if (obj.isStatusSuspiciousToSkashek()) {
+                suspiciousDoors.appendUnique(obj);
+            }
+        }
+
+        return suspiciousDoors.toList();
+    }
+
+    //TODO: Do something like this for Skashek, too
+    doDoorScan(fromCommand?) {
+        local beVerbose = fromCommand || gameMain.verbose;
+
+        local scopeList = Q.scopeList(gPlayerChar);
+        local openExpectedDoors = new Vector(4);
+        local closedExpectedDoors = new Vector(4);
+        local suspiciousOpenDoors = new Vector(4);
+        local suspiciousClosedDoors = new Vector(4);
+
+        for (local i = 1; i <= scopeList.length; i++) {
+            local obj = scopeList[i];
+            if (!gPlayerChar.canSee(obj)) continue;
+            if (!obj.ofKind(Door)) continue;
+            if (obj.isStatusSuspiciousToPlayer()) {
+                if (obj.isOpen) {
+                    suspiciousOpenDoors.appendUnique(obj);
+                }
+                else {
+                    suspiciousClosedDoors.appendUnique(obj);
+                }
+            }
+            else if (beVerbose) {
+                if (obj.isOpen) {
+                    openExpectedDoors.appendUnique(obj);
+                }
+                else {
+                    closedExpectedDoors.appendUnique(obj);
+                }
+            }
+        }
+
+        local expectedCount = openExpectedDoors.length + closedExpectedDoors.length;
+        local suspicionCount = suspiciousOpenDoors.length + suspiciousClosedDoors.length;
+
+        if (expectedCount > 0 || suspicionCount > 0) {
+            "<.p>";
+        }
+
+        if (expectedCount > 0) {
+            local firstListing = nil;
+
+            if (closedExpectedDoors.length > 0) {
+                "\^<<makeListStr(closedExpectedDoors, &getScanName, 'and')>>
+                <<if closedExpectedDoors.length > 1>>are<<else>>is<<end>>
+                closed";
+                firstListing = true;
+            }
+
+            if (openExpectedDoors.length > 0) {
+                "<<if firstListing>>, and <<else>>\^<<end>><<
+                makeListStr(openExpectedDoors, &getScanName, 'and')>>
+                <<if openExpectedDoors.length > 1>>are<<else>>is<<end>>
+                currently open, but you
+                <<one of>>probably knew<<or>>already know<<or>>were expecting<<at random>>
+                that. ";
+            }
+            else {
+                ". ";
+            }
+        }
+
+        if (suspicionCount > 0) {
+            if (expectedCount > 0) {
+                "<.p>However...
+                <<if suspicionCount > 1>><i>some</i> things are<<else
+                >><i>something</i> is<<end>>
+                suspicious here...<.p>";
+            }
+
+            local firstListing = nil;
+            
+            if (suspiciousOpenDoors.length > 0) {
+                "\^<<makeListStr(suspiciousOpenDoors, &getScanName, 'and')>>
+                <<if suspiciousOpenDoors.length > 1>>are<<else>>is<<end>>
+                open, ";
+                firstListing = true;
+            }
+
+            if (suspiciousClosedDoors.length > 0) {
+                "<<if firstListing>>while <<else>>\^<<end>><<
+                makeListStr(suspiciousClosedDoors, &getScanName, 'and')>>
+                <<if suspiciousClosedDoors.length > 1>>are<<else>>is<<end>>
+                <<if firstListing>>closed<<else>><i>open</i><<end>>, ";
+            }
+
+            "and you don't remember leaving
+            <<if suspicionCount > 1>>them<<else>>it<<end>>
+            <<one of>>like that<<or>>in that state<<or>>that way<<at random>>!";
+        }
+
+        if (openExpectedDoors.length > 0 || suspicionCount > 0) {
+            "<.p>";
+        }
+
+        if (doorScanFuse != nil) {
+            doorScanFuse.removeEvent();
+            doorScanFuse = nil;
         }
     }
 }

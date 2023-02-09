@@ -5,7 +5,8 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define gPlayerDobj huntCore.playerAction.curDobj
 #define gPlayerIobj huntCore.playerAction.curIobj
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
-#define __DEBUG_SKASHEK_ACTIONS nil
+
+#define __DEBUG_SKASHEK_ACTIONS true
 
 huntCore: InitObject {
     revokedFreeTurn = nil
