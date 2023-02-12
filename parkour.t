@@ -343,7 +343,7 @@ DefineIAction(ParkourClimbOffIntransitive)
 ;
 
 VerbRule(ParkourJumpOffOf)
-    ('jump'|'hop'|'leap'|'fall'|'drop') ('off'|'off' 'of'|'down' 'from') singleDobj
+    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop') ('off'|'off' 'of'|'down' 'from') singleDobj
     : VerbProduction
     action = ParkourJumpOffOf
     verbPhrase = 'jump off of (what)'
@@ -360,7 +360,7 @@ DefineTAction(ParkourJumpOffOf)
 ;
 
 VerbRule(ParkourJumpOffIntransitive)
-    ('jump'|'hop'|'leap'|'fall'|'drop') ('off'|'down')
+    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop') ('off'|'down')
     : VerbProduction
     action = ParkourJumpOffIntransitive
     verbPhrase = 'jump/jumping off'        
@@ -833,6 +833,10 @@ modify actorInStagingLocation {
     checkPreCondition(obj, allowImplicit) {
         //if (parkourPathFinder.mapBetween(gActor, obj, true, nil)) return true;
         local stagingLoc = obj.stagingLocation;
+        return doPathCheck(stagingLoc, allowImplicit);
+    }
+
+    doPathCheck(stagingLoc, allowImplicit) {
         parkourCore.cacheParkourRunner(gActor);
         local loc = gParkourRunner.location;
 

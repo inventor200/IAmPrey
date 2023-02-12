@@ -75,7 +75,7 @@ VerbRule(PeekDirection)
     peekExpansion singleDir
     : VerbProduction
     action = PeekDirection
-    verbPhrase = 'peek/peeking {where)'  
+    verbPhrase = 'peek/peeking (where)'  
 ;
 
 DefineTAction(PeekDirection)
@@ -130,8 +130,11 @@ DefineTAction(PeekDirection)
         local scpList = Q.scopeList(gActor).toList();
         for (local i = 1; i <= scpList.length; i++) {
             local obj = scpList[i];
-            if (obj.ofKind(TravelConnector) && obj.ofKind(Thing)) {
+            if (obj.ofKind(TravelConnector) && obj.ofKind(Thing) && !obj.ofKind(Room)) {
                 if (obj.destination == dest) {
+                    if (obj.requiresPeekAngle) {
+                        sneakyCore.performStagingCheck(obj.stagingLocation);
+                    }
                     doNested(PeekThrough, obj);
                     return;
                 }
@@ -140,10 +143,7 @@ DefineTAction(PeekDirection)
 
         // At this point, it is a simple room connection
         // Make sure we are on the floor
-        if (!parkourCore.currentParkourRunner.location.ofKind(Room)) {
-            showTerraFirmaError(loc);
-            exit;
-        }
+        sneakyCore.performStagingCheck(gActor.getOutermostRoom());
 
         "{I} carefully peek <<direction.name>>...<.p>";
         conn.destination.getOutermostRoom().peekInto();
@@ -182,12 +182,7 @@ modify TravelAction {
             return;
         }
 
-        local traveler = parkourCore.currentParkourRunner;
-
-        if (!traveler.location.ofKind(Room)) {
-            showTerraFirmaError(traveler.location);
-            exit;
-        }
+        sneakyCore.performStagingCheck(gActor.getOutermostRoom());
     }
 
     doTravel() {
@@ -240,7 +235,7 @@ DefineTAction(SlamClosed)
     turnsTaken = 0
 ;
 
-#define sneakVerbExpansion ('sneak'|'snk'|'sn'|'tiptoe'|'tip toe'|'tt')
+#define sneakVerbExpansion ('auto-sneak'|'auto' 'sneak'|'autosneak'|'sneak'|'snk'|'sn'|'tiptoe'|'tip toe'|'tt')
 
 VerbRule(SneakThrough)
     sneakVerbExpansion ('through'|'thru'|'into'|'via'|) singleDobj
@@ -264,7 +259,7 @@ VerbRule(SneakDirection)
     sneakVerbExpansion singleDir
     : VerbProduction
     action = SneakDirection
-    verbPhrase = 'sneak/sneaking {where)'  
+    verbPhrase = 'sneak/sneaking (where)'  
 ;
 
 class SneakDirection: TravelAction {
@@ -274,21 +269,95 @@ class SneakDirection: TravelAction {
     }
 }
 
+VerbRule(ChangeSneakMode)
+    [badness 10] sneakVerbExpansion literalDobj |
+    'turn' literalDobj sneakVerbExpansion ('mode'|) |
+    ('turn'|'set') sneakVerbExpansion literalDobj |
+    literalDobj sneakVerbExpansion ('mode'|)
+    : VerbProduction
+    action = ChangeSneakMode
+    verbPhrase = 'set sneak mode to (what)'
+;
+
+DefineLiteralAction(ChangeSneakMode)
+    turnsTaken = 0
+
+    execAction(cmd) {
+        if (!sneakyCore.allowSneak) {
+            sneakyCore.remindNoSneak();
+            return;
+        }
+
+        local option = gLiteral.trim().toLower();
+
+        if (option.length >= 4) {
+            // Sometimes TURN SNEAK MODE BACK ON will capture
+            // "mode back on" instead of just "on"
+            local hasExtra = nil;
+            do {
+                hasExtra = nil;
+                local head = option.left(4);
+                hasExtra = (head == 'back' || head == 'mode');
+                if (hasExtra) {
+                    option = option.right(option.length-5).trim();
+                }
+            } while (hasExtra);
+        }
+
+        // Check our options
+        if (option == 'on' || option == 'enable') {
+            if (sneakyCore.sneakSafetyOn) {
+                "<.p>Auto-sneak mode is already ON!<.p>";
+                return;
+            }
+            sneakyCore.sneakSafetyOn = true;
+            "<.p>Auto-sneak mode is now ON.<.p>";
+        }
+        else if (option == 'off' || option == 'disable') {
+            if (!sneakyCore.sneakSafetyOn) {
+                "<.p>Auto-sneak mode is already OFF!<.p>";
+                return;
+            }
+            sneakyCore.sneakSafetyOn = nil;
+            "<.p>Auto-sneak mode is now OFF.\n
+            If you would like to, you can
+            <<gDirectCmdStr('turn sneak back on')>> later!<.p>";
+        }
+        else {
+            "<.p>Unrecognized option: <q><<option>></q>!<.p>";
+        }
+    }
+
+    turnSequence() { }
+;
+
 sneakyCore: object {
+    allowSneak = nil
     sneakSafetyOn = nil
     armSneaking = nil // If travel is happening, are sneaking first?
     armEndSneaking = nil
     sneakDirection = nil
     sneakVerbosity = 3
+    useVerboseReminder = true
 
-    showTerraFirmaError(loc) {
-        local terraFirmaName = 'the floor';
-        if (loc != nil) {
-            if (loc.floorObj != nil) {
-                terraFirmaName = loc.floorObj.theName;
+    performStagingCheck(stagingLoc) {
+        if (parkourCore.currentParkourRunner.location != stagingLoc) {
+            if (!actorInStagingLocation.doPathCheck(stagingLoc, true)) {
+                exit;
             }
         }
-        "{I} need{s/ed} to be on <<terraFirmaName>> to do that. ";
+
+        // Failure
+        /*local terraFirmaName = 'on the floor';
+        if (stagingLoc != nil) {
+            terraFirmaName = stagingLoc.objInPrep + ' ' + stagingLoc.theName;
+            if (stagingLoc.floorObj != nil) {
+                terraFirmaName = 'on ' + stagingLoc.floorObj.theName;
+            }
+        }
+
+        "{I} need{s/ed} to be <<terraFirmaName>> to do that. ";
+        exit;*/
     }
 
     getDefaultTravelAction() {
@@ -300,19 +369,31 @@ sneakyCore: object {
     }
 
     trySneaking() {
-        if (sneakSafetyOn) {
-            armSneaking = true;
-            return;
+        if (allowSneak) {
+            if (sneakSafetyOn) {
+                armSneaking = true;
+                return;
+            }
+            "<.p>You have voluntarily disabled auto-sneak for this tutorial!\n
+            If you would like to, you can <<gDirectCmdStr('turn sneak on')>>.<.p>";
+            exit;
         }
-        "<.p><i><b>(Auto-sneaking is disabled outside of tutorial modes!)</b></i>\b
-        <b>REMEMBER:</b> If the Predator expects <b>silence</b>, then
-        <b>maintain the silence</b>!
-        If the Predator expects a door to <b>slam shut</b>,
-        then <b>let the door slam shut</b>!\b
-        Reducing your trace on the environment
-        is crucial for maintaining excellent stealth!\b
-        Good luck!<.p>";
+        remindNoSneak();
         exit;
+    }
+
+    remindNoSneak() {
+        "<.p><i><b>(Auto-sneaking is disabled outside of tutorial modes!)</b></i>";
+        if (useVerboseReminder) {
+            "\b<b>REMEMBER:</b> If the Predator expects <b>silence</b>, then
+            <b>maintain the silence</b>!
+            If the Predator expects a door to <b>slam shut</b>,
+            then <b>let the door slam shut</b>!\b
+            Reducing your trace on the environment
+            is crucial for maintaining excellent stealth!";
+        }
+        "\bGood luck!<.p>";
+        useVerboseReminder = nil;
     }
 
     disarmSneaking() {
@@ -476,6 +557,8 @@ modify explicitExitLister {
 }
 
 modify Thing {
+    requiresPeekAngle = nil
+
     dobjFor(SneakThrough) {
         verify() {
             illogical('{That dobj} {is} not something to sneak through. ');
@@ -584,6 +667,9 @@ modify Door {
     closingDelay = 3
 
     primedPlayerAudio = nil
+
+    // One must be on the staging location to peek through me
+    requiresPeekAngle = true
 
     // What turn does the player expect this to close on?
     playerCloseExpectationFuse = nil

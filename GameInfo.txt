@@ -6,7 +6,7 @@ AuthorEmail: josephcsoftware@gmail.com
 Desc: A horror-lite science fiction game of evasion.
 HtmlDesc: A horror-lite science fiction game of evasion.
 Version: 1
-ReleaseDate: 2023-02-09
+ReleaseDate: 2023-02-12
 LicenseType: Freeware
 CopyingRules: Nominal cost only; compilations allowed
 PresentationProfile: Default

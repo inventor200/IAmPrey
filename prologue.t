@@ -92,10 +92,12 @@ prologueCore: InitObject {
         switch (result) {
             case 1:
                 huntCore.difficulty = basicTutorial;
+                sneakyCore.allowSneak = true;
                 sneakyCore.sneakSafetyOn = true;
                 break;
             case 2:
                 huntCore.difficulty = preyTutorial;
+                sneakyCore.allowSneak = true;
                 sneakyCore.sneakSafetyOn = true;
                 break;
             case 3:
@@ -152,16 +154,20 @@ prologueCore: InitObject {
         "</center>\b
         <<gDirectCmdStr('about')>> for a general summary.\n
         <<gDirectCmdStr('credits')>> for author and tester credits.";
-        if (sneakyCore.sneakSafetyOn) {
-            "\n\t<b>AUTO-SNEAK is ENABLED!</b>\n
+        if (sneakyCore.allowSneak) {
+            "\b\t<b>AUTO-SNEAK is ENABLED!</b>\n
             Use the <b>SNEAK</b> (or <q><b>SN</b></q>) command to automatically
             sneak around the map! For example:\n
             \t<b>SNEAK NORTH</b>\n
-            \t<b>SN THRU DOOR</b>\n
+            \t<b>SN THRU DOOR</b>\b
             <b>REMEMBER:</b> This is a <i>learning tool!</i> The <b>SNEAK</b>
             command <i>will be disabled outside of tutorial modes,</i>
             meaning you will need to remember to <b>LISTEN</b>, <b>PEEK</b>,
-            and <b>CLOSE DOOR</b> on your own!";
+            and <b>CLOSE DOOR</b> on your own!\b
+            If you'd rather practice without auto-sneak, simply enter in
+            <<gDirectCmdStr('sneak off')>>.\b
+            <b>REMEMBER:</b> You are always free to
+            <<gDirectCmdStr('turn sneak back on')>> in a tutorial mode!";
         }
         "\b";
     }

@@ -39,6 +39,7 @@ hardImpactNoiseProfile: SoundProfile {
 modify parkourCore {
     certifyDiscovery(actor, path) {
         if (gActor != gPlayerChar) return;
+        if (gAction.turnsTaken > 0) return;
         huntCore.revokeFreeTurn();
     }
 }
