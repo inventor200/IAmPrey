@@ -132,9 +132,6 @@ DefineTAction(PeekDirection)
             local obj = scpList[i];
             if (obj.ofKind(TravelConnector) && obj.ofKind(Thing) && !obj.ofKind(Room)) {
                 if (obj.destination == dest) {
-                    if (obj.requiresPeekAngle) {
-                        sneakyCore.performStagingCheck(obj.stagingLocation);
-                    }
                     doNested(PeekThrough, obj);
                     return;
                 }
@@ -346,18 +343,6 @@ sneakyCore: object {
                 exit;
             }
         }
-
-        // Failure
-        /*local terraFirmaName = 'on the floor';
-        if (stagingLoc != nil) {
-            terraFirmaName = stagingLoc.objInPrep + ' ' + stagingLoc.theName;
-            if (stagingLoc.floorObj != nil) {
-                terraFirmaName = 'on ' + stagingLoc.floorObj.theName;
-            }
-        }
-
-        "{I} need{s/ed} to be <<terraFirmaName>> to do that. ";
-        exit;*/
     }
 
     getDefaultTravelAction() {
@@ -497,21 +482,41 @@ sneakyCore: object {
         if (armEndSneaking) {
             armEndSneaking = nil;
             if (conn.ofKind(Door)) {
-                //TODO: If Skashek expects this door to be open,
-                // then do not close it!
                 local closingSide = conn.otherSide;
                 if (closingSide == nil) closingSide = conn;
                 else if (!gActor.canReach(closingSide)) closingSide = conn;
 
                 if (closingSide != nil) {
-                    "<<getSneakStep(3, 'Quietly <b>CLOSE</b>
-                        the door{dummy} behind {me}!',
-                        'close ' + closingSide.name)>>";
-                    nestedAction(Close, closingSide);
+                    checkDoorClosedBehind(closingSide);
                 }
             }
             concludeSneakLine();
         }
+    }
+
+    checkDoorClosedBehind(closingSide) {
+        local expectsOpen = checkOpenExpectationFuse(&skashekCloseExpectationFuse);
+        if (expectsOpen) {
+            "<<getSneakStep(3, 'Quietly <b>CLOSE</b> the door{dummy} behind {me}!',
+                'close ' + closingSide.name)>>";
+            nestedAction(Close, closingSide);
+        }
+        else {
+            getSneakLine(
+                'Normally, {i} should <b>CLOSE</b> the door behind {myself},
+                but {i} did not open this door.
+                Therefore, it\'s better to let it <i>close itself</i>,
+                according to what <<skashek.theName>> expects!'
+            );
+        }
+    }
+}
+
+actorHasPeekAngle: PreCondition {
+    checkPreCondition(obj, allowImplicit) {
+        if (!obj.requiresPeekAngle) return true;
+        local stagingLoc = obj.stagingLocation;
+        return actorInStagingLocation.doPathCheck(stagingLoc, allowImplicit);
     }
 }
 
@@ -564,8 +569,18 @@ modify Thing {
             illogical('{That dobj} {is} not something to sneak through. ');
         }
     }
+
     dobjFor(PeekThrough) asDobjFor(LookThrough)
     dobjFor(PeekInto) asDobjFor(LookIn)
+
+    dobjFor(LookThrough) {
+        preCond = [actorHasPeekAngle]
+    }
+
+    dobjFor(LookIn) {
+        preCond = [actorHasPeekAngle]
+    }
+
     dobjFor(SlamClosed) {
         preCond = [touchObj]
         remap = ((!isCloseable && remapIn != nil && remapIn.isCloseable) ? remapIn : self)
@@ -760,56 +775,42 @@ modify Door {
         return expectedClosingFuse;
     }
 
-    //TODO: Refactor
-
-    endPlayerExpectation() {
-        wasPlayerExpectingAClose = true;
+    getEndExpectationSuspicion(expectingCloseProp, fuseProp) {
+        self.(expectingCloseProp) = true;
         local isSuspicious = nil;
         local expectedClosingFuse = getExpectedCloseFuse();
         if (expectedClosingFuse == nil) {
             isSuspicious = true;
         }
-        else if (expectedClosingFuse.nextRunTime != playerCloseExpectationFuse.nextRunTime) {
+        else if (expectedClosingFuse.nextRunTime != self.(fuseProp).nextRunTime) {
             isSuspicious = true;
         }
-        clearFuse(&playerCloseExpectationFuse);
-        if (isSuspicious) {
+        clearFuse(fuseProp);
+
+        return isSuspicious;
+    }
+
+    checkOpenExpectationFuse(fuseProp) {
+        local otherExpectation = nil;
+        if (otherSide != nil) otherExpectation = otherSide.(fuseProp);
+        return (self.(fuseProp) != nil) || (otherExpectation != nil);
+    }
+
+    isStatusSuspiciousTo(contestant, fuseProp) {
+        if (!canEitherBeSeenBy(contestant)) return nil;
+        return isOpen != checkOpenExpectationFuse(fuseProp);
+    }
+
+    endPlayerExpectation() {
+        if (getEndExpectationSuspicion(&wasPlayerExpectingAClose, &playerCloseExpectationFuse)) {
             makePlayerSuspicious();
         }
     }
 
-    isStatusSuspiciousToPlayer() {
-        if (!canEitherBeSeenBy(gPlayerChar)) return nil;
-        local otherExpectation = nil;
-        if (otherSide != nil) otherExpectation = otherSide.playerCloseExpectationFuse;
-        local hasOpenExpectation =
-            (playerCloseExpectationFuse != nil) || (otherExpectation != nil);
-        return isOpen != hasOpenExpectation;
-    }
-
     endSkashekExpectation() {
-        wasSkashekExpectingAClose = true;
-        local isSuspicious = nil;
-        local expectedClosingFuse = getExpectedCloseFuse();
-        if (expectedClosingFuse == nil) {
-            isSuspicious = true;
-        }
-        else if (expectedClosingFuse.nextRunTime != skashekCloseExpectationFuse.nextRunTime) {
-            isSuspicious = true;
-        }
-        clearFuse(&skashekCloseExpectationFuse);
-        if (isSuspicious) {
+        if (getEndExpectationSuspicion(&wasSkashekExpectingAClose, &skashekCloseExpectationFuse)) {
             makeSkashekSuspicious();
         }
-    }
-
-    isStatusSuspiciousToSkashek() {
-        if (!canEitherBeSeenBy(skashek)) return nil;
-        local otherExpectation = nil;
-        if (otherSide != nil) otherExpectation = otherSide.skashekCloseExpectationFuse;
-        local hasOpenExpectation =
-            (skashekCloseExpectationFuse != nil) || (otherExpectation != nil);
-        return isOpen != hasOpenExpectation;
     }
 
     checkClosingExpectations() {
@@ -949,7 +950,6 @@ modify Door {
                 );
             }
         }
-        //primedPlayerAudio = nil;
     }
 
     makeSkashekSuspicious() {
@@ -1065,7 +1065,6 @@ modify Door {
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
-        preCond = [touchObj]
         remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
         verify() {
             if (!isOpen && !hasCatFlap && !isTransparent) {
@@ -1148,6 +1147,7 @@ class CatFlap: Decoration {
     decorationActions = [Examine, GoThrough, Enter, PeekThrough, LookThrough, PeekInto, LookIn]
 
     canGoThroughMe = true
+    requiresPeekAngle = true
 
     dobjFor(Enter) asDobjFor(GoThrough)
     dobjFor(GoThrough) {
@@ -1157,7 +1157,7 @@ class CatFlap: Decoration {
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
-        preCond = [touchObj]
+        preCond = [actorHasPeekAngle]
         verify() {
             logical;
         }
@@ -1212,7 +1212,7 @@ modify Room {
             local obj = scopeList[i];
             if (!gPlayerChar.canSee(obj)) continue;
             if (!obj.ofKind(Door)) continue;
-            if (obj.isStatusSuspiciousToSkashek()) {
+            if (obj.isStatusSuspiciousTo(skashek, &skashekCloseExpectationFuse)) {
                 suspiciousDoors.appendUnique(obj);
             }
         }
@@ -1220,7 +1220,6 @@ modify Room {
         return suspiciousDoors.toList();
     }
 
-    //TODO: Do something like this for Skashek, too
     doDoorScan(fromCommand?) {
         local beVerbose = fromCommand || gameMain.verbose;
 
@@ -1234,7 +1233,7 @@ modify Room {
             local obj = scopeList[i];
             if (!gPlayerChar.canSee(obj)) continue;
             if (!obj.ofKind(Door)) continue;
-            if (obj.isStatusSuspiciousToPlayer()) {
+            if (obj.isStatusSuspiciousTo(gPlayerChar, &playerCloseExpectationFuse)) {
                 if (obj.isOpen) {
                     suspiciousOpenDoors.appendUnique(obj);
                 }

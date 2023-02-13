@@ -7,7 +7,7 @@ climbingNoiseProfile: SoundProfile {
     'the muffled racket of something clambering'
     'the nearby racket of something clambering'
     'the distant reverberations of clambering'
-    strength = 3
+    strength = 2
 
     afterEmission(room) {
         //say('\b(Emitted climbing noise in <<room.roomTitle>>.)');
@@ -18,7 +18,7 @@ impactNoiseProfile: SoundProfile {
     'the muffled <i>thud</i> of something landing on the floor'
     'the echoing <i>thud</i> of something landing on the floor'
     'the distant <i>wump</i> of something landing on the floor'
-    strength = 4
+    strength = 3
 
     afterEmission(room) {
         //say('\b(Emitted impact noise in <<room.roomTitle>>.)');
@@ -38,6 +38,14 @@ hardImpactNoiseProfile: SoundProfile {
 
 modify parkourCore {
     certifyDiscovery(actor, path) {
+        if (gActor != gPlayerChar) return;
+        if (gAction.turnsTaken > 0) return;
+        huntCore.revokeFreeTurn();
+    }
+}
+
+modify actorInStagingLocation {
+    spendImplicitTurn() {
         if (gActor != gPlayerChar) return;
         if (gAction.turnsTaken > 0) return;
         huntCore.revokeFreeTurn();

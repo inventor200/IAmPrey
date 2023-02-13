@@ -901,7 +901,10 @@ modify actorInStagingLocation {
             }
 
             if (impAction != nil && impDest != nil) {
-                tryImplicitAction(impAction, impDest);
+                local tried = tryImplicitAction(impAction, impDest);
+                if (tried) {
+                    spendImplicitTurn();
+                }
                 if (gParkourRunner.location == stagingLoc) return true;
             }
         }
@@ -917,6 +920,10 @@ modify actorInStagingLocation {
             to do that. ');
         
         return nil;
+    }
+
+    spendImplicitTurn() {
+        //
     }
 }
 

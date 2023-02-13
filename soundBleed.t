@@ -17,10 +17,9 @@ soundBleedCore: object {
     selectedDestination = nil
     selectedMuffleDestination = nil
 
+    soundStartRoom = nil
     goalRoom = nil
-
     propagationPerceivedStrength = 0
-
     currentSoundImpact = nil
 
     addEmission(vec, soundProfile, soundSource, room) {
@@ -91,12 +90,14 @@ soundBleedCore: object {
         #if __DEBUG_SOUND_PLAYER_SIDE
         "<.p>(Propagating into <<startRoom.roomTitle>>)<.p>";
         #endif
+        soundStartRoom = startRoom;
         propagateRoomForPlayer(startRoom, soundProfile, bleedSource, 3, nil);
         clearRooms();
     }
 
     doPropagationForSkashek(soundProfile, startRoom) {
         goalRoom = skashek.getOutermostRoom();
+        soundStartRoom = startRoom;
         propagateRoomForSkashek(startRoom, soundProfile, soundProfile.strength, nil);
         clearRooms();
     }
@@ -151,76 +152,110 @@ soundBleedCore: object {
 
         if (strength <= 1) return;
 
-        if (strength == 3) {
-            // Muffle through walls propagation
-            for (local i = 1; i <= 12; i++) {
-                room.selectSoundDirection(i);
-                if (selectedMuffleDestination != nil) {
-                    local nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
-                    // If we can send the sound through a wall, then prioritize that.
-                    // The only other way it could arrive would be a distant echo (2 rooms away),
-                    // which would have the same strength, but has less priority.
-                    if (nextSourceDir != nil) {
-                        // We are faking strengths:
-                        // 1 = distant echo
-                        // 2 = through wall
-                        // 3 = through closed door
-                        // 4 = close echo
-                        // 5 = source
-                        if (!checkPropagationStep(selectedMuffleDestination, 2)) continue;
-                        
-                        #if __DEBUG_SOUND_PLAYER_SIDE
-                        "<.p>(Muffling into <<selectedMuffleDestination.roomTitle>>)<.p>";
-                        #endif
+        for (local i = 1; i <= 12; i++) {
+            room.selectSoundDirection(i);
+            local nextSourceDir = nil;
 
-                        propagateRoomForPlayer(selectedMuffleDestination, profile, wallMuffle, 1, nextSourceDir);
-                    }
-                }
+            // 0 = Normal
+            // 1 = Door muffle
+            // 2 = Wall muffle
+            local propagationMode = 0;
+
+            // Only wall-muffle from sound start room with sufficient volume
+            if (selectedMuffleDestination != nil && strength >= 3 && soundStartRoom == room) {
+                // Muffle through walls propagation
+                // We are faking strengths:
+                // 1 = distant echo
+                // 2 = through wall
+                // 3 = through closed door
+                // 4 = close echo
+                // 5 = source
+                nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
+                propagationMode = 2;
             }
-        }
-
-        if (strength >= 2) {
-            // Muffle through closed doors propagation
-            for (local i = 1; i <= 12; i++) {
-                room.selectSoundDirection(i);
-                if (selectedDestination != nil) {
-                    local nextSourceDir = selectedDestination.getDirectionTo(room);
-                    if (nextSourceDir != nil) {
+            else if (selectedDestination != nil) {
+                nextSourceDir = selectedDestination.getDirectionTo(room);
+                if (nextSourceDir != nil) {
+                    if (strength >= 2) {
                         if (selectedConnector.isOpenable) {
                             if (!selectedConnector.isOpen) {
-                                if (!checkPropagationStep(selectedDestination, 3)) continue;
-
-                                #if __DEBUG_SOUND_PLAYER_SIDE
-                                "<.p>(Door-muffling into <<selectedDestination.roomTitle>>)<.p>";
-                                #endif
-                                
-                                propagateRoomForPlayer(selectedDestination, profile, wallMuffle, 1, nextSourceDir);
+                                propagationMode = 1;
                             }
                         }
                     }
                 }
-            }
-        }
 
-        // Echo propagation
-        for (local i = 1; i <= 12; i++) {
-            room.selectSoundDirection(i);
-            if (selectedDestination != nil) {
-                local nextSourceDir = selectedDestination.getDirectionTo(room);
-                if (nextSourceDir != nil) {
-                    local nextStrength = strength - 1;
+                // Otherwise the propagationMode will be 0
+            }
+
+            if (nextSourceDir == nil) continue;
+
+            local checkStrength = 0;
+            local checkDestination = nil;
+            local nextStrength = 0;
+
+            switch (propagationMode) {
+                default:
+                    // Normal propagation
+                    nextStrength = strength - 1;
                     local fakeNextStrength = nextStrength;
                     if (fakeNextStrength > 1) fakeNextStrength += 2;
+                    checkStrength = fakeNextStrength;
+                    break;
+                case 1:
+                    // Muffle through doors propagation
+                    checkStrength = 3;
+                    break;
+                case 2:
+                    // Muffle through walls propagation
+                    checkStrength = 2;
+                    break;
+            }
 
-                    if (!checkPropagationStep(selectedDestination, fakeNextStrength)) continue;
+            switch (propagationMode) {
+                default:
+                case 1:
+                    // Normal propagation
+                    // Muffle through doors propagation
+                    checkDestination = selectedDestination;
+                    break;
+                case 2:
+                    // Muffle through walls propagation
+                    checkDestination = selectedMuffleDestination;
+                    break;
+            }
 
-                    #if __DEBUG_SOUND_PLAYER_SIDE
+            if (!checkPropagationStep(checkDestination, checkStrength)) continue;
+
+            #if __DEBUG_SOUND_PLAYER_SIDE
+            switch (propagationMode) {
+                default:
+                    // Normal propagation
                     "<.p>(Echoing into <<selectedDestination.roomTitle>>)<.p>";
-                    #endif
+                    break;
+                case 1:
+                    // Muffle through doors propagation
+                    "<.p>(Door-muffling into <<selectedDestination.roomTitle>>)<.p>";
+                    break;
+                case 2:
+                    // Muffle through walls propagation
+                    "<.p>(Muffling into <<selectedMuffleDestination.roomTitle>>)<.p>";
+                    break;
+            }
+            #endif
 
+            switch (propagationMode) {
+                default:
+                    // Normal propagation
                     local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
-                    propagateRoomForPlayer(selectedDestination, profile, nextForm, nextStrength, nextSourceDir);
-                }
+                    propagateRoomForPlayer(checkDestination, profile, nextForm, nextStrength, nextSourceDir);
+                    break;
+                case 1:
+                case 2:
+                    // Muffle through doors propagation
+                    // Muffle through walls propagation
+                    propagateRoomForPlayer(checkDestination, profile, wallMuffle, 1, nextSourceDir);
+                    break;
             }
         }
     }
