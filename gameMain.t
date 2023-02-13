@@ -135,6 +135,7 @@ centralRoom: Room { 'Central Room'
 
     north = hallwayDoor
     westMuffle = sideRoom
+    east = eastGap
 }
 
 /*+vent: ParkourExit { 'vent;metal ventilation;grate'
@@ -285,7 +286,7 @@ centralRoom: Room { 'Central Room'
     otherSide = lowVent
 }*/
 
-+eastGap: Fixture { 'east gap;eastern;divide'
++eastGap: ParkourBridgeConnector { 'east gap;eastern;divide'
     "The eastern wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true
@@ -331,9 +332,10 @@ eastHallway: Room { 'Hallway (East)'
 subtleRoom: Room { 'Subtle Room'
     "Just a subtle room. "
     north = eastHallway
+    west = westGap
 }
 
-+westGap: Fixture { 'west gap;western;divide'
++westGap: ParkourBridgeConnector { 'west gap;western;divide'
     "The western wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true

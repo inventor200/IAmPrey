@@ -188,72 +188,8 @@ DefineTAction(ParkourClimbGeneric)
     climbImplicitReport
 ;
 
-VerbRule(ParkourSlideUnder)
-    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither') 'under' singleDobj
-    : VerbProduction
-    action = ParkourSlideUnder
-    verbPhrase = 'slide under (what)'
-    missingQ = 'what do you want to slide under'
-;
-
-DefineTAction(ParkourSlideUnder)
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'sliding under {the dobj}';
-        }
-        return 'failing to slide under {the dobj}';
-    }
-;
-
-VerbRule(ParkourJumpOver)
-    ('jump'|'jm'|'hop'|'leap'|'vault') ('over'|) singleDobj
-    : VerbProduction
-    action = ParkourJumpOver
-    verbPhrase = 'jump over (what)'
-    missingQ = 'what do you want to jump over'
-;
-
-DefineTAction(ParkourJumpOver)
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'jumping over {the dobj}';
-        }
-        return 'failing to jump over {the dobj}';
-    }
-;
-
-VerbRule(ParkourRunAcross)
-    ('run'|'sprint'|'hop'|'go'|'walk') 'across' singleDobj
-    : VerbProduction
-    action = ParkourRunAcross
-    verbPhrase = 'run across (what)'
-    missingQ = 'what do you want to run across'
-;
-
-DefineTAction(ParkourRunAcross)
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'running across {the dobj}';
-        }
-        return 'failing to run across {the dobj}';
-    }
-;
-
-VerbRule(ParkourSwingOn)
-    'swing' ('on'|'under'|'with'|'using'|'via'|'across') singleDobj
-    : VerbProduction
-    action = ParkourSwingOn
-    verbPhrase = 'swing on (what)'
-    missingQ = 'what do you want to swing on'
-;
-
-DefineTAction(ParkourSwingOn)
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'swinging on {the dobj}';
-        }
-        return 'failing to swing on {the dobj}';
-    }
+modify VerbRule(JumpOver)
+    ('jump'|'jm'|'hop'|'leap'|'vault') ('over'|) singleDobj :
 ;
 
 VerbRule(SlideUnder)
@@ -307,7 +243,22 @@ DefineTAction(SwingOn)
     }
 ;
 
-//TODO: Climb/squeeze/crawl through
+VerbRule(SqueezeThrough)
+    [badness 10] ('squeeze'|'crawl'|'slide'|'fit' ('self'|'myself'|)|'go'|'climb'|'cl') ('through'|'thru'|'between'|'btwn'|'btw'|'bw'|'into') singleDobj
+    : VerbProduction
+    action = SqueezeThrough
+    verbPhrase = 'squeeze through (what)'
+    missingQ = 'what do you want to squeeze through'
+;
+
+DefineTAction(SqueezeThrough)
+    implicitAnnouncement(success) {
+        if (success) {
+            return 'squeezing through {the dobj}';
+        }
+        return 'failing to squeeze through {the dobj}';
+    }
+;
 
 VerbRule(ParkourClimbOffOf)
     ('get'|'climb'|'cl'|'parkour') ('off'|'off' 'of'|'down' 'from') singleDobj
@@ -1218,11 +1169,6 @@ modify Thing {
     dobjParkourIntoRemap(enterAlternative, Climb, Down, remapIn)
     dobjParkourIntoRemap(enterAlternative, Jump, Down, remapIn)
 
-    dobjFor(ParkourJumpOver) asDobjFor(JumpOver)
-    dobjFor(ParkourSlideUnder) asDobjFor(SlideUnder)
-    dobjFor(ParkourRunAcross) asDobjFor(RunAcross)
-    dobjFor(ParkourSwingOn) asDobjFor(SwingOn)
-
     dobjParkourRemap(ParkourClimbOffOf, climbOffAlternative)
     dobjParkourRemap(ParkourJumpOffOf, jumpOffAlternative)
 
@@ -1296,6 +1242,7 @@ modify Thing {
         if (canJumpOverMe) return self;
         if (canSlideUnderMe) return self;
         if (canSwingOnMe) return self;
+        if (canSqueezeThroughMe) return self;
 
         if (!fromChild) {
             if (remapOn != nil) {
@@ -1557,11 +1504,13 @@ modify Thing {
     canSlideUnderMe = nil
     canRunAcrossMe = nil
     canSwingOnMe = nil
+    canSqueezeThroughMe = nil
 
     parkourProviderAction(JumpOver, remapOn)
     parkourProviderAction(SlideUnder, remapUnder)
     parkourProviderAction(RunAcross, remapOn)
     parkourProviderAction(SwingOn, remapOn)
+    parkourProviderAction(SqueezeThrough, remapIn)
 
     #if __DEBUG
     dobjFor(DebugCheckForContainer) {
@@ -1605,6 +1554,8 @@ modify Thing {
         '{The subj dobj} {is} not something {i} {can} run across. '
     cannotSwingOnMsg =
         '{The subj dobj} {is} not something {i} {can} swing on. '
+    cannotSqueezeThroughMsg =
+        '{The subj dobj} {is} not something {i} {can} squeeze through. '
     uselessSlideUnderMsg =
         'Sliding under {the dobj}{dummy} {do} very little from {here}. '
     uselessRunAcrossMsg =
@@ -1613,6 +1564,8 @@ modify Thing {
         'Jumping over {the dobj}{dummy} {do} very little from {here}. '
     uselessSwingOnMsg =
         'Swinging on {the dobj}{dummy} {do} very little from {here}. '
+    uselessSqueezeThroughMsg =
+        'Squeezing through {the dobj}{dummy} {do} very little from {here}. '
     noParkourPathFromHereMsg =
         '{I} {know} no path to get there. '
     parkourNeedsJumpMsg =
@@ -1711,6 +1664,17 @@ modify Thing {
 
     getSwingOnToMsg(destination) {
         return '{I} {swing} on <<theName>>,
+            <<getProviderGoalClause(destination)>>. ';
+    }
+
+    getSqueezeThroughToDiscoverMsg(destination) {
+        return '(It seems that {i} {can}
+            <<gDirectCmdStr('squeeze through ' + theName)>>,
+            <<getProviderGoalDiscoverClause(destination)>>!) ';
+    }
+
+    getSqueezeThroughToMsg(destination) {
+        return '{I} squeeze{s/d} on <<theName>>,
             <<getProviderGoalClause(destination)>>. ';
     }
 
@@ -2499,6 +2463,7 @@ class ParkourModule: SubComponent {
         if (provider.canJumpOverMe) return 'jump over ' + provName;
         if (provider.canRunAcrossMe) return 'run across ' + provName;
         if (provider.canSlideUnderMe) return 'slide under ' + provName;
+        if (provider.canSqueezeThroughMe) return 'squeeze through ' + provName;
         return 'cl ' + provName;
     }
 
@@ -2508,6 +2473,7 @@ class ParkourModule: SubComponent {
         if (provider.canJumpOverMe) return 'JUMP OVER ' + provName;
         if (provider.canRunAcrossMe) return 'RUN ACROSS ' + provName;
         if (provider.canSlideUnderMe) return 'SLIDE UNDER ' + provName;
+        if (provider.canSqueezeThroughMe) return 'SQUEEZE THROUGH ' + provName;
         return 'parkour via ' + provName;
     }
 
@@ -2801,10 +2767,6 @@ class ParkourModule: SubComponent {
     dobjFor(ClimbDown) asDobjFor(ParkourClimbOffOf)
     dobjFor(GetOff) asDobjFor(ParkourClimbOffOf)
     dobjFor(JumpOff) asDobjFor(ParkourJumpOffOf)
-    /*dobjFor(JumpOver) asDobjFor(ParkourJumpOver)
-    dobjFor(SlideUnder) asDobjFor(ParkourSlideUnder)
-    dobjFor(RunAcross) asDobjFor(ParkourRunAcross)
-    dobjFor(SwingOn) asDobjFor(ParkourSwingOn)*/
 
     dobjFor(ParkourClimbGeneric) {
         parkourActionIntro
@@ -2930,6 +2892,9 @@ class ParkourPath: object {
             if (provider.canSlideUnderMe) {
                 return provider.getSlideUnderToDiscoverMsg(destination.parkourModule);
             }
+            if (provider.canSqueezeThroughMe) {
+                return provider.getSqueezeThroughToDiscoverMsg(destination.parkourModule);
+            }
         }
 
         if (requiresJump) {
@@ -2970,6 +2935,9 @@ class ParkourPath: object {
             }
             if (provider.canSlideUnderMe) {
                 return provider.getSlideUnderToMsg(destination.parkourModule);
+            }
+            if (provider.canSqueezeThroughMe) {
+                return provider.getSqueezeThroughToMsg(destination.parkourModule);
             }
         }
 
@@ -3052,6 +3020,7 @@ class ParkourPathMaker: PreinitObject {
         createdForward = getNewPathObject(startKnown);
         createdForward.maker = self;
         getTrueLocation().parkourModule.addPath(createdForward);
+        return createdForward;
     }
 
     createBackwardPath() { }
@@ -3284,8 +3253,80 @@ class DangerousFloorHeight: FloorHeight {
 }
 
 // Two-way bridges
+modify TravelConnector {
+    // This keeps Skashek from seeing a ParkourBridgeConnector
+    // as a valid way out
+    requiresParkourToTravel = nil
+}
+
+class ParkourBridgeConnector: TravelConnector, Thing {
+    requiresParkourToTravel = true
+    providerClient = nil
+    isListed = nil
+    isFixed = true
+
+    visibleInDark {
+        if (destination != nil && transmitsLight) {
+            return destination.isIlluminated;
+        }
+        
+        return nil;
+    }
+
+    isConnectorApparent = (isApparentForParkour())
+
+    isApparentForParkour() {
+        // Not a valid provider
+        local realProvider = getParkourProvider(nil, nil);
+        if (realProvider == nil) return nil;
+
+        local actor = (gActor == nil ? gPlayerChar : gActor);
+
+        parkourCore.cacheParkourRunner(actor);
+        local pm = gParkourRunnerModule;
+        // Not ready for parkour of any kind
+        if (pm == nil) return nil;
+
+        // Not elligible for MY parkour!
+        if (actor.getParkourModule() == providerClient) return nil;
+
+        local lastPath = pm.getPathThrough(realProvider);
+        // No path available
+        if (lastPath == nil) return nil;
+        
+        // Path is known
+        return lastPath.isKnown;
+    }
+
+    travelVia(actor) {
+        parkourCore.cacheParkourRunner(actor);
+        execTravel(actor, gParkourRunner, self);               
+    }
+
+    execTravel(actor, traveler, conn) {
+        local newAction = nil;
+        if (canJumpOverMe) newAction = JumpOver;
+        if (canSlideUnderMe) newAction = SlideUnder;
+        if (canRunAcrossMe) newAction = RunAcross;
+        if (canSwingOnMe) newAction = SwingOn;
+        if (canSqueezeThroughMe) newAction = SqueezeThrough;
+
+        if (newAction == nil) return;
+
+        doNested(newAction, self);
+    }
+}
+
 class ParkourBridgeMaker: ParkourLinkMaker {
     backwardProvider = nil
+
+    createForwardPath() {
+        local tempForward = inherited();
+        if (tempForward.provider.ofKind(ParkourBridgeConnector)) {
+            tempForward.provider.providerClient = getTrueDestination().parkourModule;
+            tempForward.provider.destination = getTrueDestination().getOutermostRoom();
+        }
+    }
 
     createBackwardPath() {
         createdBackward = getNewPathObject(startBackwardKnown);
@@ -3314,6 +3355,10 @@ class ParkourBridgeMaker: ParkourLinkMaker {
             createdForward.provider
         );
         getTrueDestination().parkourModule.addPath(createdBackward);
+        if (backwardProvider.ofKind(ParkourBridgeConnector)) {
+            backwardProvider.providerClient = getTrueLocation().parkourModule;
+            backwardProvider.destination = getTrueLocation().getOutermostRoom();
+        }
         #if __DEBUG
         if (provider == backwardProvider && provider != nil) {
             if (!provider.ofKind(MultiLoc)) {
