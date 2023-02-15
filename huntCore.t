@@ -95,9 +95,9 @@ huntCore: InitObject {
 
     // Shashek's actions go here
     handleSkashekAction() {
-        if (gTurns == 6) {
+        /*if (gTurns == 6) {
             doSkashekAction(Open, hallwayDoor);
-        }
+        }*/
         handleSoundPropagation();
     }
 

@@ -1,6 +1,6 @@
 doorSlamCloseNoiseProfile: SoundProfile {
-    'the muffled <i>ka-thud</i> of a door automatically closing'
-    'the echoing <i>ka-chunk</i> of a door automatically closing'
+    'the muffled <i>ka-thud</i> of <<theSourceName>> automatically closing'
+    'the echoing <i>ka-chunk</i> of <<theSourceName>> automatically closing'
     'the reverberating <i>thud</i> of a door automatically closing'
     strength = 5
 
@@ -10,8 +10,8 @@ doorSlamCloseNoiseProfile: SoundProfile {
 }
 
 doorSuspiciousCloseNoiseProfile: SoundProfile {
-    'the muffled <i>ka-thud</i> of a door automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
-    'the echoing <i>ka-chunk</i> of a door automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
+    'the muffled <i>ka-thud</i> of <<theSourceName>> automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
+    'the echoing <i>ka-chunk</i> of <<theSourceName>> automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
     'the reverberating <i>thud</i> of a door automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
     strength = 5
     isSuspicious = true
@@ -619,29 +619,6 @@ modify Thing {
             if (gActor == cat) {
                 "After careful taps with {my} paws,
                 {I} manage{s/d} to close <<gActionListStr>>. ";
-                return;
-            }
-            inherited();
-        }
-    }
-
-    //TODO: Add limited inventory to cat
-    catInventoryMsg = 'Carrying that in your mouth would only slow you down. ';
-
-    dobjFor(Take) {
-        verify() {
-            if (gActor == cat) {
-                illogical(catInventoryMsg);
-                return;
-            }
-            inherited();
-        }
-    }
-
-    dobjFor(TakeFrom) {
-        verify() {
-            if (gActor == cat) {
-                illogical(catInventoryMsg);
                 return;
             }
             inherited();
@@ -1273,7 +1250,7 @@ modify Room {
                 makeListStr(openExpectedDoors, &getScanName, 'and')>>
                 <<if openExpectedDoors.length > 1>>are<<else>>is<<end>>
                 currently open, but you
-                <<one of>>probably knew<<or>>already know<<or>>were expecting<<at random>>
+                <<one of>>probably knew<<or>>already knew<<or>>were expecting<<at random>>
                 that. ";
             }
             else {

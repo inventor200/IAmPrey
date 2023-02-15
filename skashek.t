@@ -1,4 +1,4 @@
-skashek: Actor { 'Skashek;;predator hunter royal[weak] subject' @centralRoom
+skashek: Actor { 'Skashek;;predator hunter royal[weak] subject' @deliveryRoom
     "A rather terrifying visage! "
     isHim = true
     theName = (globalParamName)
@@ -6,6 +6,6 @@ skashek: Actor { 'Skashek;;predator hunter royal[weak] subject' @centralRoom
     globalParamName = (gCatMode ? '<b>the Royal Subject</b>' : '<b>the Predator</b>')
 
     doPerception() {
-        //TODO: Handle Skashek perception
+        //TODO: Handle Skashek sound perception
     }
 }

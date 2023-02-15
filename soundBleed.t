@@ -2,7 +2,7 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 #define gThroughDoorPriority 3
 
 #define __DEBUG_SOUND_PLAYER_SIDE nil
-#define __SHOW_EMISSION_STARTS nil
+#define __SHOW_EMISSION_STARTS true
 
 soundBleedCore: object {
     envSoundEmissions = static new Vector(16)
@@ -91,7 +91,7 @@ soundBleedCore: object {
         "<.p>(Propagating into <<startRoom.roomTitle>>)<.p>";
         #endif
         soundStartRoom = startRoom;
-        propagateRoomForPlayer(startRoom, soundProfile, bleedSource, 3, nil);
+        propagateRoomForPlayer(startRoom, soundProfile, bleedSource, soundProfile.strength, nil);
         clearRooms();
     }
 
@@ -144,7 +144,7 @@ soundBleedCore: object {
                 currentSoundImpact.throughDoor = throughDoor;
                 currentSoundImpact.strength = strength;
                 currentSoundImpact.priority = getPriorityFromForm(form, throughDoor);
-                gPlayerChar.addSoundImpact(currentSoundImpact, &priority);
+                gPlayerChar.addSoundImpact(currentSoundImpact, &priorityStrength);
             }
             // It doesn't matter if we were accepted; we just got there
             return;
@@ -155,6 +155,7 @@ soundBleedCore: object {
         for (local i = 1; i <= 12; i++) {
             room.selectSoundDirection(i);
             local nextSourceDir = nil;
+            local falloff = 2;
 
             // 0 = Normal
             // 1 = Door muffle
@@ -164,12 +165,6 @@ soundBleedCore: object {
             // Only wall-muffle from sound start room with sufficient volume
             if (selectedMuffleDestination != nil && strength >= 3 && soundStartRoom == room) {
                 // Muffle through walls propagation
-                // We are faking strengths:
-                // 1 = distant echo
-                // 2 = through wall
-                // 3 = through closed door
-                // 4 = close echo
-                // 5 = source
                 nextSourceDir = selectedMuffleDestination.getMuffleDirectionTo(room);
                 propagationMode = 2;
             }
@@ -186,46 +181,20 @@ soundBleedCore: object {
                 }
 
                 // Otherwise the propagationMode will be 0
+                if (propagationMode == 0) {
+                    falloff = room.canHearOutTo(selectedDestination) ? 0 : 1;
+                }
             }
 
             if (nextSourceDir == nil) continue;
 
-            local checkStrength = 0;
             local checkDestination = nil;
-            local nextStrength = 0;
+            local nextStrength = propagationMode == 2 ? 1 : (strength - falloff);
 
-            switch (propagationMode) {
-                default:
-                    // Normal propagation
-                    nextStrength = strength - 1;
-                    local fakeNextStrength = nextStrength;
-                    if (fakeNextStrength > 1) fakeNextStrength += 2;
-                    checkStrength = fakeNextStrength;
-                    break;
-                case 1:
-                    // Muffle through doors propagation
-                    checkStrength = 3;
-                    break;
-                case 2:
-                    // Muffle through walls propagation
-                    checkStrength = 2;
-                    break;
-            }
+            checkDestination = propagationMode == 2
+                ? selectedMuffleDestination : selectedDestination;
 
-            switch (propagationMode) {
-                default:
-                case 1:
-                    // Normal propagation
-                    // Muffle through doors propagation
-                    checkDestination = selectedDestination;
-                    break;
-                case 2:
-                    // Muffle through walls propagation
-                    checkDestination = selectedMuffleDestination;
-                    break;
-            }
-
-            if (!checkPropagationStep(checkDestination, checkStrength)) continue;
+            if (!checkPropagationStep(checkDestination, nextStrength)) continue;
 
             #if __DEBUG_SOUND_PLAYER_SIDE
             switch (propagationMode) {
@@ -244,19 +213,21 @@ soundBleedCore: object {
             }
             #endif
 
-            switch (propagationMode) {
-                default:
-                    // Normal propagation
-                    local nextForm = (nextStrength == 2) ? closeEcho : distantEcho;
-                    propagateRoomForPlayer(checkDestination, profile, nextForm, nextStrength, nextSourceDir);
-                    break;
-                case 1:
-                case 2:
-                    // Muffle through doors propagation
-                    // Muffle through walls propagation
-                    propagateRoomForPlayer(checkDestination, profile, wallMuffle, 1, nextSourceDir);
-                    break;
+            local nextForm = propagationMode == 0 ? form : wallMuffle;
+            if (nextForm == bleedSource) nextForm = closeEcho;
+
+            if (falloff > 0 && propagationMode != 0) {
+                nextForm = distantEcho;
+
+                if (form == closeEcho || form == bleedSource) {
+                    if (nextStrength >= profile.getCloseStrength()) {
+                        // If the signal is clean enough
+                        nextForm = closeEcho;
+                    }
+                }
             }
+
+            propagateRoomForPlayer(checkDestination, profile, nextForm, nextStrength, nextSourceDir);
         }
     }
 
@@ -298,6 +269,9 @@ soundBleedCore: object {
                             falloff = 2;
                             if (strength <= falloff) continue;
                         }
+                    }
+                    else {
+                        falloff = room.canHearOutTo(selectedDestination) ? 0 : 1;
                     }
 
                     nextStrength = strength - falloff;
@@ -409,26 +383,27 @@ modify Door {
 
     preinitThing() {
         inherited();
-
-        // Arbitrarily agree on a source representative
-        if (otherSide != nil) {
-            if (otherSide.soundSourceRepresentative != nil) {
-                // otherSide has already made its decision
-                // so we must play along
-                soundSourceRepresentative =
-                    otherSide.soundSourceRepresentative;
+        if (soundSourceRepresentative == nil) {
+            // Arbitrarily agree on a source representative
+            if (otherSide != nil) {
+                if (otherSide.soundSourceRepresentative != nil) {
+                    // otherSide has already made its decision
+                    // so we must play along
+                    soundSourceRepresentative =
+                        otherSide.soundSourceRepresentative;
+                }
+                else {
+                    // otherSide has not yet decided,
+                    // so we take charge
+                    soundSourceRepresentative = self;
+                    otherSide.soundSourceRepresentative = self;
+                }
             }
             else {
-                // otherSide has not yet decided,
-                // so we take charge
+                // There is no otherSide.
+                // Anarchy in Adv3Lite!
                 soundSourceRepresentative = self;
-                otherSide.soundSourceRepresentative = self;
             }
-        }
-        else {
-            // There is no otherSide.
-            // Anarchy in Adv3Lite!
-            soundSourceRepresentative = self;
         }
     }
 
@@ -453,6 +428,7 @@ class SoundImpact: object {
     throughDoor = nil
     strength = 0
     priority = 0
+    priorityStrength = ((priority << 4) + strength)
 
     isIdenticalToStart(soundProfile_, sourceOrigin_, sourceLocation_) {
         if (soundProfile != soundProfile_) return nil;
@@ -465,6 +441,40 @@ class SoundImpact: object {
         if (soundProfile != otherImpact.soundProfile) return nil;
         if (sourceOrigin != otherImpact.sourceOrigin) return nil;
         return true;
+    }
+
+    setSourceBuffer() {
+        soundProfile.sourceBuffer = sourceOrigin;
+        if (soundProfile.isSuspicious) {
+            soundProfile.lastSuspicionTarget = sourceOrigin;
+        }
+    }
+
+    impactPlayer() {
+        setSourceBuffer();
+        soundProfile.doPlayerPerception(
+            form, sourceDirection, throughDoor
+        );
+    }
+
+    getStrengthDebug() {
+        local formStr;
+        switch (form) {
+            default:
+                formStr = 'bleedSource';
+                break;
+            case closeEcho:
+                formStr = 'closeEcho';
+                break;
+            case distantEcho:
+                formStr = 'distantEcho';
+                break;
+            case wallMuffle:
+                formStr = 'wallMuffle';
+                break;
+        }
+        return 'S: <<strength>>/<<soundProfile.getCloseStrength()>>;
+        P: <<priority>>; PS: <<priorityStrength>>; F: <<formStr>>';
     }
 }
 
@@ -482,7 +492,7 @@ modify Actor {
             perceivedSoundImpacts[i] = impact;
 
             #if __SHOW_EMISSION_STARTS
-            "<.p><<theName>> heard that better!<.p>";
+            "<.p><<theName>> heard that better!\n(<<impact.getStrengthDebug()>>)<.p>";
             #endif
 
             return;
@@ -491,7 +501,7 @@ modify Actor {
         // No conflicts at all; add it
         perceivedSoundImpacts.append(impact);
         #if __SHOW_EMISSION_STARTS
-        "<.p><<theName>> heard that.<.p>";
+        "<.p><<theName>> heard that.\n(<<impact.getStrengthDebug()>>)<.p>";
         #endif
     }
 
@@ -513,14 +523,7 @@ modify Actor {
         say('<.p>');
         if (perceivedSoundImpacts.length == 1) {
             local impact = perceivedSoundImpacts[1];
-            if (impact.soundProfile.isSuspicious) {
-                impact.soundProfile.lastSuspicionTarget = impact.sourceOrigin;
-            }
-            impact.soundProfile.doPlayerPerception(
-                impact.form,
-                impact.sourceDirection,
-                impact.throughDoor
-            );
+            impact.impactPlayer();
             return;
         }
 
@@ -529,7 +532,6 @@ modify Actor {
         // Prepare to group stuff by direction
         local impactsByDir = new Vector(12);
         local formsByDir = new Vector(12);
-        local miscImpacts = new Vector(3);
 
         // Initialize vectors
         for (local i = 1; i <= 12; i++) {
@@ -544,6 +546,7 @@ modify Actor {
             // Subtle sounds have thing-based handling,
             // so we handle these individually.
             if (impact.soundProfile.subtleSound != nil) {
+                impact.setSourceBuffer();
                 impact.soundProfile.subtleSound.perceiveIn(
                     gPlayerChar.getOutermostRoom(),
                     impact.sourceDirection,
@@ -558,10 +561,7 @@ modify Actor {
 
             // If requested, we will show these alone
             if (impact.soundProfile.isSuspicious) {
-                impact.soundProfile.lastSuspicionTarget = impact.sourceOrigin;
-                impact.soundProfile.doPlayerPerception(
-                    impact.form, impact.sourceDirection, impact.throughDoor
-                );
+                impact.impactPlayer();
                 continue;
             }
 
@@ -577,7 +577,7 @@ modify Actor {
                 soundBleedCore.getDirIndexFromDir(impact.sourceDirection);
 
             if (dirIndex == nil) {
-                miscImpacts.append(impact);
+                impact.impactPlayer();
                 continue;
             }
 
@@ -600,11 +600,7 @@ modify Actor {
 
             if (dirVec.length == 1) {
                 local impact = dirVec[1];
-                impact.soundProfile.doPlayerPerception(
-                    impact.form,
-                    impact.sourceDirection,
-                    impact.throughDoor
-                );
+                impact.impactPlayer();
                 continue;
             }
 
@@ -620,6 +616,7 @@ modify Actor {
 
             for (local j = 1; j <= dirVec.length; j++) {
                 local impact = dirVec[j];
+                impact.setSourceBuffer();
                 local descString = impact.soundProfile.getDescString(form);
                 strBfr.append(descString);
                 if (j == dirVec.length - 1) {
@@ -647,6 +644,9 @@ class SoundProfile: object {
     subtleSound = nil
     isSuspicious = nil
     lastSuspicionTarget = nil
+    sourceBuffer = nil // Set just before print
+    sourceName = (sourceBuffer == nil ? 'something' : sourceBuffer.name)
+    theSourceName = (sourceBuffer == nil ? 'something' : sourceBuffer.theName)
     absoluteDesc = nil
 
     doPlayerPerception(form, sourceDirection, throughDoor) {
@@ -692,6 +692,13 @@ class SoundProfile: object {
             default:
                 return distantEchoStr;
         }
+    }
+
+    getCloseStrength() {
+        local halfPoint = strength >> 1;
+        if (halfPoint < 1) halfPoint = 1;
+        local closePoint = strength - halfPoint;
+        return (closePoint < 2 ? 2 : closePoint);
     }
 
     afterEmission(room) {

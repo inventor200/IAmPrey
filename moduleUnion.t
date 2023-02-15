@@ -29,7 +29,7 @@ hardImpactNoiseProfile: SoundProfile {
     'the muffled <i>crack</i> of something hitting the floor'
     'the echoing <i>ka-thump</i> of something hitting the floor'
     'the reverberating <i>wump</i> of something hitting the floor'
-    strength = 5
+    strength = 3
 
     afterEmission(room) {
         //say('\b(Emitted hard impact noise in <<room.roomTitle>>.)');
@@ -53,6 +53,12 @@ modify actorInStagingLocation {
 }
 
 modify Thing {
+    bulk = 1
+
+    sightSize = (bulk > 1 ? medium : small)
+    soundSize = large
+    smellSize = small
+
     doJumpPunishment(actor, traveler, path) {
         if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
@@ -84,12 +90,14 @@ modify Thing {
     }
 }
 
-defaultLabFloor: Floor { 'the floor'
-    //
+modify Actor {
+    bulk = 25
+    bulkCapacity = 10
+    maxSingleBulk = 2
 }
 
-modify Room {
-    floorObj = defaultLabFloor
+modify Door {
+    sightSize = large
 }
 
 class FixedPlatform: Platform {

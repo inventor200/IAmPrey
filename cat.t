@@ -10,13 +10,16 @@
 #define catNicknameVocab ('king arthur')
 #endif
 
-cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>' @subtleRoom
+cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>' @deliveryRoom
     person = (gCatMode ? 2 : 3)
     isHim = true
 
     actualName = catRealName
     nickname = catNickname
     globalParamName = 'the cat'
+
+    bulkCapacity = 1
+    maxSingleBulk = 1
 }
 
 +catNameTag: Fixture { 'nametag;name;tag collar pendant plate badge card'

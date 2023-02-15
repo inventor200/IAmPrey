@@ -1,3 +1,3 @@
-prey: Actor { 'The Prey' @centralRoom
+prey: Actor { 'The Prey' @deliveryRoom
     person = (gCatMode ? 3 : 2)
 }
