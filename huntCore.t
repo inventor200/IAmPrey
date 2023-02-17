@@ -1,5 +1,5 @@
 enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
-#define gCatMode huntCore.inCatMode
+
 #define gPlayerAction huntCore.playerAction
 #define gPlayerActionActor huntCore.playerActionActor
 #define gPlayerDobj huntCore.playerAction.curDobj
@@ -287,8 +287,6 @@ modify Read {
     turnsTaken = 0
 }
 
-#define gSkashekGPName skashek.globalParamName
-
 #define reinventForSkashek(action) \
     modify action { \
         skashekActionDProp = &dobjForDoSkashek##action \
@@ -333,7 +331,7 @@ modify Thing {
     }
 
     dobjForReportSkashekOpen() {
-        "\^<<gSkashekGPName>> opens <<theName>>. ";
+        "\^<<gSkashekName>> opens <<theName>>. ";
     }
 
     dobjForDoSkashekClose() {
@@ -341,7 +339,7 @@ modify Thing {
     }
 
     dobjForReportSkashekClose() {
-        "\^<<gSkashekGPName>> closes <<theName>>. ";
+        "\^<<gSkashekName>> closes <<theName>>. ";
     }
 }
 
@@ -359,6 +357,6 @@ modify Door {
     }
 
     dobjForReportSkashekOpen() {
-        "\^<<gSkashekGPName>> opens <<theName>>! ";
+        "\^<<gSkashekName>> opens <<theName>>! ";
     }
 }

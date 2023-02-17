@@ -12,8 +12,6 @@
     )
 
 #include "betterChoices.t"
-#define gCatName (huntCore.printApologyNoteForPG())
-#define gCatNickname (huntCore.printApologyNoteForPG(true))
 
 // Begin compile modes
 #define __IS_CAT_GAME nil
@@ -36,15 +34,15 @@
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "awareVehicles.t"
+#include "cat.t"
+#include "preyPlayer.t"
+#include "skashek.t"
 #include "soundBleed.t"
 #include "sneakyDoors.t"
 #include "huntCore.t"
 #include "parkour.t"
 #include "trinkets.t"
 #include "moduleUnion.t"
-#include "preyPlayer.t"
-#include "cat.t"
-#include "skashek.t"
 #include "prologue.t"
 #include "map/map.h"
 

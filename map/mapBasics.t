@@ -2,7 +2,15 @@ defaultLabFloor: Floor { 'the floor'
     "TODO: Add description. "
 }
 
-#define standardDoorDescription "TODO: Add inside description. "
+#define standardDoorDescription \
+    "TODO: Add inside description. \
+    There seems to be a sort of rough, rectangular cat door \
+    cut into the bottom of the door. "
+
+#define lockedDoorDescription \
+    "TODO: Add inside description. \
+    There seems to be a proximity lock on this door, and a \
+    startling lack of cat accessibility. "
 
 modify SenseRegion {
     lookAroundArmed = true
@@ -49,13 +57,16 @@ modify Room {
             if (obj.sightSize == small) continue;
             if (obj.getOutermostRoom() != self) continue;
             if (!pov.canSee(obj)) continue;
-            if (!obj.ofKind(Door)) {
+            if (obj.ofKind(Door)) {
+                if (!obj.isOpen) continue;
+            }
+            else {
                 if (!obj.isListed) continue;
             }
             spottedItems.appendUnique(obj);
         }
 
-        return spottedItems.toList();
+        return valToList(spottedItems);
     }
 
     descFrom(pov) {

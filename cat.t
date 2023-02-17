@@ -1,3 +1,6 @@
+#define gCatMode huntCore.inCatMode
+#define gCatName (huntCore.printApologyNoteForPG())
+#define gCatNickname (huntCore.printApologyNoteForPG(true))
 #define catBaseVocab ('cat;;kat kitty meowmeow')
 
 #if __DEBUG

@@ -34,6 +34,7 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
 
     regions = [loadingAreaSightLine, directorsOfficeSightLine]
 
+    north = northBathroom
     east = loadingArea
     west = northwestHall
     southwest = brokenWindowExterior
@@ -124,6 +125,7 @@ southHall: HallwaySegment { '<<nameHeader>> (South)'
 
     east = southeastHall
     west = southwestHall
+    south = southBathroom
 }
 
 northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'

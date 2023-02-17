@@ -21,3 +21,8 @@
 #include "labA.t"             // Stage: Draft
 #include "labB.t"             // Stage: Draft
 #include "evaluationRoom.t"   // Stage: Draft
+#include "bathrooms.t"        // Stage: Draft
+#include "utilityPassage.t"   // Stage: Draft
+#include "lifeSupport.t"      // Stage: Draft
+#include "serverRoom.t"       // Stage: Draft
+#include "itOffice.t"         // Stage: Draft

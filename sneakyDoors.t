@@ -515,7 +515,7 @@ sneakyCore: object {
                 'Normally, {i} should <b>CLOSE</b> the door behind {myself},
                 but {i} did not open this door.
                 Therefore, it\'s better to let it <i>close itself</i>,
-                according to what <<skashek.theName>> expects!'
+                according to what <<gSkashekName>> expects!'
             );
         }
     }
@@ -691,27 +691,34 @@ modify Door {
 
     getScanName() {
         local omr = getOutermostRoom();
-        local direction = omr.getDirection(self);
         local observerRoom = gPlayerChar.getOutermostRoom();
         local inRoom = omr == observerRoom;
-        
-        if (direction != nil) {
-            local listedLoc = inRoom
-                ? direction.name : omr.inRoomName(gPlayerChar);
-            if (exitLister.enableHyperlinks && inRoom) {
-                return theName + ' (' + aHrefAlt(
-                    sneakyCore.getDefaultTravelAction() +
-                    ' ' + direction.name, direction.name, direction.name
-                ) + ')';
-            }
-            return theName + ' (' + listedLoc + ')';
-        }
 
-        if (exitLister.enableHyperlinks && inRoom) {
-            return aHrefAlt(
-                sneakyCore.getDefaultDoorTravelAction() +
-                ' ' + direction.name, theName, theName
-            );
+        if (!isLocked) {
+            local direction = omr.getDirection(self);
+            
+            if (direction != nil) {
+                local listedLoc = inRoom
+                    ? direction.name : omr.inRoomName(gPlayerChar);
+                if (exitLister.enableHyperlinks && inRoom) {
+                    return theName + ' (' + aHrefAlt(
+                        sneakyCore.getDefaultTravelAction() +
+                        ' ' + direction.name, direction.name, direction.name
+                    ) + ')';
+                }
+                return theName + ' (' + listedLoc + ')';
+            }
+
+            if (exitLister.enableHyperlinks && inRoom) {
+                local clickAction = '';
+                if (outputManager.htmlMode) {
+                    clickAction = ' (' + aHrefAlt(
+                        sneakyCore.getDefaultDoorTravelAction() +
+                        ' ' + theName, 'enter', 'enter'
+                    ) + ')';
+                }
+                return theName + clickAction;
+            }
         }
 
         return theName + (inRoom
@@ -1164,6 +1171,10 @@ class CatFlap: Decoration {
     }
 }
 
+class MaintenanceDoor: Door {
+    keyList = [maintenanceKey]
+}
+
 modify Room {
     hasDanger() {
         return skashek.getOutermostRoom() == self;
@@ -1171,7 +1182,7 @@ modify Room {
 
     peekInto() {
         if (hasDanger()) {
-            "<i>\^<<skashek.globalParamName>> is in there!</i> ";
+            "<i>\^<<gSkashekName>> is in there!</i> ";
             //TODO: Peek consequence mechanics
         }
         else {
@@ -1218,7 +1229,26 @@ modify Room {
     doDoorScan(fromCommand?) {
         local beVerbose = fromCommand || gameMain.verbose;
 
-        local scopeList = Q.scopeList(gPlayerChar);
+        local totalRoomList = new Vector(8);
+        local totalRegions = valToList(regions);
+        for (local i = 1; i <= totalRegions.length; i++) {
+            local currentRoomList = valToList(totalRegions[i].roomList);
+            for (local j = 1; j <= currentRoomList.length; j++) {
+                local currentRoom = currentRoomList[j];
+                if (currentRoom == self) continue;
+                if (!canSeeOutTo(currentRoom)) continue;
+                totalRoomList.appendUnique(currentRoom);
+            }
+        }
+
+        local scopeList = [];
+        scopeList += Q.scopeList(gPlayerChar);
+
+        for (local i = 1; i <= totalRoomList.length; i++) {
+            local currentRoom = totalRoomList[i];
+            scopeList += currentRoom.getWindowList(gPlayerChar);
+        }
+
         local openExpectedDoors = new Vector(4);
         local closedExpectedDoors = new Vector(4);
         local suspiciousOpenDoors = new Vector(4);
