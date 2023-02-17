@@ -1,4 +1,4 @@
-skashek: Actor { 'Skashek;;predator hunter royal[weak] subject' @deliveryRoom
+skashek: Actor { 'Skashek;;predator hunter royal[weak] subject sheki shek' @deliveryRoom
     "A rather terrifying visage! "
     isHim = true
     theName = (globalParamName)

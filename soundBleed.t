@@ -2,7 +2,7 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 #define gThroughDoorPriority 3
 
 #define __DEBUG_SOUND_PLAYER_SIDE nil
-#define __SHOW_EMISSION_STARTS true
+#define __SHOW_EMISSION_STARTS nil
 
 soundBleedCore: object {
     envSoundEmissions = static new Vector(16)

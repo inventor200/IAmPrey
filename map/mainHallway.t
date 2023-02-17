@@ -1,33 +1,81 @@
 loadingArea: Room { 'The Loading Area'
     "TODO: Add description. "
 
+    regions = [loadingAreaSightLine, eastHallRegion]
+
     west = northHall
     south = northeastHall
-}
 
-class HallRegion: SenseRegion {
-    canSeeAcross = true
-    canHearAcross = true
-    canSmellAcross = nil
-    canTalkAcross = true
-    canThrowAcross = true
-    autoGoTo = nil
+    inRoomName(pov) {
+        local omr = pov.getOutermostRoom();
+        if (omr == northHall) {
+            return 'in the loading area (to the <<hyperDir('east')>>)';
+        }
+        if (omr == northeastHall) {
+            return 'in the loading area (to the <<hyperDir('north')>>)';
+        }
+        return inherited(pov);
+    }
 }
 
 class HallwaySegment: Room {
-    desc = "You are <<inRoomName(nil)>>.
+    desc = "You are <<inRoomName(gPlayerChar)>>.
         <<if lookAroundArmed>>TODO: Add description. <<end>>"
     nameHeader = 'The Main Hallway Ring'
 }
 
+loadingAreaSightLine: HallRegion;
+directorsOfficeSightLine: HallRegion;
 eastHallRegion: HallRegion;
 westHallRegion: HallRegion;
 
 northHall: HallwaySegment { '<<nameHeader>> (North)'
     //
 
+    regions = [loadingAreaSightLine, directorsOfficeSightLine]
+
     east = loadingArea
     west = northwestHall
+    southwest = brokenWindowExterior
+
+    inRoomName(pov) {
+        local omr = pov.getOutermostRoom();
+        if (omr == loadingArea) {
+            return 'near the middle of the hall (to the <<hyperDir('west')>>)';
+        }
+        if (omr == directorsOffice) {
+            return 'in the hall (through the window)';
+        }
+        return inherited(pov);
+    }
+
+    descFrom(pov) {
+        "TODO: Add remote description. ";
+    }
+}
+
++brokenWindowExterior: Passage { 'broken director\'s office window;directors[weak] shattered'
+    desc = otherSide.desc
+    travelDesc = otherSide.travelDesc
+
+    otherSide = brokenWindowInterior
+    destination = directorsOffice
+
+    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
+    dobjFor(ParkourClimbGeneric) asDobjFor(TravelVia)
+    dobjFor(ParkourClimbOverInto) asDobjFor(TravelVia)
+    dobjFor(ParkourJumpOverInto) asDobjFor(TravelVia)
+
+    canLookThroughMe = true
+
+    dobjFor(LookIn) asDobjFor(LookThrough)
+    dobjFor(Search) asDobjFor(LookThrough)
+    dobjFor(LookThrough) {
+        action() { }
+        report() {
+            directorsOffice.observeFrom(gActor, 'through the broken window');
+        }
+    }
 }
 
 northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
@@ -39,7 +87,12 @@ northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
     regions = [eastHallRegion]
     lookAroundRegion = eastHallRegion
 
-    inRoomName(pov) { return 'in the north end of the hall'; }
+    inRoomName(pov) {
+        if (pov.getOutermostRoom() == loadingArea) {
+            return 'in the nearby part of the hall (to the <<hyperDir('south')>>)';
+        }
+        return 'in the north end of the hall';
+    }
 }
 
 eastHall: HallwaySegment { '<<nameHeader>> (East)'

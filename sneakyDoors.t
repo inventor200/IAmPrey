@@ -1,3 +1,12 @@
+#define hyperDir(dirName) \
+    (exitLister.enableHyperlinks ? \
+        aHrefAlt( \
+            sneakyCore.getDefaultTravelAction() + \
+            ' ' + dirName, \
+            dirName, \
+            dirName \
+        ) : dirName)
+
 doorSlamCloseNoiseProfile: SoundProfile {
     'the muffled <i>ka-thud</i> of <<theSourceName>> automatically closing'
     'the echoing <i>ka-chunk</i> of <<theSourceName>> automatically closing'
@@ -681,23 +690,32 @@ modify Door {
     }
 
     getScanName() {
-        local direction = getOutermostRoom().getDirection(self);
+        local omr = getOutermostRoom();
+        local direction = omr.getDirection(self);
+        local observerRoom = gPlayerChar.getOutermostRoom();
+        local inRoom = omr == observerRoom;
+        
         if (direction != nil) {
-            if (exitLister.enableHyperlinks) {
+            local listedLoc = inRoom
+                ? direction.name : omr.inRoomName(gPlayerChar);
+            if (exitLister.enableHyperlinks && inRoom) {
                 return theName + ' (' + aHrefAlt(
                     sneakyCore.getDefaultTravelAction() +
                     ' ' + direction.name, direction.name, direction.name
                 ) + ')';
             }
-            return theName + ' (' + direction.name + ')';
+            return theName + ' (' + listedLoc + ')';
         }
-        if (exitLister.enableHyperlinks) {
+
+        if (exitLister.enableHyperlinks && inRoom) {
             return aHrefAlt(
                 sneakyCore.getDefaultDoorTravelAction() +
                 ' ' + direction.name, theName, theName
             );
         }
-        return theName;
+
+        return theName + (inRoom
+            ? '' : (' (' + omr.inRoomName(gPlayerChar) + ')'));
     }
 
     clearMyClosingFuse(fuseProp) {
@@ -849,7 +867,7 @@ modify Door {
     makePlayerSuspicious() {
         if (canEitherBeHeardBy(gPlayerChar)) {
             if (primedPlayerAudio == normalClosingSound) {
-                local obj = self;
+                local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>> <<suspicionMsg>> ";
             }
@@ -857,7 +875,7 @@ modify Door {
                 "<.p><<slamClosingMsg>> <<suspicionMsg>> ";
             }
             else {
-                local obj = self;
+                local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<suspiciousSilenceMsg>> ";
             }
@@ -903,7 +921,7 @@ modify Door {
     emitNormalClosingSound() {
         if (canEitherBeHeardBy(gPlayerChar)) {
             if (primedPlayerAudio == normalClosingSound) {
-                local obj = self;
+                local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>>";
             }
