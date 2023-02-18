@@ -3,8 +3,6 @@ directorsOffice: Room { 'The Director\'s Office'
 
     regions = [directorsOfficeSightLine]
 
-    north = brokenWindowInterior
-
     inRoomName(pov) { return 'in the office, seen through the window'; }
 
     descFrom(pov) {
@@ -15,29 +13,13 @@ directorsOffice: Room { 'The Director\'s Office'
 //TODO: Broken shards multiloc here and in the north hall, explaining that
 // the shards are nowhere to be found
 
-+brokenWindowInterior: Passage { 'broken window;shattered'
-    "TODO: Add description. "
-
-    otherSide = brokenWindowExterior
-    destination = northHall
+DefineBrokenWindowPairLookingAway(north, southwest, northHall, directorsOffice)
+    vocab = 'broken director\'s office window;directors[weak] shattered'
+    desc = "TODO: Add description. "
     travelDesc = "{I} carefully climb{s/ed} through the broken window,
     wary of any lingering shards. "
-
-    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbGeneric) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbOverInto) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpOverInto) asDobjFor(TravelVia)
-
-    canLookThroughMe = true
-
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        action() { }
-        report() {
-            northHall.observeFrom(gActor, 'through the broken window');
-        }
-    }
-}
+    breakMsg = 'The window is already broken. '
+    remoteHeader = 'through the broken window'
+;
 
 DefineDoorSouthTo(administration, directorsOffice, 'the director\'s office door')

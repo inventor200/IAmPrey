@@ -26,3 +26,4 @@
 #include "lifeSupport.t"      // Stage: Draft
 #include "serverRoom.t"       // Stage: Draft
 #include "itOffice.t"         // Stage: Draft
+#include "hangar.t"           // Stage: Draft

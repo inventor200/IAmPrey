@@ -37,7 +37,6 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
     north = northBathroom
     east = loadingArea
     west = northwestHall
-    southwest = brokenWindowExterior
 
     inRoomName(pov) {
         local omr = pov.getOutermostRoom();
@@ -52,30 +51,6 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
 
     descFrom(pov) {
         "TODO: Add remote description. ";
-    }
-}
-
-+brokenWindowExterior: Passage { 'broken director\'s office window;directors[weak] shattered'
-    desc = otherSide.desc
-    travelDesc = otherSide.travelDesc
-
-    otherSide = brokenWindowInterior
-    destination = directorsOffice
-
-    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbGeneric) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbOverInto) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpOverInto) asDobjFor(TravelVia)
-
-    canLookThroughMe = true
-
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        action() { }
-        report() {
-            directorsOffice.observeFrom(gActor, 'through the broken window');
-        }
     }
 }
 

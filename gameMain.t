@@ -44,6 +44,7 @@
 #include "trinkets.t"
 #include "moduleUnion.t"
 #include "prologue.t"
+#include "epilogue.t"
 #include "map/map.h"
 
 gameMain: GameMainDef {

@@ -10,7 +10,7 @@ enrichmentRoom: Room { 'The Enrichment Room'
     otherSide = southEnrichmentRoomDoorExterior
 }
 
-+commonRoomHall: Passage {
++commonRoomHall: Passage { //TODO: Make sure that peeking through this is handled well
     vocab = otherSide.vocab
     desc = "A short passage to the <<hyperDir('east')>>, curving toward the north.
     <<otherSide.standardDesc>>"

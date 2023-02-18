@@ -8,29 +8,18 @@ labB: Room { 'Lab B'
     descFrom(pov) {
         "TODO: Add remote description. ";
     }
+
+    getSpecialPeekDirectionTarget(dirObj) {
+        if (dirObj == southDir) return windowInlabB;
+        return inherited(dirObj);
+    }
 }
 
-+labWindowLabSide: Fixture { 'window'
-    "TODO: Add description. "
-
-    canLookThroughMe = true
-    skipInRemoteList = true
+DefineWindowPair(evaluationRoom, labB)
+    vocab = 'observation window;reinforced evaluation eval evaluator\'s viewing lab'
+    desc = "TODO: Add description. "
     breakMsg = 'The window is reinforced, and designed to resist creatures like you. '
-
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        action() { }
-        report() {
-            evaluationRoom.observeFrom(gActor, 'through the window');
-        }
-    }
-
-    dobjFor(Break) {
-        validate() {
-            illogical(breakMsg);
-        }
-    }
-}
+    remoteHeader = 'through the window'
+;
 
 DefineDoorWestTo(northeastHall, labB, 'the door to[weak] lab B[weak]')

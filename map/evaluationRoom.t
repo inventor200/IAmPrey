@@ -6,28 +6,10 @@ evaluationRoom: Room { 'The Evaluation Room'
     descFrom(pov) {
         "TODO: Add remote description. ";
     }
-}
 
-+labWindowEvalSide: Fixture {
-    vocab = labWindowLabSide.vocab
-    desc = labWindowLabSide.desc
-
-    canLookThroughMe = true
-    skipInRemoteList = true
-
-    dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
-    dobjFor(LookThrough) {
-        action() { }
-        report() {
-            labB.observeFrom(gActor, 'through the window');
-        }
-    }
-
-    dobjFor(Break) {
-        validate() {
-            illogical(labWindowLabSide.breakMsg);
-        }
+    getSpecialPeekDirectionTarget(dirObj) {
+        if (dirObj == northDir) return windowInevaluationRoom;
+        return inherited(dirObj);
     }
 }
 

@@ -43,10 +43,10 @@ doorSuspiciousSilenceProfile: SoundProfile {
     }
 }
 
-#define peekExpansion ('peek'|'peer'|'spy'|'check'|'watch'|'p')
+#define peekExpansion 'peek'|'peer'|'spy'|'check'|'watch'|'p'
 
 VerbRule(PeekThrough)
-    peekExpansion ('through'|'thru'|) singleDobj
+    (peekExpansion) ('through'|'thru'|) singleDobj
     : VerbProduction
     action = PeekThrough
     verbPhrase = 'peek/peeking through (what)'
@@ -64,7 +64,7 @@ DefineTAction(PeekThrough)
 ;
 
 VerbRule(PeekInto)
-    [badness 100] peekExpansion ('in'|'into'|'inside' 'of') singleDobj
+    [badness 100] (peekExpansion) ('in'|'into'|'inside' 'of') singleDobj
     : VerbProduction
     action = PeekInto
     verbPhrase = 'peek/peeking into (what)'
@@ -81,7 +81,7 @@ DefineTAction(PeekInto)
 ;
 
 VerbRule(PeekDirection)
-    peekExpansion singleDir
+    (peekExpansion|'look'|'x'|'l') singleDir
     : VerbProduction
     action = PeekDirection
     verbPhrase = 'peek/peeking (where)'  
@@ -115,22 +115,29 @@ DefineTAction(PeekDirection)
         local loc = parkourCore.currentParkourRunner.getOutermostRoom();
         local conn = nil;
 
+        // See if the room has a special case for this first
+        local specialTarget = loc.getSpecialPeekDirectionTarget(direction);
+        if (specialTarget != nil) {
+            doNested(PeekThrough, specialTarget);
+            return;
+        }
+
         // Get destination
+        local clear = true;
         if (loc.propType(direction.dirProp) == TypeObject) {
             conn = loc.(direction.dirProp);
-
-            local clear = true;
+            
             if (conn == nil) clear = nil;
             if (conn != nil) {
                 if (!conn.isConnectorApparent) {
                     clear = nil;
                 }
             }
+        }
 
-            if (!clear) {
-                "{I} {cannot} peek that way. ";
-                exit;
-            }
+        if (!clear || conn == nil) {
+            "{I} {cannot} peek that way. ";
+            exit;
         }
 
         local dest = conn.destination;
@@ -337,6 +344,7 @@ DefineLiteralAction(ChangeSneakMode)
     turnSequence() { }
 ;
 
+//TODO: If the door is airlockDoor = true, then use better sneaking behavior
 sneakyCore: object {
     allowSneak = nil
     sneakSafetyOn = nil
@@ -664,6 +672,8 @@ enum normalClosingSound, slamClosingSound;
 modify Door {
     hasCatFlap = nil
     catFlap = nil
+    airlockDoor = nil
+    oppositeAirlockDoor = nil
     closingFuse = nil
     closingDelay = 3
 
@@ -681,7 +691,7 @@ modify Door {
 
     preinitThing() {
         inherited();
-        if ((hasCatFlap || !isLocked) && catFlap == nil) {
+        if ((hasCatFlap || !isLocked) && catFlap == nil && !airlockDoor) {
             hasCatFlap = true;
             otherSide.hasCatFlap = true;
             catFlap = new CatFlap(self);
@@ -778,6 +788,7 @@ modify Door {
     }
 
     getEndExpectationSuspicion(expectingCloseProp, fuseProp) {
+        if (airlockDoor) return nil;
         self.(expectingCloseProp) = true;
         local isSuspicious = nil;
         local expectedClosingFuse = getExpectedCloseFuse();
@@ -800,6 +811,7 @@ modify Door {
 
     isStatusSuspiciousTo(contestant, fuseProp) {
         if (!canEitherBeSeenBy(contestant)) return nil;
+        if (airlockDoor) return nil;
         return isOpen != checkOpenExpectationFuse(fuseProp);
     }
 
@@ -830,8 +842,12 @@ modify Door {
     }
 
     normalClosingMsg =
-        '{The subj obj} sighs mechanically closed,
-        ending with a noisy <i>ka-chunk</i>. '
+        '{The subj obj}
+        <<one of>>sighs<<or>>hisses<<or>>wheezes<<at random>>
+        <<one of>>mechanically<<or>>automatically<<at random>>
+        <<one of>>closed<<or>>shut<<at random>>,
+        <<one of>>ending<<or>>concluding<<or>><<at random>>
+        with a <<one of>>noisy<<or>>loud<<at random>> <i>ka-chunk</i>. '
 
     slamClosingMsg =
         '{The subj dobj} <i>slams</i> shut! '
@@ -974,11 +990,13 @@ modify Door {
     makeOpen(stat) {
         inherited(stat);
 
-        if (stat) {
-            startFuse();
-        }
-        else {
-            witnessClosing();
+        if (!airlockDoor) {
+            if (stat) {
+                startFuse();
+            }
+            else {
+                witnessClosing();
+            }
         }
     }
 
@@ -1027,13 +1045,24 @@ modify Door {
             }
             inherited();
         }
+        /*action() {
+            if (airlockDoor) {
+                if (oppositeAirlockDoor.isOpen) {
+                    tryImplicitAction(Close, oppositeAirlockDoor);
+                }
+            }
+            inherited();
+        }*/
     }
+
+    catCloseMsg =
+        '{That subj dobj} {is} too heavy for an old cat to close.
+        It\'s fortunate that these close on their own, instead. '
 
     dobjFor(Close) {
         verify() {
             if (gActor == cat) {
-                illogical('{That subj dobj} {is} too heavy for an old cat to close.
-                It\'s fortunate that these close on their own, instead. ');
+                illogical(catCloseMsg);
                 return;
             }
             inherited();
@@ -1043,7 +1072,7 @@ modify Door {
             inherited();
         }
         report() {
-            if (gActor == gPlayerChar) {
+            if (gActor == gPlayerChar && !airlockDoor) {
                 "{I} gently close{s/d} the door,
                 so that it{dummy} {do} not make a sound. ";
             }
@@ -1054,14 +1083,35 @@ modify Door {
     }
 
     dobjFor(SlamClosed) {
+        verify() {
+            if (gActor == cat) {
+                illogical(catCloseMsg);
+                return;
+            }
+            inherited();
+        }
         action() {
-            slam();
+            if (airlockDoor) {
+                doInstead(Close, self);
+            }
+            else {
+                slam();
+            }
         }
     }
 
+    getCatAccessibility() {
+        if (!hasCatFlap) {
+            return [travelPermitted, touchObj, objOpen];
+        }
+        if (gActor == cat) {
+            return [travelPermitted, touchObj];
+        }
+        return [travelPermitted, touchObj, objOpen];
+    }
+
     dobjFor(GoThrough) { // Assume the cat is using the cat flap
-        preCond = (gActor == cat ? [travelPermitted, touchObj] :
-            [travelPermitted, touchObj, objOpen])
+        preCond = (getCatAccessibility())
     }
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
@@ -1165,8 +1215,9 @@ class CatFlap: Decoration {
         }
         action() { }
         report() {
-            "{I} peek{s/ed} through the cat flap of <<lexicalParent.theName>>...\b";
-            lexicalParent.otherSide.getOutermostRoom().peekInto();
+            lexicalParent.otherSide.getOutermostRoom().observeFrom(
+                gActor, 'through the cat flap of <<lexicalParent.theName>>'
+            );
         }
     }
 }
@@ -1177,16 +1228,19 @@ class MaintenanceDoor: Door {
 
 modify Room {
     hasDanger() {
+        //TODO: He can also be hiding, lol
         return skashek.getOutermostRoom() == self;
     }
 
     peekInto() {
         if (hasDanger()) {
-            "<i>\^<<gSkashekName>> is in there!</i> ";
+            //TODO: Allow for him to be described according to
+            // his current action
+            "<.p><i>\^<<gSkashekName>> is in there!</i> ";
             //TODO: Peek consequence mechanics
         }
         else {
-            "<i>Seems safe!</i> ";
+            "<.p><i>Seems safe!</i> ";
         }
     }
 
@@ -1343,5 +1397,9 @@ modify Room {
             doorScanFuse.removeEvent();
             doorScanFuse = nil;
         }
+    }
+
+    getSpecialPeekDirectionTarget(dirObj) {
+        return nil;
     }
 }
