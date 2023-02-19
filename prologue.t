@@ -46,46 +46,46 @@ prologueCore: InitObject {
         inputManager.pauseForMore();
         "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
-        difficultyQuestion.add('1', 'Basic Tutorial',
+        difficultyQuestion.add('1', 'Cat Tutorial',
             'You are new to interactive fiction (<q><tt>IF</tt></q>), and are not
             versed in the usual controls or mechanics of parser-based text games.\n
             <b>This tutorial will also introduce you to the game\'s parkour
             movement mechanics!\n
             \t(AUTO-SNEAKING IS AVAILABLE)</b>\b
-            <i>(You play as the Predator\'s pet cat, attempting to avoid bath time.)</i>'
+            <i>(You play as the Predator\'s pet cat, and cannot read notes.
+            However, the Predator will not chase you,
+            so you can freely explore the map at your own pace.)</i>'
         );
         difficultyQuestion.add('2', 'Prey Tutorial',
-            'You are new to <i>I Am Prey</i>, and have not used the parkour,
-            stealth, or chase mechanics before.\n
+            'You are new to <i>I Am Prey</i>, and have not used the
+            stealth or chase mechanics before.\n
             \t<b>(AUTO-SNEAKING IS AVAILABLE)</b>\b
-            <i>(The Predator will only
-            allow you a single pop-out escape,
-            and can be stalled by doors up to five times.)</i>'
+            <i>(The Predator will only fall for <b>each type</b> of trick
+            <b>three</b> times.)</i>'
         );
         difficultyQuestion.add('3', 'Easy Mode',
             'The Predator has had a string of victories, and will go
             easy on you, mostly for his own entertainment.\b
-            <i>(The Predator will only
-            allow you a single pop-out escape,
-            and will be stalled by doors up to five times.)</i>'
+            <i>(The Predator will only fall for <b>each type</b> of trick
+            <b>twice</b>.)</i>'
         );
         difficultyQuestion.add('4', 'Medium Mode',
             'The Predator revels in his apparent sense of superiority over you.
             This hunt will have the typical amount of sadism.\b
-            <i>(The Predator will only
-            be stalled by doors up to five times.)</i>'
+            <i>(The Predator will only fall for <b>each type</b> of trick
+            <b>once</b>.)</i>'
         );
         difficultyQuestion.add('5', 'Hard Mode',
             'The Predator must be furious, and is taking all of his
             rage out on you, during this hunt.\b
-            <i>(The Predator will only
-            be stalled by doors up to three times,
+            <i>(The Predator will only fall for
+            <b>a total of three tricks</b>, regardless of type,
             and the prologue will be skipped.)</i>'
         );
         difficultyQuestion.add('6', 'Nightmare Mode',
             'What the <i>fuck?!</i> Something has really gotten into the Predator
             today! His cruelty is <i>insatiable!</i>\b
-            <i>(The Predator will maximize his capabilities for the entire hunt,
+            <i>(The Predator will never fall for <b>any tricks</b>,
             and the prologue will be skipped.)</i>'
         );
         local result = difficultyQuestion.ask();

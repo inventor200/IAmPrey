@@ -118,7 +118,11 @@ epilogueCore: InitObject {
             You back up, slinking slowly into the dark tunnels of the outside
             world, and keeping your eyes locked on <<gSkashekName>>, who watches you
             in return. Eventually, you decide that the darkness has consumed you,
-            and feel safe enough explore your new domain."
+            and feel safe enough explore your new domain.\b
+            You wonder if you'll ever fit in, or if you will spend the rest of your
+            life running and hiding. Humans certainly wouldn't understand you, and
+            you only understand humans like a mechanic understands a machine.\b
+            Either way, you have the skills necessary to survive."
         });
     }
 }

@@ -117,6 +117,25 @@ modify Room {
     }
 }
 
+modify GoTo {
+    turnsTaken = 0
+
+    exec(cmd) {
+        "Sorry!\b
+        Due to the high level of caution required during travel, the <b>GOTO</b>
+        command has been disabled for this game! ";
+        exit;
+    }
+}
+
+modify Continue {
+    turnsTaken = 0
+    
+    exec(cmd) {
+        GoTo.exec(cmd);
+    }
+}
+
 #define DefineDoorAwayTo(outDir, inDir, outerRoom, localRoom, theLocalDoorName) \
     localRoom##ExitDoor: Door { \
         vocab = 'the exit door' \

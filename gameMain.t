@@ -45,6 +45,7 @@
 #include "moduleUnion.t"
 #include "prologue.t"
 #include "epilogue.t"
+#include "preciseHelp.t"
 #include "map/map.h"
 
 gameMain: GameMainDef {
@@ -70,25 +71,24 @@ versionInfo: GameID {
         "I Am Prey is a game about situational awareness, evasion, and
         escape.\b
         Parkour mechanics are available for the complex navigation of obstacles,
-        and spreading soundwaves reward a stealthy playstyle,
-        especially because the predator is <i>always listening!</i>\b
+        while spreading soundwaves reward a stealthy playstyle,
+        especially because the Predator is <i>always listening!</i>\b
         Ideally, the player will <i>never</i> want to be seen,
         but last-minute tricks can be used to ditch the predator during a chase!\b
-        Find all seven pieces of the environment suit, and escape through the
-        emergency airlock to win!\b
-        <i>This game is designed for replayability, and can normally be finished
-        in one sitting!</i>";
+        <b>Find all seven pieces of the environment suit, and escape through the
+        emergency airlock to win!</b>\b
+        <i>This game is designed for casual replayability!</i>";
     }
     showCredit() {
-        "<i>I stand on the shoulders of giants...</i>\n
-        Author:
-        <a href='mailto:josephcsoftware@gmail.com'>Joey Cramsey</a>\n
-        Special thanks to my partners, friends, as well as the excellent community
+        "\t<i>I stand on the shoulders of giants...</i>\n
+        <b>Author:</b> Joey Cramsey (<a href='mailto:josephcsoftware@gmail.com'>Email</a>)
+        (<a href='https://joeycramsey.bandcamp.com/'>Link to Bandcamp</a>)\n
+        <b>Special thanks</b> to my partners, friends, and the excellent community
         over at <a href='https://intfiction.org/'>Intfiction Forum</a>!\n
-        Adv3Lite library:
-        <a href='https://www.ifwiki.org/Eric_Eve'>Eric Eve</a>\n
-        TADS 3:
-        <a href='https://www.ifwiki.org/Michael_J._Roberts'>Michael J Roberts</a>";
+        <b>Adv3Lite library:</b> Eric Eve\n
+        <b>TADS 3:</b> Michael J Roberts\b
+        \t<i>Testing:</i>\n
+        Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)";
     }
 }
 
