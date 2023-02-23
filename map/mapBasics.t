@@ -174,7 +174,6 @@ modify Continue {
     canLookThroughMe = true \
     skipInRemoteList = true \
     dobjFor(LookIn) asDobjFor(LookThrough) \
-    dobjFor(Search) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
     dobjFor(PeekThrough) asDobjFor(LookThrough)
 

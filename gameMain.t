@@ -33,6 +33,7 @@
 
 #include "forEveryone.t"
 #include "cutsceneCore.t"
+#include "moddedSearch.t"
 #include "awareVehicles.t"
 #include "cat.t"
 #include "preyPlayer.t"

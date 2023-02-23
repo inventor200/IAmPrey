@@ -6,6 +6,9 @@
 //TODO: Finish decoration stage
 //TODO: Finish description stage
 
+#if __DEBUG
+#include "testArea.t"
+#endif
 #include "mainHallway.t"      // Stage: Draft
 #include "deliveryRoom.t"     // Stage: Draft
 #include "breakroom.t"        // Stage: Draft

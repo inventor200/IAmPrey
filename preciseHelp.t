@@ -9,6 +9,7 @@ instructionsCore: InitObject {
     instructionsCutscene = nil
 
     execute() {
+        //TODO: Add how to win, and make this a flowing, choice-based menu
         instructionsCutscene = new Cutscene();
         instructionsCutscene.addPage({:
             "<center><b><tt>TABLE OF CONTENTS</tt></b></center>\b
@@ -153,7 +154,7 @@ instructionsCore: InitObject {
             <b>UNDO</b>, or limit your use of it in some way. It is assumed that you
             will know what suits your desired challenge and play style."
         });
-        instructionsCutscene.addPage({:
+        instructionsCutscene.addPage({: //TODO: SEARCH will be used instead of EXAMINE
             "<center><b><tt>PARKOUR CRASH COURSE</tt></b></center>\b
             This game makes use of a parkour system, which challenges you to find
             hidden routes between rooms.\b
@@ -169,8 +170,8 @@ instructionsCore: InitObject {
             routes, because the approach is too ambiguous:\n
             \t<b>CLIMB DESK</b>\n
             \t<b>JUMP SHELF</b>\b
-            To discover a route, you must <b>LOOK AT</b> a possible surface from
-            another surface. If there is a viable route, it will be confirmed to you,
+            To discover a route, you must <b>LOOK AT</b> a possible surface (from
+            another surface). If there is a viable route, it will be confirmed to you,
             and you will be able to use shorthand commands to traverse it.\b
             The abbreviations <b><tt>CL</tt></b> and <b><tt>JM</tt></b> can be
             used for <b>CLIMB</b> and <b>JUMP</b> respectively.\b
@@ -187,7 +188,7 @@ instructionsCore: InitObject {
             The <b>ROUTES FULL</b> command combines the previous two commands into a
             single shorthand command."
         });
-        instructionsCutscene.addPage({:
+        instructionsCutscene.addPage({: //TODO: SEARCH will be used instead of EXAMINE
             "<center><b><tt>STEALTH AND CAUTION</tt></b></center>\b
             <i>Unfortunately, you are being hunted!</i>\b
             Your predator has certain expectations for how the environment should

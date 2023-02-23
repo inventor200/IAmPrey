@@ -457,18 +457,6 @@ parkourCore: object {
         say(actor.cannotDoParkourMsg);
     }
 
-    currentReconCount = 0
-
-    startRecon() {
-        currentReconCount = 0;
-    }
-
-    accountForRecon() {
-        local clear = currentReconCount < maxReconsPerTurn;
-        currentReconCount++;
-        return clear;
-    }
-
     getKeyString() {
         local strBfr = new StringBuffer(5);
         strBfr.append('\t<i><b>Bullet Symbol Key:</b></i>\n');
@@ -582,13 +570,6 @@ parkourCore: object {
         '{I} {do} not {know} of any interesting routes from {here}. '
 }
 
-modify Examine {
-    reset() {
-        inherited();
-        parkourCore.startRecon();
-    }
-}
-
 reachGhostTest_: Thing {
     isListed = nil
     isFixed = nil
@@ -617,6 +598,10 @@ QParkour: Special {
         local bItem = nil;
         local bLoc = nil;
         local doNotFactorJumpForB = nil;
+
+        #if __DEBUG_SEARCH
+        extraReport('<.p>(Reach during <<actionTab.symbolToVal(gAction.baseActionClass)>>)<.p>');
+        #endif
 
         #if __PARKOUR_REACH_DEBUG
         extraReport('\n(Start special reach check for:
@@ -1212,11 +1197,11 @@ modify Thing {
         }
     }
 
-    dobjFor(Examine) {
-        action() {
-            doRecon();
-            inherited();
-        }
+    doParkourSearch() {
+        #if __DEBUG_SEARCH
+        extraReport('<.p>(Doing recon...)<.p>');
+        #endif
+        doRecon();
     }
 
     dobjFor(Board) {
@@ -1287,12 +1272,7 @@ modify Thing {
         local provider = getParkourProvider(nil, nil);
 
         if (provider != nil) {
-            local clear = nil;
             if (!provider.hasParkourRecon) {
-                clear = parkourCore.accountForRecon();
-            }
-            
-            if (clear) {
                 gTaxingRunnerModule(gActor).doReconForProvider(provider);
             }
         }
@@ -1733,7 +1713,7 @@ modify Floor {
         .append(ClimbDown)
     )
 
-    floorActions = [Examine, TakeFrom]
+    floorActions = [Examine, Search, SearchClose, SearchDistant, TakeFrom]
 
     hasParkourRecon = true
 }
@@ -2032,11 +2012,7 @@ class ParkourModule: SubComponent {
 
     doRecon() {
         if (lexicalParent != nil) {
-            local clear = nil;
             if (!lexicalParent.hasParkourRecon) {
-                clear = parkourCore.accountForRecon();
-            }
-            if (clear) {
                 local path = getPathFrom(gParkourRunnerModule, true, true);
                 if (path != nil) {
                     lexicalParent.applyRecon();
