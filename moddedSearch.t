@@ -1,5 +1,3 @@
-#define __DEBUG_SEARCH true
-
 #define expandableSearch 'search' | 'srch' | 'src' | 'sr'
 
 modify VerbRule(Search)
@@ -62,47 +60,63 @@ modify Room {
 modify Thing {
     roomsTraveledUponLastSearch = 0
     skashekCouldBeHere = true
+    skashekFoundHere = nil
+    shashekAnnounced = nil
     searchedFromDistance = nil
     beganGenericSearch = nil
     successfulGenericSearch = nil
 
-    dobjFor(Search) { //FIXME: It's reporting out of reach?
+    dobjFor(Search) {
         preCond = nil
         remap = nil
         verify() { }
         check() { }
-        action() {
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Starting generic search)<.p>');
-            #endif
-            beganGenericSearch = true;
-            successfulGenericSearch = nil;
-            doParkourSearch();
-            doNested(SearchClose, self);
-            if (!successfulGenericSearch) {
-                doNested(SearchDistant, self);
-            }
-            beganGenericSearch = nil;
-        }
+        action() { doGenericSearch(); }
         report() { }
+    }
+
+    doGenericSearch() {
+        beganGenericSearch = true;
+        successfulGenericSearch = nil;
+        doParkourSearch();
+        if (contType == In) {
+            doNested(LookIn, self);
+            return;
+        }
+        else {
+            local searchingSubs = (remapOn != nil || remapIn != nil);
+            local multiSub = (remapOn != nil && remapIn != nil);
+            if (remapOn != nil) {
+                if (multiSub) {
+                    "(Searching the top of <<theName>>...)<.p>";
+                }
+                doNested(SearchClose, remapOn);
+            }
+            if (remapIn != nil) {
+                if (multiSub) {
+                    "<.p>(Searching in <<theName>>...)<.p>";
+                }
+                doNested(LookIn, remapIn);
+            }
+            if (!searchingSubs) {
+                doNested(SearchClose, self);
+            }
+        }
+        if (!successfulGenericSearch) {
+            doNested(SearchDistant, self);
+        }
+        beganGenericSearch = nil;
     }
 
     dobjFor(SearchClose) {
         preCond = [objVisible, touchObj]
-        remap = remapIn
         verify() { }
         check() { }
         action() {
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Starting close search)<.p>');
-            #endif
-            if (contType == In) {
-                doNested(LookIn, self);
-                return;
-            }
             beforeSearch();
             doDistantSearch(true);
             doCloseSearch();
+            reportShashek();
             afterSearch();
         }
         report() { }
@@ -113,9 +127,6 @@ modify Thing {
         verify() { }
         check() { }
         action() {
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Starting distant search)<.p>');
-            #endif
             beforeSearch();
             doDistantSearch(nil);
             afterSearch();
@@ -127,10 +138,8 @@ modify Thing {
         action() {
             beforeSearch();
             doDistantSearch(true);
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Look in follow-through...)<.p>');
-            #endif
             inherited();
+            reportShashek();
             afterSearch();
         }
     }
@@ -139,10 +148,8 @@ modify Thing {
         action() {
             beforeSearch();
             doDistantSearch(true);
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Look under follow-through...)<.p>');
-            #endif
             inherited();
+            reportShashek();
             afterSearch();
         }
     }
@@ -151,10 +158,8 @@ modify Thing {
         action() {
             beforeSearch();
             doDistantSearch(true);
-            #if __DEBUG_SEARCH
-            extraReport('<.p>(Look behind follow-through...)<.p>');
-            #endif
             inherited();
+            reportShashek();
             afterSearch();
         }
     }
@@ -163,25 +168,38 @@ modify Thing {
         if (gActor == gPlayerChar && roomsTraveledUponLastSearch < gActor.roomsTraveled) {
             roomsTraveledUponLastSearch = gActor.roomsTraveled;
             skashekCouldBeHere = true;
+            skashekFoundHere = nil;
+            shashekAnnounced = nil;
             searchedFromDistance = nil;
         }
     }
 
     doCloseSearch() {
-        //TODO: Likely looking at what is on the container
+        if (hiddenIn.length == 0 && getSearchCount() == 0) {
+            say(nothingOnMsg);
+            return;
+        }
+            
+        local onList = getSearchItems();
+        
+        if (onList.length > 0) {
+            listContentsOn(onList);
+        }
+        
+        if (hiddenIn.length > 0) {
+            findHidden(&hiddenIn, In);
+        }
     }
 
     doDistantSearch(isSubstep) {
-        #if __DEBUG_SEARCH
-        extraReport('<.p>(Distant entry...)<.p>');
-        #endif
         if (isSubstep && searchedFromDistance) return;
-        #if __DEBUG_SEARCH
-        extraReport('<.p>(Distant follow-through...)<.p>');
-        #endif
-        //TODO: Search from distance
 
-        searchedFromDistance = true;
+        if (skashekCouldBeHere) {
+            //TODO: Search from distance
+
+            searchedFromDistance = true;
+            reportShashek();
+        }
     }
 
     doParkourSearch() {
@@ -192,5 +210,60 @@ modify Thing {
         if (beganGenericSearch) {
             successfulGenericSearch = true;
         }
+    }
+
+    reportShashek() {
+        if (skashekFoundHere) {
+            if (!shashekAnnounced) {
+                //TODO: Announce skashek
+                if (gActionIs(SearchClose)) {
+                    //
+                    shashekAnnounced = true;
+                }
+                else if (gActionIs(LookIn)) {
+                    //
+                    shashekAnnounced = true;
+                }
+                else if (gActionIs(LookUnder)) {
+                    //
+                    shashekAnnounced = true;
+                }
+                else if (gActionIs(LookBehind)) {
+                    //
+                    shashekAnnounced = true;
+                }
+                else if (gActionIs(SearchDistant)) {
+                    //
+                    shashekAnnounced = true;
+                }
+            }
+        }
+        skashekCouldBeHere = nil;
+    }
+
+    nothingOnMsg = '{I} {find} nothing of interest on {the dobj}. '
+
+    getSearchCount() {
+        return contents.countWhich({x: x.searchListed});
+    }
+
+    getSearchItems() {
+        // Shashek will be listed in a unique way
+        return contents.subset({x: x.searchListed && x != skashek});
+    }
+
+    listContentsOn(lst) {
+        lookInLister.show(lst, self, true);
+    }
+}
+
+modify Surface {
+    dobjFor(Search) {
+        preCond = nil
+        remap = nil
+        verify() { }
+        check() { }
+        action() { doGenericSearch(); }
+        report() { }
     }
 }

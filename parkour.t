@@ -599,10 +599,6 @@ QParkour: Special {
         local bLoc = nil;
         local doNotFactorJumpForB = nil;
 
-        #if __DEBUG_SEARCH
-        extraReport('<.p>(Reach during <<actionTab.symbolToVal(gAction.baseActionClass)>>)<.p>');
-        #endif
-
         #if __PARKOUR_REACH_DEBUG
         extraReport('\n(Start special reach check for:
             <<gCommand.verbProd.verbPhrase>>)\n');
@@ -1198,9 +1194,6 @@ modify Thing {
     }
 
     doParkourSearch() {
-        #if __DEBUG_SEARCH
-        extraReport('<.p>(Doing recon...)<.p>');
-        #endif
         doRecon();
     }
 
