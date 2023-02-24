@@ -25,17 +25,19 @@ centralRoom: Room { 'Central Room'
     "A weird dog cage. "
 }
 
-+cabinet: FixedPlatform { 'tall lab cabinet'
++cabinet: Fixture { 'tall lab cabinet'
     "A locked, metal cabinet, likely containing lab materials. "
     isListed = true
 
     remapIn: SubComponent {
         isOpenable = true
-        isOpen = true
         isEnterable = true
+        holdsActors
+        includeGrate(cabinet)
     }
     remapOn: SubComponent {
         isBoardable = true
+        holdsActors
     }
 }
 ++HighFloorHeight;

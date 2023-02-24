@@ -617,7 +617,7 @@ QParkour: Special {
             aLoc = a.location;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(ITEM A: <<aItem.theName>> (<<aItem.contType.prep>>)
-                in <<aLoc.getOutermostRoom().theName>>.)\n');
+                in <<aLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
             #endif
         }
 
@@ -634,12 +634,15 @@ QParkour: Special {
             bLoc = b.location;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(ITEM B: <<bItem.theName>> (<<bItem.contType.prep>>)
-                in <<aLoc.getOutermostRoom().theName>>.)\n');
+                in <<bLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
             #endif
         }
 
         local parkourB = b.getParkourModule();
         if (parkourB == nil) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\nparkourB = nil\n');
+            #endif
             local parkourA = a.getParkourModule();
             if (parkourA != nil) {
                 local reachResult = parkourA.isInReachFromVerbose(
@@ -649,6 +652,15 @@ QParkour: Special {
                     issues += getMessageFromReachResult(
                         a, b, aItem, bItem, aLoc, bLoc, reachResult
                     );
+                    return issues;
+                }
+            }
+            else {
+                #if __PARKOUR_REACH_DEBUG
+                extraReport('\nparkourA = nil\n');
+                #endif
+                if (aLoc.stagingLocation != bLoc) {
+                    issues += new ReachProblemDistance(a, b);
                     return issues;
                 }
             }
@@ -1266,7 +1278,10 @@ modify Thing {
 
         if (provider != nil) {
             if (!provider.hasParkourRecon) {
-                gTaxingRunnerModule(gActor).doReconForProvider(provider);
+                local pm = gTaxingRunnerModule(gActor);
+                if (pm != nil) {
+                    pm.doReconForProvider(provider);
+                }
             }
         }
 
@@ -2006,12 +2021,15 @@ class ParkourModule: SubComponent {
     doRecon() {
         if (lexicalParent != nil) {
             if (!lexicalParent.hasParkourRecon) {
-                local path = getPathFrom(gParkourRunnerModule, true, true);
-                if (path != nil) {
-                    lexicalParent.applyRecon();
-                    parkourCore.cacheParkourRunner(gActor);
-                    parkourCore.showNewRoute = true;
-                    learnPath(path, reportAfter);
+                local pm = gParkourRunnerModule;
+                if (pm != nil) {
+                    local path = getPathFrom(pm, true, true);
+                    if (path != nil) {
+                        lexicalParent.applyRecon();
+                        parkourCore.cacheParkourRunner(gActor);
+                        parkourCore.showNewRoute = true;
+                        learnPath(path, reportAfter);
+                    }
                 }
             }
         }

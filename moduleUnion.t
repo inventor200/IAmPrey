@@ -91,20 +91,20 @@ modify Thing {
 }
 
 #define holdActorStorage 100
+#define holdsActors \
+    bulkCapacity = holdActorStorage \
+    maxSingleBulk = holdActorStorage
 
 class ActorContainer: Thing {
-    bulkCapacity = holdActorStorage
-    maxSingleBulk = holdActorStorage
+    holdsActors
 }
 
 modify Platform {
-    bulkCapacity = holdActorStorage
-    maxSingleBulk = holdActorStorage
+    holdsActors
 }
 
 modify Booth {
-    bulkCapacity = holdActorStorage
-    maxSingleBulk = holdActorStorage
+    holdsActors
 }
 
 modify Actor {

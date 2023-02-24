@@ -33,7 +33,7 @@ DefineTAction(SearchDistant)
 ;
 
 VerbRule(SearchClose)
-    [badness 50] (expandableSearch) singleDobj
+    [badness 50] (expandableSearch) ('on'|('on'|'the'|) 'top' 'of'|'atop') singleDobj
     : VerbProduction
     action = SearchClose
     verbPhrase = 'search/searching (what)'
@@ -59,28 +59,92 @@ modify Room {
 
 modify Thing {
     roomsTraveledUponLastSearch = 0
-    skashekCouldBeHere = true
     skashekFoundHere = nil
-    shashekAnnounced = nil
     searchedFromDistance = nil
     beganGenericSearch = nil
     successfulGenericSearch = nil
 
+    hasGrating = nil
+    grate = nil
+
+    canPeekAtSkashek = (isTransparent || hasGrating || (isOpenable && isOpen))
+
+    distantSearchDesc = "{The subj dobj} seem{s/ed} fine from here. "
+    alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} fine from here. "
+
     dobjFor(Search) {
         preCond = nil
         remap = nil
-        verify() { }
+        verify() { verifyGenericSearch(); }
         check() { }
         action() { doGenericSearch(); }
         report() { }
     }
 
+    verifyGenericSearch() {
+        local isObviousContainer = nil;
+        local isFunctionalContainer = nil;
+
+        if (contType == On) {
+            isFunctionalContainer = true;
+            isObviousContainer = true;
+        }
+        else if (contType == In) {
+            isFunctionalContainer = true;
+            isObviousContainer = true;
+        }
+        else if (remapOn != nil) {
+            isFunctionalContainer = true;
+            isObviousContainer = true;
+        }
+        else if (remapIn != nil) {
+            isFunctionalContainer = true;
+            isObviousContainer = true;
+        }
+
+        if (contType == Under) {
+            isFunctionalContainer = true;
+        }
+        else if (contType == Behind) {
+            isFunctionalContainer = true;
+        }
+        else if (remapUnder != nil) {
+            isFunctionalContainer = true;
+        }
+        else if (remapBehind != nil) {
+            isFunctionalContainer = true;
+        }
+
+        if (!isFunctionalContainer) {
+            illogical(notFunctionalContainerMsg);
+            return;
+        }
+
+        if (!isObviousContainer) {
+            illogical(notObviousContainerMsg);
+            return;
+        }
+    }
+
+    startGenericSearch(remapTarg?) {
+        if (remapTarg == nil) remapTarg = self;
+        remapTarg.beganGenericSearch = true;
+        remapTarg.successfulGenericSearch = nil;
+    }
+
+    doubleCheckGenericSearch(remapTarg?) {
+        if (remapTarg == nil) remapTarg = self;
+        if (!remapTarg.successfulGenericSearch) {
+            remapTarg.doDistantSearch(true);
+        }
+        remapTarg.beganGenericSearch = nil;
+    }
+
     doGenericSearch() {
-        beganGenericSearch = true;
-        successfulGenericSearch = nil;
         doParkourSearch();
+
         if (contType == In) {
-            doNested(LookIn, self);
+            doSafeLookIn(self);
             return;
         }
         else {
@@ -88,33 +152,47 @@ modify Thing {
             local multiSub = (remapOn != nil && remapIn != nil);
             if (remapOn != nil) {
                 if (multiSub) {
-                    "(Searching the top of <<theName>>...)<.p>";
+                    "(searching the top of <<theName>>)<.p>";
                 }
+                startGenericSearch(remapOn);
                 doNested(SearchClose, remapOn);
+                doubleCheckGenericSearch(remapOn);
             }
             if (remapIn != nil) {
                 if (multiSub) {
-                    "<.p>(Searching in <<theName>>...)<.p>";
+                    "<.p>(searching in <<theName>>)<.p>";
                 }
-                doNested(LookIn, remapIn);
+                doSafeLookIn(remapIn);
             }
             if (!searchingSubs) {
+                startGenericSearch();
                 doNested(SearchClose, self);
+                doubleCheckGenericSearch();
             }
         }
-        if (!successfulGenericSearch) {
-            doNested(SearchDistant, self);
+    }
+
+    doSafeLookIn(remapTarg?) {
+        if (remapTarg == nil) remapTarg = self;
+        accountForSkashekPresence(remapTarg);
+        // Don't do something stupid lol
+        local hasPeekChance = remapTarg.skashekFoundHere && remapTarg.canPeekAtSkashek;
+        if (hasPeekChance) {
+            remapTarg.doDistantSearch(nil);
         }
-        beganGenericSearch = nil;
+        else {
+            startGenericSearch(remapTarg);
+            doNested(LookIn, remapTarg);
+            doubleCheckGenericSearch(remapTarg);
+        }
     }
 
     dobjFor(SearchClose) {
-        preCond = [objVisible, touchObj]
+        preCond = [objVisible]
         verify() { }
         check() { }
         action() {
             beforeSearch();
-            doDistantSearch(true);
             doCloseSearch();
             reportShashek();
             afterSearch();
@@ -124,21 +202,25 @@ modify Thing {
 
     dobjFor(SearchDistant) {
         preCond = [objVisible]
+        remap = remapIn
         verify() { }
         check() { }
         action() {
-            beforeSearch();
-            doDistantSearch(nil);
-            afterSearch();
+            if (contType == In) {
+                beforeSearch();
+                doDistantSearch(nil);
+                afterSearch();
+            }
         }
         report() { }
     }
 
     dobjFor(LookIn) {
+        preCond = [objVisible, containerOpen, touchObj]
         action() {
             beforeSearch();
-            doDistantSearch(true);
-            inherited();
+            accountForSkashekPresence();
+            doStandardLook(In, hiddenIn, &hiddenIn, &lookInMsg);
             reportShashek();
             afterSearch();
         }
@@ -147,8 +229,8 @@ modify Thing {
     dobjFor(LookUnder) {
         action() {
             beforeSearch();
-            doDistantSearch(true);
-            inherited();
+            accountForSkashekPresence();
+            doStandardLook(Under, hiddenUnder, &hiddenUnder, &lookUnderMsg);
             reportShashek();
             afterSearch();
         }
@@ -157,49 +239,91 @@ modify Thing {
     dobjFor(LookBehind) {
         action() {
             beforeSearch();
-            doDistantSearch(true);
-            inherited();
+            accountForSkashekPresence();
+            doStandardLook(Behind, hiddenBehind, &hiddenBehind, &lookBehindMsg);
             reportShashek();
             afterSearch();
+        }
+    }
+
+    doStandardLook(prep, hiddenPrep, hiddenProp, lookPrepMsgProp) {
+        if (contType == prep) {
+            if (hiddenPrep.length > 0) {
+                moveHidden(hiddenProp, self);
+            }
+            
+            if (getListCount() == 0) {
+                display(lookPrepMsgProp);
+            }
+            else {
+                local relevantContents = getNonSkashekList();
+                unmention(relevantContents);
+                if (gOutStream.watchForOutput({: listContentsOn(relevantContents) }) == nil) {
+                    if (!skashekFoundHere) display(lookPrepMsgProp);
+                }
+            }
+        }
+        else if (hiddenPrep.length > 0) {
+            findHidden(hiddenProp, prep);
+        }
+        else {
+            display(lookPrepMsgProp);
         }
     }
 
     beforeSearch() {
         if (gActor == gPlayerChar && roomsTraveledUponLastSearch < gActor.roomsTraveled) {
             roomsTraveledUponLastSearch = gActor.roomsTraveled;
-            skashekCouldBeHere = true;
             skashekFoundHere = nil;
-            shashekAnnounced = nil;
             searchedFromDistance = nil;
         }
     }
 
     doCloseSearch() {
-        if (hiddenIn.length == 0 && getSearchCount() == 0) {
-            say(nothingOnMsg);
-            return;
+        if (contType == On) {
+            if (hiddenIn.length > 0) {
+                moveHidden(&hiddenIn, self);
+            }
+
+            if (getListCount() == 0) {
+                say(nothingOnMsg);
+            }
+            else {
+                local relevantContents = getNonSkashekList();
+                unmention(relevantContents);
+                if (gOutStream.watchForOutput({: listContentsOn(relevantContents) }) == nil) {
+                    if (!skashekFoundHere) say(nothingOnMsg);
+                }
+            }
         }
-            
-        local onList = getSearchItems();
-        
-        if (onList.length > 0) {
-            listContentsOn(onList);
-        }
-        
-        if (hiddenIn.length > 0) {
+        else if (hiddenIn.length > 0) {
             findHidden(&hiddenIn, In);
+        }
+        else {
+            say(nothingOnMsg);
         }
     }
 
     doDistantSearch(isSubstep) {
         if (isSubstep && searchedFromDistance) return;
-
-        if (skashekCouldBeHere) {
-            //TODO: Search from distance
-
+        if (contType != In) {
+            // We are only interested in seeing eyes through distant grates and such
             searchedFromDistance = true;
-            reportShashek();
+            return;
         }
+
+        accountForSkashekPresence();
+        if (canPeekAtSkashek && skashekFoundHere) {
+            reportShashek(isSubstep, true);
+        }
+        else if (isSubstep) {
+            alsoDistantSearchDesc();
+        }
+        else {
+            distantSearchDesc();
+        }
+
+        searchedFromDistance = true;
     }
 
     doParkourSearch() {
@@ -212,44 +336,56 @@ modify Thing {
         }
     }
 
-    reportShashek() {
+    accountForSkashekPresence(remapTarg?) {
+        if (remapTarg == nil) remapTarg = self;
+        remapTarg.skashekFoundHere =
+            skashek.location != nil &&
+            (skashek.location == remapTarg || skashek.location == remapTarg.lexicalParent);
+    }
+
+    reportShashek(isAlso?, forceIn?) {
         if (skashekFoundHere) {
-            if (!shashekAnnounced) {
-                //TODO: Announce skashek
-                if (gActionIs(SearchClose)) {
-                    //
-                    shashekAnnounced = true;
+            local targPhrase = isAlso ? '{he dobj}, however' : '{the dobj}';
+            local gratePhrase = isAlso ? 'the grate, however' : 'the grate of {the dobj}';
+
+            if (gActionIs(SearchClose)) {
+                "Crouched atop <<targPhrase>>,
+                    {I} {see} a <i>terrifying figure!</i> ";
+            }
+            else if (gActionIs(LookIn) || gActionIs(SearchDistant) || forceIn) {
+                if ((isOpenable && isOpen) || isTransparent) {
+                    "Crouched inside <<targPhrase>>,
+                        {I} {see} an <i>ominous shadow!</i> ";
                 }
-                else if (gActionIs(LookIn)) {
-                    //
-                    shashekAnnounced = true;
-                }
-                else if (gActionIs(LookUnder)) {
-                    //
-                    shashekAnnounced = true;
-                }
-                else if (gActionIs(LookBehind)) {
-                    //
-                    shashekAnnounced = true;
-                }
-                else if (gActionIs(SearchDistant)) {
-                    //
-                    shashekAnnounced = true;
+                else if (!isOpen && hasGrating) {
+                    "Barely visible through <<gratePhrase>>,
+                        {I} {see} <i>eyes{dummy}, staring back at {me}!</i> ";
                 }
             }
+            else if (gActionIs(LookUnder)) {
+                "Crouched under <<targPhrase>>,
+                        {I} {see} an <i>ominous shadow!</i> ";
+            }
+            else if (gActionIs(LookBehind)) {
+                "Crouched behind <<targPhrase>>,
+                        {I} {see} an <i>ominous shadow!</i> ";
+            }
+            skashek.doPlayerCaughtLooking();
         }
-        skashekCouldBeHere = nil;
     }
 
     nothingOnMsg = '{I} {find} nothing of interest on {the dobj}. '
+    notObviousContainerMsg =
+        '{The subj dobj} {do} not seem to carry or contain anything. '
+    notFunctionalContainerMsg =
+        '{The subj dobj} {is} not a container to search. '
 
-    getSearchCount() {
-        return contents.countWhich({x: x.searchListed});
+    getListCount() {
+        return contents.length;
     }
-
-    getSearchItems() {
-        // Shashek will be listed in a unique way
-        return contents.subset({x: x.searchListed && x != skashek});
+    
+    getNonSkashekList() {
+        return contents.subset({x: x != skashek});
     }
 
     listContentsOn(lst) {
@@ -261,9 +397,59 @@ modify Surface {
     dobjFor(Search) {
         preCond = nil
         remap = nil
-        verify() { }
+        verify() { verifyGenericSearch(); }
         check() { }
         action() { doGenericSearch(); }
         report() { }
+    }
+}
+
+#define includeGrate(destination) \
+    preinitThing() { \
+        inherited(); \
+        if (grate == nil) { \
+            hasGrating = true; \
+            grate = new Grate(self, destination); \
+            grate.preinitThing(); \
+        } \
+    }
+
+class Grate: Decoration {
+    construct(_hatch, destination) {
+        owner = hatch;
+        ownerNamed = true;
+        vocab = 'grate;;grating';
+        inherited();
+        hatch = _hatch;
+        lexicalParent = destination;
+        moveInto(destination);
+    }
+
+    hatch = nil
+
+    desc = "A small metal frame with horizontal slits machined into it.
+        You might be able to look through it."
+
+    decorationActions = [Examine, PeekThrough, LookThrough, PeekInto, Search, LookIn]
+
+    dobjFor(PeekInto) asDobjFor(Search)
+    dobjFor(LookThrough) asDobjFor(Search)
+    dobjFor(LookIn) asDobjFor(Search)
+    dobjFor(Search) {
+        remap = nil
+        preCond = nil
+        verify() {
+            if (hatch.isOpenable && hatch.isOpen) {
+                illogical('There\'s little point in looking through the
+                    grate of something which is already open. ');
+            }
+        }
+        action() {
+            doInstead(SearchDistant, hatch);
+        }
+    }
+
+    locType() {
+        return Outside;
     }
 }

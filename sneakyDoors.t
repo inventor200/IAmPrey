@@ -591,11 +591,11 @@ modify Thing {
     dobjFor(PeekInto) asDobjFor(LookIn)
 
     dobjFor(LookThrough) {
-        preCond = [actorHasPeekAngle]
+        preCond = [actorHasPeekAngle, containerOpen]
     }
 
     dobjFor(LookIn) {
-        preCond = [actorHasPeekAngle]
+        preCond = [objVisible, touchObj, actorHasPeekAngle, containerOpen]
     }
 
     dobjFor(SlamClosed) {
@@ -1116,6 +1116,7 @@ modify Door {
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
+    dobjFor(Search) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
         verify() {
@@ -1196,7 +1197,7 @@ class CatFlap: Decoration {
     door. It must have required a combination of incredible power tools, <i>lots</i> of
     free time, and a radiant, heartfelt fondness for a certain cat."
 
-    decorationActions = [Examine, GoThrough, Enter, PeekThrough, LookThrough, PeekInto, LookIn]
+    decorationActions = [Examine, GoThrough, Enter, PeekThrough, LookThrough, PeekInto, LookIn, Search]
 
     canGoThroughMe = true
     requiresPeekAngle = true
@@ -1208,6 +1209,7 @@ class CatFlap: Decoration {
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
+    dobjFor(Search) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         preCond = [actorHasPeekAngle]
         verify() {
@@ -1220,6 +1222,10 @@ class CatFlap: Decoration {
             );
         }
     }
+
+    locType() {
+        return Outside;
+    }
 }
 
 class MaintenanceDoor: Door {
@@ -1228,16 +1234,16 @@ class MaintenanceDoor: Door {
 
 modify Room {
     hasDanger() {
-        //TODO: He can also be hiding, lol
-        return skashek.getOutermostRoom() == self;
+        if (skashek.getOutermostRoom() == self) {
+            return canSee(skashek);
+        }
+        return nil;
     }
 
     peekInto() {
         if (hasDanger()) {
-            //TODO: Allow for him to be described according to
-            // his current action
-            "<.p><i>\^<<gSkashekName>> is in there!</i> ";
-            //TODO: Peek consequence mechanics
+            skashek.describePeekedAction();
+            skashek.doPlayerPeek();
         }
         else {
             "<.p><i>Seems safe!</i> ";
