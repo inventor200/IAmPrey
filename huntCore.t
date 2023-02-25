@@ -58,7 +58,7 @@ huntCore: InitObject {
         }
     }
 
-    startBathTime() {
+    startBathTime() { //TODO: He makes his way to the Director's Office to look
         wasBathTimeAnnounced = true;
         "<.p>The voice of your Royal Subject is heard over the facility's
         intercom:\n

@@ -188,6 +188,8 @@ modify TravelAction {
     easeIntoTravel() {
         local getOutAction;
 
+        parkourCore.cacheParkourRunner(gActor);
+
         // Re-interpreting getting out?
         if (!gActor.location.ofKind(Room) && direction == outDir) {
             getOutAction = gActor.location.contType == On ? GetOff : GetOutOf;
@@ -689,7 +691,6 @@ modify Door {
     hasCatFlap = nil
     catFlap = nil
     airlockDoor = nil
-    oppositeAirlockDoor = nil
     closingFuse = nil
     closingDelay = 3
 
@@ -1296,8 +1297,16 @@ modify Room {
     doorScanFuse = nil
 
     startDoorScan() {
+        if (doorScanFuse != nil) return;
         doorScanFuse = new Fuse(self, &doDoorScan, 0);
         doorScanFuse.eventOrder = 80;
+    }
+
+    haltScheduledDoorScan() {
+        if (doorScanFuse != nil) {
+            doorScanFuse.removeEvent();
+            doorScanFuse = nil;
+        }
     }
 
     travelerEntering(traveler, origin) {
@@ -1330,6 +1339,7 @@ modify Room {
     }
 
     doDoorScan(fromCommand?) {
+        if (gPlayerChar.getOutermostRoom() != self) return; // Oops
         local beVerbose = fromCommand || gameMain.verbose;
 
         local totalRoomList = new Vector(8);
@@ -1442,10 +1452,7 @@ modify Room {
             "<.p>";
         }
 
-        if (doorScanFuse != nil) {
-            doorScanFuse.removeEvent();
-            doorScanFuse = nil;
-        }
+        haltScheduledDoorScan();
     }
 
     getSpecialPeekDirectionTarget(dirObj) {

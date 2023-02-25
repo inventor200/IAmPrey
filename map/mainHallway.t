@@ -88,6 +88,7 @@ southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
     theName = 'the south end of the hall'
 
     north = eastHall
+    east = freezerWestEntry
     south = southHall
 
     regions = [eastHallRegion]
@@ -99,7 +100,7 @@ southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
 southHall: HallwaySegment { '<<nameHeader>> (South)'
     //
 
-    east = southeastHall
+    northeast = southeastHall
     west = southwestHall
     south = southBathroom
 }

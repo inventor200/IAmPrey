@@ -1,4 +1,4 @@
-labEvalSightLine: HallRegion;
+labEvalSightLine: WindowRegion;
 
 labB: Room { 'Lab B'
     "TODO: Add description. "

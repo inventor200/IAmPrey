@@ -30,3 +30,6 @@
 #include "serverRoom.t"       // Stage: Draft
 #include "itOffice.t"         // Stage: Draft
 #include "hangar.t"           // Stage: Draft
+#include "kitchen.t"          // Stage: Draft
+#include "freezer.t"          // Stage: Draft
+#include "reservoir.t"        // Stage: Draft

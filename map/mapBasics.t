@@ -2,15 +2,32 @@ defaultLabFloor: Floor { 'the floor'
     "TODO: Add description. "
 }
 
+cementFloor: Floor { 'the floor'
+    "TODO: Add description. "
+}
+
+#define airlockDisclaimer '\n<b>It probably does not close itself automatically.</b>'
+
 #define standardDoorDescription \
-    "TODO: Add inside description. \
+    "TODO: Add description. \
     There seems to be a sort of rough, rectangular cat door \
     cut into the bottom of the door. "
 
 #define lockedDoorDescription \
-    "TODO: Add inside description. \
+    "TODO: Add description. \
     There seems to be a proximity lock on this door, and a \
     startling lack of cat accessibility. "
+
+#define airlockDoorDesc \
+    "It's a glass airlock door, meant to keep toxic fumes out. \
+    Black-and-yellow warning tape borders the sides. \
+    <<airlockDisclaimer>> "
+
+#define freezerDoorDesc \
+    "It's a large, metal door&mdash;reminiscent of a vault&mdash;and \
+    made to keep freezing air from leaking into the rest of \
+    the facility. \
+    <<airlockDisclaimer>> "
 
 modify SenseRegion {
     lookAroundArmed = true
@@ -22,6 +39,15 @@ class HallRegion: SenseRegion {
     canSmellAcross = nil
     canTalkAcross = true
     canThrowAcross = true
+    autoGoTo = nil
+}
+
+class WindowRegion: SenseRegion {
+    canSeeAcross = true
+    canHearAcross = nil
+    canSmellAcross = nil
+    canTalkAcross = true
+    canThrowAcross = nil
     autoGoTo = nil
 }
 

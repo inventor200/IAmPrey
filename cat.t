@@ -13,9 +13,15 @@
 #define catNicknameVocab ('king arthur')
 #endif
 
-cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>' @deliveryRoom
+cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>'
     person = (gCatMode ? 2 : 3)
     isHim = true
+
+    #if __DEBUG
+    location = reservoir
+    #else
+    location = directorsOffice
+    #endif
 
     actualName = catRealName
     nickname = catNickname

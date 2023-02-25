@@ -1,4 +1,4 @@
-utilityPassage: Room { 'Utility Passage'
+utilityPassage: Room { 'The Utility Passage'
     "TODO: Add description. "
 
     northeast = northUtilityPassageExit

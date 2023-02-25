@@ -54,7 +54,7 @@ DefineTAction(ParkourJumpOverTo)
 ;
 
 VerbRule(ParkourJumpOverInto)
-    ('jump'|'jm'|'hop'|'leap') expandedInto singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'dive') expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpOverInto
     verbPhrase = 'jump through (what)'
@@ -103,7 +103,7 @@ DefineTAction(ParkourJumpDownTo)
 ;
 
 VerbRule(ParkourJumpDownInto)
-    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' expandedInto singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall'|'dive') 'down' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpDownInto
     verbPhrase = 'jump down into (what)'
@@ -294,7 +294,7 @@ DefineIAction(ParkourClimbOffIntransitive)
 ;
 
 VerbRule(ParkourJumpOffOf)
-    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop') ('off'|'off' 'of'|'down' 'from') singleDobj
+    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop'|'dive') ('off'|'off' 'of'|'down' 'from') singleDobj
     : VerbProduction
     action = ParkourJumpOffOf
     verbPhrase = 'jump off of (what)'
@@ -311,7 +311,7 @@ DefineTAction(ParkourJumpOffOf)
 ;
 
 VerbRule(ParkourJumpOffIntransitive)
-    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop') ('off'|'down')
+    ('jm'|'jump'|'hop'|'leap'|'fall'|'drop'|'dive') ('off'|'down')
     : VerbProduction
     action = ParkourJumpOffIntransitive
     verbPhrase = 'jump/jumping off'        
@@ -1696,7 +1696,56 @@ modify Room {
     isStandardPlatform(moduleChecked?, confirmedParkourModule?) {
         return nil;
     }
+
+    jumpOffFloor() {
+        doInstead(Jump);
+    }
+
+    canGetOffFloor = nil
+
+    getOffFloor() {
+        jumpOffFloor();
+    }
 }
+
+#define redirectJumpOffFloor(originalAction) \
+    dobjFor(originalAction) { \
+        preCond = nil \
+        remap = nil \
+        verify() { \
+            parkourCore.cacheParkourRunner(gActor); \
+            if (gParkourRunner.location != gPlayerChar.outermostVisibleParent()) { \
+                illogical(actorNotOnMsg); \
+            } \
+        } \
+        check() { } \
+        action() { \
+            gPlayerChar.outermostVisibleParent().jumpOffFloor(); \
+        } \
+        report() { } \
+    }
+
+#define redirectGetOffFloor(originalAction) \
+    dobjFor(originalAction) { \
+        preCond = nil \
+        remap = nil \
+        verify() { \
+            parkourCore.cacheParkourRunner(gActor); \
+            local om = gPlayerChar.outermostVisibleParent(); \
+            if (gParkourRunner.location != om) { \
+                illogical(actorNotOnMsg); \
+                return; \
+            } \
+            if (!om.canGetOffFloor) { \
+                illogical('{I} remain{s/ed} on <<theName>>. '); \
+            } \
+        } \
+        check() { } \
+        action() { \
+            gPlayerChar.outermostVisibleParent().getOffFloor(); \
+        } \
+        report() { } \
+    }
 
 // floorActions allow for extended decoration actions.
 modify Floor {
@@ -1724,6 +1773,11 @@ modify Floor {
     floorActions = [Examine, Search, SearchClose, SearchDistant, TakeFrom]
 
     hasParkourRecon = true
+
+    redirectJumpOffFloor(JumpOff)
+    redirectJumpOffFloor(ParkourJumpOffOf)
+    redirectGetOffFloor(GetOff)
+    redirectGetOffFloor(ParkourClimbOffOf)
 }
 
 modify SubComponent {

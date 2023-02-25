@@ -6,9 +6,9 @@ skashek: Actor { 'Skashek;;predator hunter royal[weak] subject sheki shek'
     theName = (globalParamName)
     trueNameKnown = nil
     #if __DEBUG
-    location = breakroom
+    location = kitchen
     #else
-    location = breakroom
+    location = kitchen
     #endif
 
     globalParamName = (gCatMode ? '<b>The Royal Subject</b>' :

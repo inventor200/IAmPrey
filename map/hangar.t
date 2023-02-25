@@ -1,14 +1,14 @@
 hangarSightLine: HallRegion;
 
-#define airlockDoorDesc "TODO: Add description. "
-
 storageBay: Room { 'The Storage Bay'
     "TODO: Add description. "
 
     west = loadingArea
     north = wasteProcessingEntry
+    south = freezerNorthEntry
 
     regions = [hangarSightLine]
+    floorObj = cementFloor
 }
 
 +wasteProcessingEntry: MaintenanceDoor { 'the waste processing door'
@@ -19,7 +19,7 @@ storageBay: Room { 'The Storage Bay'
 
 wasteProcessingBarrier: TravelBarrier {
     canTravelerPass(actor, connector) {
-        return actor == skashek;
+        return actor == skashek || !connector.isOpen;
     }
     
     explainTravelBarrier(actor, connector) {
@@ -27,7 +27,7 @@ wasteProcessingBarrier: TravelBarrier {
         into a game arena. Though he is hunting you, he has also
         crafted a <q>fair</q> environment, as it includes a means
         of escape.\b
-        Whatever waits on the other side of the waste processing door,
+        Whatever waits on the other side of <i>that door</i>,
         however, would be the <i>purest</i> expression of desperate
         evasion, <i>with zero chances of survival</i>.\b
         Maybe you should take your chances with the plausible exit
@@ -42,12 +42,13 @@ hangar: Room { 'The Hangar'
     regions = [hangarSightLine]
 
     east = airlockInsideEntry
+    
+    floorObj = cementFloor
 }
 
 +airlockInsideEntry: Door { 'the emergency airlock door'
     airlockDoorDesc
     otherSide = airlockInsideExit
-    oppositeAirlockDoor = airlockOutsideExit
 
     airlockDoor = true
     isTransparent = true
@@ -68,6 +69,8 @@ wasteProcessing: Room { 'Waste Processing'
     trap than a valid escape route. "
 
     south = wasteProcessingExit
+    
+    floorObj = cementFloor
 }
 
 +wasteProcessingExit: MaintenanceDoor { 'the waste processing exit'
@@ -86,7 +89,6 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 +airlockInsideExit: Door { 'the inner exit door'
     airlockDoorDesc
     otherSide = airlockInsideEntry
-    oppositeAirlockDoor = airlockOutsideExit
     soundSourceRepresentative = airlockInsideEntry
 
     airlockDoor = true
@@ -96,7 +98,6 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 +airlockOutsideExit: Door { 'the outer exit door'
     airlockDoorDesc
     otherSide = airlockOutsideEntry
-    oppositeAirlockDoor = airlockInsideExit
     soundSourceRepresentative = airlockOutsideEntry
 
     airlockDoor = true
@@ -122,7 +123,6 @@ fakeOutside: Room { 'Outside the Facility'
 +airlockOutsideEntry: Door { 'the outer airlock door'
     airlockDoorDesc
     otherSide = airlockOutsideExit
-    oppositeAirlockDoor = airlockInsideExit
 
     airlockDoor = true
 }
