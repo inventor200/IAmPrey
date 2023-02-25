@@ -3,7 +3,7 @@
 #define gCatNickname (huntCore.printApologyNoteForPG(true))
 #define catBaseVocab ('cat;;kat kitty meowmeow')
 
-#if __DEBUG
+#if __IS_MAP_TEST
 #define catRealName 'Piergiorgio'
 #define catNickname catRealName
 #define catNicknameVocab ('pg pigi peegee pier giorg giorge giorgio piergiorgio')

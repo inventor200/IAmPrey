@@ -14,20 +14,26 @@
 #include "betterChoices.t"
 
 // Begin compile modes
-#define __IS_CAT_GAME nil
+#define __IS_MAP_TEST nil
 
 #if __DEBUG
 ///////////////////////////////////////////////
 ////        PROLOGUE CONTROLLER:          ////
 /////////////////////////////////////////////
 /*()*/  #define __SHOW_PROLOGUE nil   /*()*/
-///////////////////////////////////////////
+/*-*/  #define __FAST_DIFFICULTY 2   /*--*/
+//////////////////////////////////////////
 
 // End compile modes
 
 #else
 // DO NOT ALTER:
 #define __SHOW_PROLOGUE true
+#if __IS_MAP_TEST
+#define __FAST_DIFFICULTY 1
+#else
+#define __FAST_DIFFICULTY 4
+#endif
 // ^- This is the non-debug behavior!!!
 #endif
 

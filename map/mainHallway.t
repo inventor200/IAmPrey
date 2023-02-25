@@ -3,6 +3,7 @@ loadingArea: Room { 'The Loading Area'
 
     regions = [loadingAreaSightLine, eastHallRegion]
 
+    east = storageBay
     west = northHall
     south = northeastHall
 

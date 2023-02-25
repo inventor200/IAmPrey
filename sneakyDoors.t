@@ -344,7 +344,6 @@ DefineLiteralAction(ChangeSneakMode)
     turnSequence() { }
 ;
 
-//TODO: If the door is airlockDoor = true, then use better sneaking behavior
 sneakyCore: object {
     allowSneak = nil
     sneakSafetyOn = nil
@@ -471,25 +470,37 @@ sneakyCore: object {
                 exit;
             }
 
+            local allowPeek = true;
             local peekComm = direction.name;
             if (conn.ofKind(Door)) {
                 peekComm = conn.name;
+                allowPeek = conn.allowPeek;
+                if (!allowPeek && !conn.isLocked) {
+                    "<.p>(first opening <<conn.theName>>)<.p>";
+                    nestedAction(Open, conn);
+                }
             }
-            peekComm = (gFormatForScreenReader ? 'peek ' : 'p ') + peekComm;
 
-            "<<getSneakStep(2, '<b>PEEK</b>, just to be sure!', peekComm)>>";
-            local peekPrecache = conn.destination.getOutermostRoom().hasDanger();
-            if (direction.ofKind(Door)) {
-                nestedAction(PeekThrough, conn);
+            if (allowPeek) {
+                peekComm = (gFormatForScreenReader ? 'peek ' : 'p ') + peekComm;
+
+                "<<getSneakStep(2, '<b>PEEK</b>, just to be sure!', peekComm)>>";
+                local peekPrecache = conn.destination.getOutermostRoom().hasDanger();
+                if (direction.ofKind(Door)) {
+                    nestedAction(PeekThrough, conn);
+                }
+                else {
+                    sneakDirection = direction;
+                    nestedAction(PeekDirection);
+                }
+                if (peekPrecache) {
+                    "Maybe {i} should go another way...<.p>";
+                    concludeSneakLine();
+                    exit;
+                }
             }
             else {
-                sneakDirection = direction;
-                nestedAction(PeekDirection);
-            }
-            if (peekPrecache) {
-                "Maybe {i} should go another way...<.p>";
-                concludeSneakLine();
-                exit;
+                "{I} cannot peek through <<conn.theName>>...";
             }
             "<.p>";
         }
@@ -689,6 +700,12 @@ modify Door {
     skashekCloseExpectationFuse = nil
     wasSkashekExpectingAClose = nil
 
+    // Airlock-style doors do not close on their own,
+    // so expectations are based on previously-witnessed
+    // open states.
+    playerExpectsAirlockOpen = nil
+    skashekExpectsAirlockOpen = nil
+
     preinitThing() {
         inherited();
         if ((hasCatFlap || !isLocked) && catFlap == nil && !airlockDoor) {
@@ -767,6 +784,13 @@ modify Door {
         }
     }
 
+    contestantExpectsAirlockOpen(contestant) {
+        if (contestant == skashek) {
+            return skashekExpectsAirlockOpen;
+        }
+        return playerExpectsAirlockOpen;
+    }
+
     witnessClosing() {
         clearFuse(&closingFuse);
         if (canEitherBeSeenBy(gPlayerChar)) {
@@ -811,7 +835,9 @@ modify Door {
 
     isStatusSuspiciousTo(contestant, fuseProp) {
         if (!canEitherBeSeenBy(contestant)) return nil;
-        if (airlockDoor) return nil;
+        if (airlockDoor) {
+            return isOpen != contestantExpectsAirlockOpen(contestant);
+        }
         return isOpen != checkOpenExpectationFuse(fuseProp);
     }
 
@@ -990,7 +1016,21 @@ modify Door {
     makeOpen(stat) {
         inherited(stat);
 
-        if (!airlockDoor) {
+        if (airlockDoor) {
+            if (canEitherBeSeenBy(gPlayerChar)) {
+                playerExpectsAirlockOpen = stat;
+                if (otherSide != nil) {
+                    otherSide.playerExpectsAirlockOpen = stat;
+                }
+            }
+            if (canEitherBeSeenBy(skashek)) {
+                skashekExpectsAirlockOpen = stat;
+                if (otherSide != nil) {
+                    otherSide.skashekExpectsAirlockOpen = stat;
+                }
+            }
+        }
+        else {
             if (stat) {
                 startFuse();
             }
@@ -1024,7 +1064,9 @@ modify Door {
 
     dobjFor(SneakThrough) {
         verify() {
-            logical;
+            if (isLocked && !isOpen) {
+                illogical('That door is locked. ');
+            }
         }
         action() {
             sneakyCore.trySneaking();
@@ -1045,14 +1087,6 @@ modify Door {
             }
             inherited();
         }
-        /*action() {
-            if (airlockDoor) {
-                if (oppositeAirlockDoor.isOpen) {
-                    tryImplicitAction(Close, oppositeAirlockDoor);
-                }
-            }
-            inherited();
-        }*/
     }
 
     catCloseMsg =
@@ -1114,13 +1148,15 @@ modify Door {
         preCond = (getCatAccessibility())
     }
 
+    allowPeek = (isOpen || hasCatFlap || isTransparent)
+
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(Search) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
         verify() {
-            if (!isOpen && !hasCatFlap && !isTransparent) {
+            if (!allowPeek) {
                 illogical('{I} {cannot} peek through an opaque door. ');
             }
         }
@@ -1202,7 +1238,9 @@ class CatFlap: Decoration {
     canGoThroughMe = true
     requiresPeekAngle = true
 
-    dobjFor(Enter) asDobjFor(GoThrough)
+    dobjFor(Enter) {
+        remap = lexicalParent
+    }
     dobjFor(GoThrough) {
         remap = lexicalParent
     }

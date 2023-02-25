@@ -69,8 +69,8 @@ modify Thing {
 
     canPeekAtSkashek = (isTransparent || hasGrating || (isOpenable && isOpen))
 
-    distantSearchDesc = "{The subj dobj} seem{s/ed} fine from here. "
-    alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} fine from here. "
+    distantSearchDesc = "{The subj dobj} seem{s/ed} safe from here. "
+    alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} safe from here. "
 
     dobjFor(Search) {
         preCond = nil

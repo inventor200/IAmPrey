@@ -13,21 +13,44 @@ huntCore: InitObject {
     inMapMode = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
-    #if __IS_CAT_GAME
-    difficulty = basicTutorial
-    #else
     difficulty = mediumMode
-    #endif
 
     execBeforeMe = [prologueCore]
     bathTimeFuse = nil
-    #if __DEBUG
+    #if __IS_MAP_TEST
     apologyGivenToPG = nil
     apologyFuse = nil
     #endif
 
     playerAction = nil
     playerActionActor = nil
+
+    setDifficult(index) {
+        switch (index) {
+            case 1:
+                difficulty = basicTutorial;
+                sneakyCore.allowSneak = true;
+                sneakyCore.sneakSafetyOn = true;
+                break;
+            case 2:
+                difficulty = preyTutorial;
+                sneakyCore.allowSneak = true;
+                sneakyCore.sneakSafetyOn = true;
+                break;
+            case 3:
+                difficulty = easyMode;
+                break;
+            case 4:
+                difficulty = mediumMode;
+                break;
+            case 5:
+                difficulty = hardMode;
+                break;
+            case 6:
+                difficulty = nightmareMode;
+                break;
+        }
+    }
 
     execute() {
         if (inCatMode) {
@@ -47,7 +70,7 @@ huntCore: InitObject {
     }
 
     printApologyNoteForPG(nickname?) {
-        #if __DEBUG
+        #if __IS_MAP_TEST
         if (!apologyGivenToPG) {
             apologyFuse = new Fuse(self, &apologyMethod, 0);
             apologyGivenToPG = true;
@@ -56,7 +79,7 @@ huntCore: InitObject {
         return nickname ? cat.nickname : cat.actualName;
     }
 
-    #if __DEBUG
+    #if __IS_MAP_TEST
     apologyMethod() {
         "<.p><i>(<b>Note for the real Piergiorgio:</b>
         Don't worry; I will change the cat's name to something else before I

@@ -27,10 +27,11 @@ prologueCore: InitObject {
         Rest assured that your survival is not decided by randomness.";
         "\b";
         inputManager.pauseForMore();
-        #if __IS_CAT_GAME
+        #if __IS_MAP_TEST // is map test
+        huntCore.setDifficult(1);
         cls();
         catCutscene.play();
-        #else
+        #else // is not map test
         cls();
         "\b<b>Definition of AUTO-SNEAKING:</b>\n
         Players must remember to perform <i>all</i> precautions
@@ -89,30 +90,7 @@ prologueCore: InitObject {
             and the prologue will be skipped.)</i>'
         );
         local result = difficultyQuestion.ask();
-        switch (result) {
-            case 1:
-                huntCore.difficulty = basicTutorial;
-                sneakyCore.allowSneak = true;
-                sneakyCore.sneakSafetyOn = true;
-                break;
-            case 2:
-                huntCore.difficulty = preyTutorial;
-                sneakyCore.allowSneak = true;
-                sneakyCore.sneakSafetyOn = true;
-                break;
-            case 3:
-                huntCore.difficulty = easyMode;
-                break;
-            case 4:
-                huntCore.difficulty = mediumMode;
-                break;
-            case 5:
-                huntCore.difficulty = hardMode;
-                break;
-            case 6:
-                huntCore.difficulty = nightmareMode;
-                break;
-        }
+        huntCore.setDifficult(result);
         cls();
         if (result == 1) {
             catCutscene.play();
@@ -120,9 +98,11 @@ prologueCore: InitObject {
         else if (result < 5) {
             introCutscene.play();
         }
-        #endif
+        #endif // end is map test
         "\b";
-        #endif
+        #else // do not show prologue
+        huntCore.setDifficult(__FAST_DIFFICULTY);
+        #endif // end show prologue
     }
 
     play() {
@@ -148,7 +128,7 @@ prologueCore: InitObject {
         A game of evasion, by Joey Cramsey<<if !gCatMode>>\b
         <i><q>This is based on a recurring nightmare of mine,
         so now it's your problem, too!</q></i><<end>>";
-        #if __IS_CAT_GAME
+        #if __IS_MAP_TEST
         "\b<i><q>The limited edition for testers!</q></i>\n(The full game will <b>not</b> be a cat game, lol)";
         #endif
         "</center>\b
