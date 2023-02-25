@@ -523,19 +523,24 @@ sneakyCore: object {
     }
 
     checkDoorClosedBehind(closingSide) {
-        local expectsOpen = checkOpenExpectationFuse(&skashekCloseExpectationFuse);
-        if (expectsOpen) {
+        local expectsOpen =
+            closingSide.checkOpenExpectationFuse(&skashekCloseExpectationFuse) ||
+            closingSide.skashekExpectsAirlockOpen;
+        if (!expectsOpen) {
             "<<getSneakStep(3, 'Quietly <b>CLOSE</b> the door{dummy} behind {me}!',
                 'close ' + closingSide.name)>>";
             nestedAction(Close, closingSide);
         }
         else {
-            getSneakLine(
+            local closeExceptionLine = getSneakLine(
                 'Normally, {i} should <b>CLOSE</b> the door behind {myself},
                 but {i} did not open this door.
-                Therefore, it\'s better to let it <i>close itself</i>,
+                Therefore, it\'s better to<<if closingSide.airlockDoor>>
+                <i>leave it open</i>,<<else>>
+                let it <i>close itself</i>,<<end>>
                 according to what <<gSkashekName>> expects!'
             );
+            "<<closeExceptionLine>>";
         }
     }
 }
