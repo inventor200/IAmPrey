@@ -1,5 +1,9 @@
 labA: Room { 'Lab A'
     "TODO: Add description. "
+
+    northMuffle = northHall
+    westMuffle = lifeSupportTop
+    southMuffle = itOffice
 }
 
 //TODO: Parkour exit west to the central vents

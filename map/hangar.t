@@ -3,9 +3,12 @@ hangarSightLine: HallRegion;
 storageBay: Room { 'The Storage Bay'
     "TODO: Add description. "
 
-    west = loadingArea
+    northwest = loadingArea
     north = wasteProcessingEntry
     south = freezerNorthEntry
+
+    westMuffle = labB
+    southwestMuffle = evaluationRoom
 
     regions = [hangarSightLine]
     floorObj = cementFloor

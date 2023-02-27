@@ -3,6 +3,10 @@ commonRoom: Room { 'The Common Room'
 
     north = assemblyShop
     south = enrichmentRoomHall
+
+    northwestMuffle = directorsOffice
+    eastMuffle = lifeSupportTop
+    westMuffle = administration
 }
 
 +enrichmentRoomHall: Passage { 'passage;curving curved;corridor hall'

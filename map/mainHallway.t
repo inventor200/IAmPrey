@@ -7,6 +7,8 @@ loadingArea: Room { 'The Loading Area'
     west = northHall
     south = northeastHall
 
+    southeastMuffle = labB
+
     inRoomName(pov) {
         local omr = pov.getOutermostRoom();
         if (omr == northHall) {
@@ -38,6 +40,8 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
     north = northBathroom
     east = loadingArea
     west = northwestHall
+
+    southeastMuffle = labA
 
     inRoomName(pov) {
         local omr = pov.getOutermostRoom();
@@ -103,6 +107,10 @@ southHall: HallwaySegment { '<<nameHeader>> (South)'
     northeast = southeastHall
     west = southwestHall
     south = southBathroom
+
+    northeastMuffle = deliveryRoom
+    northwestMuffle = cloneQuarters
+    southeastMuffle = reactorNoiseRoom
 }
 
 northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
@@ -110,6 +118,8 @@ northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
 
     north = northHall
     south = westHall
+
+    eastMuffle = directorsOffice
 
     regions = [westHallRegion]
     lookAroundRegion = westHallRegion
@@ -122,6 +132,8 @@ westHall: HallwaySegment { '<<nameHeader>> (West)'
 
     north = northwestHall
     south = southwestHall
+
+    westMuffle = armory
 
     regions = [westHallRegion]
     lookAroundRegion = westHallRegion

@@ -3,6 +3,10 @@ serverRoomBottom: Room { 'Server Access'
 
     up = serverRoomTop
     east = itOffice
+
+    northMuffle = lifeSupportTop
+    southeastMuffle = deliveryRoom
+    southMuffle = breakroom
 }
 
 DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the server access door')

@@ -1,35 +1,35 @@
 #include "mapBasics.t"
 
-//TODO: Finish draft stage
 //TODO: Finish muffle wall stage
 //TODO: Finish parkour stage
+//TODO: Finish room description stage
 //TODO: Finish decoration stage
-//TODO: Finish description stage
+//TODO: Finish decoration description stage
 
 #if __DEBUG
 #include "testArea.t"
 #endif
-#include "mainHallway.t"      // Stage: Draft
-#include "deliveryRoom.t"     // Stage: Draft
-#include "breakroom.t"        // Stage: Draft
-#include "administration.t"   // Stage: Draft
-#include "securityOffice.t"   // Stage: Draft
-#include "humanQuarters.t"    // Stage: Draft
-#include "cloneQuarters.t"    // Stage: Draft
-#include "enrichmentRoom.t"   // Stage: Draft
-#include "directorsOffice.t"  // Stage: Draft
-#include "assemblyShop.t"     // Stage: Draft
-#include "commonRoom.t"       // Stage: Draft
-#include "armory.t"           // Stage: Draft
-#include "labA.t"             // Stage: Draft
-#include "labB.t"             // Stage: Draft
-#include "evaluationRoom.t"   // Stage: Draft
-#include "bathrooms.t"        // Stage: Draft
-#include "utilityPassage.t"   // Stage: Draft
-#include "lifeSupport.t"      // Stage: Draft
-#include "serverRoom.t"       // Stage: Draft
-#include "itOffice.t"         // Stage: Draft
-#include "hangar.t"           // Stage: Draft
-#include "kitchen.t"          // Stage: Draft
-#include "freezer.t"          // Stage: Draft
-#include "reservoir.t"        // Stage: Draft
+#include "mainHallway.t"      // Stage: Muffle
+#include "deliveryRoom.t"     // Stage: Muffle
+#include "breakroom.t"        // Stage: Muffle
+#include "administration.t"   // Stage: Muffle
+#include "securityOffice.t"   // Stage: Muffle
+#include "humanQuarters.t"    // Stage: Muffle
+#include "cloneQuarters.t"    // Stage: Muffle
+#include "enrichmentRoom.t"   // Stage: Muffle
+#include "directorsOffice.t"  // Stage: Muffle
+#include "assemblyShop.t"     // Stage: Muffle
+#include "commonRoom.t"       // Stage: Muffle
+#include "armory.t"           // Stage: Muffle
+#include "labA.t"             // Stage: Muffle
+#include "labB.t"             // Stage: Muffle
+#include "evaluationRoom.t"   // Stage: Muffle
+#include "bathrooms.t"        // Stage: Muffle
+#include "utilityPassage.t"   // Stage: Muffle
+#include "lifeSupport.t"      // Stage: Muffle
+#include "serverRoom.t"       // Stage: Muffle
+#include "itOffice.t"         // Stage: Muffle
+#include "hangar.t"           // Stage: Muffle
+#include "kitchen.t"          // Stage: Muffle
+#include "freezer.t"          // Stage: Muffle
+#include "reservoir.t"        // Stage: Muffle

@@ -1,6 +1,10 @@
 directorsOffice: Room { 'The Director\'s Office'
     "TODO: Add description. "
 
+    eastMuffle = assemblyShop
+    southeastMuffle = commonRoom
+    westMuffle = northwestHall
+
     regions = [directorsOfficeSightLine]
 
     inRoomName(pov) { return 'in the office, seen through the window'; }

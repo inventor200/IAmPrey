@@ -3,6 +3,9 @@ enrichmentRoom: Room { 'The Enrichment Room'
 
     east = commonRoomHall
     south = southEnrichmentRoomDoorInterior
+
+    northMuffle = administration
+    eastMuffle = utilityPassage
 }
 
 +southEnrichmentRoomDoorInterior: Door { 'the south enrichment room door'

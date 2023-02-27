@@ -1,8 +1,94 @@
-fakePumpRoom: Room { 'The Pump Room'
+fakePumpRoom: Room { 'The Reactor Turbine Room'
     desc = wasteProcessing.desc
 
     north = southReservoirCorridorEntry
     floorObj = cementFloor
+
+    eastMuffle = reservoirControlRoom
+}
++reactorTurbines: Decoration 'the reactor turbine pumps'
+    plural = true
+;
+
+reactorNoiseRoom: Room { 'The Reactor Room'
+    "How the actual fuck are you reading this right now?!"
+
+    northMuffle = southHall
+    westMuffle = southBathroom
+    northeastMuffle = kitchen
+}
++reactor: Decoration 'the reactor';
+
+reactorHumSound: SoundProfile
+    '<<standardString>>'
+    '<<standardString>>'
+    '<<standardString>>'
+    strength = 4
+
+    standardString =
+        'the <<one of>>mighty<<or>>deep<<or>>resonant<<at random>>, muffled
+        <<one of>>hum<<or>>thrum<<or>>growl<<at random>> of
+        <<one of>>the facility reactor<<or>>the reactor<<or
+        >>a <<one of>>faraway<<or>>distant<<at random>>
+        <<one of>>powerplant<<or>>power source<<or>>machine<<at random>><<at random>>'
+;
++reactorSubtleSound: SubtleSound
+    'reactor hum'
+    'The hum seems to have stopped'
+    'thrum growl'
+;
+
+turbineSound: SoundProfile
+    'the <<standardString>>'
+    'the <<standardString>>'
+    'the distant, <<standardString>>'
+    strength = 3
+
+    standardString =
+        '<<one of>>hideous<<or>>cacophonous<<or>>dissonant<<or
+        >>thunderous<<at random>><<one of
+        >>, muffled <<one of>>scream<<or>>shriek<<or>>screech<<at random>><<or
+        >>, <<one of>>air-<<one of>>ripping<<or>>tearing<<or>>shredding<<at random>><<or
+        >>wall-<<one of>>shaking<<or>>vibrating<<or>>shivering<<at random>><<at random>>
+        <<one of>>noise<<or>>racket<<or>>din<<or>>whir<<at random
+        >><<at random>> of <<one of
+        >>the reactor turbine pumps<<or>>the reactor pumps<<or
+        >>the reactor turbines<<or>>the turbine pumps<<or>>turbines<<or>>the pumps<<or
+        >><<one of>>powerful <<or>>industrious
+        <<or>>spinning <<or>>energetic <<or>><<at random>>machines<<at random>>'
+;
+
+waterfallSound: SoundProfile
+    'the muffled, <<standardString>>'
+    'the <<standardString>>'
+    'the <<standardString>>'
+    strength = 3
+
+    standardString =
+        '<<one of>>all-consuming<<or>>reality-filling<<or
+        >><<one of>>awesome<<or>>grand<<or>>colossal<<at random>>,
+        <<one of>>steady<<or>>gushing<<or>>constant<<at random
+        >><<at random>>
+        <<one of>>hiss<<or>>noise<<or
+        >>rush<<at random>> of
+        <<one of>>waterfalls<<or>><<one of
+        >>falling<<or>>plummeting<<or>>surging<<at random>> water<<at random>>'
+;
+
+ambientReactorNoiseRunner: InitObject {
+    noiseDaemon = nil
+
+    execute() {
+        if (noiseDaemon == nil) {
+            noiseDaemon = new Daemon(self, &playNoise, 0);
+        }
+    }
+
+    playNoise() {
+        soundBleedCore.createSound(reactorHumSound, reactor, reactorNoiseRoom, nil);
+        soundBleedCore.createSound(turbineSound, reactorTurbines, fakePumpRoom, nil);
+        soundBleedCore.createSound(waterfallSound, reservoirWaterFromAbove, reservoir, nil);
+    }
 }
 
 reservoirCorridor: Room { 'The Reservoir Corridor'
@@ -11,6 +97,8 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     north = northReservoirCorridorExit
     east = reservoirControlRoom
     south = southReservoirCorridorExit
+
+    westMuffle = kitchen
 
     floorObj = cementFloor
 }
@@ -45,6 +133,9 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
 
     east = reservoirDoorwayOut
     west = reservoirCorridor
+    out asExit(east)
+
+    southwestMuffle = fakePumpRoom
 
     regions = [reservoirControlSightLine]
     floorObj = cementFloor
@@ -67,11 +158,26 @@ DefineWindowPair(reservoirControlRoom, reservoir)
     remoteHeader = 'through the window'
 ;
 
+/*
+ * UPPER:
+ * Reactor water sprays into from the south as steam, cools,
+ * and hot air is pulled into a large ceiling fan. A condenser
+ * feed acts as a secondary waterfall from the east. The upper
+ * half is much like a sauna.
+ * 
+ * LOWER:
+ * Cooler water condenses and collects at the bottom. This
+ * reservoir also acts as an overflow containment system. The
+ * water here is "cooler", but it's still quite hot (just not
+ * harmful).
+ */
+
 reservoir: Room { 'The Reactor Reservoir'
     "TODO: Add description. "
 
     west = reservoirDoorwayIn
     down = diveIntoWaterConnector
+    in asExit(west)
 
     regions = [reservoirControlSightLine]
     floorObj = reservoirCatwalk
@@ -143,7 +249,7 @@ reservoir: Room { 'The Reactor Reservoir'
     destination = reservoirControlRoom
 }
 
-+reservoirWaterFromAbove: Decoration { 'water;;reservoir pit below down'
++reservoirWaterFromAbove: Decoration { 'the water;;reservoir pit below down'
     "TODO: Add description. "
 
     decorationActions = [
@@ -175,6 +281,10 @@ reservoir: Room { 'The Reactor Reservoir'
         report() { }
     }
 }
+
+modify VerbRule(Jump)
+    'jump' | 'jm' | 'dive' :
+;
 
 reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     "TODO: Add description. "

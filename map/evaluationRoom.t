@@ -1,6 +1,9 @@
 evaluationRoom: Room { 'The Evaluation Room'
     "TODO: Add description. "
 
+    northMuffle = labB
+    eastMuffle = storageBay
+
     regions = [labEvalSightLine]
 
     descFrom(pov) {

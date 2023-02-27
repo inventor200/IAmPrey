@@ -457,6 +457,15 @@ class SoundImpact: object {
         );
     }
 
+    doSubtleSound() {
+        setSourceBuffer();
+        soundProfile.subtleSound.perceiveIn(
+            gPlayerChar.getOutermostRoom(),
+            sourceDirection,
+            soundProfile.getReportString(form, sourceDirection, throughDoor)
+        );
+    }
+
     getStrengthDebug() {
         local formStr;
         switch (form) {
@@ -523,7 +532,12 @@ modify Actor {
         say('<.p>');
         if (perceivedSoundImpacts.length == 1) {
             local impact = perceivedSoundImpacts[1];
-            impact.impactPlayer();
+            if (impact.soundProfile.subtleSound != nil) {
+                impact.doSubtleSound();
+            }
+            else {
+                impact.impactPlayer();
+            }
             return;
         }
 
@@ -546,16 +560,7 @@ modify Actor {
             // Subtle sounds have thing-based handling,
             // so we handle these individually.
             if (impact.soundProfile.subtleSound != nil) {
-                impact.setSourceBuffer();
-                impact.soundProfile.subtleSound.perceiveIn(
-                    gPlayerChar.getOutermostRoom(),
-                    impact.sourceDirection,
-                    impact.soundProfile.getReportString(
-                        impact.form,
-                        impact.sourceDirection,
-                        impact.throughDoor
-                    )
-                );
+                impact.doSubtleSound();
                 continue;
             }
 
@@ -706,11 +711,13 @@ class SoundProfile: object {
     }
 }
 
-SubtleSound template 'basicName' 'missedMsg'?;
+SubtleSound template 'basicName' 'missedMsg'? 'extraAlts'?;
 
 class SubtleSound: Noise {
     construct() {
-        vocab = basicName + ';muffled distant nearby;echo';
+        if (extraAlts == nil) extraAlts = '';
+        else extraAlts = ' ' + extraAlts;
+        vocab = basicName + ';muffled distant nearby;echo' + extraAlts;
         if (location != nil) {
             if (location.ofKind(SoundProfile)) {
                 location.subtleSound = self;
@@ -728,6 +735,7 @@ class SubtleSound: Noise {
     }
 
     basicName = 'mysterious noise'
+    extraAlts = nil
     caughtMsg = '{I} hear{s/d} a mysterious sound. ' // Automatically generated
     missedMsg = 'The sound seems to have stopped. ' // Author-made
 
@@ -737,6 +745,7 @@ class SubtleSound: Noise {
     isBroadcasting = nil
     isSuspicious = nil
     lastDirection = nil
+    perceptionDelay = 0
 
     doAfterPerception() {
         // For setting off actions based on player observation
@@ -748,6 +757,7 @@ class SubtleSound: Noise {
         wasPerceived = nil;
         isBroadcasting = true;
         lastDirection = dir;
+        perceptionDelay = 1;
     }
 
     attemptPerception() {
@@ -764,6 +774,10 @@ class SubtleSound: Noise {
 
     checkLifecycle() {
         if (!isBroadcasting) return;
+        if (perceptionDelay > 0) {
+            perceptionDelay--;
+            return;
+        }
         if (!wasPerceived) {
             endLifecycle();
         }

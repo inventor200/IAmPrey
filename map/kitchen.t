@@ -2,6 +2,9 @@ kitchen: Room { 'The Kitchen'
     "TODO: Add description. "
 
     north = kitchenNorthExit
+
+    eastMuffle = reservoirCorridor
+    southMuffle = reactorNoiseRoom
 }
 
 +kitchenNorthExit: Door { 'the freezer door'

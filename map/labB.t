@@ -3,6 +3,10 @@ labEvalSightLine: WindowRegion;
 labB: Room { 'Lab B'
     "TODO: Add description. "
 
+    northMuffle = loadingArea
+    eastMuffle = storageBay
+    southMuffle = evaluationRoom
+
     regions = [labEvalSightLine]
 
     descFrom(pov) {

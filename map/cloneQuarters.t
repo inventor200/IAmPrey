@@ -2,6 +2,9 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     "TODO: Add description. "
 
     north = southEnrichmentRoomDoorExterior
+
+    muffleEast = utilityPassage
+    southMuffle = southHall
 }
 
 +southEnrichmentRoomDoorExterior: Door { 'the enrichment room door'

@@ -1,8 +1,12 @@
-utilityPassage: Room { 'The Utility Passage'
+utilityPassage: Room { 'The Utility Corridor'
     "TODO: Add description. "
 
     northeast = northUtilityPassageExit
     south = southUtilityPassageExit
+
+    northwestMuffle = enrichmentRoom
+    southeastMuffle = breakroom
+    westMuffle = cloneQuarters
 }
 
 +southUtilityPassageExit: MaintenanceDoor { 'the south-end exit door'

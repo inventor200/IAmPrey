@@ -3,6 +3,12 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 
     southwest = northUtilityPassageEntry
     down = lifeSupportBottom
+
+    northwestMuffle = assemblyShop
+    eastMuffle = labA
+    westMuffle = commonRoom
+    southeastMuffle = itOffice
+    southMuffle = serverRoomBottom
 }
 
 lifeSupportBottom: Room { 'Life Support (Lower Level)'
