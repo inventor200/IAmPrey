@@ -99,6 +99,11 @@ southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
     lookAroundRegion = eastHallRegion
 
     inRoomName(pov) { return 'in the south end of the hall'; }
+
+    roomDaemon() {
+        westFreezerFog.rollingDesc(freezerWestEntry);
+        inherited();
+    }
 }
 
 southHall: HallwaySegment { '<<nameHeader>> (South)'

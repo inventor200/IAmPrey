@@ -3,6 +3,7 @@ fakePumpRoom: Room { 'The Reactor Turbine Room'
 
     north = southReservoirCorridorEntry
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
 
     eastMuffle = reservoirControlRoom
 }
@@ -101,6 +102,8 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     westMuffle = kitchen
 
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
+    atmosphereObj = humidAtmosphere
 }
 
 +northReservoirCorridorExit: MaintenanceDoor { 'the exit door'
@@ -139,6 +142,8 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
 
     regions = [reservoirControlSightLine]
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
+    atmosphereObj = humidAtmosphere
 
     getSpecialPeekDirectionTarget(dirObj) {
         if (dirObj == eastDir) return windowInreservoirControlRoom;
@@ -180,7 +185,9 @@ reservoir: Room { 'The Reactor Reservoir'
     in asExit(west)
 
     regions = [reservoirControlSightLine]
+    ceilingObj = reservoirCeilingFan
     floorObj = reservoirCatwalk
+    atmosphereObj = humidAtmosphere
 
     descFrom(pov) {
         "TODO: Add remote description. ";
@@ -207,6 +214,8 @@ reservoir: Room { 'The Reactor Reservoir'
             jumpOffFloor();
             exit;
         }
+
+        inherited();
     }
 }
 
@@ -282,9 +291,15 @@ reservoir: Room { 'The Reactor Reservoir'
     }
 }
 
-modify VerbRule(Jump)
-    'jump' | 'jm' | 'dive' :
-;
+reservoirCeilingFan: Ceiling { 'large ceiling fan'
+    "TODO: Add description."
+}
+
+humidAtmosphere: Atmosphere { 'air;humid moist wet;mist fog steam humidity moisture atmosphere breeze wind'
+    "The air is thick with warm humidity. It's like a sauna here. "
+    feelDesc = "{I} can feel the humidity{dummy} stick to {me}. "
+    smellDesc = "The hot, wet air{dummy} fills {my} lungs. "
+}
 
 reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     "TODO: Add description. "

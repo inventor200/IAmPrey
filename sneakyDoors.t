@@ -695,6 +695,8 @@ modify Door {
     closingDelay = 3
 
     primedPlayerAudio = nil
+    passActionStr = 'enter'
+    canSlamMe = true
 
     // One must be on the staging location to peek through me
     requiresPeekAngle = true
@@ -747,7 +749,7 @@ modify Door {
                 if (outputManager.htmlMode) {
                     clickAction = ' (' + aHrefAlt(
                         sneakyCore.getDefaultDoorTravelAction() +
-                        ' ' + theName, 'enter', 'enter'
+                        ' ' + theName, passActionStr, passActionStr
                     ) + ')';
                 }
                 return theName + clickAction;
@@ -1063,6 +1065,11 @@ modify Door {
 
     slam() {
         primedPlayerAudio = slamClosingSound;
+        if (airlockDoor) {
+            // Only the player slams airlock doors
+            wasPlayerExpectingAClose = true;
+            wasSkashekExpectingAClose = nil;
+        }
         checkClosingExpectations();
         makeOpen(nil);
         primedPlayerAudio = nil;
@@ -1131,11 +1138,12 @@ modify Door {
             inherited();
         }
         action() {
-            if (airlockDoor) {
-                doInstead(Close, self);
+            if (canSlamMe) {
+                slam();
             }
             else {
-                slam();
+                extraReport('<.p>(simply closing, as {that dobj} cannot be slammed)\n');
+                doInstead(Close, self);
             }
         }
     }

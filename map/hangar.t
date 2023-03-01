@@ -12,6 +12,12 @@ storageBay: Room { 'The Storage Bay'
 
     regions = [hangarSightLine]
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
+
+    roomDaemon() {
+        northFreezerFog.rollingDesc(freezerNorthEntry);
+        inherited();
+    }
 }
 
 +wasteProcessingEntry: MaintenanceDoor { 'the waste processing door'
@@ -47,6 +53,7 @@ hangar: Room { 'The Hangar'
     east = airlockInsideEntry
     
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
 }
 
 +airlockInsideEntry: Door { 'the emergency airlock door'
@@ -55,6 +62,7 @@ hangar: Room { 'The Hangar'
 
     airlockDoor = true
     isTransparent = true
+    canSlamMe = nil
 }
 
 DefineBrokenWindowPairLookingAway(east, west, hangar, storageBay)
@@ -74,6 +82,7 @@ wasteProcessing: Room { 'Waste Processing'
     south = wasteProcessingExit
     
     floorObj = cementFloor
+    ceilingObj = industrialCeiling
 }
 
 +wasteProcessingExit: MaintenanceDoor { 'the waste processing exit'
@@ -96,6 +105,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     airlockDoor = true
     isTransparent = true
+    canSlamMe = nil
 }
 
 +airlockOutsideExit: Door { 'the outer exit door'
@@ -104,6 +114,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
     soundSourceRepresentative = airlockOutsideEntry
 
     airlockDoor = true
+    canSlamMe = nil
 
     dobjFor(Open) {
         verify() {
@@ -128,4 +139,5 @@ fakeOutside: Room { 'Outside the Facility'
     otherSide = airlockOutsideExit
 
     airlockDoor = true
+    canSlamMe = nil
 }

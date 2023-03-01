@@ -21,7 +21,7 @@
 ////        PROLOGUE CONTROLLER:          ////
 /////////////////////////////////////////////
 /*()*/  #define __SHOW_PROLOGUE nil   /*()*/
-/*-*/  #define __FAST_DIFFICULTY 2   /*--*/
+/*-*/  #define __FAST_DIFFICULTY 4   /*--*/
 //////////////////////////////////////////
 
 // End compile modes

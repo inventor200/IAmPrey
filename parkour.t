@@ -326,6 +326,18 @@ DefineIAction(ParkourJumpOffIntransitive)
     }
 ;
 
+modify VerbRule(Jump)
+    'jump' ('up'|)|'jm' ('up'|)|'dive' :
+;
+
+modify VerbRule(ClimbUpWhat)
+    ('climb'|'cl'|'shimmy') 'up' :
+;
+
+modify VerbRule(ClimbDownWhat)
+    ('climb'|'cl'|'shimmy') 'down' :
+;
+
 #define expandableLocalPlats 'platforms'|'plats'|'surfaces'|'supporters'
 #define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search'|'scan')
 #define expandableParkourAvailability ('available'|'known'|'familiar'|'traveled'|'travelled'|)

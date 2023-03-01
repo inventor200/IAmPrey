@@ -51,12 +51,26 @@ class WindowRegion: SenseRegion {
     autoGoTo = nil
 }
 
+class GrateRegion: SenseRegion {
+    canSeeAcross = true
+    canHearAcross = true
+    canSmellAcross = true
+    canTalkAcross = true
+    canThrowAcross = nil
+    autoGoTo = nil
+}
+
 modify Thing {
     skipInRemoteList = nil
 }
 
 modify Room {
     floorObj = defaultLabFloor
+    wallsObj = defaultWalls
+    ceilingObj = defaultCeiling
+    atmosphereObj = defaultAtmosphere
+
+    isFreezing = nil
 
     // If true, then we are entering a new SenseRegion, so showing a better
     // description is necessary
@@ -65,6 +79,21 @@ modify Room {
     lookAroundRegion = nil
 
     observedRemotely = nil
+
+    roomDaemon() {
+        if (isFreezing) {
+            "<.p>\^<<freezer.expressAmbience>>.";
+        }
+        inherited();
+    }
+
+    roomBeforeAction() {
+        if (gActionIs(Smell)) {
+            doInstead(SmellSomething, atmosphereObj);
+        }
+
+        inherited();
+    }
 
     travelerLeaving(traveler, dest) {
         inherited(traveler, dest);
@@ -141,6 +170,62 @@ modify Room {
         "{I}<<if lookedThru>> also<<end>>{aac} {see} <<makeListStr(lst, &aName, 'and')>> <<locPhrase>>. ";
         peekInto();
     }
+}
+
+class Walls: MultiLoc, Thing {
+    isFixed = true
+    plural = true
+    isDecoration = true
+    initialLocationClass = Room
+    
+    isInitiallyIn(obj) { return obj.wallsObj == self; }
+    decorationActions = [Examine]       
+}
+
+defaultWalls: Walls { 'walls;;wall'
+    "{I} {see} nothing special about the walls. "
+}
+
+class Ceiling: MultiLoc, Thing {
+    isFixed = true
+    isDecoration = true
+    initialLocationClass = Room
+    
+    isInitiallyIn(obj) { return obj.ceilingObj == self; }
+    decorationActions = [Examine]       
+}
+
+defaultCeiling: Ceiling { 'ceiling'
+    "TODO: Add description. "
+}
+
+industrialCeiling: Floor { 'pipes[weak] on[prep] the ceiling'
+    "TODO: Add description. "
+    plural = true
+    ambiguouslyPlural = true
+}
+
+class Atmosphere: MultiLoc, Thing {
+    vocab = 'air;;atmosphere breeze wind'
+    isFixed = true
+    isDecoration = true
+    initialLocationClass = Room
+    
+    isInitiallyIn(obj) { return obj.atmosphereObj == self; }
+    decorationActions = [Examine, SmellSomething, Feel]       
+}
+
+defaultAtmosphere: Atmosphere {
+    desc = "{I} {see} nothing special about the air. "
+    feelDesc = "There is the mildest of breezes, thanks to
+    enduring life support systems. "
+    smellDesc = "The air smells recycled, but clean. "
+}
+
+freezingAtmosphere: Atmosphere { 'air;;atmosphere breeze wind fog mist breath frost condensation'
+    "{I} {see} nothing special about the air. "
+    feelDesc = "{I} {cannot} feel anything but dry, chilling air. "
+    smellDesc = "{My} lungs fill with abrasive, dry, freezing air. "
 }
 
 modify GoTo {
