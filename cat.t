@@ -14,6 +14,7 @@
 #endif
 
 cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>'
+    "You are a <i>very</i> regal (and mighty) cat! "
     person = (gCatMode ? 2 : 3)
     isHim = true
 
@@ -29,6 +30,16 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>'
 
     bulkCapacity = 1
     maxSingleBulk = 1
+
+    seeReflection(mirror) {
+        mirror.confirmSmashed();
+        if (mirror.isSmashed) {
+            return 'It\'s difficult to see yourself in the broken mirror,
+                but the reflection patterns show black fluff, with streaks of gray. ';
+        }
+        desc();
+        return '';
+    }
 }
 
 +catNameTag: Fixture { 'nametag;name;tag collar pendant plate badge card'

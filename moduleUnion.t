@@ -53,7 +53,7 @@ modify actorInStagingLocation {
 }
 
 modify Thing {
-    bulk = 1
+    bulk = (isDecoration ? 0 : 1)
 
     sightSize = (bulk > 1 ? medium : small)
     soundSize = large
@@ -111,6 +111,19 @@ modify Actor {
     bulk = 25
     bulkCapacity = 10
     maxSingleBulk = 2
+
+    seeReflection(mirror) {
+        mirror.confirmSmashed();
+        return '{I} {see} a neat-looking person. ';
+    }
+
+    seeShatteredVanity() {
+        return '';
+    }
+
+    ponderVanity() {
+        return '';
+    }
 }
 
 modify Door {
@@ -119,4 +132,88 @@ modify Door {
 
 class FixedPlatform: Platform {
     isFixed = true
+}
+
+Chair template 'vocab' @location? "basicDesc"?;
+class Chair: Platform {
+    desc() {
+        if (isHome()) {
+            chairDesc();
+            return;
+        }
+        basicDesc();
+    }
+    basicDesc = "TODO: Add description. "
+    chairDesc = basicDesc
+    bulk = 2
+    canSitOnMe = true
+    home = nil
+    backHomeMsg = '{I} {put} {the dobj} back where it belongs. '
+
+    setHome() {
+        home = location;
+    }
+
+    isHome() {
+        if (isHeldBy(gPlayerChar)) return nil;
+        if (home == nil) return true;
+        return location == home;
+    }
+
+    dobjFor(Take) {
+        action() {
+            setHome();
+            inherited();
+        }
+    }
+
+    dobjFor(TakeFrom) {
+        action() {
+            setHome();
+            inherited();
+        }
+    }
+
+    dobjFor(Drop) {
+        report() {
+            if (location == home) {
+                say(backHomeMsg);
+            }
+            else {
+                inherited();
+            }
+        }
+    }
+
+    dobjFor(SitIn) asDobjFor(SitOn)
+}
+
+class Mirror: Decoration {
+    vocab = 'mirror'
+    desc = "<<gActor.seeReflection(self)>>"
+    smashedVocab = ''
+    isSmashed = nil
+    decorationActions = [Examine, LookIn]
+
+    confirmSmashed() { }
+
+    dobjFor(LookIn) asDobjFor(Examine)
+}
+
+class SmashedMirror: Mirror {
+    vocab = 'mirror;smashed broken shattered'
+    desc = "<<gActor.seeShatteredVanity()
+        >>The mirror is smashed, though most of it still remains.
+        <<gActor.seeReflection(self)>><<
+        gActor.seeShatteredVanity()>>"
+    smashedVocab = 'smashed mirror;broken shattered'
+    isSmashed = true
+    seenSmashed = nil
+
+    confirmSmashed() {
+        if (isSmashed && !seenSmashed) {
+            seenSmashed = true;
+            replaceVocab(smashedVocab);
+        }
+    }
 }

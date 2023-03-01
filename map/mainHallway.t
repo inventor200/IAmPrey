@@ -25,6 +25,10 @@ class HallwaySegment: Room {
     desc = "You are <<inRoomName(gPlayerChar)>>.
         <<if lookAroundArmed>>TODO: Add description. <<end>>"
     nameHeader = 'The Main Hallway Ring'
+
+    descFrom(pov) {
+        "TODO: Add remote description. ";
+    }
 }
 
 loadingAreaSightLine: HallRegion;

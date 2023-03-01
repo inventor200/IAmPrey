@@ -159,7 +159,10 @@ DefineTAction(PeekDirection)
         sneakyCore.performStagingCheck(gActor.getOutermostRoom());
 
         "{I} carefully peek <<direction.name>>...<.p>";
-        conn.destination.getOutermostRoom().peekInto();
+        //conn.destination.getOutermostRoom().peekInto();
+        conn.destination.getOutermostRoom().observeFrom(
+            gActor, 'to the <<direction.name>>'
+        );
     }
 ;
 
@@ -1176,13 +1179,17 @@ modify Door {
         }
         action() { }
         report() {
-            if (isTransparent || isOpen) {
+            /*if (isTransparent || isOpen) {
                 "{I} peek{s/ed} through <<theName>>...\b";
             }
             else {
                 "{I} peek{s/ed} through the cat flap of <<theName>>...\b";
             }
-            otherSide.getOutermostRoom().peekInto();
+            otherSide.getOutermostRoom().peekInto();*/
+            "{I} peek{s/ed} through <<theName>>...<.p>";
+            otherSide.getOutermostRoom().observeFrom(
+                gActor, 'through <<theName>>'
+            );
         }
     }
 

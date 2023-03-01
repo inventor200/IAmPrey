@@ -182,7 +182,7 @@ class Walls: MultiLoc, Thing {
     decorationActions = [Examine]       
 }
 
-defaultWalls: Walls { 'walls;;wall'
+defaultWalls: Walls { 'walls;north[weak] n[weak] south[weak] s[weak] east[weak] e[weak] west[weak] w[weak];wall'
     "{I} {see} nothing special about the walls. "
 }
 
