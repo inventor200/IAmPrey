@@ -36,13 +36,13 @@ hardImpactNoiseProfile: SoundProfile {
     }
 }
 
-modify parkourCore {
+/*modify parkourCore {
     certifyDiscovery(actor, path) {
         if (gActor != gPlayerChar) return;
         if (gAction.turnsTaken > 0) return;
         huntCore.revokeFreeTurn();
     }
-}
+}*/
 
 modify actorInStagingLocation {
     spendImplicitTurn() {

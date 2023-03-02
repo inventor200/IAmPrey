@@ -1,6 +1,5 @@
 class WombComponent: Decoration {
-    owner = (location)
-    isOwnerNamed = (!location.isUniqueWomb)
+    isOwnerNamed = (!owner.isUniqueWomb)
     filterResolveList(np, cmd, mode) {
         if (np.matches.length <= 1) return;
 
@@ -13,6 +12,8 @@ class WombComponent: Decoration {
 class ArtificialWomb: Fixture {
     desc = "TODO: Add description. "
     isUniqueWomb = nil
+
+    matchPhrases = ['womb', 'tank']
 
     filterResolveList(np, cmd, mode) {
         if (np.matches.length <= 1) return;
@@ -39,6 +40,21 @@ class ArtificialWomb: Fixture {
             np.matches = np.matches.subset({m: m.obj != self});
         }
     }
+
+    contType = On
+
+    isLikelyContainer() {
+        return true;
+    }
+
+    canRunAcrossMe = true
+    dobjFor(RunAcross) {
+        remap = artificialWombs
+    }
+
+    canBonusReachDuring(obj, action) {
+        return obj == artificialWombs;
+    }
 }
 
 deliveryRoom: Room { 'The Delivery Room'
@@ -55,7 +71,7 @@ deliveryRoom: Room { 'The Delivery Room'
         <<one of>>down from<<or>>out from<<or>>from<<at random>> between the
         <<one of>>many<<or>>large<<or>>eerie<<or>>dark<<at random>>
         <<one of>>cables<<or>>cords<<at random>><<one of
-        >> in the ceiling<<or>>, which hang from the ceiling<<or>>, hanging
+        >>, which hang from the ceiling<<or>>, hanging
         from the ceiling<<at random>>.<<one of>><<or>>\b
         One of the wombs seems to <<one of>>twitch<<or>>quiver<<at random>>
         slightly.<<or>>\bThe sounds of wet dripping echo through the room.<<or
@@ -66,26 +82,61 @@ deliveryRoom: Room { 'The Delivery Room'
 
 +deliveryRoomFog: ColdFog;
 
-+artificialWombs: Decoration { 'artificial[weak] wombs;grow birthing iron;tanks'
++artificialWombs: Fixture { 'artificial[weak] wombs;grow birthing iron;tanks'
     "The northwest, west, and southwest wombs hang distended from the wall,
     making that entire side of the room look like a bloody, fleshy,
     biomechanical nightmare. "
 
+    matchPhrases = ['wombs', 'tanks']
+
     plural = true
+    canRunAcrossMe = true
+    hasParkourRecon = true
 
-    decorationActions = [Examine, RunAcross]
-
-    specialDesc() {
-        "Three artificial wombs line the west wall. ";
+    getParkourProvider(fromParent, fromChild) {
+        return self;
     }
 
-    dobjFor(Default) {
+    dobjFor(Feel) {
+        preCond = nil
         remap = northwestWomb
-        verify() { logical; }
     }
-    iobjFor(Default) {
+
+    dobjFor(Smell) {
+        preCond = nil
         remap = northwestWomb
-        verify() { logical; }
+    }
+
+    dobjFor(Taste) {
+        preCond = nil
+        remap = northwestWomb
+    }
+
+    dobjFor(Search) {
+        preCond = nil
+        remap = northwestWomb
+    }
+
+    dobjFor(Board) {
+        remap = southwestWomb.parkourModule
+    }
+
+    dobjFor(GetOff) {
+        remap = northwestWomb.parkourModule
+    }
+
+    dobjFor(ParkourJumpOffOf) {
+        remap = northwestWomb.parkourModule
+    }
+
+    dobjFor(JumpOff) {
+        remap = northwestWomb.parkourModule
+    }
+
+    contType = On
+
+    isLikelyContainer() {
+        return true;
     }
 }
 
@@ -101,35 +152,62 @@ deliveryRoom: Room { 'The Delivery Room'
     "A small table with a mirror attached to it; perfect for applying one's
     makeup (or generally correcting one's appearance).<<gPlayerChar.ponderVanity()>>"
 }
+++LowFloorHeight;
+++ClimbUpLink ->deliveryRoomTowelRack;
 ++Mirror;
 
-+northwestWomb: ArtificialWomb { 'northwest[weak] artificial[weak] womb;nw[weak] grow birthing iron;tank'
-    isUniqueWomb = true
-    isBoardable = true
-    holdsActors
-}
-++DangerousFloorHeight;
-++WombComponent { 'component'
-    //
-}
++deliveryRoomTowelRack: FixedPlatform { 'towel rack;;shelves'
+    "A rough set of metal shelves, repurposed for holding towels.
+    It sits between the makeup vanity and the southwest artificial womb. "
+    ambiguouslyPlural = true
 
-+westWomb: ArtificialWomb { 'west[weak] artificial[weak] womb;w[weak] grow birthing iron;tank'
-    isLikelyContainer() {
-        return true;
+    canBonusReachDuring(obj, action) {
+        if (action.ofKind(RunAcross)) {
+            return obj == artificialWombs || obj == southwestWomb;
+        }
+        return nil;
     }
 }
-++WombComponent { 'component'
-    //
-}
+++AwkwardFloorHeight;
+++AwkwardProviderLink @artificialWombs ->northwestWomb;
+++ClimbOverPath ->southwestWomb;
 
-+southwestWomb: ArtificialWomb { 'southwest[weak] artificial[weak] womb;sw[weak] grow birthing iron;tank'
-    isLikelyContainer() {
-        return true;
+#define createUniqueArtificialWomb(objectName, vocab) \
+    +objectName: ArtificialWomb { vocab \
+        isUniqueWomb = true \
+        isBoardable = true \
+        holdsActors \
+        doAccident(actor, traveler, path) { \
+            "<.p>{I} arrive{s/d} on the northwest womb, and hold onto the \
+            nearby cables for stability, as they're the closest thing \
+            in reach. "; \
+        } \
+    } \
+    ++DangerousFloorHeight; \
+    /*++AwkwardProviderLink @artificialWombs ->deliveryRoomTowelRack;*/ \
+    ++ClimbOverPath ->westWomb;
+
+#define createSimpleArtificialWomb(objectName, vocab) \
+    +objectName: ArtificialWomb { vocab \
+        doAccident(actor, traveler, path) { \
+            traveler.moveInto(deliveryRoom); \
+            "{I} {take} a step onto the frame of <<theName>>, and its \
+            springy design{dummy} causes {me} to lose {my} balance, and \
+            {i} land{s/ed} hard on the floor.\b \
+            <i>{I} might need more speed...</i>"; \
+        } \
+    } \
+    ++DangerousFloorHeight;
+
+#define createArtificialWomb(complexity, objectName, vocab) \
+    create##complexity##ArtificialWomb(objectName, vocab) \
+    +WombComponent { 'component' \
+        owner = objectName \
     }
-}
-++WombComponent { 'component'
-    //
-}
+
+createArtificialWomb(Unique, northwestWomb, 'northwest[weak] artificial[weak] womb;nw[weak] grow birthing iron;tank')
+createArtificialWomb(Simple, westWomb, 'west[weak] artificial[weak] womb;w[weak] grow birthing iron;tank')
+createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] womb;sw[weak] grow birthing iron;tank')
 
 //TODO: Data bundles parkour exit to upper server room
 

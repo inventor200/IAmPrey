@@ -284,15 +284,20 @@ modify Continue {
 #define windowLookBlock \
     canLookThroughMe = true \
     skipInRemoteList = true \
+    allowLookThroughSearch \
     dobjFor(LookIn) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
     dobjFor(PeekThrough) asDobjFor(LookThrough)
 
 #define windowTravelBlock \
-    dobjFor(SqueezeThrough) asDobjFor(TravelVia) \
-    dobjFor(ParkourClimbGeneric) asDobjFor(TravelVia) \
-    dobjFor(ParkourClimbOverInto) asDobjFor(TravelVia) \
-    dobjFor(ParkourJumpOverInto) asDobjFor(TravelVia)
+    configureDoorOrPassageAsLocalPlatform(TravelVia) \
+    dobjFor(TravelVia) { \
+        preCond = [travelPermitted, actorInStagingLocation] \
+        action() { \
+            inherited(); \
+            learnLocalPlatform(self, reportAfter); \
+        } \
+    }
 
 #define windowResolveBlock \
     filterResolveList(np, cmd, mode) { \

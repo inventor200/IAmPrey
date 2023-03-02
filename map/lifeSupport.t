@@ -5,8 +5,42 @@ fakeDuctCeiling: Ceiling { 'ceiling;top;top[weak] end airflow'
     below, and is sent up to the server room, found elsewhere. "
 }
 
-coolingDuctWalls: Walls { 'walls;inner metal;insides panels'
+coolingDuctWalls: Walls { 'walls;inner metal cooling;insides panels duct'
     "TODO: Add description."
+
+    decorationActions = [
+        Examine, Climb, ParkourClimbGeneric,
+        ClimbUp, ParkourClimbUpTo, ParkourJumpUpTo,
+        ParkourClimbUpInto, ParkourJumpUpInto,
+        ClimbDown, ParkourClimbDownTo, ParkourJumpDownTo,
+        ParkourClimbDownInto, ParkourJumpDownInto
+    ]
+
+    dobjFor(Climb) asDobjFor(ClimbUp)
+    dobjFor(ParkourClimbGeneric) asDobjFor(ClimbUp)
+    dobjFor(ParkourClimbUpTo) asDobjFor(ClimbUp)
+    dobjFor(ParkourClimbUpInto) asDobjFor(ClimbUp)
+    rerouteBasicJumpIntoForPlatform(ParkourJumpUpTo, ClimbUp)
+    rerouteBasicJumpIntoForPlatform(ParkourJumpUpInto, ClimbUp)
+    dobjFor(ClimbUp) {
+        verify() { }
+        check() { }
+        action() {
+            gPlayerChar.getOutermostRoom().attemptVerticalTravel(upDir);
+        }
+    }
+
+    dobjFor(ParkourClimbDownTo) asDobjFor(ClimbDown)
+    dobjFor(ParkourClimbDownInto) asDobjFor(ClimbDown)
+    rerouteBasicJumpIntoForPlatform(ParkourJumpDownTo, ClimbDown)
+    rerouteBasicJumpIntoForPlatform(ParkourJumpDownInto, ClimbDown)
+    dobjFor(ClimbDown) {
+        verify() { }
+        check() { }
+        action() {
+            gPlayerChar.getOutermostRoom().attemptVerticalTravel(downDir);
+        }
+    }
 }
 
 fakeDuctFloor: Floor { 'floor;bottom;ground bottom[weak] end drop curve below'
@@ -135,6 +169,7 @@ class CoolingDuctInnerDoor: Door {
 
     airlockDoor = true
     passActionStr = 'exit'
+    secretLocalPlatform = true
 
     standardExitMsg =
         '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}

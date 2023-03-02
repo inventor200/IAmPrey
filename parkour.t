@@ -66,7 +66,7 @@ DefineTAction(ParkourJumpOverInto)
 ;
 
 VerbRule(ParkourJumpUpTo)
-    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'scale'|'run'|'sprint') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj |
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'run'|'sprint') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj |
     ('clamber'|'scale') singleDobj
     : VerbProduction
     action = ParkourJumpUpTo
@@ -79,7 +79,7 @@ DefineTAction(ParkourJumpUpTo)
 ;
 
 VerbRule(ParkourJumpUpInto)
-    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'scale'|'run'|'sprint') 'up' expandedInto singleDobj
+    ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'run'|'sprint') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpUpInto
     verbPhrase = 'jump up into (what)'
@@ -115,7 +115,7 @@ DefineTAction(ParkourJumpDownInto)
 ;
 
 VerbRule(ParkourClimbDownTo)
-    ('climb'|'cl'|'get'|'step') 'down' 'to' singleDobj
+    ('climb'|'cl'|'get'|'step'|'descend') 'down' 'to' singleDobj
     : VerbProduction
     action = ParkourClimbDownTo
     verbPhrase = 'climb down to (what)'
@@ -127,7 +127,7 @@ DefineTAction(ParkourClimbDownTo)
 ;
 
 VerbRule(ParkourClimbDownInto)
-    ('climb'|'cl'|'get'|'step') 'down' expandedInto singleDobj
+    ('climb'|'cl'|'get'|'step'|'descend') 'down' expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbDownInto
     verbPhrase = 'climb down into (what)'
@@ -139,7 +139,7 @@ DefineTAction(ParkourClimbDownInto)
 ;
 
 VerbRule(ParkourClimbUpInto)
-    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour') 'up' expandedInto singleDobj
+    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour'|'scale'|'ascend') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbUpInto
     verbPhrase = 'climb up into (what)'
@@ -151,7 +151,7 @@ DefineTAction(ParkourClimbUpInto)
 ;
 
 VerbRule(ParkourClimbUpTo)
-    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj
+    ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour'|'scale'|'ascend') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj
     : VerbProduction
     action = ParkourClimbUpTo
     verbPhrase = 'climb up to (what)'
@@ -175,7 +175,7 @@ DefineTAction(ParkourJumpGeneric)
 ;
 
 VerbRule(ParkourClimbGeneric)
-    ('climb'|'cl'|'mantel'|'mantle'|'mount'|'board') singleDobj |
+    ('climb'|'cl'|'mantel'|'mantle'|'mount'|'board'|'ascend'|'scale') singleDobj |
     /*('climb'|'cl'|'mantel'|'mantle'|'get'|'go') genericOnTopOfPrep singleDobj |*/
     'parkour' ('to'|) singleDobj
     : VerbProduction
@@ -331,11 +331,21 @@ modify VerbRule(Jump)
 ;
 
 modify VerbRule(ClimbUpWhat)
-    ('climb'|'cl'|'shimmy') 'up' :
+    ('climb'|'cl'|'shimmy'|'ascend') 'up' | 'ascend' :
 ;
 
 modify VerbRule(ClimbDownWhat)
-    ('climb'|'cl'|'shimmy') 'down' :
+    ('climb'|'cl'|'shimmy'|'descend') 'down' | 'descend' :
+;
+
+modify VerbRule(ClimbUp)
+    ('climb'|'cl'|'ascend'|'scale'|'go'|'walk') 'up' singleDobj |
+    ('ascend'|'scale') singleDobj :
+;
+
+modify VerbRule(ClimbDown)
+    ('climb'|'cl'|'descend'|'go'|'walk') 'down' singleDobj |
+    'descend' singleDobj :
 ;
 
 #define expandableLocalPlats 'platforms'|'plats'|'surfaces'|'supporters'
@@ -527,9 +537,9 @@ parkourCore: object {
 
     printLocalPlatforms() {
         local platList = getLocalPlatforms();
+        platList = platList.subset({p: !p.omitFromPrintedLocalsList()});
         if (platList.length == 0) {
-            "<.p>{I} notice{s/d} no (known) surfaces in easy reach,
-            other than the one {i} {stand} on.<.p>";
+            "<.p>{I} {see} no known or notable surfaces in easy reach.<.p>";
             return;
         }
         "<.p>The following surfaces{plural} {is} both in easy reach,
@@ -543,7 +553,7 @@ parkourCore: object {
                 local plat = platList[i];
                 strBfr.append('\n\t');
                 strBfr.append(aHrefAlt(
-                    'cl ' + plat.theName.toLower(),
+                    plat.getLocalPlatformBoardingCommand(),
                     plat.theName,
                     plat.theName
                 ));
@@ -568,10 +578,6 @@ parkourCore: object {
         hasShownClimbAbbreviationHint = true;
     }
 
-    certifyDiscovery(actor, path) {
-        //
-    }
-
     lastPath = nil
     currentParkourRunner = nil
     showNewRoute = nil
@@ -580,6 +586,25 @@ parkourCore: object {
     hasShownClimbAbbreviationHint = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} of any interesting routes from {here}. '
+    
+    isParkourPoorlyHandledFor(obj) {
+        if (obj.parkourModule == nil && !obj.forcedLocalPlatform) {
+            for (local i = 1; i < poorlyHandledActions.length; i++) {
+                if (gActionIs(poorlyHandledActions[i])) {
+                    return true;
+                }
+            }
+        }
+        return nil;
+    }
+
+    poorlyHandledActions = [
+        Board, Climb, ClimbUp, ClimbDown,
+        ParkourClimbUpTo, ParkourClimbOverTo, ParkourClimbDownTo,
+        ParkourClimbUpInto, ParkourClimbOverInto, ParkourClimbDownInto,
+        ParkourJumpUpTo, ParkourJumpOverTo, ParkourJumpDownTo,
+        ParkourJumpUpInto, ParkourJumpOverInto, ParkourJumpDownInto
+    ]
 }
 
 reachGhostTest_: Thing {
@@ -649,6 +674,10 @@ QParkour: Special {
                 in <<bLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
             #endif
         }
+
+        // Attempt to end early with bonus reaches
+        if (aLoc.canBonusReachDuring(bLoc, gAction)) return issues;
+        if (bLoc.canBonusReachDuring(aLoc, gAction)) return issues;
 
         local parkourB = b.getParkourModule();
         if (parkourB == nil) {
@@ -885,10 +914,13 @@ modify actorInStagingLocation {
 
 #define parkourPreCond touchObj
 
+// Prefer parkourModule over getParkourModule(), because
+// climbing on something that isn't a parkour platform should
+// not default to the parkour platform it rests on.
 #define dobjParkourRemap(parkourAction, remapAction) \
     dobjFor(parkourAction) { \
         preCond = [parkourPreCond] \
-        remap = (getParkourModule()) \
+        remap = (/*getParkourModule()*/parkourModule) \
         verify() { } \
         check() { } \
         action() { \
@@ -999,13 +1031,28 @@ modify actorInStagingLocation {
         return '{I} {fall} ' + downPrep + ' <<theName>>, with a hard landing. '; \
     }
 
+#define announcePathDiscovery(str, reportMethod) \
+    reportMethod('<.p>' + str + '<.p>')
+
+#define learnLocalPlatform(plat, reportMethod) \
+    if (plat.secretLocalPlatform) { \
+        local discoveryStr = \
+            '(It seems that {i} {can} ' + \
+            gDirectCmdStr(plat.getLocalPlatformBoardingCommand()) + \
+            '!) '; \
+        announcePathDiscovery(discoveryStr, reportMethod); \
+        plat.secretLocalPlatform = nil; \
+        if (plat.oppositeLocalPlatform != nil) { \
+            plat.oppositeLocalPlatform.secretLocalPlatform = nil; \
+        } \
+    }
+
 #define learnPath(path, reportMethod) \
     if (!path.isAcknowledged) { \
         if (path.isKnown) { \
             path.acknowledge(); \
-            parkourCore.certifyDiscovery(gActor, path); \
             if (parkourCore.showNewRoute) { \
-                reportMethod('<.p>' + path.getDiscoverMsg() + '<.p>'); \
+                announcePathDiscovery(path.getDiscoverMsg(), reportMethod); \
             } \
         } \
     }
@@ -1032,11 +1079,12 @@ modify actorInStagingLocation {
 
 #define verifyParkourProviderFromActor(actor, ProviderAction) \
     local realProvider = getParkourProvider(nil, nil); \
-    if (!realProvider.can##ProviderAction##Me) { \
+    if (realProvider == nil) { \
+        "<.p>Coming from here<.p>"; \
         illogical(cannot##ProviderAction##Msg); \
         return; \
     } \
-    if (realProvider == nil) { \
+    if (!realProvider.can##ProviderAction##Me) { \
         illogical(cannot##ProviderAction##Msg); \
         return; \
     } \
@@ -1103,8 +1151,22 @@ modify actorInStagingLocation {
 
 modify Thing {
     parkourModule = nil
+    isPushable = nil
 
     prepForParkour() {
+        if (forcedLocalPlatform) {
+            // Do NOT let forced local surfaces be parkour surfaces!!
+            // These have VERY specific overrides that will absolutely
+            // ruin a parkour module!
+            #if __DEBUG
+            "<.p>ERROR: \^<<theName>> is a forced local surface,
+            and is being asked to become a parkour surface!\b
+            Luckily, the system have intervened, and maintained
+            the local surface status!<.p>";
+            #endif
+            return;
+        }
+
         // Check if we already handle parkour
         if (parkourModule != nil) return;
 
@@ -1121,6 +1183,7 @@ modify Thing {
     }
 
     getParkourModule() {
+        if (forcedLocalPlatform) return nil;
         if (parkourModule != nil) return parkourModule;
         if (!isLikelyContainer()) { // Likely an actor or item
             if (location != nil) {
@@ -1134,6 +1197,11 @@ modify Thing {
     }
 
     isLikelyContainer() {
+        // Forced local surfaces are usually things
+        // that are not usually containers, and therefore
+        // need intentional classification
+        if (forcedLocalPlatform) return nil;
+
         if (parkourModule != nil) return true;
         if (contType == Outside) return nil;
         if (contType == Carrier) return nil;
@@ -1207,6 +1275,54 @@ modify Thing {
     shareReconWithProcedural = perInstance(new Vector())
     // Do not show get off option (standard containers)
     doNotSuggestGetOff = nil
+    // Forced local platforms are:
+    //     1. Forcefully added to the locals list.
+    //     2. NEVER a container.
+    //     3. Implement very strange overrides to parkour actions.
+    //     4. Cannot qualify for a parkour module
+    forcedLocalPlatform = nil
+    // If true, allows a local platform to NEVER show in the locals list
+    unlistedLocalPlatform = nil
+    // Allows a local platform to be hidden from the list
+    // until either searched or utilized
+    secretLocalPlatform = nil
+    // The preferred action for using this local platform
+    preferredBoardingAction = nil
+    // The opposite side of a possible two-sided local platform
+    oppositeLocalPlatform = nil
+
+    getPreferredBoardingAction() {
+        if (preferredBoardingAction != nil) return preferredBoardingAction;
+        if (isEnterable) return Enter;
+        if (canClimbUpMe) return ClimbUp;
+        if (canClimbDownMe) return ClimbDown;
+        if (isClimbable) return Climb;
+        return Board;
+    }
+
+    getLocalPlatformBoardingCommand() {
+        local prefAct = getPreferredBoardingAction();
+        return prefAct.getVerbPhrase1(
+            true, prefAct.verbRule.verbPhrase, theName, nil
+        ).trim().toLower();
+    }
+
+    // Do any solvers searching for local platforms consider this?
+    omitFromLogicalLocalsList() {
+        if (parkourCore.requireRouteRecon) {
+            return secretLocalPlatform;
+        }
+        return nil;
+    }
+
+    // Do any printed lists for local platforms consider this?
+    omitFromPrintedLocalsList() {
+        if (unlistedLocalPlatform) return true;
+        if (parkourCore.requireRouteRecon) {
+            return secretLocalPlatform;
+        }
+        return nil;
+    }
 
     applyRecon() {
         hasParkourRecon = true;
@@ -1285,7 +1401,16 @@ modify Thing {
         return nil;
     }
 
+    checkLocalPlatformReconHandled() {
+        learnLocalPlatform(self, extraReport);
+        return forcedLocalPlatform;
+    }
+
     doRecon() {
+        if (checkLocalPlatformReconHandled()) {
+            return;
+        }
+
         local provider = getParkourProvider(nil, nil);
 
         if (provider != nil) {
@@ -1437,6 +1562,20 @@ modify Thing {
         // and pass the ghost reach test from an actor
         for (local i = 1; i <= contentList.length; i++) {
             local obj = contentList[i];
+
+            if (omitFromLogicalLocalsList()) continue;
+
+            // Check forced
+            if (obj.forcedLocalPlatform) {
+                reachGhostTest_.moveInto(
+                    obj.stagingLocation.getGhostReachDestination()
+                );
+                if (!Q.canReach(self, reachGhostTest_)) continue;
+                platList += obj;
+                continue;
+            }
+
+            // Check typical
             local pm = obj.getParkourModule();
             local validPlatform = true;
             local otherOn = (pm != nil ? pm.getStandardOn() : obj.getStandardOn());
@@ -1511,6 +1650,10 @@ modify Thing {
     parkourProviderAction(RunAcross, remapOn)
     parkourProviderAction(SwingOn, remapOn)
     parkourProviderAction(SqueezeThrough, remapIn)
+
+    canBonusReachDuring(obj, action) {
+        return nil;
+    }
 
     #if __DEBUG
     dobjFor(DebugCheckForContainer) {
@@ -1803,11 +1946,13 @@ modify SubComponent {
     isInReachOfParkourSurface = (partOfParkourSurface)
 
     isLikelyContainer() {
+        if (forcedLocalPlatform) return nil;
         if (parkourModule != nil) return true;
         return lexicalParent.isLikelyContainer();
     }
 
     getParkourModule() {
+        if (forcedLocalPlatform) return nil;
         if (lexicalParent != nil) {
             if (lexicalParent.remapOn == self || partOfParkourSurface) {
                 return lexicalParent.getParkourModule();
@@ -1823,10 +1968,8 @@ modify SubComponent {
     }
 
     standardDoNotSuggestGetOff() {
-        if (lexicalParent != nil) {
-            return lexicalParent.standardDoNotSuggestGetOff();
-        }
-        return nil;
+        if (lexicalParent == nil) return nil;
+        return lexicalParent.standardDoNotSuggestGetOff();
     }
 
     getStandardOn() {
@@ -1835,6 +1978,24 @@ modify SubComponent {
             res = res.remapOn;
         }
         return res;
+    }
+
+    omitFromLogicalLocalsList() {
+        local ret = inherited();
+        if (ret) return ret;
+        if (lexicalParent != nil) {
+            return lexicalParent.omitFromLogicalLocalsList();
+        }
+        return nil;
+    }
+
+    omitFromPrintedLocalsList() {
+        local ret = inherited();
+        if (ret) return ret;
+        if (lexicalParent != nil) {
+            return lexicalParent.omitFromPrintedLocalsList();
+        }
+        return nil;
     }
 
     #if __DEBUG
@@ -2085,7 +2246,14 @@ class ParkourModule: SubComponent {
     }
 
     doRecon() {
+        local platformSignal = checkLocalPlatformReconHandled();
         if (lexicalParent != nil) {
+            if (lexicalParent.checkLocalPlatformReconHandled()) {
+                platformSignal = true;
+            }
+
+            if (platformSignal) return;
+
             if (!lexicalParent.hasParkourRecon) {
                 local pm = gParkourRunnerModule;
                 if (pm != nil) {
@@ -2690,6 +2858,20 @@ class ParkourModule: SubComponent {
         extraReport('\nTesting source: <<source.theName>> (<<source.contType.prep>>)\n');
         #endif
         local closestParkourMod = source.getParkourModule();
+
+        // Real quick: Check in with bonus reaches to see if
+        // we can skip this whole shitshow.
+        local myParent = lexicalParent;
+        local otherParent = (closestParkourMod != nil) ?
+            closestParkourMod.lexicalParent : source;
+
+        if (myParent != nil && otherParent != nil) {
+            if (myParent.canBonusReachDuring(otherParent, gAction)) return true;
+            if (otherParent.canBonusReachDuring(myParent, gAction)) return true;
+        }
+
+        // No luck... business as usual, then!
+
         if (closestParkourMod == nil) {
             // Last ditch ideas for related non-parkour containers!
             // If the source left its current container,
@@ -3097,6 +3279,14 @@ class ParkourPathMaker: PreinitObject {
     }
 }
 
+// Creates a blank parkour module with no paths.
+// Why? To fake standardized responses!
+class BlankParkourInit: ParkourPathMaker {
+    execute() {
+        getTrueLocation().prepForParkour();
+    }
+}
+
 /*
  * PATH TYPES
  */
@@ -3447,3 +3637,168 @@ class DangerousProviderBridge: ParkourBridgeMaker {
     requiresJump = true
     isHarmful = true
 }
+
+// Simple Handler Surfaces
+#define rerouteBasicClimbForPlatform(oldAction, cancelMsg) \
+    dobjFor(oldAction) { \
+        preCond = [actorInStagingLocation] \
+        verify() { \
+            illogical(cancelMsg); \
+        } \
+    }
+
+#define rerouteBasicJumpIntoForPlatform(oldAction, targetAction) \
+    dobjFor(oldAction) { \
+        preCond { return preCondDobj##targetAction; } \
+        verify() { verifyDobj##targetAction; } \
+        remap() { return remapDobj##targetAction; } \
+        check() { checkDobj##targetAction; } \
+        action() { \
+            extraReport(parkourUnnecessaryJumpMsg); \
+            actionDobj##targetAction; \
+        } \
+        report() { reportDobj##targetAction; } \
+    }
+
+#define setPreferredClimbToDirection(rightWay, wrongWay) \
+    dobjFor(Climb) asDobjFor(TravelVia) \
+    dobjFor(ParkourClimbGeneric) asDobjFor(TravelVia) \
+    \
+    dobjFor(Climb##rightWay) asDobjFor(TravelVia) \
+    dobjFor(ParkourClimb##rightWay##To) asDobjFor(TravelVia) \
+    rerouteBasicJumpIntoForPlatform(ParkourJump##rightWay##To, TravelVia) \
+    \
+    rerouteBasicClimbForPlatform(Climb##wrongWay, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourClimb##wrongWay##To, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourJump##wrongWay##To, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourClimbOverTo, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourJumpOverTo, localPlatformGoes##rightWay##Msg)
+
+#define acceptClimbIntoDirection(rightWay, wrongWay) \
+    dobjFor(ParkourClimb##rightWay##Into) asDobjFor(TravelVia) \
+    rerouteBasicJumpIntoForPlatform(ParkourJump##rightWay##Into, TravelVia) \
+    \
+    rerouteBasicClimbForPlatform(ParkourClimb##wrongWay##Into, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourJump##wrongWay##Into, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourClimbOverInto, localPlatformGoes##rightWay##Msg) \
+    rerouteBasicClimbForPlatform(ParkourJumpOverInto, localPlatformGoes##rightWay##Msg)
+
+#define rejectClimbInto \
+    rerouteBasicClimbForPlatform(ParkourClimbUpInto, cannotEnterMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpUpInto, cannotEnterMsg) \
+    rerouteBasicClimbForPlatform(ParkourClimbDownInto, cannotEnterMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpDownInto, cannotEnterMsg) \
+    rerouteBasicClimbForPlatform(ParkourClimbOverInto, cannotEnterMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpOverInto, cannotEnterMsg)
+
+class LocalClimbPlatform: TravelConnector, Fixture {
+    forcedLocalPlatform = true
+    isConnectorListed = !secretLocalPlatform
+
+    localPlatformGoesUpMsg =
+        '{I} must go up to do that. '
+    localPlatformGoesDownMsg =
+        '{I} must go down to do that. '
+
+    dobjFor(TravelVia) {
+        preCond = (isOpenable ?
+            [travelPermitted, actorInStagingLocation, objOpen] :
+            [travelPermitted, actorInStagingLocation]
+        )
+        action() {
+            inherited();
+            learnLocalPlatform(self, reportAfter);
+        }
+    }
+}
+
+class ClimbUpPlatform: LocalClimbPlatform {
+    preferredBoardingAction = Climb
+    setPreferredClimbToDirection(Up, Down)
+    rejectClimbInto
+}
+
+class ClimbUpIntoPlatform: LocalClimbPlatform {
+    preferredBoardingAction = Climb
+    setPreferredClimbToDirection(Up, Down)
+    acceptClimbIntoDirection(Up, Down)
+    dobjFor(Enter) asDobjFor(TravelVia)
+    dobjFor(GoThrough) asDobjFor(TravelVia)
+}
+
+class ClimbUpEnterPlatform: ClimbUpIntoPlatform {
+    preferredBoardingAction = ParkourClimbUpInto
+}
+
+class ClimbDownPlatform: LocalClimbPlatform {
+    preferredBoardingAction = ClimbDown
+    setPreferredClimbToDirection(Down, Up)
+    rejectClimbInto
+}
+
+class ClimbDownIntoPlatform: LocalClimbPlatform {
+    preferredBoardingAction = ClimbDown
+    setPreferredClimbToDirection(Down, Up)
+    acceptClimbIntoDirection(Down, Up)
+    dobjFor(Enter) asDobjFor(TravelVia)
+    dobjFor(GoThrough) asDobjFor(TravelVia)
+}
+
+class ClimbDownEnterPlatform: ClimbDownIntoPlatform {
+    preferredBoardingAction = ParkourClimbDownInto
+}
+
+#define configureDoorOrPassageAsLocalPlatform(targetAction) \
+    forcedLocalPlatform = true \
+    isConnectorListed = !secretLocalPlatform \
+    getPreferredBoardingAction() { \
+        return GoThrough; \
+    } \
+    rerouteBasicClimbForPlatform(Board, cannotBoardMsg) \
+    rerouteBasicClimbForPlatform(Climb, cannotClimbMsg) \
+    rerouteBasicClimbForPlatform(ClimbUp, cannotClimbMsg) \
+    rerouteBasicClimbForPlatform(ClimbDown, cannotClimbMsg) \
+    rerouteBasicClimbForPlatform(ParkourClimbDownTo, cannotClimbMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpGeneric, parkourCannotJumpUpMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpUpTo, parkourCannotJumpUpMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpOverTo, parkourCannotJumpOverMsg) \
+    rerouteBasicClimbForPlatform(ParkourJumpDownTo, parkourCannotJumpDownMsg) \
+    dobjFor(SqueezeThrough) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbGeneric) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbUpTo) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbOverTo) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbUpInto) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbOverInto) asDobjFor(targetAction) \
+    dobjFor(ParkourClimbDownInto) asDobjFor(targetAction) \
+    rerouteBasicJumpIntoForPlatform(ParkourJumpUpInto, targetAction) \
+    rerouteBasicJumpIntoForPlatform(ParkourJumpOverInto, targetAction) \
+    rerouteBasicJumpIntoForPlatform(ParkourJumpDownInto, targetAction)
+
+modify Door {
+    oppositeLocalPlatform = (otherSide)
+    configureDoorOrPassageAsLocalPlatform(GoThrough)
+
+    dobjFor(GoThrough) {
+        preCond = [travelPermitted, actorInStagingLocation, objOpen]
+    }
+
+    dobjFor(Open) {
+        action() {
+            inherited();
+            if (!gAction.isImplicit) {
+                learnLocalPlatform(self, reportAfter);
+            }
+        }
+    }
+
+    noteTraversal(actor) {
+        if (gPlayerChar.isOrIsIn(actor)) {
+            learnLocalPlatform(self, say);
+        }
+        inherited(actor);
+    }
+}
+
+/*class ParkourDoor: Door {
+    unlistedLocalPlatform = nil
+}*/

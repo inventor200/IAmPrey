@@ -20,7 +20,7 @@ serverRoomBottom: Room { 'Server Access'
 
 +serverFog: ColdFog;
 
-+serverLadderBottom: TravelConnector, Fixture { 'opening in[prep] the ceiling;access;ladder hatch hole'
++serverLadderBottom: ClimbUpIntoPlatform { 'ladder;access in[prep] the ceiling[n];opening hatch hole'
     "TODO: Add description. "
 
     travelDesc =
@@ -30,15 +30,6 @@ serverRoomBottom: Room { 'Server Access'
         <<freezer.subclauseAmbienceOnEntry>><<end>>. "
 
     destination = serverRoomTop
-    
-    dobjFor(Climb) asDobjFor(TravelVia)
-    dobjFor(ClimbUp) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbUpTo) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbUpInto) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpUpTo) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpUpInto) asDobjFor(TravelVia)
-    dobjFor(Enter) asDobjFor(TravelVia)
-    dobjFor(GoThrough) asDobjFor(TravelVia)
 }
 
 DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the server access door')
@@ -53,7 +44,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     isFreezing = true
 }
 
-+serverLadderTop: TravelConnector, Fixture { 'opening in[prep] the floor;access;ladder hatch hole'
++serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening hatch hole'
     "TODO: Add description. "
 
     travelDesc =
@@ -63,15 +54,6 @@ serverRoomTop: Room { 'The Chilled Server Room'
         <<freezer.subclauseAmbienceOnExit>><<end>>. "
 
     destination = serverRoomBottom
-    
-    dobjFor(Climb) asDobjFor(TravelVia)
-    dobjFor(ClimbDown) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbDownTo) asDobjFor(TravelVia)
-    dobjFor(ParkourClimbDownInto) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpDownTo) asDobjFor(TravelVia)
-    dobjFor(ParkourJumpDownInto) asDobjFor(TravelVia)
-    dobjFor(Enter) asDobjFor(TravelVia)
-    dobjFor(GoThrough) asDobjFor(TravelVia)
 }
 
 // Has access to coolingDuctUpperOuterGrate

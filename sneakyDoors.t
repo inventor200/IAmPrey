@@ -374,6 +374,10 @@ sneakyCore: object {
         return sneakSafetyOn ? 'sn through' : 'go through';
     }
 
+    getDefaultDoorTravelActionClass() {
+        return sneakSafetyOn ? SneakThrough : GoThrough;
+    }
+
     trySneaking() {
         if (allowSneak) {
             if (sneakSafetyOn) {
@@ -761,6 +765,10 @@ modify Door {
 
         return theName + (inRoom
             ? '' : (' (' + omr.inRoomName(gPlayerChar) + ')'));
+    }
+
+    getPreferredBoardingAction() {
+        return sneakyCore.getDefaultDoorTravelActionClass();
     }
 
     clearMyClosingFuse(fuseProp) {
@@ -1153,12 +1161,12 @@ modify Door {
 
     getCatAccessibility() {
         if (!hasCatFlap) {
-            return [travelPermitted, touchObj, objOpen];
+            return [travelPermitted, actorInStagingLocation, objOpen];
         }
         if (gActor == cat) {
-            return [travelPermitted, touchObj];
+            return [travelPermitted, actorInStagingLocation];
         }
-        return [travelPermitted, touchObj, objOpen];
+        return [travelPermitted, actorInStagingLocation, objOpen];
     }
 
     dobjFor(GoThrough) { // Assume the cat is using the cat flap
@@ -1169,7 +1177,6 @@ modify Door {
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
         verify() {
@@ -1224,7 +1231,7 @@ modify Door {
     }
 
     replace noteTraversal(actor) {
-        if(actor == gPlayerChar && !(gAction.isPushTravelAction && suppressTravelDescForPushTravel)) {
+        if (gPlayerChar.isOrIsIn(actor) && !(gAction.isPushTravelAction && suppressTravelDescForPushTravel)) {
             if (!gOutStream.watchForOutput({:travelDesc}) && actor == cat) {
                 local obj = gActor;
                 gMessageParams(obj);
@@ -1268,7 +1275,6 @@ class CatFlap: Decoration {
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
-    dobjFor(Search) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         preCond = [actorHasPeekAngle]
         verify() {
@@ -1386,6 +1392,7 @@ modify Room {
             local obj = scopeList[i];
             if (!gPlayerChar.canSee(obj)) continue;
             if (!obj.ofKind(Door)) continue;
+            if (!obj.isConnectorListed) continue;
             if (obj.isStatusSuspiciousTo(gPlayerChar, &playerCloseExpectationFuse)) {
                 if (obj.isOpen) {
                     suspiciousOpenDoors.appendUnique(obj);

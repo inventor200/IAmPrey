@@ -404,17 +404,28 @@ modify Surface {
     }
 }
 
+#define allowLookThroughSearch \
+    verifyGenericSearch() { } \
+    doGenericSearch() { \
+        doParkourSearch(); \
+        doNested(LookThrough, self); \
+    }
+
+modify Door {
+    allowLookThroughSearch
+}
+
 #define includeGrate(destination) \
     preinitThing() { \
         inherited(); \
         if (grate == nil) { \
             hasGrating = true; \
-            grate = new Grate(self, destination); \
+            grate = new ContainerGrate(self, destination); \
             grate.preinitThing(); \
         } \
     }
 
-class Grate: Decoration {
+class ContainerGrate: Decoration {
     construct(_hatch, destination) {
         owner = hatch;
         ownerNamed = true;
