@@ -26,7 +26,7 @@ serverRoomBottom: Room { 'Server Access'
     travelDesc =
         "{I} quickly<<one of>>{aac} 
         climb{s/ed}<<or>>{aac} 
-        scale{s/ed}<<at random>> the ladder<<if gActor == gPlayerChar>>,
+        scale{s/ed}<<at random>> the ladder<<if gActorIsPlayer>>,
         <<freezer.subclauseAmbienceOnEntry>><<end>>. "
 
     destination = serverRoomTop
@@ -50,7 +50,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     travelDesc =
         "{I} quickly<<one of>>{aac}
         climb{s/ed} down<<or>>{aac}
-        descend{s/ed}<<at random>> the ladder<<if gActor == gPlayerChar>>,
+        descend{s/ed}<<at random>> the ladder<<if gActorIsPlayer>>,
         <<freezer.subclauseAmbienceOnExit>><<end>>. "
 
     destination = serverRoomBottom

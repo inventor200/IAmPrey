@@ -211,7 +211,7 @@ modify TravelAction {
         if (loc.propType(direction.dirProp) == TypeObject) {
             conn = loc.(direction.dirProp);
             if (conn.isConnectorVisible) {
-                if (gActor == gPlayerChar) {
+                if (gActorIsPlayer) {
                     sneakyCore.doSneakStart(conn, direction);
                     conn.travelVia(traveler);
                     sneakyCore.doSneakEnd(conn);
@@ -221,11 +221,11 @@ modify TravelAction {
                     gActor.travelVia(conn);
                 }
             }
-            else if (illum && gActor == gPlayerChar) {
+            else if (illum && gActorIsPlayer) {
                 sneakyCore.disarmSneaking();
                 loc.cannotGoThatWay(direction);
             }
-            else if (gActor == gPlayerChar) {
+            else if (gActorIsPlayer) {
                 sneakyCore.disarmSneaking();
                 loc.cannotGoThatWayInDark(direction);
             }
@@ -647,7 +647,7 @@ modify Thing {
 
     dobjFor(Open) {
         report() {
-            if (gActor == cat) {
+            if (gActorIsCat) {
                 "After gingerly whapping {him dobj} with {my} paws,
                 {I} finally open{s/ed} <<gActionListStr>>. ";
                 return;
@@ -658,7 +658,7 @@ modify Thing {
 
     dobjFor(Close) {
         report() {
-            if (gActor == cat) {
+            if (gActorIsCat) {
                 "After careful taps with {my} paws,
                 {I} manage{s/d} to close <<gActionListStr>>. ";
                 return;
@@ -669,7 +669,7 @@ modify Thing {
 
     dobjFor(Read) {
         action() {
-            if (self != catNameTag && gActor == cat) {
+            if (self != catNameTag && gActorIsCat) {
                 "The strange hairless citizens make odd chants while
                 staring at these odd shapes, sometimes for hours
                 at a time. {I'm} not sure what <i>this</i> particular
@@ -1102,7 +1102,7 @@ modify Door {
 
     dobjFor(Open) {
         verify() {
-            if (gActor == cat) {
+            if (gActorIsCat) {
                 illogical('{That subj dobj} {is} too heavy for an old cat to open.<<
                 if hasCatFlap>> That\'s probably why the Royal Subject installed a cat
                 flap<<first time>> <i>(cut a ragged square hold into the bottom with
@@ -1119,7 +1119,7 @@ modify Door {
 
     dobjFor(Close) {
         verify() {
-            if (gActor == cat) {
+            if (gActorIsCat) {
                 illogical(catCloseMsg);
                 return;
             }
@@ -1130,7 +1130,7 @@ modify Door {
             inherited();
         }
         report() {
-            if (gActor == gPlayerChar && !airlockDoor) {
+            if (gActorIsPlayer && !airlockDoor) {
                 "{I} gently close{s/d} the door,
                 so that it{dummy} {do} not make a sound. ";
             }
@@ -1142,7 +1142,7 @@ modify Door {
 
     dobjFor(SlamClosed) {
         verify() {
-            if (gActor == cat) {
+            if (gActorIsCat) {
                 illogical(catCloseMsg);
                 return;
             }
@@ -1163,7 +1163,7 @@ modify Door {
         if (!hasCatFlap) {
             return [travelPermitted, actorInStagingLocation, objOpen];
         }
-        if (gActor == cat) {
+        if (gActorIsCat) {
             return [travelPermitted, actorInStagingLocation];
         }
         return [travelPermitted, actorInStagingLocation, objOpen];

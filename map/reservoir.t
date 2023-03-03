@@ -246,9 +246,7 @@ reservoir: Room { 'The Reactor Reservoir'
             <<gSkashekName>>. He sweeps you up in his arms and holds you close.\b
             <q>Bloody <i>hell</i>, <<gCatNickname>>, there are <i>other</i> ways to
             get my attention! I guess we're skipping bath time, then...</q>";
-            finishGameMsg(ftVictory, [
-                finishOptionCredits
-            ]);
+            finishGameMsg(ftVictory, gEndingOptions);
         }
         else { //TODO: Write this better
             "You dive into the water, and the channel carries you. ";

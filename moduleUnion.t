@@ -59,6 +59,10 @@ modify Thing {
     soundSize = large
     smellSize = small
 
+    canAttackWithMe = (isTakeable && gDobj == skashek)
+    cannotAttackMsg = 'Maybe a human would do that,
+        but {i} {do} not see the tactical benefit. '
+
     doClimbPunishment(actor, traveler, path) {
         actor.addExhaustion(1);
     }
@@ -141,19 +145,17 @@ class FixedBooth: Booth {
     isFixed = true
 }
 
-Chair template 'vocab' @location? "basicDesc"?;
-class Chair: Platform {
+HomeHaver template 'vocab' @location? "basicDesc"?;
+class HomeHaver: Thing {
     desc() {
         if (isHome()) {
-            chairDesc();
+            homeDesc();
             return;
         }
         basicDesc();
     }
     basicDesc = "TODO: Add description. "
-    chairDesc = basicDesc
-    bulk = 2
-    canSitOnMe = true
+    homeDesc = basicDesc
     home = nil
     backHomeMsg = '{I} {put} {the dobj} back where it belongs. '
 
@@ -192,6 +194,18 @@ class Chair: Platform {
         }
     }
 
+    hideFromAll(action) {
+        if (isHeldBy(gPlayerChar)) {
+            return nil;
+        }
+        return true;
+    }
+}
+
+class Chair: HomeHaver, Platform {
+    bulk = 2
+    canSitOnMe = true
+
     dobjFor(SitIn) asDobjFor(SitOn)
 }
 
@@ -221,6 +235,81 @@ class SmashedMirror: Mirror {
         if (isSmashed && !seenSmashed) {
             seenSmashed = true;
             replaceVocab(smashedVocab);
+        }
+    }
+}
+
+mirrorShards: MultiLoc, Decoration {
+    vocab = 'shard;partial shattered sharp piece[n] of[prep] mirror[weak];shard chunk'
+    desc = "A jagged piece of the smashed mirror, still attached to the frame. "
+    ambiguouslyPlural = true
+
+    initialLocationClass = SmashedMirror
+    isTakeable = true
+    decorationActions = [Examine, Take, TakeFrom]
+
+    takeWarning = 'Your manufactured (but enhanced) instincts kick in.\b
+        There are missing chunks already, many of which look like they could have
+        been viable knives. From this, you conclude that you are not the first clone
+        to think of this idea.\b
+        However, <i>he</i> is still alive, which means the previous knife-wielders
+        died in their attempts. From this, you conclude that <<gSkashekName>> is
+        combat-trained, and/or has prepared defenses against this sort of attack.
+        If he sees you with a weapon, then any <q>rules of the game</q> he might
+        follow will surely be discarded quickly, and multiple instincts
+        refuse to let you walk so blatantly into this deathtrap.\b
+        It\'s more tactical to take advantage of his <q>rules</q>. '
+
+    dobjFor(TakeFrom) asDobjFor(Take)
+    dobjFor(Take) {
+        verify() {
+            if (gActorIsPlayer) {
+                if (gCatMode) {
+                    illogical('You\'ll cut your mouth! ');
+                }
+                else if (!mirrorShard.gaveWarning && huntCore.difficulty != nightmareMode) {
+                    mirrorShard.armWarning = true;
+                }
+            }
+            if (mirrorShard.isDirectlyIn(gActor)) {
+                illogicalNow('{I} already {hold} a piece of the mirror. ');
+            }
+            inherited();
+        }
+        action() {
+            if (mirrorShard.armWarning) {
+                say(takeWarning);
+                mirrorShard.gaveWarning = true;
+                mirrorShard.armWarning = nil;
+                gAction.actionFailed = true;
+                exit;
+            }
+            mirrorShard.actionMoveInto(gActor);
+        }
+        report() {
+            if (gActorIsPrey) {
+                if (huntCore.difficulty == nightmareMode) {
+                    "Might as well. He can't get any <i>more</i> angry.\b";
+                }
+                else {
+                    "<i>Better not get caught,</i> you think to yourself.\b";
+                }
+            }
+            inherited();
+        }
+    }
+}
+
+//TODO: If you are seen with the shard, the game switches to nightmare mode
+mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[weak];shard chunk'
+    "A jagged, reflective piece of a smashed mirror. Mind the sharp edges. "
+
+    gaveWarning = nil
+    armWarning = nil
+
+    dobjFor(Break) {
+        verify() {
+            illogical('It\'s already broken. ');
         }
     }
 }

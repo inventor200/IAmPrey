@@ -37,11 +37,16 @@
 // ^- This is the non-debug behavior!!!
 #endif
 
+#define gActorIsPlayer (gActor == gPlayerChar)
+#define gActorIsPrey (gActor == prey)
+#define gActorIsCat (gActor == cat)
+#define gEndingOptions [finishOptionCredits]
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "moddedSearch.t"
 #include "awareVehicles.t"
 #define gCatMode huntCore.inCatMode
+#define gPreyMode (!huntCore.inCatMode)
 #define gSkashekName skashek.globalParamName
 #define gCatName (huntCore.printApologyNoteForPG())
 #define gCatNickname (huntCore.printApologyNoteForPG(true))

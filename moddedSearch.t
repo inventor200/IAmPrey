@@ -272,7 +272,7 @@ modify Thing {
     }
 
     beforeSearch() {
-        if (gActor == gPlayerChar && roomsTraveledUponLastSearch < gActor.roomsTraveled) {
+        if (gActorIsPlayer && roomsTraveledUponLastSearch < gActor.roomsTraveled) {
             roomsTraveledUponLastSearch = gActor.roomsTraveled;
             skashekFoundHere = nil;
             searchedFromDistance = nil;

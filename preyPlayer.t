@@ -4,9 +4,10 @@ prey: Actor { 'The Prey'
     #if __DEBUG
     location = deliveryRoom
     #else
-    location = deliveryRoom
+    location = genericCatchNet
     #endif
 
+    onlySeenShatteredReflectionBefore = nil
     scaredByOwnReflection = nil
     hasPonderedShatteredMirror = nil
     hasSeenSelfBefore = nil
@@ -23,16 +24,23 @@ prey: Actor { 'The Prey'
                 you want to take another look... ';
         }
         if (mirror.isSmashed) {
+            onlySeenShatteredReflectionBefore = true;
             return 'Attempts to look into it reveal rather whimsical
-                patterns of reflection, but all you can see of yourself
-                is that you have pale skin and white hair.<<ponderVanity()>>';
+                patterns of reflection, and the only features you can see
+                are your pale skin and white hair.<<ponderVanity()>>';
         }
         local seenSelfIntro = '';
         if (!hasSeenSelfBefore) {
             hasSeenSelfBefore = true;
-            seenSelfIntro = 'You realize that this is the first time you are
-                clearly seeing your own reflection; you wonder if you should
-                savor this moment...<.p>';
+            seenSelfIntro = onlySeenShatteredReflectionBefore ?
+                'You realize that this is the first time you are
+                clearly seeing your own reflection.<<
+                if seenSkashek>> <i>Your</i> reflection.<<end>>
+                You wonder if you should savor this moment...<.p>'
+                :
+                'This is the first time you are seeing your own face.<<
+                if seenSkashek>> <i>Your</i> face.<<end>>
+                You wonder if you should savor this moment...<.p>';
         }
 
         local commentOnIndiduality = hasSeenCloneIndividualism ?
@@ -46,12 +54,12 @@ prey: Actor { 'The Prey'
             sharp teeth. Your faces are indistinguishable; more than simple
             twin siblings could <i>ever</i> be.
             However, there <i>are</i> important differences.
-            For one, you have a unique hairstyle; <<commentOnIndiduality>>
+            For one, you have a unique hairstyle, <<commentOnIndiduality>>
             You stare into the reddish eyeshine of your pupils, and see only
             yourself in there.'
             : //TODO: Keep some of these observations when looking at skashek
             'Your skin is as pale as death herself, and your lips conceal two
-            rows of sharp teeth. Your deadpan face is framed by you white hair;
+            rows of sharp teeth. Your deadpan face is framed by your white hair,
             <<commentOnIndiduality>> Your nose is thin by the bridge, and
             upturned slightly. Your jawline is somewhere between round and
             angular, while your chin is long and thin enough to weaponize.
@@ -106,6 +114,7 @@ prey: Actor { 'The Prey'
                 a mouse calling out for a cat to find it. ";
             }
             else {
+                hasCriedLikeABaby = true;
                 "Actually, it turns out that newborn clones <i>do</i> cry after
                 entering the world!\b
                 You nod to yourself, satisfied, and happy to cross that off
@@ -114,16 +123,36 @@ prey: Actor { 'The Prey'
                 //      yet, and handle that if not.
                 if (skashek.canSee(self)) { // Skashek walks in to check on you
                     "<<gSkashekName>> blinks and stares at you.
-                    <q>Did...did you just <i>cry like a newborn?</i>
-                    Ugh... I <i>knew</i> something about this cycle
+                    <q>Ugh... I <i>knew</i> something about this cycle
                     seemed wrong. I gotta save the log files, and make
                     sure I don't get another brain-death next time...</q> ";
-                    finishGameMsg(ftFailure, [
-                        finishOptionCredits
-                    ]);
+                    finishGameMsg(ftFailure, gEndingOptions);
                 }
             }
             exit;
+        }
+
+        if ((gActionIs(Attack) || gActionIs(AttackWith)) && gDobj == skashek) {
+            "<.p>
+            <i>It all happened so fast.</i>\b
+            Every tactical instinct in you said it was a bad idea. You were made
+            for <i>killing</i>, sure, but this felt like running headfirst into
+            death. Maybe a human would be so reckless, but you were programmed
+            to weigh the costs and benefits before deploying violence.\b
+            However, despite your instincts, your conscious mind had decided this
+            was the correct course of action.\b
+            <<gSkashekName>> <<if gIobj.bulk <= 1>>swiftly strikes your arm hard
+            enough to break it, and sends<<else>>lashes out with a kick,
+            sending<<end>>
+            <<gIobj.theName>> soaring across the space.\b
+            In one moment, you were attempting to recover, and the next moment
+            revealed your neck vacated of flesh, as it dribbled from his mouth.
+            You collapse in a pool of your own blood, rushing out of
+            fresh, gaping wounds.\b
+            The last thing you see is his expression, just as shocked and
+            surprised as your own.
+            <.p>";
+            finishGameMsg(ftDeath, gEndingOptions);
         }
     }
 

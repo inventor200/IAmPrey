@@ -679,12 +679,18 @@ QParkour: Special {
         if (aLoc.canBonusReachDuring(bLoc, gAction)) return issues;
         if (bLoc.canBonusReachDuring(aLoc, gAction)) return issues;
 
+        local parkourA = a.getParkourModule();
         local parkourB = b.getParkourModule();
+
+        if (parkourA == nil && parkourB == nil) {
+            // Parkour checks will be useless here
+            return issues;
+        }
+
         if (parkourB == nil) {
             #if __PARKOUR_REACH_DEBUG
             extraReport('\nparkourB = nil\n');
             #endif
-            local parkourA = a.getParkourModule();
             if (parkourA != nil) {
                 local reachResult = parkourA.isInReachFromVerbose(
                     b, true, doNotFactorJumpForA
@@ -2861,14 +2867,14 @@ class ParkourModule: SubComponent {
 
         // Real quick: Check in with bonus reaches to see if
         // we can skip this whole shitshow.
-        local myParent = lexicalParent;
+        /*local myParent = lexicalParent;
         local otherParent = (closestParkourMod != nil) ?
             closestParkourMod.lexicalParent : source;
 
         if (myParent != nil && otherParent != nil) {
             if (myParent.canBonusReachDuring(otherParent, gAction)) return true;
             if (otherParent.canBonusReachDuring(myParent, gAction)) return true;
-        }
+        }*/
 
         // No luck... business as usual, then!
 

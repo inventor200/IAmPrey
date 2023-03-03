@@ -1,19 +1,10 @@
-class WombComponent: Decoration {
-    isOwnerNamed = (!owner.isUniqueWomb)
-    filterResolveList(np, cmd, mode) {
-        if (np.matches.length <= 1) return;
-
-        if (!owner.isUniqueWomb) {
-            np.matches = np.matches.subset({m: m.obj != self});
-        }
-    }
-}
-
 class ArtificialWomb: Fixture {
     desc = "TODO: Add description. "
     isUniqueWomb = nil
 
     matchPhrases = ['womb', 'tank']
+
+    catchNet = nil
 
     filterResolveList(np, cmd, mode) {
         if (np.matches.length <= 1) return;
@@ -71,9 +62,9 @@ deliveryRoom: Room { 'The Delivery Room'
     southMuffle = southHall
 
     happyBirthdayPlayer() { //TODO: Implement catcher's net, and hasLeftTheNet
-        if (gPlayerChar == cat) return '';
+        if (gCatMode) return '';
         local openingLine =
-            '<b>Happy birthday!</b>
+            '<.p><b>Happy birthday!</b>
             <i>You are drenched in a mix of embryonic slime and water!</i>';
         if (huntCore.difficulty == hardMode || huntCore.difficulty == nightmareMode) {
             return openingLine;
@@ -168,9 +159,9 @@ deliveryRoom: Room { 'The Delivery Room'
     }
 }
 
-+Chair { 'stool'
++Chair { 'stool;;chair seat'
     "A simple stool. "
-    chairDesc = "The stool sits in front of the makeup vanity,
+    homeDesc = "The stool sits in front of the makeup vanity,
         giving a nice viewing angle to the mirror. "
     backHomeMsg =
         '{I} {put} {the dobj} back in front of the makeup vanity, where it belongs. '
@@ -182,7 +173,11 @@ deliveryRoom: Room { 'The Delivery Room'
 }
 ++LowFloorHeight;
 ++ClimbUpLink ->deliveryRoomTowelRack;
-++/*Smashed*/Mirror;
+#if __DEBUG
+++SmashedMirror;
+#else
+++SmashedMirror;
+#endif
 
 +deliveryRoomTowelRack: FixedPlatform { 'towel rack;;shelves'
     "A rough set of metal shelves, repurposed for holding towels.
@@ -227,14 +222,54 @@ deliveryRoom: Room { 'The Delivery Room'
     ++DangerousFloorHeight;
 
 #define createArtificialWomb(complexity, objectName, vocab) \
-    create##complexity##ArtificialWomb(objectName, vocab) \
-    +WombComponent { 'component' \
-        owner = objectName \
-    }
+    create##complexity##ArtificialWomb(objectName, vocab)
+
+// Disrupts the player's ability to specify which component
+#define expandComponentVocab(nounSection, adjSection, altSection) \
+    nounSection + ';northwest[weak] nw[weak] west[weak] w[weak] southwest[weak] sw[weak] artificial[weak] womb\'s tank\'s ' + adjSection + ';' + altSection
 
 createArtificialWomb(Unique, northwestWomb, 'northwest[weak] artificial[weak] womb;nw[weak] grow birthing iron;tank')
 createArtificialWomb(Simple, westWomb, 'west[weak] artificial[weak] womb;w[weak] grow birthing iron;tank')
 createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] womb;sw[weak] grow birthing iron;tank')
+
++genericCatchNet: Fixture {
+    vocab = expandComponentVocab('catch net', 'catcher\'s catchers', 'fishnet fish[weak] net basket catcher')
+    desc = "A large, rubbery, fishnet-like mesh, put in place
+        to gently catch newborn clones. "
+    contType = In
+
+    isEnterable = true
+    holdsActors
+
+    dobjFor(ParkourClimbOffOf) asDobjFor(GetOutOf)
+    dobjFor(GetOutOf) {
+        action() {
+            if (gPreyMode) {
+                prey.hasLeftTheNet = true;
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(ParkourClimbGeneric) asDobjFor(Enter)
+    dobjFor(ParkourClimbOverInto) asDobjFor(Enter)
+    dobjFor(Enter) {
+        verify() {
+            if (prey.hasLeftTheNet && gPreyMode) {
+                illogical('It\'s too late;
+                    you have already chosen adulthood! ');
+            }
+            inherited();
+        }
+    }
+
+    iobjFor(PutIn) {
+        verify() {
+            illogical('That is meant to catch human-sized bodies,
+                and nothing else. ');
+        }
+    }
+}
 
 //TODO: Data bundles parkour exit to upper server room
 

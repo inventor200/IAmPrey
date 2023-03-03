@@ -307,5 +307,5 @@ insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
 
     travelDesc =
         "<<standardExitMsg>>.
-        <<if gActor == gPlayerChar>>\^<<freezer.expressAmbienceOnExit>>. <<end>>"
+        <<if gActorIsPlayer>>\^<<freezer.expressAmbienceOnExit>>. <<end>>"
 }

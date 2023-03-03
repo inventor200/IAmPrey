@@ -125,7 +125,7 @@ prologueCore: InitObject {
         #endif
         "<center><small>WELCOME TO...</small>\b
         <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\b
-        A game of evasion, by Joey Cramsey<<if !gCatMode>>\b
+        A game of evasion, by Joey Cramsey<<if gPreyMode>>\b
         <i><q>This is based on a recurring nightmare of mine,
         so now it's your problem, too!</q></i><<end>>";
         #if __IS_MAP_TEST
