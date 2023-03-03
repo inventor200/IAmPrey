@@ -41,6 +41,11 @@
 #include "cutsceneCore.t"
 #include "moddedSearch.t"
 #include "awareVehicles.t"
+#define gCatMode huntCore.inCatMode
+#define gSkashekName skashek.globalParamName
+#define gCatName (huntCore.printApologyNoteForPG())
+#define gCatNickname (huntCore.printApologyNoteForPG(true))
+#include "moddedActors.t"
 #include "cat.t"
 #include "preyPlayer.t"
 #include "skashek.t"
@@ -62,6 +67,9 @@ gameMain: GameMainDef {
 
     showIntro() {
         showPrologue;
+
+        skashek.startTheDay();
+        gPlayerChar.startTheDay();
     }
 }
 

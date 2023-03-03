@@ -1,5 +1,3 @@
-#define gSkashekName skashek.globalParamName
-
 skashek: Actor { 'Skashek;;predator hunter royal[weak] subject sheki shek'
     "A rather terrifying visage! "
     isHim = true

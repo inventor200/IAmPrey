@@ -57,25 +57,53 @@ class ArtificialWomb: Fixture {
     }
 }
 
+modify VerbRule(Yell)
+    'yell'|'scream'|'shout'|'holler'|'cry'|'wail'|'sob' :
+;
+
 deliveryRoom: Room { 'The Delivery Room'
-    "TODO: Add description. "
+    "<<first time>><<happyBirthdayPlayer()>>\b<<only>>
+    TODO: Add description. "
 
     northMuffle = itOffice
     northwestMuffle = serverRoomBottom
     westMuffle = breakroom
     southMuffle = southHall
 
-    roomDaemon() {
-        "A <<freezer.coldSynonyms>> <<one of>>mist<<or>>fog<<at random>>
+    happyBirthdayPlayer() { //TODO: Implement catcher's net, and hasLeftTheNet
+        if (gPlayerChar == cat) return '';
+        local openingLine =
+            '<b>Happy birthday!</b>
+            <i>You are drenched in a mix of embryonic slime and water!</i>';
+        if (huntCore.difficulty == hardMode || huntCore.difficulty == nightmareMode) {
+            return openingLine;
+        }
+        return '<<openingLine>>\b
+            You cough, but it transforms into vomiting, and most of it lands on
+            your own body. You seem to be cradled in some kind of large,
+            rubbery fishnet mesh, likely designed to catch newborns like you.\b
+            Human newborns are tiny, and cry when entering the world. Clone
+            newborns seem to be tall&mdash;if your factory-standard memories are
+            reliable in that regard&mdash;and so far you have been a bit too
+            delirious to do much of anything.';
+    }
+
+    ceilingFog =
+        'A <<freezer.coldSynonyms>> <<one of>>mist<<or>>fog<<at random>>
         <<one of>>falls gently<<or>>rolls faintly<<or>>wisps<<at random>>
         <<one of>>down from<<or>>out from<<or>>from<<at random>> between the
         <<one of>>many<<or>>large<<or>>eerie<<or>>dark<<at random>>
         <<one of>>cables<<or>>cords<<at random>><<one of
         >>, which hang from the ceiling<<or>>, hanging
-        from the ceiling<<at random>>.<<one of>><<or>>\b
-        One of the wombs seems to <<one of>>twitch<<or>>quiver<<at random>>
-        slightly.<<or>>\bThe sounds of wet dripping echo through the room.<<or
-        >>\bOne of the wombs can be heard, quietly digesting something.<<at random>> ";
+        from the ceiling<<at random>>. '
+
+    wombAmbience =
+        '<<one of>>One of the wombs seems to <<one of>>twitch<<or>>quiver<<at random>>
+        slightly.<<or>>The sounds of wet dripping echo through the room.<<or
+        >>One of the wombs can be heard, quietly digesting something.<<at random>>. '
+
+    roomDaemon() {
+        "<<one of>><<or>><<ceilingFog>><<or>><<wombAmbience>><<at random>>";
         inherited();
     }
 }
@@ -154,7 +182,7 @@ deliveryRoom: Room { 'The Delivery Room'
 }
 ++LowFloorHeight;
 ++ClimbUpLink ->deliveryRoomTowelRack;
-++Mirror;
+++/*Smashed*/Mirror;
 
 +deliveryRoomTowelRack: FixedPlatform { 'towel rack;;shelves'
     "A rough set of metal shelves, repurposed for holding towels.
@@ -184,7 +212,6 @@ deliveryRoom: Room { 'The Delivery Room'
         } \
     } \
     ++DangerousFloorHeight; \
-    /*++AwkwardProviderLink @artificialWombs ->deliveryRoomTowelRack;*/ \
     ++ClimbOverPath ->westWomb;
 
 #define createSimpleArtificialWomb(objectName, vocab) \

@@ -71,6 +71,7 @@ modify Room {
     atmosphereObj = defaultAtmosphere
 
     isFreezing = nil
+    moistureFactor = (isFreezing ? 0 : -1)
 
     // If true, then we are entering a new SenseRegion, so showing a better
     // description is necessary

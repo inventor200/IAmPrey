@@ -59,7 +59,13 @@ modify Thing {
     soundSize = large
     smellSize = small
 
+    doClimbPunishment(actor, traveler, path) {
+        actor.addExhaustion(1);
+    }
+
     doJumpPunishment(actor, traveler, path) {
+        actor.addExhaustion(2);
+
         if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
@@ -80,6 +86,8 @@ modify Thing {
     }
 
     doHarmfulPunishment(actor, traveler, path) {
+        actor.addExhaustion(3);
+
         if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         soundBleedCore.createSound(
             hardImpactNoiseProfile,
@@ -101,28 +109,23 @@ class ActorContainer: Thing {
 
 modify Platform {
     holdsActors
+
+    hideFromAll(action) {
+        if (isHeldBy(gPlayerChar)) {
+            return nil;
+        }
+        return true;
+    }
 }
 
 modify Booth {
     holdsActors
-}
 
-modify Actor {
-    bulk = 25
-    bulkCapacity = 10
-    maxSingleBulk = 2
-
-    seeReflection(mirror) {
-        mirror.confirmSmashed();
-        return '{I} {see} a neat-looking person. ';
-    }
-
-    seeShatteredVanity() {
-        return '';
-    }
-
-    ponderVanity() {
-        return '';
+    hideFromAll(action) {
+        if (isHeldBy(gPlayerChar)) {
+            return nil;
+        }
+        return true;
     }
 }
 
@@ -131,6 +134,10 @@ modify Door {
 }
 
 class FixedPlatform: Platform {
+    isFixed = true
+}
+
+class FixedBooth: Booth {
     isFixed = true
 }
 

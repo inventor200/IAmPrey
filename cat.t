@@ -1,6 +1,3 @@
-#define gCatMode huntCore.inCatMode
-#define gCatName (huntCore.printApologyNoteForPG())
-#define gCatNickname (huntCore.printApologyNoteForPG(true))
 #define catBaseVocab ('cat;;kat kitty meowmeow')
 
 #if __IS_MAP_TEST
@@ -14,7 +11,7 @@
 #endif
 
 cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>'
-    "You are a <i>very</i> regal (and mighty) cat! "
+    "TODO: old salt-and-pepper cat desc. "
     person = (gCatMode ? 2 : 3)
     isHim = true
 

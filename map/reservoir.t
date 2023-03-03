@@ -104,6 +104,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     floorObj = cementFloor
     ceilingObj = industrialCeiling
     atmosphereObj = humidAtmosphere
+    moistureFactor = 0
 }
 
 +northReservoirCorridorExit: MaintenanceDoor { 'the exit door'
@@ -144,6 +145,7 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     floorObj = cementFloor
     ceilingObj = industrialCeiling
     atmosphereObj = humidAtmosphere
+    moistureFactor = 0
 
     getSpecialPeekDirectionTarget(dirObj) {
         if (dirObj == eastDir) return windowInreservoirControlRoom;
@@ -188,6 +190,7 @@ reservoir: Room { 'The Reactor Reservoir'
     ceilingObj = reservoirCeilingFan
     floorObj = reservoirCatwalk
     atmosphereObj = humidAtmosphere
+    moistureFactor = 1
 
     descFrom(pov) {
         "TODO: Add remote description. ";
@@ -224,6 +227,7 @@ reservoir: Room { 'The Reactor Reservoir'
     destination = reservoirStrainer
 
     travelDesc() {
+        gActor.soak();
         if (gCatMode) {
             "Your regal confidence might have been a little <i>too</i> high this time,
             but you only wonder this for a few moments before you are
