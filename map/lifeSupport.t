@@ -43,7 +43,7 @@ coolingDuctWalls: Walls { 'walls;inner metal cooling;insides panels duct'
     }
 }
 
-fakeDuctFloor: Floor { 'floor;bottom;ground bottom[weak] end drop curve below'
+fakeDuctFloor: Floor { 'space[n] below;bottom;ground bottom[weak] end drop curve floor'
     "The cooling duct is a wide, vertical drop, and curves below to the east,
     in the direction of the airflow's source. The facility's heat exchanger and
     fans are probably that way. "
@@ -272,23 +272,37 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
     }
 }
 
-+coolingDuctUpperInnerGrate: Door {
++coolingDuctUpperInnerGrate: CoolingDuctGrate {
     vocab = coolingDuctUpperOuterGrate.vocab
     desc = coolingDuctUpperOuterGrate.desc
     otherSide = coolingDuctUpperOuterGrate
 
-    airlockDoor = true
-    isTransparent = true
     passActionStr = 'exit'
 }
 
-coolingDuctUpperOuterGrate: Door { 'cooling outlet grate;access duct' @serverRoomTop
+coolingDuctUpperOuterGrate: CoolingDuctGrate { 'cooling outlet grate;access duct' @serverRoomTop
     "TODO: Add description. "
 
     otherSide = coolingDuctUpperInnerGrate
+}
 
+class CoolingDuctGrate: Door { //TODO: Create a proper grate class
     airlockDoor = true
     isTransparent = true
+
+    dobjFor(Open) {
+        verify() {
+            if (gActorIsCat) {
+                inaccessible(
+                    'As with other grates and vents, you are able to paw this one
+                    open, but the breeze is colder than your old, kingly joints can
+                    withstand.\bYou allow the grate to close, and you return to
+                    the floor. '
+                );
+            }
+            inherited();
+        }
+    }
 }
 
 insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'

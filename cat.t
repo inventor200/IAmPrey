@@ -10,21 +10,18 @@
 #define catNicknameVocab ('king arthur')
 #endif
 
-cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>>'
+cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself'
     "TODO: old salt-and-pepper cat desc. "
     person = (gCatMode ? 2 : 3)
     isHim = true
 
-    #if __DEBUG
-    location = reservoir
-    #else
-    location = directorsOffice
-    #endif
+    location = dreamWorldCat
 
     actualName = catRealName
     nickname = catNickname
     globalParamName = 'the cat'
 
+    bulk = 1
     bulkCapacity = 1
     maxSingleBulk = 1
 

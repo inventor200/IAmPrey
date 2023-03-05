@@ -2,10 +2,11 @@
 #define maxPhysicalFactor (5 * physicalFactorScale)
 #define conditionReportDelay 3
 #define maxExhaustionInertia 3
+#define actorCapacity 10
 
 modify Actor {
     bulk = 25
-    bulkCapacity = 10
+    bulkCapacity = actorCapacity
     maxSingleBulk = 2
 
     wetness = 0
@@ -34,6 +35,11 @@ modify Actor {
     soak() {
         wetness = maxPhysicalFactor;
         d_wetness = maxPhysicalFactor;
+    }
+
+    dryOff() {
+        wetness = 0;
+        d_wetness = 0;
     }
 
     addExhaustion(amount) {

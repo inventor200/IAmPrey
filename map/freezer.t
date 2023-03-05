@@ -10,20 +10,31 @@ freezer: Room { 'The Freezer'
     atmosphereObj = freezingAtmosphere
     isFreezing = true
 
+    playerSurface =
+        '<<if gCatMode>>your <<one of>><<or>>black<<or>>regal<<or>>royal<<or
+        >>beautiful<<or>>gray-speckled<<or>>dark<<or>>long<<at random>>
+        fur<<else>>you<<end>>'
+    catJoints =
+        'your <<one of>><<or>>old<<or>>aging<<at random>> joints'
+
     coldSynonyms =
         '<<one of>>cold<<or>>freezing<<or>>frozen<<or
         >>chilled<<or>>chilling<<or>>icy<<or>>ice-cold<<at random>>'
     coldAluminum = '<<coldSynonyms>>, <<one of>>metal<<or>>aluminum<<at random>>'
     coldSteel = '<<coldSynonyms>>, <<one of>>metal<<or>>steel<<at random>>'
     coldAir = '<<coldSynonyms>> air'
-    coldAirVerbs = '<<one of>>engulfs<<or>>surrounds<<or>>encases<<at random>>'
+    coldAirVerbs = '<<if gCatMode
+        >><<one of>>besieges<<or>>passes through<<or>>tests<<at random>><<else
+        >><<one of>>engulfs<<or>>surrounds<<or>>encases<<at random>><<end>>'
     coldBreeze = '<<coldSynonyms>> <<one of>>breeze<<or>>wave of air<<at random>>'
     coldBreezeVerbs = '<<one of>>washes<<or>>passes<<at random>> over'
     coldBreezeWashesOver =
         '<<one of>>a <<coldBreeze>> <<coldBreezeVerbs>><<or
-        >>the <<coldAir>> <<coldAirVerbs>><<at random>> you'
+        >>the <<coldAir>> <<coldAirVerbs>><<at random>> <<playerSurface>>'
     shiverRollsThrough =
-        'a shiver <<one of>>passes over<<or>>rolls through<<at random>> you'
+        '<<if gCatMode
+        >>an ache <<one of>>seeps<<or>>returns<<at random>> to <<catJoints>><<else
+        >>a shiver <<one of>>passes over<<or>>rolls through<<at random>> you<<end>>'
     breathAmbienceSingular =
         'breath
         <<one of>>becomes<<or>>turns to<<or>>condenses into<<at random>>'
@@ -55,8 +66,8 @@ freezer: Room { 'The Freezer'
             >><<coldBreezeWashesOver>> <<entrySuffixVerbs
         >><<at random>>'
     shiverRollsThroughOnEntry =
-        '<<one of>>a shiver <<entryVerbs>><<or
-        >><<shiverRollsThrough>> <<entrySuffixVerbs>><<at random>>'
+        '<<one of>><<if gCatMode>>an aching joint<<else>>a shiver<<end>>
+        <<entryVerbs>><<or>><<shiverRollsThrough>> <<entrySuffixVerbs>><<at random>>'
     expressAmbienceOnEntry =
         '<<one of>><<shiverRollsThroughOnEntry>><<or
         >><<coldBreezeWashesOverOnEntry>><<at random>>'

@@ -1138,7 +1138,7 @@ modify actorInStagingLocation {
             if (checkParkourProviderBarriers(gActor, gParkourLastPath)) { \
                 applyRecon(); \
                 gParkourLastPath.destination.applyRecon(); \
-                parkourDestination.checkInsert(gActor); \
+                parkourDestination.lexicalParent.checkInsert(gActor); \
                 parkourDestination.doParkourCheck(gActor, gParkourLastPath); \
             } \
         } \
@@ -1931,7 +1931,7 @@ modify Floor {
         .append(ClimbDown)
     )
 
-    floorActions = [Examine, Search, SearchClose, SearchDistant, TakeFrom]
+    floorActions = [Examine, TakeFrom]
 
     hasParkourRecon = true
 
@@ -2047,7 +2047,7 @@ modify Actor {
 }
 
 #define checkParkour(actor) \
-    checkInsert(actor); \
+    lexicalParent.checkInsert(actor); \
     doParkourCheck(actor, gParkourLastPath)
 
 #define parkourActionIntro \
@@ -2261,12 +2261,12 @@ class ParkourModule: SubComponent {
             if (platformSignal) return;
 
             if (!lexicalParent.hasParkourRecon) {
+                parkourCore.cacheParkourRunner(gActor);
                 local pm = gParkourRunnerModule;
                 if (pm != nil) {
                     local path = getPathFrom(pm, true, true);
                     if (path != nil) {
                         lexicalParent.applyRecon();
-                        parkourCore.cacheParkourRunner(gActor);
                         parkourCore.showNewRoute = true;
                         learnPath(path, reportAfter);
                     }
@@ -3714,6 +3714,15 @@ class LocalClimbPlatform: TravelConnector, Fixture {
         action() {
             inherited();
             learnLocalPlatform(self, reportAfter);
+        }
+    }
+
+    dobjFor(Search) {
+        preCond = [actorInStagingLocation]
+        remap = nil
+        verify() { }
+        action() {
+            doRecon();
         }
     }
 }

@@ -1,6 +1,6 @@
 class ArtificialWomb: Fixture {
     desc = "TODO: Add description. "
-    isUniqueWomb = nil
+    isBoardable = true
 
     matchPhrases = ['womb', 'tank']
 
@@ -24,7 +24,12 @@ class ArtificialWomb: Fixture {
         }
 
         if (!shouldTruncate) {
-            shouldTruncate = !isUniqueWomb;
+            if (gActor.isDirectlyIn(deliveryRoomTowelRack)) {
+                shouldTruncate = self != southwestWomb;
+            }
+            else {
+                shouldTruncate = self != northwestWomb;
+            }
         }
 
         if (shouldTruncate) {
@@ -32,8 +37,7 @@ class ArtificialWomb: Fixture {
         }
     }
 
-    contType = On
-
+    //contType = On
     isLikelyContainer() {
         return true;
     }
@@ -48,9 +52,112 @@ class ArtificialWomb: Fixture {
     }
 }
 
+class WombRemapUnder: SubComponent {
+    fakeContents = [genericCatchNet]
+}
+
+class WombRemapOn: SubComponent {
+    canBonusReachDuring(obj, action) {
+        return obj == artificialWombs;
+    }
+}
+
+class WombRemapIn: WombRemapOn {
+    isInReachOfParkourSurface = true
+}
+
 modify VerbRule(Yell)
     'yell'|'scream'|'shout'|'holler'|'cry'|'wail'|'sob' :
 ;
+
+VerbRule(DryOffWith)
+    'dry' ('off'|) singleDobj ('with'|'using'|'on') singleIobj |
+    'wipe' ('down'|) singleDobj ('with'|'using'|'on') singleIobj |
+    ('wipe'|'soak'|'dry') ('up'|) singleDobj ('with'|'using'|'on') singleIobj |
+    'dry' singleDobj ('off'|) ('with'|'using'|'on') singleIobj |
+    'wipe' singleDobj ('down'|) ('with'|'using'|'on') singleIobj |
+    ('wipe'|'soak'|'dry') singleDobj ('up'|) ('with'|'using'|'on') singleIobj
+    : VerbProduction
+    action = DryOffWith
+    verbPhrase = 'dry/drying off (what) (with what)'
+    missingQ = 'what do you want to dry off; what do you want to dry it off with'
+;
+
+DefineTIAction(DryOffWith)
+    resolveIobjFirst = nil
+    allowAll = nil
+;
+
+VerbRule(DrySelfWith)
+    ('dry' 'off'|'wipe' 'down') ('with'|'using'|'on') singleDobj
+    : VerbProduction
+    action = DrySelfWith
+    verbPhrase = 'dry/drying off (with what)'
+    missingQ = 'what do you want to dry it off with'
+;
+
+DefineTAction(DrySelfWith)
+    allowAll = nil
+    execAction(cmd) {
+        doNested(DryOffWith, gActor, gDobj);
+    }
+;
+
+modify Thing {
+    canDryWithMe = nil
+    canDryMe = nil
+    dryVerb = '{aac} dr{ies/ied} {the dobj} off'
+
+    cannotDryWithMeMsg = '{I} {cannot} dry anything with {that iobj}. '
+    cannotDryMeMsg = '{The subj dobj} does not need drying. '
+
+    iobjFor(DryOffWith) {
+        preCond = [touchObj]
+        verify() {
+            if (!canDryWithMe) {
+                illogical(cannotDryWithMeMsg);
+            }
+            verifyDobjTake();
+        }
+        report() {
+            if (gDobj == gActor) {
+                "{I} dr{ies/ied} {myself} off with {the iobj}. ";
+            }
+            else {
+                "{I}<<gDobj.dryVerb>> with {the iobj}. ";
+            }
+        }
+    }
+
+    dobjFor(DrySelfWith) asIobjFor(DryOffWith)
+
+    dobjFor(DryOffWith) {
+        preCond = [touchObj]
+        verify() {
+            if (!canDryMe) {
+                illogicalNow(cannotDryMeMsg);
+            }
+        }
+    }
+}
+
+modify Actor {
+    cannotDryMeMsg = '{The subj dobj} {am} already dry. '
+
+    canDryMe = (wetness > 0)
+
+    dobjFor(DryOffWith) {
+        verify() {
+            if (gActor != self) {
+                illogical('{The subj dobj} would not appreciate that. ');
+            }
+            inherited();
+        }
+        action() {
+            dryOff();
+        }
+    }
+}
 
 deliveryRoom: Room { 'The Delivery Room'
     "<<first time>><<happyBirthdayPlayer()>>\b<<only>>
@@ -90,8 +197,8 @@ deliveryRoom: Room { 'The Delivery Room'
 
     wombAmbience =
         '<<one of>>One of the wombs seems to <<one of>>twitch<<or>>quiver<<at random>>
-        slightly.<<or>>The sounds of wet dripping echo through the room.<<or
-        >>One of the wombs can be heard, quietly digesting something.<<at random>>. '
+        slightly<<or>>The sounds of wet dripping echo through the room<<or
+        >>One of the wombs can be heard, quietly digesting something<<at random>>. '
 
     roomDaemon() {
         "<<one of>><<or>><<ceilingFog>><<or>><<wombAmbience>><<at random>>";
@@ -152,6 +259,14 @@ deliveryRoom: Room { 'The Delivery Room'
         remap = northwestWomb.parkourModule
     }
 
+    dobjFor(LookIn) {
+        remap = northwestWomb.remapIn
+    }
+
+    dobjFor(LookUnder) {
+        remap = northwestWomb.remapUnder
+    }
+
     contType = On
 
     isLikelyContainer() {
@@ -184,9 +299,14 @@ deliveryRoom: Room { 'The Delivery Room'
     It sits between the makeup vanity and the southwest artificial womb. "
     ambiguouslyPlural = true
 
+    contType = On
+
     canBonusReachDuring(obj, action) {
         if (action.ofKind(RunAcross)) {
             return obj == artificialWombs || obj == southwestWomb;
+        }
+        if (action.ofKind(Take) || action.ofKind(DryOffWith) || action.ofKind(DrySelfWith)) {
+            return obj == deliveryRoom || obj == makeupVanity;
         }
         return nil;
     }
@@ -194,17 +314,53 @@ deliveryRoom: Room { 'The Delivery Room'
 ++AwkwardFloorHeight;
 ++AwkwardProviderLink @artificialWombs ->northwestWomb;
 ++ClimbOverPath ->southwestWomb;
+++Thing { 'towel;shower;rag'
+    "Plain, white towels, like what someone might find in a shower room. "
+    ambiguouslyPlural = true
+    canDryWithMe = true
+    bulk = 0
+    isListed = nil
+
+    dobjFor(Take) {
+        action() {
+            if (gActorIsPrey) {
+                doInstead(DrySelfWith, self);
+            }
+        }
+    }
+    iobjFor(DryOffWith) {
+        report() {
+            if (gActorIsCat) {
+                "You try to get a hold, but your claw get stuck.
+                After a moment of panic, you are free again. ";
+            }
+            else {
+                inherited();
+                "\b({I} also return{s/ed} the towel to the rack.) ";
+            }
+        }
+    }
+}
 
 #define createUniqueArtificialWomb(objectName, vocab) \
     +objectName: ArtificialWomb { vocab \
-        isUniqueWomb = true \
-        isBoardable = true \
-        holdsActors \
         doAccident(actor, traveler, path) { \
-            "<.p>{I} arrive{s/d} on the northwest womb, and hold onto the \
-            nearby cables for stability, as they're the closest thing \
-            in reach. "; \
+            if (gCatMode) { \
+                "<.p>You run across the wombs, careful to not stay on each one \
+                for too long. Upon reaching the northwest one, you dig your claws \
+                into the thick insulation of the cables, and put half of your \
+                bodyweight on them for support. The womb frame below your \
+                back legs gradually halts its infuriating jostling. "; \
+            } \
+            else { \
+                "<.p>You arrive on the northwest womb, and hold onto the \
+                nearby cables for stability, as they're the closest thing \
+                in reach. "; \
+            } \
         } \
+        remapOn: WombRemapOn { } \
+        remapIn: WombRemapIn { } \
+        remapUnder: WombRemapUnder { } \
     } \
     ++DangerousFloorHeight; \
     ++ClimbOverPath ->westWomb;
@@ -213,11 +369,26 @@ deliveryRoom: Room { 'The Delivery Room'
     +objectName: ArtificialWomb { vocab \
         doAccident(actor, traveler, path) { \
             traveler.moveInto(deliveryRoom); \
-            "{I} {take} a step onto the frame of <<theName>>, and its \
-            springy design{dummy} causes {me} to lose {my} balance, and \
-            {i} land{s/ed} hard on the floor.\b \
-            <i>{I} might need more speed...</i>"; \
+            if (gCatMode) { \
+                "<.p>You tentatively step onto the frame of <<theName>>, \
+                but its springy design causes it to bounce slightly in \
+                response. The instability hurts your joints too much to \
+                remain, so you elect to hop down to the safety of the \
+                floor below."; \
+            } \
+            else { \
+                traveler.addExhaustion(1); \
+                "<.p>You take a step onto the frame of <<theName>>, and its \
+                springy design causes you to lose your balance, and \
+                you land hard on the floor."; \
+            } \
+            "\b<i>You might need to cross the wombs with more speed. \
+            The cables above the northwest womb looks like a source of \
+            stability...</i> "; \
         } \
+        remapOn: WombRemapOn { } \
+        remapIn: WombRemapIn { } \
+        remapUnder: WombRemapUnder { } \
     } \
     ++DangerousFloorHeight;
 
@@ -239,15 +410,24 @@ createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] wo
     contType = In
 
     isEnterable = true
-    holdsActors
 
     dobjFor(ParkourClimbOffOf) asDobjFor(GetOutOf)
     dobjFor(GetOutOf) {
         action() {
-            if (gPreyMode) {
+            if (gActorIsPrey) {
                 prey.hasLeftTheNet = true;
+                if (prey.wetness > 0) {
+                    wombFluidTraces.moveInto(deliveryRoom);
+                }
             }
             inherited();
+        }
+        report() {
+            inherited();
+            if (gActorIsPrey && prey.wetness > 0) {
+                "\bYour soaked form rains strings and droplets of fluid
+                across the floor. ";
+            }
         }
     }
 
@@ -255,9 +435,15 @@ createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] wo
     dobjFor(ParkourClimbOverInto) asDobjFor(Enter)
     dobjFor(Enter) {
         verify() {
-            if (prey.hasLeftTheNet && gPreyMode) {
-                illogical('It\'s too late;
-                    you have already chosen adulthood! ');
+            if (gActorIsPrey) {
+                if (prey.hasLeftTheNet) {
+                    illogical('It\'s too late;
+                        you have already chosen adulthood! ');
+                }
+            }
+            else if (gActorIsCat) {
+                illogical('You might slip through, and land in the
+                    trough of goo underneath. ');
             }
             inherited();
         }
@@ -269,6 +455,50 @@ createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] wo
                 and nothing else. ');
         }
     }
+}
+
++deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n];hole hatch gap space[weak]'
+    "There is an opening or hatch in the ceiling, above the northwest artificial womb.
+    From it, data cables spill out.\b
+    You notice some extra space around the cables, as if there
+    are too few of them being threaded through. This also explains the cold air
+    spilling out from the room beyond. "
+    location = northwestWomb
+    subLocation = &remapOn
+
+    notImportantMsg = 'The opening is on the ceiling, and is too far away to safely reach. '
+}
+
+deliveryRoomCables: ClimbUpPlatform { 'cables;server black dark insulated data three[weak] hanging[weak] from[prep] ceiling[n];bundles[weak] wires cords connections'
+    "Thick, dark, data cables, spilling out from an opening in the ceiling,
+    above the northwest artificial womb. They split off into three bundles, each going
+    into one of the three wombs on the west wall. "
+    location = northwestWomb
+    subLocation = &remapOn
+    secretLocalPlatform = true
+    plural = true
+
+    destination = serverRoomTop
+}
+
+wombFluidTraces: Decoration { 'puddle;wet water;droplet string fluid'
+    "You seem to have left a wet trace of yourself here.<<if gPlayerChar.wetness > 0
+    >> You might want to dry off, before attempting to run or hide.<<end>> "
+    ambiguouslyPlural = true
+    isListed = true
+    canDryMe = true
+    dryVerb = '{aac} soak{s/ed} up {the dobj}'
+
+    decorationActions = [Examine, DryOffWith]
+
+    dobjFor(DryOffWith) {
+        action() {
+            moveInto(nil);
+        }
+    }
+
+    specialDesc = "Traces and puddles of embryonic fluid coat the floor
+        in front of the northwest artificial womb. "
 }
 
 //TODO: Data bundles parkour exit to upper server room

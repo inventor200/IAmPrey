@@ -21,7 +21,7 @@
 ////        PROLOGUE CONTROLLER:          ////
 /////////////////////////////////////////////
 /*()*/  #define __SHOW_PROLOGUE nil   /*()*/
-/*-*/  #define __FAST_DIFFICULTY 4   /*--*/
+/*-*/  #define __FAST_DIFFICULTY 1   /*--*/
 //////////////////////////////////////////
 
 // End compile modes
@@ -40,7 +40,8 @@
 #define gActorIsPlayer (gActor == gPlayerChar)
 #define gActorIsPrey (gActor == prey)
 #define gActorIsCat (gActor == cat)
-#define gEndingOptions [finishOptionCredits]
+#define gEndingOptionsWin [finishOptionCredits, finishOptionAmusing]
+#define gEndingOptionsLoss [finishOptionCredits, finishOptionUndo]
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "moddedSearch.t"
@@ -66,7 +67,7 @@
 #include "map/map.h"
 
 gameMain: GameMainDef {
-    initialPlayerChar = (gCatMode ? cat: prey)
+    initialPlayerChar = prey
 
     formatForScreenReader = nil
 

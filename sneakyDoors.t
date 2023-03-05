@@ -487,6 +487,7 @@ sneakyCore: object {
                 if (!allowPeek && !conn.isLocked) {
                     "<.p>(first opening <<conn.theName>>)<.p>";
                     nestedAction(Open, conn);
+                    allowPeek = conn.allowPeek;
                 }
             }
 

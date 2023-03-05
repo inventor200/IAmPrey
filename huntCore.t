@@ -7,6 +7,7 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
 
 #define __DEBUG_SKASHEK_ACTIONS true
+#define __CAT_HAS_SNEAK nil
 
 huntCore: InitObject {
     revokedFreeTurn = nil
@@ -25,38 +26,84 @@ huntCore: InitObject {
     playerAction = nil
     playerActionActor = nil
 
-    setDifficult(index) {
+    setDifficult(index, midGame?) {
+        sneakyCore.armSneaking = nil;
+        sneakyCore.armEndSneaking = nil;
+        sneakyCore.sneakDirection = nil;
         switch (index) {
             case 1:
                 difficulty = basicTutorial;
+                #if __CAT_HAS_SNEAK
                 sneakyCore.allowSneak = true;
                 sneakyCore.sneakSafetyOn = true;
+                #endif
+                moveCat();
                 break;
             case 2:
                 difficulty = preyTutorial;
                 sneakyCore.allowSneak = true;
                 sneakyCore.sneakSafetyOn = true;
+                if (!midGame) movePrey();
                 break;
             case 3:
                 difficulty = easyMode;
+                if (!midGame) movePrey();
                 break;
             case 4:
                 difficulty = mediumMode;
+                if (!midGame) movePrey();
                 break;
             case 5:
                 difficulty = hardMode;
+                if (!midGame) movePrey();
                 break;
             case 6:
                 difficulty = nightmareMode;
+                if (!midGame) movePrey();
                 break;
         }
     }
 
-    execute() {
+    moveCat() {
+        // Hacky method to set the cat character, because no command is performed
+        // when the switch happens here, and it throws a nil error.
+        // Also, both player chars will never see each other, so the many vocab
+        // checks were unnecessary.
+        gPlayerChar = cat;
+        gPlayerChar.name = nil;
+        gPlayerChar.initVocab();
+        libGlobal.playerCharName = cat.theName;
+        // End hacky method
+
+        bathTimeFuse = new Fuse(self, &startBathTime, 9);
+        #if __DEBUG
+        cat.moveInto(serverRoomTop);
+        #else
+        cat.moveInto(directorsOffice); //TODO: Add cat bed
+        #endif
+    }
+
+    movePrey() {
+        #if __DEBUG
+        prey.moveInto(deliveryRoom);
+        #else
+        prey.moveInto(genericCatchNet); //TODO: Add cat bed
+        #endif
+        //TODO: Later on, we can have him start in the map during cat mode,
+        //      and slowly make his way down to the reservoir after checking
+        //      the director's office for the cat.
+        #if __DEBUG
+        skashek.moveInto(breakroom);
+        #else
+        skashek.moveInto(breakroom);
+        #endif
+    }
+
+    /*execute() {
         if (inCatMode) {
             bathTimeFuse = new Fuse(self, &startBathTime, 9);
         }
-    }
+    }*/
 
     startBathTime() { //TODO: He makes his way to the Director's Office to look
         wasBathTimeAnnounced = true;
@@ -65,7 +112,9 @@ huntCore: InitObject {
         <q><<gCatNickname>>...!
         It's bath time! I can smell you from the other side of the facility!</q>\b
         Oh no. You fucking <i>hate</i> bath time...!! Time to make
-        the Royal Subject <i>work for it!!</i>";
+        the Royal Subject <i>regret</i> that!\b
+        <i>Hmmm... He should be in the reservoir,
+        gathering strange plants again...</i>";
         bathTimeFuse = nil;
     }
 

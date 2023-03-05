@@ -31,6 +31,9 @@ cementFloor: Floor { 'the floor'
 
 modify SenseRegion {
     lookAroundArmed = true
+    /*familiar() {
+        return true;
+    }*/
 }
 
 class HallRegion: SenseRegion {
@@ -70,6 +73,8 @@ modify Room {
     ceilingObj = defaultCeiling
     atmosphereObj = defaultAtmosphere
 
+    isFamiliar = true
+
     isFreezing = nil
     moistureFactor = (isFreezing ? 0 : -1)
 
@@ -80,6 +85,19 @@ modify Room {
     lookAroundRegion = nil
 
     observedRemotely = nil
+
+    dobjFor(LookIn) asDobjFor(Search)
+    dobjFor(LookThrough) asDobjFor(Search)
+    dobjFor(Search) {
+        verify() {
+            illogical('{I} will have to be more specific,
+                and search specific containers instead. ');
+        }
+    }
+
+    dobjFor(LookUnder) {
+        remap = floorObj
+    }
 
     roomDaemon() {
         if (isFreezing) {
@@ -227,6 +245,21 @@ freezingAtmosphere: Atmosphere { 'air;;atmosphere breeze wind fog mist breath fr
     "{I} {see} nothing special about the air. "
     feelDesc = "{I} {cannot} feel anything but dry, chilling air. "
     smellDesc = "{My} lungs fill with abrasive, dry, freezing air. "
+}
+
+dreamWorldPrey: Room { 'The Artificial Dream'
+    "You begin to wake up... "
+    isFamiliar = nil
+}
+
+dreamWorldCat: Room { 'The Dream of Memories'
+    "You begin to wake up... "
+    isFamiliar = nil
+}
+
+dreamWorldSkashek: Room { 'The Dream of Starvation'
+    "You begin to wake up... "
+    isFamiliar = nil
 }
 
 modify GoTo {

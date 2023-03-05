@@ -1,11 +1,8 @@
-prey: Actor { 'The Prey'
+prey: Actor { 'The Prey;;me self myself'
     "<<getClothingDescription()>> "
     person = (gCatMode ? 3 : 2)
-    #if __DEBUG
-    location = deliveryRoom
-    #else
-    location = genericCatchNet
-    #endif
+
+    location = dreamWorldPrey
 
     onlySeenShatteredReflectionBefore = nil
     scaredByOwnReflection = nil
@@ -123,36 +120,13 @@ prey: Actor { 'The Prey'
                 //      yet, and handle that if not.
                 if (skashek.canSee(self)) { // Skashek walks in to check on you
                     "<<gSkashekName>> blinks and stares at you.
-                    <q>Ugh... I <i>knew</i> something about this cycle
+                    <q>Ugh... I <i>knew</i> something about this grow cycle
                     seemed wrong. I gotta save the log files, and make
                     sure I don't get another brain-death next time...</q> ";
-                    finishGameMsg(ftFailure, gEndingOptions);
+                    finishGameMsg(ftFailure, gEndingOptionsLoss);
                 }
             }
             exit;
-        }
-
-        if ((gActionIs(Attack) || gActionIs(AttackWith)) && gDobj == skashek) {
-            "<.p>
-            <i>It all happened so fast.</i>\b
-            Every tactical instinct in you said it was a bad idea. You were made
-            for <i>killing</i>, sure, but this felt like running headfirst into
-            death. Maybe a human would be so reckless, but you were programmed
-            to weigh the costs and benefits before deploying violence.\b
-            However, despite your instincts, your conscious mind had decided this
-            was the correct course of action.\b
-            <<gSkashekName>> <<if gIobj.bulk <= 1>>swiftly strikes your arm hard
-            enough to break it, and sends<<else>>lashes out with a kick,
-            sending<<end>>
-            <<gIobj.theName>> soaring across the space.\b
-            In one moment, you were attempting to recover, and the next moment
-            revealed your neck vacated of flesh, as it dribbled from his mouth.
-            You collapse in a pool of your own blood, rushing out of
-            fresh, gaping wounds.\b
-            The last thing you see is his expression, just as shocked and
-            surprised as your own.
-            <.p>";
-            finishGameMsg(ftDeath, gEndingOptions);
         }
     }
 
@@ -164,7 +138,24 @@ prey: Actor { 'The Prey'
         inherited();
 
         #if __DEBUG
-        soak();
+        local startWet = nil;
+        local startOutsideNet = true;
+        #endif
+
+        if (!gCatMode) {
+            #if __DEBUG
+            moveInto(startOutsideNet ? deliveryRoom : genericCatchNet);
+            #else
+            moveInto(genericCatchNet);
+            #endif
+        }
+
+        #if __DEBUG
+        hasLeftTheNet = startOutsideNet;
+        if (startWet) {
+            soak();
+            wombFluidTraces.moveInto(deliveryRoom);
+        }
         #else
         soak();
         #endif

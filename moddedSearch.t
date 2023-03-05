@@ -58,6 +58,11 @@ modify Room {
 }
 
 modify Thing {
+    // Fake contents allow objects to be treated as contents
+    // when they are actually located elsewhere.
+    fakeContents = nil
+    voluntaryFakeContentsItem = nil
+
     roomsTraveledUponLastSearch = 0
     skashekFoundHere = nil
     searchedFromDistance = nil
@@ -378,18 +383,35 @@ modify Thing {
     notObviousContainerMsg =
         '{The subj dobj} {do} not seem to carry or contain anything. '
     notFunctionalContainerMsg =
-        '{The subj dobj} {is} not a container to search. '
+        '{The subj dobj} {is} neither a container nor parkour route to search. '
 
     getListCount() {
-        return contents.length;
+        return contents.length + (fakeContents == nil ? 0 : fakeContents.length);
     }
     
     getNonSkashekList() {
-        return contents.subset({x: x != skashek});
+        local fullList = contents.subset({x: x != skashek});
+        fullList += forceListing(true);
+        return fullList;
     }
 
     listContentsOn(lst) {
         lookInLister.show(lst, self, true);
+        forceListing(nil);
+    }
+
+    forceListing(stat) {
+        local fakeContentsList = valToList(fakeContents);
+        for (local i = 1; i <= fakeContentsList.length; i++) {
+            fakeContentsList[i].voluntaryFakeContentsItem = stat;
+        }
+        return fakeContentsList;
+    }
+}
+
+modify lookInLister {
+    listed(obj) {
+        return (obj.searchListed && !obj.isHidden) || obj.voluntaryFakeContentsItem;
     }
 }
 

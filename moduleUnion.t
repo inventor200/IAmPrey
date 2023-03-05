@@ -52,16 +52,24 @@ modify actorInStagingLocation {
     }
 }
 
+#define holdActorStorage 100
+
 modify Thing {
-    bulk = (isDecoration ? 0 : 1)
+    bulk = ((isEnterable || isBoardable) ? 2 : (isDecoration ? 0 : 1))
+    bulkCapacity = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
+    maxSingleBulk = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
 
     sightSize = (bulk > 1 ? medium : small)
     soundSize = large
     smellSize = small
 
     canAttackWithMe = (isTakeable && gDobj == skashek)
-    cannotAttackMsg = 'Maybe a human would do that,
+    cannotAttackMsg = (gCatMode ?
+        'You like to think that you are a <i>merciful</i> ruler. '
+        :
+        'Maybe a human would do that,
         but {i} {do} not see the tactical benefit. '
+    )
 
     doClimbPunishment(actor, traveler, path) {
         actor.addExhaustion(1);
@@ -102,18 +110,31 @@ modify Thing {
     }
 }
 
-#define holdActorStorage 100
-#define holdsActors \
+modify Floor {
+    floorActions = [Examine, Search, SearchClose, SearchDistant, LookUnder, TakeFrom]
+
+    cannotLookUnderFloorMsg = 'It is impossible to look under <<theName>>. '
+
+    dobjFor(LookUnder) {
+        verify() {
+            illogical(cannotLookUnderFloorMsg);
+        }
+    }
+}
+
+#define betterStorageHeader \
     bulkCapacity = holdActorStorage \
     maxSingleBulk = holdActorStorage
 
-class ActorContainer: Thing {
-    holdsActors
+modify Surface {
+    bulk = 2
+    bulkCapacity = actorCapacity
+    maxSingleBulk = actorCapacity
 }
 
 modify Platform {
-    holdsActors
-
+    bulk = 2
+    betterStorageHeader
     hideFromAll(action) {
         if (isHeldBy(gPlayerChar)) {
             return nil;
@@ -123,8 +144,8 @@ modify Platform {
 }
 
 modify Booth {
-    holdsActors
-
+    bulk = 2
+    betterStorageHeader
     hideFromAll(action) {
         if (isHeldBy(gPlayerChar)) {
             return nil;
@@ -138,10 +159,12 @@ modify Door {
 }
 
 class FixedPlatform: Platform {
+    betterStorageHeader
     isFixed = true
 }
 
 class FixedBooth: Booth {
+    betterStorageHeader
     isFixed = true
 }
 
@@ -203,7 +226,7 @@ class HomeHaver: Thing {
 }
 
 class Chair: HomeHaver, Platform {
-    bulk = 2
+    //bulk = 2
     canSitOnMe = true
 
     dobjFor(SitIn) asDobjFor(SitOn)
@@ -212,13 +235,32 @@ class Chair: HomeHaver, Platform {
 class Mirror: Decoration {
     vocab = 'mirror'
     desc = "<<gActor.seeReflection(self)>>"
-    smashedVocab = ''
+    smashedVocab = 'smashed mirror;broken shattered'
     isSmashed = nil
     decorationActions = [Examine, LookIn]
+    isBreakable = true
 
     confirmSmashed() { }
 
     dobjFor(LookIn) asDobjFor(Examine)
+
+    dobjFor(Break) {
+        verify() {
+            if (isSmashed) illogical('It\'s already broken. ');
+            if (gActorIsCat) {
+                illogical('Your great wisdom advises against breaking the
+                    mirror. It\'s best to maintain the illusion of power in
+                    your old age. ');
+            }
+            inherited();
+        }
+        action() {
+            //TODO: Smash mirror
+        }
+        report() {
+            //TODO: Smash mirror
+        }
+    }
 }
 
 class SmashedMirror: Mirror {
@@ -306,6 +348,7 @@ mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[wea
 
     gaveWarning = nil
     armWarning = nil
+    canCutWithMe = true
 
     dobjFor(Break) {
         verify() {

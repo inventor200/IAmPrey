@@ -246,7 +246,7 @@ reservoir: Room { 'The Reactor Reservoir'
             <<gSkashekName>>. He sweeps you up in his arms and holds you close.\b
             <q>Bloody <i>hell</i>, <<gCatNickname>>, there are <i>other</i> ways to
             get my attention! I guess we're skipping bath time, then...</q>";
-            finishGameMsg(ftVictory, gEndingOptions);
+            finishGameMsg(ftVictory, gEndingOptionsWin);
         }
         else { //TODO: Write this better
             "You dive into the water, and the channel carries you. ";
@@ -261,7 +261,7 @@ reservoir: Room { 'The Reactor Reservoir'
 }
 
 +reservoirWaterFromAbove: Decoration { 'the water;;reservoir pit below down'
-    "TODO: Add description. "
+    "TODO: Add description.<<revealSkashekFishing()>> "
 
     decorationActions = [
         Examine, Search, SearchClose, SearchDistant, PeekInto, PeekThrough,
@@ -271,6 +271,7 @@ reservoir: Room { 'The Reactor Reservoir'
     notImportantMsg = '{The subj cobj} {is} too far away. '
     
     dobjFor(Search) asDobjFor(Examine)
+    dobjFor(LookIn) asDobjFor(Examine)
     dobjFor(SearchClose) asDobjFor(Examine)
     dobjFor(SearchDistant) asDobjFor(Examine)
     dobjFor(PeekInto) asDobjFor(Examine)
@@ -281,6 +282,67 @@ reservoir: Room { 'The Reactor Reservoir'
     dobjFor(ParkourJumpOverTo) asDobjFor(ParkourJumpDownInto)
     dobjFor(ParkourJumpDownTo) asDobjFor(ParkourJumpDownInto)
     dobjFor(ParkourJumpOverInto) asDobjFor(ParkourJumpDownInto)
+    dobjFor(ParkourJumpDownInto) {
+        preCond = nil
+        remap = nil
+        verify() { }
+        check() { }
+        action() {
+            reservoir.jumpIntoWater();
+        }
+        report() { }
+    }
+
+    skashekRevealedFishing = nil
+
+    revealSkashekFishing() {
+        if (!gCatMode) return '';
+        if (skashekRevealedFishing) return '';
+
+        skashekRevealedFishing = true;
+        skashekFishing.moveInto(reservoir);
+
+        return '\bIn the water below, you see <<gSkashekName>>.
+            It looks like he\'s collecting plants of some kind.\b
+            If you were to attack him for scheduling bath time,
+            then this would be a tactical method. Sure, it\'s a long way down,
+            but you could probably get him after landing in the water.
+            Element of surprise, and all that.';
+    }
+}
+
++reactorKelp: Decoration { 'plant;mutated subspecies[weak] leafy glowing white pale reactor[weak];kelp leaf{leaves}'
+    "They're hard to see from up here, but they vaguely look like pale leaves.
+    It might be an illusion, but they seem to glow slightly, too. Maybe it's a
+    mutated subspecies of kelp...? "
+    ambiguouslyPlural = true
+    notImportantMsg = '{The subj cobj} {is} too far away. '
+}
+
+modify VerbRule(Attack)
+    ('attack'|'kill'|'hit'|'kick'|'punch'|'strike'|'punish'|
+    ('lunge'|'dive') (('down'|) 'at'|)|'pounce' ('at'|'on'|'upon')|
+    'tackle'|'ambush') singleDobj :
+;
+
+skashekFishing: Decoration {
+    vocab = skashek.vocab
+    desc = "He seems to be collecting some kind of leafy plant, growing
+        in the reservoir water. He already has a collection, and seems
+        distracted. He has no idea you're up here. "
+
+    decorationActions = [
+        Examine,
+        ParkourJumpGeneric, ParkourJumpOverTo, ParkourJumpDownTo,
+        ParkourJumpOverInto, ParkourJumpDownInto, Attack
+    ]
+    notImportantMsg = 'He\'s a little too far down for that. '
+
+    dobjFor(ParkourJumpGeneric) asDobjFor(ParkourJumpDownInto)
+    dobjFor(ParkourJumpOverTo) asDobjFor(ParkourJumpDownInto)
+    dobjFor(ParkourJumpDownTo) asDobjFor(ParkourJumpDownInto)
+    dobjFor(ParkourJumpOverInto) asDobjFor(ParkourJumpDownInto)
+    dobjFor(Attack) asDobjFor(ParkourJumpDownInto)
     dobjFor(ParkourJumpDownInto) {
         preCond = nil
         remap = nil
@@ -305,6 +367,14 @@ humidAtmosphere: Atmosphere { 'air;humid moist wet;mist fog steam humidity moist
 
 reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     "TODO: Add description. "
+
+    dobjFor(LookUnder) {
+        verify() { }
+        action() {
+            doNested(Examine, reservoirWaterFromAbove);
+        }
+        report() { }
+    }
 }
 
 reservoirStrainer: Room { 'The Strainer Stage'

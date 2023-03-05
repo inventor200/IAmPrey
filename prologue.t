@@ -51,11 +51,11 @@ prologueCore: InitObject {
             'You are new to interactive fiction (<q><tt>IF</tt></q>), and are not
             versed in the usual controls or mechanics of parser-based text games.\n
             <b>This tutorial will also introduce you to the game\'s parkour
-            movement mechanics!\n
-            \t(AUTO-SNEAKING IS AVAILABLE)</b>\b
+            movement mechanics!<<if __CAT_HAS_SNEAK>>\n
+            \t<b>(AUTO-SNEAKING IS AVAILABLE)</b>\b<<end>>
             <i>(You play as the Predator\'s pet cat, and cannot read notes.
             However, the Predator will not chase you,
-            so you can freely explore the map at your own pace.)</i>'
+            so you can freely explore the majority of the map at your own pace.)</i>'
         );
         difficultyQuestion.add('2', 'Prey Tutorial',
             'You are new to <i>I Am Prey</i>, and have not used the

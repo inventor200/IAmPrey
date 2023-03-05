@@ -32,12 +32,10 @@ centralRoom: Room { 'Central Room'
     remapIn: SubComponent {
         isOpenable = true
         isEnterable = true
-        holdsActors
         includeGrate(cabinet)
     }
     remapOn: SubComponent {
         isBoardable = true
-        holdsActors
     }
 }
 ++HighFloorHeight;
