@@ -312,7 +312,7 @@ deliveryRoom: Room { 'The Delivery Room'
     }
 }
 ++AwkwardFloorHeight;
-++AwkwardProviderLink @artificialWombs ->northwestWomb;
+++ProviderLink @artificialWombs ->northwestWomb;
 ++ClimbOverPath ->southwestWomb;
 ++Thing { 'towel;shower;rag'
     "Plain, white towels, like what someone might find in a shower room. "
@@ -458,7 +458,7 @@ createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] wo
 }
 
 +deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n];hole hatch gap space[weak]'
-    "There is an opening or hatch in the ceiling, above the northwest artificial womb.
+    "There is a wide opening or hatch in the ceiling, above the northwest artificial womb.
     From it, data cables spill out.\b
     You notice some extra space around the cables, as if there
     are too few of them being threaded through. This also explains the cold air
@@ -479,6 +479,9 @@ deliveryRoomCables: ClimbUpPlatform { 'cables;server black dark insulated data t
     plural = true
 
     destination = serverRoomTop
+    oppositeLocalPlatform = dataCableServerExit
+
+    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
 }
 
 wombFluidTraces: Decoration { 'puddle;wet water;droplet string fluid'

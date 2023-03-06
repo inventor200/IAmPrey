@@ -17,12 +17,13 @@
 #define __IS_MAP_TEST nil
 
 #if __DEBUG
-///////////////////////////////////////////////
-////        PROLOGUE CONTROLLER:          ////
-/////////////////////////////////////////////
-/*()*/  #define __SHOW_PROLOGUE nil   /*()*/
-/*-*/  #define __FAST_DIFFICULTY 1   /*--*/
-//////////////////////////////////////////
+////////////////////////////////////////////////
+/////        PROLOGUE CONTROLLER:          ////
+//////////////////////////////////////////////
+/*(-)*/  #define __SHOW_PROLOGUE nil
+/*--*/  #define __FAST_DIFFICULTY 4
+/*-*/  #define __TEST_ROOM deliveryRoom
+///////////////////////////////////////*||*\
 
 // End compile modes
 
@@ -89,15 +90,14 @@ versionInfo: GameID {
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'
     showAbout() {
-        "I Am Prey is a game about situational awareness, evasion, and
+        "<i>I Am Prey</i> is a game about situational awareness, evasion, and
         escape.\b
         Parkour mechanics are available for the complex navigation of obstacles,
         while spreading soundwaves reward a stealthy playstyle,
         especially because the Predator is <i>always listening!</i>\b
         Ideally, the player will <i>never</i> want to be seen,
         but last-minute tricks can be used to ditch the predator during a chase!\b
-        <b>Find all seven pieces of the environment suit, and escape through the
-        emergency airlock to win!</b>\b
+        <<helpMessage.showHowToWinAndProgress()>>\b
         <i>This game is designed for casual replayability!</i>";
     }
     showCredit() {

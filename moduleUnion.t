@@ -29,7 +29,7 @@ hardImpactNoiseProfile: SoundProfile {
     'the muffled <i>crack</i> of something hitting the floor'
     'the echoing <i>ka-thump</i> of something hitting the floor'
     'the reverberating <i>wump</i> of something hitting the floor'
-    strength = 3
+    strength = 4
 
     afterEmission(room) {
         //say('\b(Emitted hard impact noise in <<room.roomTitle>>.)');
@@ -108,6 +108,12 @@ modify Thing {
             actor == gPlayerChar
         );
     }
+}
+
+#define roomCapacity 100000
+modify Room {
+    bulkCapacity = roomCapacity
+    maxSingleBulk = roomCapacity
 }
 
 modify Floor {

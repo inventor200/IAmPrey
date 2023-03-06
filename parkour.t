@@ -964,16 +964,21 @@ modify actorInStagingLocation {
             } \
         } \
         action() { \
-            if (gParkourRunner.location != stagingLocation) { \
-                local stagingParkourModule = stagingLocation.getParkourModule(); \
-                if (stagingParkourModule == nil) { \
-                    tryImplicitAction(stagingLocation.climbOnAlternative, stagingLocation); \
-                } \
-                else { \
-                    tryImplicitAction(Parkour##climbOrJump##parkourDir##To, stagingParkourModule); \
-                } \
+            if (simplyRerouteClimbInto) { \
+                doInstead(Parkour##climbOrJump##parkourDir##To, self); \
             } \
-            doInstead(remapAction, self); \
+            else { \
+                if (gParkourRunner.location != stagingLocation) { \
+                    local stagingParkourModule = stagingLocation.getParkourModule(); \
+                    if (stagingParkourModule == nil) { \
+                        tryImplicitAction(stagingLocation.climbOnAlternative, stagingLocation); \
+                    } \
+                    else { \
+                        tryImplicitAction(Parkour##climbOrJump##parkourDir##To, stagingParkourModule); \
+                    } \
+                } \
+                doInstead(remapAction, self); \
+            } \
         } \
         report() { } \
     }
@@ -1040,7 +1045,7 @@ modify actorInStagingLocation {
 #define announcePathDiscovery(str, reportMethod) \
     reportMethod('<.p>' + str + '<.p>')
 
-#define learnLocalPlatform(plat, reportMethod) \
+#define learnOnlyLocalPlatform(plat, reportMethod) \
     if (plat.secretLocalPlatform) { \
         local discoveryStr = \
             '(It seems that {i} {can} ' + \
@@ -1048,10 +1053,19 @@ modify actorInStagingLocation {
             '!) '; \
         announcePathDiscovery(discoveryStr, reportMethod); \
         plat.secretLocalPlatform = nil; \
-        if (plat.oppositeLocalPlatform != nil) { \
-            plat.oppositeLocalPlatform.secretLocalPlatform = nil; \
-        } \
     }
+
+#define learnMostlyLocalPlatform(plat, reportMethod) \
+    learnOnlyLocalPlatform(plat, reportMethod) \
+    else { \
+        announcePathDiscovery( \
+            '{I} notice{s/d} no new parkour possibilities, beyond what{dummy} {is} already known. ', \
+            reportMethod); \
+    }
+
+#define learnLocalPlatform(plat, reportMethod) \
+    learnOnlyLocalPlatform(plat, reportMethod) \
+    learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod)
 
 #define learnPath(path, reportMethod) \
     if (!path.isAcknowledged) { \
@@ -1232,6 +1246,10 @@ modify Thing {
     enterAlternative = (canGoThroughMe ? GoThrough : Enter)
     jumpOffAlternative = JumpOff
 
+    // If true, do not implicitly try an enter action for climb/jump into.
+    // Just handle it as climb/jump to, instead.
+    simplyRerouteClimbInto = nil
+
     dobjParkourRemap(ParkourClimbGeneric, climbOnAlternative)
     dobjParkourJumpOverRemapFix(ParkourJumpGeneric, climbOnAlternative)
     dobjParkourRemap(ParkourClimbUpTo, climbOnAlternative)
@@ -1296,6 +1314,9 @@ modify Thing {
     preferredBoardingAction = nil
     // The opposite side of a possible two-sided local platform
     oppositeLocalPlatform = nil
+    // After moving into the destination, the traveler will be moved
+    // to the destination platform
+    destinationPlatform = nil
 
     getPreferredBoardingAction() {
         if (preferredBoardingAction != nil) return preferredBoardingAction;
@@ -1407,13 +1428,15 @@ modify Thing {
         return nil;
     }
 
-    checkLocalPlatformReconHandled() {
-        learnLocalPlatform(self, extraReport);
-        return forcedLocalPlatform;
+    checkLocalPlatformReconHandled(previousSignal) {
+        if (!previousSignal && forcedLocalPlatform) {
+            learnMostlyLocalPlatform(self, extraReport);
+        }
+        return forcedLocalPlatform || previousSignal;
     }
 
     doRecon() {
-        if (checkLocalPlatformReconHandled()) {
+        if (checkLocalPlatformReconHandled(nil)) {
             return;
         }
 
@@ -1430,9 +1453,6 @@ modify Thing {
 
         if (!isLikelyContainer()) return;
 
-        // CHANGE_ID_PARKOUR_MOD_SWITCHOUT
-        //local pm = getParkourModule();
-        //if (pm != nil) pm.doRecon();
         if (parkourModule != nil) parkourModule.doRecon();
     }
 
@@ -1441,7 +1461,6 @@ modify Thing {
             if (confirmedParkourModule) return nil;
         }
         else {
-            // CHANGE_ID_PARKOUR_MOD_SWITCHOUT
             if (parkourModule != nil) return nil;
         }
         if (remapOn != nil) {
@@ -1682,7 +1701,6 @@ modify Thing {
         }
         report() {
             local status = isLikelyContainer();
-            // CHANGE_ID_PARKOUR_MOD_SWITCHOUT
             local parkourStatusStr = (parkourModule == nil ?
                 ', and is not prepared for parkour' :
                 ', and is prepared for parkour'
@@ -1745,9 +1763,6 @@ modify Thing {
 
     getExitLocationName() {
         if (exitLocation == nil) return 'the void';
-        // CHANGE_ID_PARKOUR_MOD_SWITCHOUT
-        //local pm = exitLocation.getParkourModule();
-        //if (pm != nil) {
         if (parkourModule != nil) {
             return getBetterDestinationName(parkourModule);
         }
@@ -2011,7 +2026,6 @@ modify SubComponent {
         check() { }
         action() {
             local status = isLikelyContainer();
-            // CHANGE_ID_PARKOUR_MOD_SWITCHOUT
             local parkourStatusStr = (parkourModule == nil ?
                 ', and is not prepared for parkour' :
                 ', and is prepared for parkour'
@@ -2252,9 +2266,9 @@ class ParkourModule: SubComponent {
     }
 
     doRecon() {
-        local platformSignal = checkLocalPlatformReconHandled();
+        local platformSignal = checkLocalPlatformReconHandled(nil);
         if (lexicalParent != nil) {
-            if (lexicalParent.checkLocalPlatformReconHandled()) {
+            if (lexicalParent.checkLocalPlatformReconHandled(platformSignal)) {
                 platformSignal = true;
             }
 
@@ -3697,9 +3711,26 @@ class DangerousProviderBridge: ParkourBridgeMaker {
     rerouteBasicClimbForPlatform(ParkourClimbOverInto, cannotEnterMsg) \
     rerouteBasicClimbForPlatform(ParkourJumpOverInto, cannotEnterMsg)
 
+#define asAliasFor(targetPlatform) \
+    unlistedLocalPlatform = true \
+    localAliasPlatform = targetPlatform \
+    oppositeLocalPlatform = (targetPlatform.oppositeLocalPlatform) \
+    dobjFor(TravelVia) { \
+        remap = targetPlatform \
+    } \
+    dobjFor(Search) { \
+        remap = targetPlatform \
+    }
+
 class LocalClimbPlatform: TravelConnector, Fixture {
     forcedLocalPlatform = true
     isConnectorListed = !secretLocalPlatform
+    destinationPlatform = (
+        oppositeLocalPlatform == nil ? nil :
+        (oppositeLocalPlatform.stagingLocation)
+    )
+
+    localAliasPlatform = self
 
     localPlatformGoesUpMsg =
         '{I} must go up to do that. '
@@ -3711,9 +3742,25 @@ class LocalClimbPlatform: TravelConnector, Fixture {
             [travelPermitted, actorInStagingLocation, objOpen] :
             [travelPermitted, actorInStagingLocation]
         )
+        check() {
+            inherited();
+            local pm = destinationPlatform.parkourModule;
+            if (pm != nil) pm.checkParkour(gActor);
+        }
         action() {
             inherited();
-            learnLocalPlatform(self, reportAfter);
+            learnLocalPlatform(localAliasPlatform, reportAfter);
+            if (destinationPlatform != nil) {
+                parkourCore.cacheParkourRunner(gActor);
+                local pm = destinationPlatform.parkourModule;
+                if (pm == nil) {
+                    gParkourRunner.actionMoveInto(destinationPlatform);
+                }
+                else {
+                    gParkourLastPath = self;
+                    pm.provideMoveFor(gParkourRunner);
+                }
+            }
         }
     }
 
@@ -3742,7 +3789,7 @@ class ClimbUpIntoPlatform: LocalClimbPlatform {
 }
 
 class ClimbUpEnterPlatform: ClimbUpIntoPlatform {
-    preferredBoardingAction = ParkourClimbUpInto
+    preferredBoardingAction = Enter
 }
 
 class ClimbDownPlatform: LocalClimbPlatform {
@@ -3760,7 +3807,7 @@ class ClimbDownIntoPlatform: LocalClimbPlatform {
 }
 
 class ClimbDownEnterPlatform: ClimbDownIntoPlatform {
-    preferredBoardingAction = ParkourClimbDownInto
+    preferredBoardingAction = Enter
 }
 
 #define configureDoorOrPassageAsLocalPlatform(targetAction) \
@@ -3801,7 +3848,7 @@ modify Door {
         action() {
             inherited();
             if (!gAction.isImplicit) {
-                learnLocalPlatform(self, reportAfter);
+                learnMostlyLocalPlatform(self, reportAfter);
             }
         }
     }

@@ -142,14 +142,6 @@ prey: Actor { 'The Prey;;me self myself'
         local startOutsideNet = true;
         #endif
 
-        if (!gCatMode) {
-            #if __DEBUG
-            moveInto(startOutsideNet ? deliveryRoom : genericCatchNet);
-            #else
-            moveInto(genericCatchNet);
-            #endif
-        }
-
         #if __DEBUG
         hasLeftTheNet = startOutsideNet;
         if (startWet) {

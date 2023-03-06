@@ -244,3 +244,57 @@ modify Instructions {
         gPlayerChar.getOutermostRoom().lookAroundWithin();
     }
 }
+
+modify helpMessage {
+    showHowToWinAndProgress() {
+        //TODO: Show progress
+        "<b>Find all seven pieces of the environment suit, and escape through the
+        emergency airlock to win!</b>";
+    }
+
+    showHeader() {
+        "<.p>
+        <<gDirectCmdStr('about')>> for a general summary.\n
+        <<gDirectCmdStr('credits')>> for author and tester credits.";
+        if (sneakyCore.allowSneak) {
+            "\b\t<b>AUTO-SNEAK is ENABLED!</b>\n
+            Use the <b>SNEAK</b> (or <q><b>SN</b></q>) command to automatically
+            sneak around the map! For example:\n
+            \t<b>SNEAK NORTH</b>\n
+            \t<b>SN THRU DOOR</b>\b
+            <b>REMEMBER:</b> This is a <i>learning tool!</i> The <b>SNEAK</b>
+            command <i>will be disabled outside of tutorial modes,</i>
+            meaning you will need to remember to <b>LISTEN</b>, <b>PEEK</b>,
+            and <b>CLOSE DOOR</b> on your own!\b
+            If you'd rather practice without auto-sneak, simply enter in
+            <<gDirectCmdStr('sneak off')>>.\b
+            <b>REMEMBER:</b> You are always free to
+            <<gDirectCmdStr('turn sneak back on')>> in a tutorial mode!";
+        }
+    }
+
+    printMsg() {
+        showHowToWinAndProgress();
+
+        "\bFor a categorized guide on how to play this game, type in the
+        <<gDirectCmdStr('instructions')>> command at the prompt.
+        This could be necessary, if you are new to
+        interactive fiction (<q><tt>IF</tt></q>), text games, parser games,
+        text adventures, etc.\b
+        For a reference list of verbs and commands, type in
+        <<gDirectCmdStr('verbs')>>.\b
+        Remember, you can always explore a simplified version of the
+        world&mdash;<i>without spending turns</i>&mdash;as long as you are
+        in <i>map mode!</i>\n
+        Use the <<gDirectCmdStr('map')>> command to enter or leave map mode!";
+        
+        /*if(defined(extraHintManager))
+           extraHintManager.explainExtraHints();*/
+        
+        showHeader();
+    }
+
+    briefIntro() {
+        Instructions.showInstructions();
+    }
+}

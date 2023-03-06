@@ -231,9 +231,14 @@ reservoir: Room { 'The Reactor Reservoir'
         if (gCatMode) {
             "Your regal confidence might have been a little <i>too</i> high this time,
             but you only wonder this for a few moments before you are
-            swallowed by the hot reactor water. In a split second, you think
-            you see <<gSkashekName>>, searching the water for something.\b
-            <i><q><<gCatName>>?!</q></i> he screams, already sputtering
+            swallowed by the hot reactor water.<<
+            if !skashekFishing.skashekRevealedFishing>>
+            In a split second, you think  you see
+            <<gSkashekName>>, searching the water for something.<<end>>\b
+            <i><q><<gCatName>>?!</q></i>
+            <<if skashekFishing.skashekRevealedFishing>><<gSkashekName>><<else
+            >>he<<end>>
+            screams, already sputtering
             through the water after you, and ditching an armful of harvested kelp.\b
             You thrash and reach the steamy surface, as the channel
             carries you and your echoing, panicked meows. Everything in you
@@ -293,21 +298,11 @@ reservoir: Room { 'The Reactor Reservoir'
         report() { }
     }
 
-    skashekRevealedFishing = nil
-
     revealSkashekFishing() {
         if (!gCatMode) return '';
-        if (skashekRevealedFishing) return '';
-
-        skashekRevealedFishing = true;
-        skashekFishing.moveInto(reservoir);
-
-        return '\bIn the water below, you see <<gSkashekName>>.
-            It looks like he\'s collecting plants of some kind.\b
-            If you were to attack him for scheduling bath time,
-            then this would be a tactical method. Sure, it\'s a long way down,
-            but you could probably get him after landing in the water.
-            Element of surprise, and all that.';
+        if (skashekFishing.skashekRevealedFishing &&
+            skashekFishing.suggestedAttack) return '';
+        return skashekFishing.suggestAttackInObservation();
     }
 }
 
@@ -327,9 +322,7 @@ modify VerbRule(Attack)
 
 skashekFishing: Decoration {
     vocab = skashek.vocab
-    desc = "He seems to be collecting some kind of leafy plant, growing
-        in the reservoir water. He already has a collection, and seems
-        distracted. He has no idea you're up here. "
+    desc = "<<suggestAttackInObservation()>>"
 
     decorationActions = [
         Examine,
@@ -337,6 +330,9 @@ skashekFishing: Decoration {
         ParkourJumpOverInto, ParkourJumpDownInto, Attack
     ]
     notImportantMsg = 'He\'s a little too far down for that. '
+
+    specialDesc = "<<gSkashekName>> is down in the water, gathering strange
+        plants again. "
 
     dobjFor(ParkourJumpGeneric) asDobjFor(ParkourJumpDownInto)
     dobjFor(ParkourJumpOverTo) asDobjFor(ParkourJumpDownInto)
@@ -353,9 +349,48 @@ skashekFishing: Decoration {
         }
         report() { }
     }
+
+    suggestedAttack = nil
+    skashekRevealedFishing = nil
+
+    strikeSuggestionMsg = 
+        '\bYou could probably strike him from up here.
+        Sure, it\'s a long way down, but there\'s plenty of warm water
+        to break your fall. Element of surprise, and all that. ';
+
+    revealFishing() {
+        if (skashekRevealedFishing) return;
+        skashekRevealedFishing = true;
+        skashekFishing.moveInto(reservoir);
+    }
+
+    suggestAttackInObservation() {
+        if (suggestedAttack) return
+            'He seems to be collecting some kind of leafy plant, growing
+            in the reservoir water. He already has a collection, and seems
+            distracted. He has no idea you\'re up here. ';
+        suggestedAttack = true;
+        local extraMsg = skashekRevealedFishing ?
+            '\b<i>There he is, the scoundrel!</i>
+            <<gSkashekName>> is in the reservoir water,
+            just as you <i>brilliantly</i> suspected!'
+            :
+            '\bIn the water below, you see <<gSkashekName>>.
+            It looks like he\'s collecting plants of some kind.';
+        extraMsg += strikeSuggestionMsg;
+        revealFishing();
+        return extraMsg;
+    }
+
+    suggestAttackInSuspicion() {
+        if (skashekRevealedFishing) return '';
+        revealFishing();
+        return '\b<i>Hmmm... He should be in the reservoir,
+            gathering strange plants again...</i>';
+    }
 }
 
-reservoirCeilingFan: Ceiling { 'large ceiling fan'
+reservoirCeilingFan: Ceiling { 'large ceiling[n] fan'
     "TODO: Add description."
 }
 

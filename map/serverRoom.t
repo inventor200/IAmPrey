@@ -57,7 +57,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     isFreezing = true
 }
 
-+serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening hatch hole'
++serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening[weak] hatch[weak] hole[weak]'
     "TODO: Add description. "
 
     travelDesc =
@@ -70,6 +70,39 @@ serverRoomTop: Room { 'The Chilled Server Room'
         <<freezer.subclauseAmbienceOnExit>><<end>>.<<end>> "
 
     destination = serverRoomBottom
+}
+
++dataCableAlcove: FixedPlatform { 'floor[n] of[prep] the alcove;data cable to[prep] delivery[n] room[weak] raised'
+    "Part of the room is built atop the northwest corner of the Delivery Room,
+    which creates the shape of the raised alcove to the southeast. "
+
+    simplyRerouteClimbInto = true
+}
+++AwkwardFloorHeight;
+++dataCableServerExit: ClimbDownEnterPlatform { 'opening;extra[weak] in[prep] the floor[n] alcove[weak] cable[weak];hole hatch gap space[weak] exit'
+    "There is a wide opening or hatch in the floor of the alcove.
+    Through it, data cables feed into the Delivery Room.\b
+    You notice some extra space around the cables, as if there
+    are too few of them being threaded through. "
+
+    oppositeLocalPlatform = deliveryRoomCables
+    destination = deliveryRoom
+
+    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
+
+    travelDesc = "You squeeze through the opening, climb down the data cables,
+        and come to an uneasy landing on the northwest artificial womb. "
+}
+++serverRoomCables: ClimbDownPlatform { 'cables;server black dark insulated data hanging[weak] on[prep] ceiling[n];bundles[weak] wires cords connections'
+    "Thick, dark, data cables feed into an
+    <<if gPlayerChar.isIn(dataCableAlcove)>>alcove<<else
+    >>opening in the floor of the alcove<<end
+    >>, from multiple server banks in the small room. "
+    plural = true
+
+    dobjFor(SqueezeThrough) asDobjFor(TravelVia)
+
+    asAliasFor(dataCableServerExit)
 }
 
 // Has access to coolingDuctUpperOuterGrate

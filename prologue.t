@@ -47,56 +47,21 @@ prologueCore: InitObject {
         inputManager.pauseForMore();
         "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
-        difficultyQuestion.add('1', 'Cat Tutorial',
-            'You are new to interactive fiction (<q><tt>IF</tt></q>), and are not
-            versed in the usual controls or mechanics of parser-based text games.\n
-            <b>This tutorial will also introduce you to the game\'s parkour
-            movement mechanics!<<if __CAT_HAS_SNEAK>>\n
-            \t<b>(AUTO-SNEAKING IS AVAILABLE)</b>\b<<end>>
-            <i>(You play as the Predator\'s pet cat, and cannot read notes.
-            However, the Predator will not chase you,
-            so you can freely explore the majority of the map at your own pace.)</i>'
-        );
-        difficultyQuestion.add('2', 'Prey Tutorial',
-            'You are new to <i>I Am Prey</i>, and have not used the
-            stealth or chase mechanics before.\n
-            \t<b>(AUTO-SNEAKING IS AVAILABLE)</b>\b
-            <i>(The Predator will only fall for <b>each type</b> of trick
-            <b>three</b> times.)</i>'
-        );
-        difficultyQuestion.add('3', 'Easy Mode',
-            'The Predator has had a string of victories, and will go
-            easy on you, mostly for his own entertainment.\b
-            <i>(The Predator will only fall for <b>each type</b> of trick
-            <b>twice</b>.)</i>'
-        );
-        difficultyQuestion.add('4', 'Medium Mode',
-            'The Predator revels in his apparent sense of superiority over you.
-            This hunt will have the typical amount of sadism.\b
-            <i>(The Predator will only fall for <b>each type</b> of trick
-            <b>once</b>.)</i>'
-        );
-        difficultyQuestion.add('5', 'Hard Mode',
-            'The Predator must be furious, and is taking all of his
-            rage out on you, during this hunt.\b
-            <i>(The Predator will only fall for
-            <b>a total of three tricks</b>, regardless of type,
-            and the prologue will be skipped.)</i>'
-        );
-        difficultyQuestion.add('6', 'Nightmare Mode',
-            'What the <i>fuck?!</i> Something has really gotten into the Predator
-            today! His cruelty is <i>insatiable!</i>\b
-            <i>(The Predator will never fall for <b>any tricks</b>,
-            and the prologue will be skipped.)</i>'
-        );
+        local difficulties = huntCore.difficultySettings;
+        for (local i = 1; i <= difficulties.length; i++) {
+            local difficulty = difficulties[i];
+            difficultyQuestion.add(toString(i), difficulty.title, difficulty.getBlurb());
+        }
         local result = difficultyQuestion.ask();
         huntCore.setDifficult(result);
         cls();
-        if (result == 1) {
-            catCutscene.play();
-        }
-        else if (result < 5) {
-            introCutscene.play();
+        if (!huntCore.difficultySettingObj.skipPrologue) {
+            if (result == 1) {
+                catCutscene.play();
+            }
+            else {
+                introCutscene.play();
+            }
         }
         #endif // end is map test
         "\b";
@@ -107,20 +72,11 @@ prologueCore: InitObject {
 
     play() {
         #if __SHOW_PROLOGUE
-        /*"<center><b><tt>IF HELP IS NEEDED</tt></b></center>\b
-        For those new to interactive fiction and text games, use the HELP
-        command to get a crash-course, specifically written with this game
-        in mind.\b
-        For those new to <i>this game in particular</i>, use the EXTRAS ON
-        command to get occasional messages in the form of an on-the-go tutorial.
-        You can disable these later with EXTRAS OFF.
-        <b>EXTRAS do not contain puzzle solutions, hints, or spoilers!</b>\b
-        If you ever forget how to do something, the VERBS command provides
-        a reference for all the other commands, verbs, and actions available
-        to you.";*/
-        "\b\b\b<i>Remeber to use the</i> <b>VERBS</b> <i>command, which will provide
-        a reference for all actions and commands that are useful throughout
-        this game!</i>
+        "\b\b\b<i>Use the</i> <<gDirectCmdStr('help')>> <i>command,
+        if you would like written tutorials or other info resources.\b
+        You can also use the</i> <<gDirectCmdStr('verbs')>> <i>command,
+        which will provide a reference for all actions and commands that are
+        useful throughout this game!</i>
         \b\b\b";
         #endif
         "<center><small>WELCOME TO...</small>\b
@@ -131,25 +87,14 @@ prologueCore: InitObject {
         #if __IS_MAP_TEST
         "\b<i><q>The limited edition for testers!</q></i>\n(The full game will <b>not</b> be a cat game, lol)";
         #endif
-        "</center>\b
-        <<gDirectCmdStr('about')>> for a general summary.\n
-        <<gDirectCmdStr('credits')>> for author and tester credits.";
-        if (sneakyCore.allowSneak) {
-            "\b\t<b>AUTO-SNEAK is ENABLED!</b>\n
-            Use the <b>SNEAK</b> (or <q><b>SN</b></q>) command to automatically
-            sneak around the map! For example:\n
-            \t<b>SNEAK NORTH</b>\n
-            \t<b>SN THRU DOOR</b>\b
-            <b>REMEMBER:</b> This is a <i>learning tool!</i> The <b>SNEAK</b>
-            command <i>will be disabled outside of tutorial modes,</i>
-            meaning you will need to remember to <b>LISTEN</b>, <b>PEEK</b>,
-            and <b>CLOSE DOOR</b> on your own!\b
-            If you'd rather practice without auto-sneak, simply enter in
-            <<gDirectCmdStr('sneak off')>>.\b
-            <b>REMEMBER:</b> You are always free to
-            <<gDirectCmdStr('turn sneak back on')>> in a tutorial mode!";
-        }
-        "\b";
+        "</center>";
+        helpMessage.showHeader();
+        "\b<<if gCatMode>>
+        <b>REMEMBER:</b> In Cat Mode, you are free to explore! There is no pressure to
+        <q>win</q> or <q>solve a puzzle</q> here! Once you are satisfied with your
+        free-form exploration, use the <<gDirectCmdStr('restart')>> command to choose
+        another difficulty, and begin a new game!
+        <<end>>\b";
     }
 
     execute() {

@@ -7,14 +7,134 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
 
 #define __DEBUG_SKASHEK_ACTIONS true
-#define __CAT_HAS_SNEAK nil
+
+class DifficultySetting: object {
+    title = '(unnamed difficulty)'
+    generalBlurb = ''
+    hasSneak = nil
+    isCatMode = nil
+    trickCount = 3
+    tricksFromPool = nil
+    turnsBeforeSkashekChecks = 3
+    skipPrologue = nil
+
+    getBlurb() {
+        local strBfr = new StringBuffer(12);
+        strBfr.append(generalBlurb);
+        if (hasSneak) {
+            strBfr.append('\n\t<b>(AUTO-SNEAKING IS AVAILABLE)</b>');
+        }
+        strBfr.append('\b<i>(');
+
+        if (isCatMode) {
+            strBfr.append('You play as the Predator\'s pet cat, and cannot read notes.
+            However, the Predator will not chase you,
+            so you can freely explore the majority of the map at your own pace');
+        }
+        else if (trickCount == 0) {
+            strBfr.append('The Predator will never fall for <b>any tricks</b>');
+        }
+        else if (tricksFromPool) {
+            strBfr.append('The Predator will only fall for
+            <b>a total of ');
+            strBfr.append(spellNumber(trickCount));
+            strBfr.append(' tricks</b>, regardless of type');
+        }
+        else {
+            strBfr.append('The Predator will only fall for <b>each type</b> of trick <b>');
+            strBfr.append(spellNumber(trickCount));
+            strBfr.append('</b> time');
+            if (trickCount != 1) {
+                strBfr.append('s');
+            }
+        }
+
+        if (skipPrologue) {
+            strBfr.append(', and the prologue will be skipped.');
+        }
+        else {
+            strBfr.append('.');
+        }
+
+        strBfr.append(')</i>');
+        return toString(strBfr);
+    }
+}
+
+basicTutorialSetting: DifficultySetting {
+    title = 'Cat Mode'
+    generalBlurb =
+        'You are new to interactive fiction (<q><tt>IF</tt></q>), and are not
+        versed in the usual controls or mechanics of parser-based text games.\n
+        <b>This tutorial will also introduce you to the game\'s parkour
+        movement mechanics!</b>'
+    isCatMode = true
+}
+
+preyTutorialSetting: DifficultySetting {
+    title = 'Prey Tutorial'
+    generalBlurb =
+        'You are new to <i>I Am Prey</i>, and have not used the
+        stealth or chase mechanics before.'
+    hasSneak = true
+}
+
+easyModeSetting: DifficultySetting {
+    title = 'Easy Mode'
+    generalBlurb =
+        'The Predator has had a string of victories, and will go
+        easy on you, mostly for his own entertainment.'
+    trickCount = 2
+    turnsBeforeSkashekChecks = 3
+}
+
+mediumModeSetting: DifficultySetting {
+    title = 'Medium Mode'
+    generalBlurb =
+        'The Predator revels in his apparent sense of superiority over you.
+        This hunt will have the typical amount of sadism.'
+    trickCount = 1
+    turnsBeforeSkashekChecks = 3
+}
+
+hardModeSetting: DifficultySetting {
+    title = 'Hard Mode'
+    generalBlurb =
+        'The Predator must be furious, and is taking all of his
+        rage out on you, during this hunt.'
+    trickCount = 3
+    tricksFromPool = true
+    turnsBeforeSkashekChecks = 2
+    skipPrologue = true
+}
+
+nightmareModeSetting: DifficultySetting {
+    title = 'Nightmare Mode'
+    generalBlurb =
+        'What the <i>fuck?!</i> Something has really gotten into the Predator
+        today! His cruelty is <i>insatiable!</i>'
+    trickCount = 0
+    turnsBeforeSkashekChecks = 1
+    skipPrologue = true
+}
 
 huntCore: InitObject {
     revokedFreeTurn = nil
     inMapMode = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
+
+    difficultySettings = static [
+        basicTutorialSetting,
+        preyTutorialSetting,
+        easyModeSetting,
+        mediumModeSetting,
+        hardModeSetting,
+        nightmareModeSetting
+    ]
+
     difficulty = mediumMode
+    difficultySettingObj = mediumModeSetting
 
     execBeforeMe = [prologueCore]
     bathTimeFuse = nil
@@ -26,42 +146,41 @@ huntCore: InitObject {
     playerAction = nil
     playerActionActor = nil
 
-    setDifficult(index, midGame?) {
+    setDifficult(index, midGame?) { //TODO: Set according to difficulty setting objects
         sneakyCore.armSneaking = nil;
         sneakyCore.armEndSneaking = nil;
         sneakyCore.sneakDirection = nil;
         switch (index) {
             case 1:
                 difficulty = basicTutorial;
-                #if __CAT_HAS_SNEAK
-                sneakyCore.allowSneak = true;
-                sneakyCore.sneakSafetyOn = true;
-                #endif
-                moveCat();
                 break;
             case 2:
                 difficulty = preyTutorial;
-                sneakyCore.allowSneak = true;
-                sneakyCore.sneakSafetyOn = true;
-                if (!midGame) movePrey();
                 break;
             case 3:
                 difficulty = easyMode;
-                if (!midGame) movePrey();
                 break;
             case 4:
                 difficulty = mediumMode;
-                if (!midGame) movePrey();
                 break;
             case 5:
                 difficulty = hardMode;
-                if (!midGame) movePrey();
                 break;
             case 6:
                 difficulty = nightmareMode;
-                if (!midGame) movePrey();
                 break;
         }
+        difficultySettingObj = difficultySettings[index];
+        if (!midGame) {
+            if (index == 1) {
+                moveCat();
+            }
+            else {
+                movePrey();
+            }
+        }
+        sneakyCore.allowSneak = difficultySettingObj.hasSneak;
+        sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
     }
 
     moveCat() {
@@ -77,7 +196,7 @@ huntCore: InitObject {
 
         bathTimeFuse = new Fuse(self, &startBathTime, 9);
         #if __DEBUG
-        cat.moveInto(serverRoomTop);
+        cat.moveInto(__TEST_ROOM);
         #else
         cat.moveInto(directorsOffice); //TODO: Add cat bed
         #endif
@@ -85,7 +204,7 @@ huntCore: InitObject {
 
     movePrey() {
         #if __DEBUG
-        prey.moveInto(deliveryRoom);
+        prey.moveInto(__TEST_ROOM);
         #else
         prey.moveInto(genericCatchNet); //TODO: Add cat bed
         #endif
@@ -99,22 +218,15 @@ huntCore: InitObject {
         #endif
     }
 
-    /*execute() {
-        if (inCatMode) {
-            bathTimeFuse = new Fuse(self, &startBathTime, 9);
-        }
-    }*/
-
-    startBathTime() { //TODO: He makes his way to the Director's Office to look
+    startBathTime() {
         wasBathTimeAnnounced = true;
         "<.p>The voice of your Royal Subject is heard over the facility's
         intercom:\n
         <q><<gCatNickname>>...!
         It's bath time! I can smell you from the other side of the facility!</q>\b
         Oh no. You fucking <i>hate</i> bath time...!! Time to make
-        the Royal Subject <i>regret</i> that!\b
-        <i>Hmmm... He should be in the reservoir,
-        gathering strange plants again...</i>";
+        the Royal Subject <i>regret</i> that!<<
+        skashekFishing.suggestAttackInSuspicion()>> ";
         bathTimeFuse = nil;
     }
 
