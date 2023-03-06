@@ -699,6 +699,7 @@ modify Door {
     hasCatFlap = nil
     catFlap = nil
     airlockDoor = nil
+    isVentGrateDoor = nil
     closingFuse = nil
     closingDelay = 3
 
@@ -1103,7 +1104,7 @@ modify Door {
 
     dobjFor(Open) {
         verify() {
-            if (gActorIsCat) {
+            if (gActorIsCat && !isVentGrateDoor) {
                 illogical('{That subj dobj} {is} too heavy for an old cat to open.<<
                 if hasCatFlap>> That\'s probably why the Royal Subject installed a cat
                 flap<<first time>> <i>(cut a ragged square hold into the bottom with
@@ -1351,6 +1352,7 @@ modify Room {
         for (local i = 1; i <= scopeList.length; i++) {
             local obj = scopeList[i];
             if (!gPlayerChar.canSee(obj)) continue;
+            if (!obj.isConnectorListed) continue;
             if (!obj.ofKind(Door)) continue;
             if (obj.isStatusSuspiciousTo(skashek, &skashekCloseExpectationFuse)) {
                 suspiciousDoors.appendUnique(obj);

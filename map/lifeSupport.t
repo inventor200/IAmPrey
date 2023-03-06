@@ -274,19 +274,19 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
 
 +coolingDuctUpperInnerGrate: CoolingDuctGrate {
     vocab = coolingDuctUpperOuterGrate.vocab
-    desc = coolingDuctUpperOuterGrate.desc
+    //desc = coolingDuctUpperOuterGrate.desc
     otherSide = coolingDuctUpperOuterGrate
 
     passActionStr = 'exit'
 }
 
 coolingDuctUpperOuterGrate: CoolingDuctGrate { 'cooling outlet grate;access duct' @serverRoomTop
-    "TODO: Add description. "
+    //"TODO: Add description. "
 
     otherSide = coolingDuctUpperInnerGrate
 }
 
-class CoolingDuctGrate: Door { //TODO: Create a proper grate class
+class CoolingDuctGrate: VentGrateDoor {
     airlockDoor = true
     isTransparent = true
 

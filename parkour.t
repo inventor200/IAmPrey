@@ -446,7 +446,8 @@ DefineTAction(DebugCheckForContainer)
 parkourCore: object {
     requireRouteRecon = true
     formatForScreenReader = (gFormatForScreenReader)
-    autoPathCanDiscover = (!requireRouteRecon)
+    //autoPathCanDiscover = (!requireRouteRecon)
+    autoPathCanDiscover = true
     announceRouteAfterTrying = true
     maxReconsPerTurn = 3
 
@@ -1055,14 +1056,6 @@ modify actorInStagingLocation {
         plat.secretLocalPlatform = nil; \
     }
 
-#define learnMostlyLocalPlatform(plat, reportMethod) \
-    learnOnlyLocalPlatform(plat, reportMethod) \
-    else { \
-        announcePathDiscovery( \
-            '{I} notice{s/d} no new parkour possibilities, beyond what{dummy} {is} already known. ', \
-            reportMethod); \
-    }
-
 #define learnLocalPlatform(plat, reportMethod) \
     learnOnlyLocalPlatform(plat, reportMethod) \
     learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod)
@@ -1430,7 +1423,7 @@ modify Thing {
 
     checkLocalPlatformReconHandled(previousSignal) {
         if (!previousSignal && forcedLocalPlatform) {
-            learnMostlyLocalPlatform(self, extraReport);
+            learnOnlyLocalPlatform(self, extraReport);
         }
         return forcedLocalPlatform || previousSignal;
     }
@@ -1760,6 +1753,8 @@ modify Thing {
         '{I} {cannot} do parkour right now. '
     alreadyOnParkourModuleMsg =
         '{I} {am} already on {that dobj}. '
+    noNewRoutesMsg =
+        '{I} notice{s/d} no new parkour possibilities, beyond what{dummy} {is} already known. '
 
     getExitLocationName() {
         if (exitLocation == nil) return 'the void';
@@ -3848,7 +3843,7 @@ modify Door {
         action() {
             inherited();
             if (!gAction.isImplicit) {
-                learnMostlyLocalPlatform(self, reportAfter);
+                learnOnlyLocalPlatform(self, reportAfter);
             }
         }
     }

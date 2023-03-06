@@ -10,7 +10,7 @@
 #include "testArea.t"
 #endif
 #include "mainHallway.t"      // Stage: Muffle
-#include "deliveryRoom.t"     // Stage: Muffle
+#include "deliveryRoom.t"     // Stage: Parkour
 #include "breakroom.t"        // Stage: Muffle
 #include "administration.t"   // Stage: Muffle
 #include "securityOffice.t"   // Stage: Muffle
@@ -27,9 +27,10 @@
 #include "bathrooms.t"        // Stage: Muffle
 #include "utilityPassage.t"   // Stage: Muffle
 #include "lifeSupport.t"      // Stage: Muffle
-#include "serverRoom.t"       // Stage: Muffle
+#include "serverRoom.t"       // Stage: Parkour
 #include "itOffice.t"         // Stage: Muffle
 #include "hangar.t"           // Stage: Muffle
 #include "kitchen.t"          // Stage: Muffle
 #include "freezer.t"          // Stage: Muffle
 #include "reservoir.t"        // Stage: Muffle
+#include "ventilationNode.t"  // Stage: Muffle

@@ -77,13 +77,20 @@ modify Thing {
     distantSearchDesc = "{The subj dobj} seem{s/ed} safe from here. "
     alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} safe from here. "
 
+    noSearchResultsAtAllMsg =
+        'You find nothing of interest about <<theName>>. ';
+
     dobjFor(Search) {
         preCond = nil
         remap = nil
         verify() { verifyGenericSearch(); }
         check() { }
         action() { doGenericSearch(); }
-        report() { }
+        report() {
+            if (!successfulGenericSearch) {
+                say(noSearchResultsAtAllMsg);
+            }
+        }
     }
 
     verifyGenericSearch() {
