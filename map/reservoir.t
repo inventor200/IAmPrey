@@ -179,6 +179,7 @@ DefineWindowPair(reservoirControlRoom, reservoir)
  * harmful).
  */
 
+//TODO: Add ambient stuff for all the water going everywhere
 reservoir: Room { 'The Reactor Reservoir'
     "TODO: Add description. "
 

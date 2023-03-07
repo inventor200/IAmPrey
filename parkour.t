@@ -21,7 +21,7 @@ VerbRule(ParkourClimbOverTo)
     ('climb'|'cl'|'get'|'step') genericAcrossPrep singleDobj
     : VerbProduction
     action = ParkourClimbOverTo
-    verbPhrase = 'climb over to (what)'
+    verbPhrase = 'climb/climbing over to (what)'
     missingQ = 'what do you want to climb over to'
 ;
 
@@ -33,7 +33,7 @@ VerbRule(ParkourClimbOverInto)
     ('climb'|'cl'|'get'|'step') expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbOverInto
-    verbPhrase = 'climb through (what)'
+    verbPhrase = 'climb/climbing through (what)'
     missingQ = 'what do you want to climb through'
 ;
 
@@ -45,7 +45,7 @@ VerbRule(ParkourJumpOverTo)
     ('jump'|'jm'|'hop'|'leap') genericAcrossPrep singleDobj
     : VerbProduction
     action = ParkourJumpOverTo
-    verbPhrase = 'jump to (what)'
+    verbPhrase = 'jump/jumping to (what)'
     missingQ = 'what do you want to jump to'
 ;
 
@@ -57,7 +57,7 @@ VerbRule(ParkourJumpOverInto)
     ('jump'|'jm'|'hop'|'leap'|'dive') expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpOverInto
-    verbPhrase = 'jump through (what)'
+    verbPhrase = 'jump/jumping through (what)'
     missingQ = 'what do you want to jump through'
 ;
 
@@ -70,7 +70,7 @@ VerbRule(ParkourJumpUpTo)
     ('clamber'|'scale') singleDobj
     : VerbProduction
     action = ParkourJumpUpTo
-    verbPhrase = 'jump up (what)'
+    verbPhrase = 'jump/jumping up (what)'
     missingQ = 'what do you want to jump up'
 ;
 
@@ -82,7 +82,7 @@ VerbRule(ParkourJumpUpInto)
     ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'wall' 'run'|'wallrun'|'run'|'sprint') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpUpInto
-    verbPhrase = 'jump up into (what)'
+    verbPhrase = 'jump/jumping up into (what)'
     missingQ = 'what do you want to jump up into'
 ;
 
@@ -94,7 +94,7 @@ VerbRule(ParkourJumpDownTo)
     ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall') 'down' 'to' singleDobj
     : VerbProduction
     action = ParkourJumpDownTo
-    verbPhrase = 'jump down to (what)'
+    verbPhrase = 'jump/jumping down to (what)'
     missingQ = 'what do you want to jump down to'
 ;
 
@@ -106,7 +106,7 @@ VerbRule(ParkourJumpDownInto)
     ('jump'|'jm'|'hop'|'leap'|'clamber'|'scramble'|'drop'|'fall'|'dive') 'down' expandedInto singleDobj
     : VerbProduction
     action = ParkourJumpDownInto
-    verbPhrase = 'jump down into (what)'
+    verbPhrase = 'jump/jumping down into (what)'
     missingQ = 'what do you want to jump down into'
 ;
 
@@ -118,7 +118,7 @@ VerbRule(ParkourClimbDownTo)
     ('climb'|'cl'|'get'|'step'|'descend') 'down' 'to' singleDobj
     : VerbProduction
     action = ParkourClimbDownTo
-    verbPhrase = 'climb down to (what)'
+    verbPhrase = 'climb/climbing down to (what)'
     missingQ = 'what do you want to climb down to'
 ;
 
@@ -130,7 +130,7 @@ VerbRule(ParkourClimbDownInto)
     ('climb'|'cl'|'get'|'step'|'descend') 'down' expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbDownInto
-    verbPhrase = 'climb down into (what)'
+    verbPhrase = 'climb/climbing down into (what)'
     missingQ = 'what do you want to climb down into'
 ;
 
@@ -142,7 +142,7 @@ VerbRule(ParkourClimbUpInto)
     ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour'|'scale'|'ascend') 'up' expandedInto singleDobj
     : VerbProduction
     action = ParkourClimbUpInto
-    verbPhrase = 'climb up into (what)'
+    verbPhrase = 'climb/climbing up into (what)'
     missingQ = 'what do you want to climb up into'
 ;
 
@@ -154,7 +154,7 @@ VerbRule(ParkourClimbUpTo)
     ('climb'|'cl'|'mantel'|'mantle'|'go'|'walk'|'parkour'|'scale'|'ascend') ('up' expandedUpSideOf|genericOnTopOfPrep) singleDobj
     : VerbProduction
     action = ParkourClimbUpTo
-    verbPhrase = 'climb up to (what)'
+    verbPhrase = 'climb/climbing up to (what)'
     missingQ = 'what do you want to climb up to'
 ;
 
@@ -166,7 +166,7 @@ VerbRule(ParkourJumpGeneric)
     ('jump'|'hop'|'leap'|'jm') singleDobj
     : VerbProduction
     action = ParkourJumpGeneric
-    verbPhrase = 'jump somehow to (what)'
+    verbPhrase = 'jump/jumping somehow to (what)'
     missingQ = 'what do you want to jump to'
 ;
 
@@ -180,7 +180,7 @@ VerbRule(ParkourClimbGeneric)
     'parkour' ('to'|) singleDobj
     : VerbProduction
     action = ParkourClimbGeneric
-    verbPhrase = 'parkour to (what)'
+    verbPhrase = 'parkour/parkouring to (what)'
     missingQ = 'what do you want to parkour to'
 ;
 
@@ -193,10 +193,10 @@ modify VerbRule(JumpOver)
 ;
 
 VerbRule(SlideUnder)
-    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither') 'under' singleDobj
+    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither'|'climb'|'cl') 'under' singleDobj
     : VerbProduction
     action = SlideUnder
-    verbPhrase = 'slide under (what)'
+    verbPhrase = 'slide/sliding under (what)'
     missingQ = 'what do you want to slide under'
 ;
 
@@ -213,7 +213,7 @@ VerbRule(RunAcross)
     ('run'|'sprint'|'hop'|'go'|'walk') 'across' singleDobj
     : VerbProduction
     action = RunAcross
-    verbPhrase = 'run across (what)'
+    verbPhrase = 'run/running across (what)'
     missingQ = 'what do you want to run across'
 ;
 
@@ -230,7 +230,7 @@ VerbRule(SwingOn)
     'swing' ('on'|'under'|'with'|'using'|'via'|'across') singleDobj
     : VerbProduction
     action = SwingOn
-    verbPhrase = 'swing on (what)'
+    verbPhrase = 'swing/swinging on (what)'
     missingQ = 'what do you want to swing on'
 ;
 
@@ -247,7 +247,7 @@ VerbRule(SqueezeThrough)
     [badness 10] ('squeeze'|'crawl'|'slide'|'fit' ('self'|'myself'|)|'go'|'climb'|'cl') ('through'|'thru'|'between'|'btwn'|'btw'|'bw'|'into') singleDobj
     : VerbProduction
     action = SqueezeThrough
-    verbPhrase = 'squeeze through (what)'
+    verbPhrase = 'squeeze/squeezing through (what)'
     missingQ = 'what do you want to squeeze through'
 ;
 
@@ -264,7 +264,7 @@ VerbRule(ParkourClimbOffOf)
     ('get'|'climb'|'cl'|'parkour') ('off'|'off' 'of'|'down' 'from') singleDobj
     : VerbProduction
     action = ParkourClimbOffOf
-    verbPhrase = 'get off of (what)'
+    verbPhrase = 'get/getting off of (what)'
     missingQ = 'what do you want to get off of'
 ;
 
@@ -297,7 +297,7 @@ VerbRule(ParkourJumpOffOf)
     ('jm'|'jump'|'hop'|'leap'|'fall'|'drop'|'dive') ('off'|'off' 'of'|'down' 'from') singleDobj
     : VerbProduction
     action = ParkourJumpOffOf
-    verbPhrase = 'jump off of (what)'
+    verbPhrase = 'jump/jumping off of (what)'
     missingQ = 'what do you want to jump off of'
 ;
 
@@ -1355,6 +1355,14 @@ modify Thing {
 
     doParkourSearch() {
         doRecon();
+    }
+
+    checkParkourReconState() {
+        return hasParkourRecon;
+    }
+
+    checkLocalPlatformSecretState() {
+        return secretLocalPlatform;
     }
 
     dobjFor(Board) {
@@ -3764,7 +3772,7 @@ class LocalClimbPlatform: TravelConnector, Fixture {
         remap = nil
         verify() { }
         action() {
-            doRecon();
+            wrapParkourSearch();
         }
     }
 }

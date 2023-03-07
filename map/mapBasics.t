@@ -315,9 +315,9 @@ modify Continue {
 #define DefineDoorWestTo(outerRoom, localRoom, theLocalDoorName) \
     DefineDoorAwayTo(west, east, outerRoom, localRoom, theLocalDoorName)
 
-#define DefineVentGrateAwayTo(outDir, inDir, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName) \
+#define DefineVentGrateAwayTo(outDir, inDir, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
     localRoom##ExitVentGrate: VentGrateDoor { \
-        vocab = 'vent grate;ventilation;door' \
+        vocab = theExitDoorName \
         location = localRoom \
         destinationPlatform = outerPlat \
         desc = standardDoorDescription \
@@ -331,25 +331,19 @@ modify Continue {
         desc = standardDoorDescription \
         otherSide = localRoom##ExitVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \
-    } \
-    modify localRoom { \
-        outDir = localRoom##ExitVentGrate \
-    } \
-    modify outerRoom { \
-        inDir = localRoom##EntryVentGrate \
     }
 
-#define DefineVentGrateNorthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName) \
-    DefineVentGrateAwayTo(north, south, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName)
+#define DefineVentGrateNorthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
+    DefineVentGrateAwayTo(north, south, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
 
-#define DefineVentGrateEastTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName) \
-    DefineVentGrateAwayTo(east, west, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName)
+#define DefineVentGrateEastTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
+    DefineVentGrateAwayTo(east, west, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
 
-#define DefineVentGrateSouthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName) \
-    DefineVentGrateAwayTo(south, north, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName)
+#define DefineVentGrateSouthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
+    DefineVentGrateAwayTo(south, north, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
 
-#define DefineVentGrateWestTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName) \
-    DefineVentGrateAwayTo(west, east, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName)
+#define DefineVentGrateWestTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
+    DefineVentGrateAwayTo(west, east, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
 
 #define DefineNodeVentGrateAwayTo(outDir, inDir, outerRoom, localRoom, localPlat, theLocalDoorName) \
     localRoom##ExitVentGrate: VentGrateDoor { \

@@ -68,6 +68,9 @@ modify Thing {
     searchedFromDistance = nil
     beganGenericSearch = nil
     successfulGenericSearch = nil
+    startParkourReconState = nil
+    startLocalPlatformSecretState = nil
+    parkourResultCache = nil
 
     hasGrating = nil
     grate = nil
@@ -78,7 +81,7 @@ modify Thing {
     alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} safe from here. "
 
     noSearchResultsAtAllMsg =
-        'You find nothing of interest about <<theName>>. ';
+        'You find nothing of interest about {the dobj}. ';
 
     dobjFor(Search) {
         preCond = nil
@@ -87,7 +90,7 @@ modify Thing {
         check() { }
         action() { doGenericSearch(); }
         report() {
-            if (!successfulGenericSearch) {
+            if (!successfulGenericSearch && !parkourResultCache) {
                 say(noSearchResultsAtAllMsg);
             }
         }
@@ -153,7 +156,7 @@ modify Thing {
     }
 
     doGenericSearch() {
-        doParkourSearch();
+        wrapParkourSearch();
 
         if (contType == In) {
             doSafeLookIn(self);
@@ -265,20 +268,22 @@ modify Thing {
             }
             
             if (getListCount() == 0) {
-                display(lookPrepMsgProp);
+                if (!parkourResultCache) display(lookPrepMsgProp);
             }
             else {
                 local relevantContents = getNonSkashekList();
                 unmention(relevantContents);
                 if (gOutStream.watchForOutput({: listContentsOn(relevantContents) }) == nil) {
-                    if (!skashekFoundHere) display(lookPrepMsgProp);
+                    if (!skashekFoundHere && !parkourResultCache) {
+                        display(lookPrepMsgProp);
+                    }
                 }
             }
         }
         else if (hiddenPrep.length > 0) {
             findHidden(hiddenProp, prep);
         }
-        else {
+        else if (!parkourResultCache) {
             display(lookPrepMsgProp);
         }
     }
@@ -298,20 +303,22 @@ modify Thing {
             }
 
             if (getListCount() == 0) {
-                say(nothingOnMsg);
+                if (!parkourResultCache) say(nothingOnMsg);
             }
             else {
                 local relevantContents = getNonSkashekList();
                 unmention(relevantContents);
                 if (gOutStream.watchForOutput({: listContentsOn(relevantContents) }) == nil) {
-                    if (!skashekFoundHere) say(nothingOnMsg);
+                    if (!skashekFoundHere && !parkourResultCache) {
+                        say(nothingOnMsg);
+                    }
                 }
             }
         }
         else if (hiddenIn.length > 0) {
             findHidden(&hiddenIn, In);
         }
-        else {
+        else if (!parkourResultCache) {
             say(nothingOnMsg);
         }
     }
@@ -338,8 +345,35 @@ modify Thing {
         searchedFromDistance = true;
     }
 
+    learnCurrentParkourReconState() {
+        startParkourReconState = checkParkourReconState();
+        startLocalPlatformSecretState = checkLocalPlatformSecretState();
+    }
+
+    wrapParkourSearch() {
+        parkourResultCache = nil;
+        learnCurrentParkourReconState();
+        doParkourSearch();
+        setParkourResultCache();
+    }
+
     doParkourSearch() {
         // Implemented in the parkour module
+    }
+
+    checkParkourReconState() {
+        return nil; // Implemented in the parkour module
+    }
+
+    checkLocalPlatformSecretState() {
+        return nil; // Implemented in the parkour module
+    }
+
+    setParkourResultCache() {
+        parkourResultCache =
+            (startParkourReconState != checkParkourReconState()) ||
+            (startLocalPlatformSecretState != checkLocalPlatformSecretState());
+        learnCurrentParkourReconState();
     }
 
     afterSearch() {
@@ -416,6 +450,15 @@ modify Thing {
     }
 }
 
+modify SubComponent {
+    wrapParkourSearch() {
+        inherited();
+        if (lexicalParent != nil) {
+            lexicalParent.parkourResultCache = parkourResultCache;
+        }
+    }
+}
+
 modify lookInLister {
     listed(obj) {
         return (obj.searchListed && !obj.isHidden) || obj.voluntaryFakeContentsItem;
@@ -436,7 +479,7 @@ modify Surface {
 #define allowLookThroughSearch \
     verifyGenericSearch() { } \
     doGenericSearch() { \
-        doParkourSearch(); \
+        wrapParkourSearch(); \
         doNested(LookThrough, self); \
     }
 

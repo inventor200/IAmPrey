@@ -7,30 +7,30 @@
 //TODO: Finish decoration description stage
 
 #if __DEBUG
-#include "testArea.t"
+//#include "testArea.t"
 #endif
-#include "mainHallway.t"      // Stage: Muffle
+#include "mainHallway.t"      // Stage: Parkour
 #include "deliveryRoom.t"     // Stage: Parkour
-#include "breakroom.t"        // Stage: Muffle
+#include "breakroom.t"        // Stage: Parkour
 #include "administration.t"   // Stage: Muffle
-#include "securityOffice.t"   // Stage: Muffle
-#include "humanQuarters.t"    // Stage: Muffle
-#include "cloneQuarters.t"    // Stage: Muffle
-#include "enrichmentRoom.t"   // Stage: Muffle
-#include "directorsOffice.t"  // Stage: Muffle
+#include "securityOffice.t"   // Stage: Parkour
+#include "humanQuarters.t"    // Stage: Parkour
+#include "cloneQuarters.t"    // Stage: Parkour
+#include "enrichmentRoom.t"   // Stage: Parkour
+#include "directorsOffice.t"  // Stage: Parkour
 #include "assemblyShop.t"     // Stage: Muffle
 #include "commonRoom.t"       // Stage: Muffle
-#include "armory.t"           // Stage: Muffle
+#include "armory.t"           // Stage: Parkour
 #include "labA.t"             // Stage: Muffle
-#include "labB.t"             // Stage: Muffle
-#include "evaluationRoom.t"   // Stage: Muffle
-#include "bathrooms.t"        // Stage: Muffle
-#include "utilityPassage.t"   // Stage: Muffle
+#include "labB.t"             // Stage: Parkour
+#include "evaluationRoom.t"   // Stage: Parkour
+#include "bathrooms.t"        // Stage: Parkour
+#include "utilityPassage.t"   // Stage: Parkour
 #include "lifeSupport.t"      // Stage: Muffle
 #include "serverRoom.t"       // Stage: Parkour
 #include "itOffice.t"         // Stage: Muffle
-#include "hangar.t"           // Stage: Muffle
+#include "hangar.t"           // Stage: Parkour
 #include "kitchen.t"          // Stage: Muffle
-#include "freezer.t"          // Stage: Muffle
-#include "reservoir.t"        // Stage: Muffle
-#include "ventilationNode.t"  // Stage: Muffle
+#include "freezer.t"          // Stage: Parkour
+#include "reservoir.t"        // Stage: Parkour
+#include "ventilationNode.t"  // Stage: Parkour

@@ -17,13 +17,24 @@ ventilationNode: Room { 'The Central Ventilation Node'
     ceilingObj = ventDuctCeiling
     wallsObj = ventDuctWalls
     floorObj = ventDuctFloor
+
+    east = labAEntryVentGrate
+    west = commonRoomEntryVentGrate
 }
 
 //TODO: Put these in interesting locations
 DefineNodeVentGrateNorthTo(ventilationNode, lifeSupportTop, nil, 'life support vent grate;ventilation;door')
 DefineNodeVentGrateSouthTo(ventilationNode, assemblyShop, nil, 'assembly shop vent grate;ventilation;door')
-DefineNodeVentGrateEastTo(ventilationNode, commonRoom, nil, 'common room vent grate;ventilation;door')
-DefineNodeVentGrateWestTo(ventilationNode, labA, nil, 'lab A vent grate;ventilation;door')
+DefineVentGrateEastTo(ventilationNode, nil, commonRoom, nil, 'common room vent grate;ventilation;door', 'primary vent grate;main central node ventilation;door')
+DefineVentGrateWestTo(ventilationNode, nil, labA, nil, 'lab A vent grate;ventilation;door', 'primary vent grate;main central node ventilation;door')
+
+modify commonRoomEntryVentGrate {
+    isConnectorListed = true
+}
+
+modify labAEntryVentGrate {
+    isConnectorListed = true
+}
 
 class VentGrateDoor: Door {
     desc = "Thin cross-hatch wires over a rectangular, aluminum frame.

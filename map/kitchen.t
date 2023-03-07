@@ -25,4 +25,4 @@ kitchenNorthEntry: Door { 'the kitchen access door'
 
 DefineDoorWestTo(southHall, kitchen, 'the kitchen door')
 
-//TODO: East parkour exit to reservoir corridor
+DefineVentGrateEastTo(reservoirCorridor, nil, kitchen, nil, 'kitchen vent grate;ventilation;door', 'vent grate;ventilation;door')

@@ -46,7 +46,7 @@ doorSuspiciousSilenceProfile: SoundProfile {
 #define peekExpansion 'peek'|'peer'|'spy'|'check'|'watch'|'p'
 
 VerbRule(PeekThrough)
-    (peekExpansion) ('through'|'thru'|) singleDobj
+    (peekExpansion) ('through'|'thru'|'between'|) singleDobj
     : VerbProduction
     action = PeekThrough
     verbPhrase = 'peek/peeking through (what)'

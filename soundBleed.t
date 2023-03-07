@@ -173,7 +173,10 @@ soundBleedCore: object {
                 if (nextSourceDir != nil) {
                     if (strength >= 2) {
                         if (selectedConnector.isOpenable) {
-                            if (!selectedConnector.isOpen) {
+                            if (selectedConnector.airlockDoor) {
+                                continue;
+                            }
+                            if (!(selectedConnector.isOpen || selectedConnector.isVentGrateDoor)) {
                                 propagationMode = 1;
                             }
                         }
@@ -265,7 +268,10 @@ soundBleedCore: object {
                     local falloff = 1;
 
                     if (selectedConnector.isOpenable) {
-                        if (!selectedConnector.isOpen) {
+                        if (selectedConnector.airlockDoor) {
+                            continue;
+                        }
+                        if (!(selectedConnector.isOpen || selectedConnector.isVentGrateDoor)) {
                             falloff = 2;
                             if (strength <= falloff) continue;
                         }
