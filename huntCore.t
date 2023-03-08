@@ -17,6 +17,7 @@ class DifficultySetting: object {
     tricksFromPool = nil
     turnsBeforeSkashekChecks = 3
     skipPrologue = nil
+    startingFreeTurnAlerts = 2
 
     getBlurb() {
         local strBfr = new StringBuffer(12);
@@ -86,6 +87,7 @@ easyModeSetting: DifficultySetting {
         easy on you, mostly for his own entertainment.'
     trickCount = 2
     turnsBeforeSkashekChecks = 3
+    startingFreeTurnAlerts = 1
 }
 
 mediumModeSetting: DifficultySetting {
@@ -95,6 +97,7 @@ mediumModeSetting: DifficultySetting {
         This hunt will have the typical amount of sadism.'
     trickCount = 1
     turnsBeforeSkashekChecks = 3
+    startingFreeTurnAlerts = 0
 }
 
 hardModeSetting: DifficultySetting {
@@ -106,6 +109,7 @@ hardModeSetting: DifficultySetting {
     tricksFromPool = true
     turnsBeforeSkashekChecks = 2
     skipPrologue = true
+    startingFreeTurnAlerts = 0
 }
 
 nightmareModeSetting: DifficultySetting {
@@ -116,6 +120,7 @@ nightmareModeSetting: DifficultySetting {
     trickCount = 0
     turnsBeforeSkashekChecks = 1
     skipPrologue = true
+    startingFreeTurnAlerts = 0
 }
 
 huntCore: InitObject {
@@ -249,6 +254,8 @@ huntCore: InitObject {
     }
     #endif
 
+    startingFreeTurnAlerts = 2
+
     // Generically handle free action
     handleFreeTurn() {
         if (gAction.freeTurnAlertsRemaining > 0) {
@@ -259,7 +266,7 @@ huntCore: InitObject {
                 "<.p><i>(From now-on, you will only be alerted if
                 this action </i>wasn't<i> a FREE turn!)</i><.p>";
             }
-            gAction.freeTurnAlertsRemaining--;
+            gAction.freeTurnAlertsRemaining = gAction.freeTurnAlertsRemaining - 1;
         }
     }
 
@@ -410,7 +417,7 @@ huntCore: InitObject {
     && !actionFailed)
 
 modify Action {
-    freeTurnAlertsRemaining = 2
+    freeTurnAlertsRemaining = (huntCore.difficultySettingObj.startingFreeTurnAlerts)
 
     skashekActionDProp = nil
     skashekVisibilityDProp = nil

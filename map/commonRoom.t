@@ -17,6 +17,9 @@ commonRoom: Room { 'The Common Room'
 
     otherSide = commonRoomHall
     destination = enrichmentRoom
+
+    dobjFor(PeekAround) asDobjFor(LookThrough)
+    attachPeakingAbility('around {the dobj}')
 }
 
 //TODO: There is a support beam across the ceiling, exposed because the ceiling

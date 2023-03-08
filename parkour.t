@@ -3863,7 +3863,3 @@ modify Door {
         inherited(actor);
     }
 }
-
-/*class ParkourDoor: Door {
-    unlistedLocalPlatform = nil
-}*/

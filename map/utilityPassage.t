@@ -21,7 +21,8 @@ utilityPassage: Room { 'The Utility Corridor'
 }
 
 +utilityWallPipes: PassablePipes { 'pipes[n] on[prep] the wall;west[weak] w[weak] in[prep] the wall[n];tubing tubes hole'
-    desc = "Part of the wall here has been demolished, leaving some pipes exposed. "
+    desc = "Part of the wall here has been demolished, leaving some pipes exposed.<<
+        observeHistory()>> "
     destination = cloneQuarters
     destinationPlatform = southeastCloneBed.remapUnder
     oppositeLocalPlatform = underBedWallPipes
@@ -29,6 +30,24 @@ utilityPassage: Room { 'The Utility Corridor'
     foundOtherSide = nil
 
     specialDesc = "Some pipes are exposed through a hole in the west wall. "
+
+    travelDesc = "<<if gCatMode
+        >>You easily slip between the pipes in the wall<<else
+        >>It's a tight squeeze, but you manage to fit between the pipes
+        in the wall<<end>>, and crawl under a bed on the other side. "
+
+    observedHistory = nil
+
+    observeHistory() {
+        if (observedHistory) return '';
+        observedHistory = true;
+        if (gCatMode) return 'You remember watching the original citizens doing
+            this, just before the killing started.
+            You were not sure of the <i>reason</i>, but it\'s safe to assume that it was
+            important to your kingdom, somehow. They tried to hide this, originally,
+            but <<gSkashekName>> eventually left it exposed.';
+        return '';
+    }
 
     dobjFor(LookThrough) {
         preCond = [objVisible, touchObj]
@@ -70,10 +89,12 @@ class PassablePipes: LocalClimbPlatform {
     secretLocalPlatform = true
     plural = true
     preferredBoardingAction = SqueezeThrough
-    remoteHeader = 'between the pipes'
 
     dobjFor(SlideUnder) asDobjFor(TravelVia)
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
+
+    dobjFor(PeekBetween) asDobjFor(LookThrough)
+    attachPeakingAbility('between the pipes')
 
     // Intercept reveal for other side; it looks redundant in practice
     dobjFor(TravelVia) {

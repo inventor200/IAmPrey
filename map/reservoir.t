@@ -404,6 +404,7 @@ humidAtmosphere: Atmosphere { 'air;humid moist wet;mist fog steam humidity moist
 reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     "TODO: Add description. "
 
+    dobjFor(PeekAround) asDobjFor(LookUnder)
     dobjFor(LookUnder) {
         verify() { }
         action() {

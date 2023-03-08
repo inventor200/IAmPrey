@@ -1,4 +1,4 @@
-#define expandableSearch 'search' | 'srch' | 'src' | 'sr'
+#define expandableSearch 'search'|'srch'|'src'|'sr'
 
 modify VerbRule(Search)
     [badness 20] (expandableSearch) singleDobj :
@@ -6,17 +6,17 @@ modify VerbRule(Search)
 ;
 
 modify VerbRule(LookIn)
-    ('look' | 'l' | expandableSearch) ('in' | 'inside') singleDobj :
+    ('look'|'l'|expandableSearch) ('in'|'inside' ('of'|)|'in' 'to'|'into') singleDobj :
     allowAll = nil
 ;
 
 modify VerbRule(LookUnder)
-    ('look' | 'l' | expandableSearch) 'under' singleDobj :
+    ('look'|'l'|expandableSearch) 'under' singleDobj :
     allowAll = nil
 ;
 
 modify VerbRule(LookBehind)
-    ('look' | 'l' | expandableSearch) 'behind' singleDobj :
+    ('look'|'l'|expandableSearch) 'behind' singleDobj :
     allowAll = nil
 ;
 

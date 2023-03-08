@@ -7,6 +7,31 @@
             dirName \
         ) : dirName)
 
+#define handleComplexPeekThrough(mcRoom, mcNamePhrase, mcRemoteHeader) \
+    say('{I} carefully peek{s/ed} ' + mcNamePhrase + '...<.p>'); \
+    mcRoom.observeFrom(gActor, mcRemoteHeader)
+
+#define handleCustomPeekThrough(mcRoom, mcRemoteHeader) \
+    handleComplexPeekThrough(mcRoom, mcRemoteHeader, mcRemoteHeader)
+
+#define handlePeekThrough(mcRemoteHeader) \
+    handleComplexPeekThrough(otherSide.getOutermostRoom(), mcRemoteHeader, mcRemoteHeader)
+
+#define attachPeakingAbility(mcRemoteHeader) \
+    requiresPeekAngle = true \
+    canLookThroughMe = true \
+    skipInRemoteList = true \
+    remoteHeader = mcRemoteHeader \
+    dobjFor(PeekThrough) asDobjFor(LookThrough) \
+    dobjFor(PeekInto) asDobjFor(LookThrough) \
+    dobjFor(LookIn) asDobjFor(LookThrough) \
+    dobjFor(LookThrough) { \
+        action() { } \
+        report() { \
+            handlePeekThrough(remoteHeader); \
+        } \
+    }
+
 doorSlamCloseNoiseProfile: SoundProfile {
     'the muffled <i>ka-thud</i> of <<theSourceName>> automatically closing'
     'the echoing <i>ka-chunk</i> of <<theSourceName>> automatically closing'
@@ -44,40 +69,63 @@ doorSuspiciousSilenceProfile: SoundProfile {
 }
 
 #define peekExpansion 'peek'|'peer'|'spy'|'check'|'watch'|'p'
+#define peekVerb(tail) \
+    (peekExpansion) tail | \
+    ('pop'|'poke'|'peek') ('my'|) ('head'|'eye') tail | \
+    'lean' (('my'|) 'head'|) tail
 
-VerbRule(PeekThrough)
-    (peekExpansion) ('through'|'thru'|'between'|) singleDobj
-    : VerbProduction
-    action = PeekThrough
-    verbPhrase = 'peek/peeking through (what)'
-    missingQ = 'what do you want to peek through'    
-;
-
-DefineTAction(PeekThrough)
-    turnsTaken = 0
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'peeking through {the dobj}';
-        }
-        return 'failing to peek through {the dobj}';
+#define DefinePeekMethod(prodSeg, actionName, verbStr) \
+    VerbRule(Peek##actionName) \
+        prodSeg \
+        : VerbProduction \
+        action = Peek##actionName \
+        verbPhrase = 'peek/peeking ' + verbStr + ' (what)' \
+        missingQ = 'what do you want to peek ' + verbStr \
+    ; \
+    DefineTAction(Peek##actionName) \
+        turnsTaken = 0 \
+        implicitAnnouncement(success) { \
+            if (success) { \
+                return 'peeking ' + verbStr + ' {the dobj}'; \
+            } \
+            return 'failing to peek ' + verbStr + ' {the dobj}'; \
+        } \
+    ; \
+    modify Thing { \
+        dobjFor(Peek##actionName) { \
+            remap = remapIn \
+            preCond = [actorHasPeekAngle, containerOpen] \
+            verify() { \
+                inaccessible('{That dobj} {is} not something {i} {can} peek ' + verbStr + '. '); \
+            } \
+        } \
     }
-;
 
-VerbRule(PeekInto)
-    [badness 100] (peekExpansion) ('in'|'into'|'inside' 'of') singleDobj
-    : VerbProduction
-    action = PeekInto
-    verbPhrase = 'peek/peeking into (what)'
-    missingQ = 'what do you want to peek into'    
-;
+DefinePeekMethod(
+    peekVerb(('through'|'thru'|'down'|) singleDobj),
+    Through, 'through'
+)
+DefinePeekMethod(
+    peekVerb(('between') singleDobj),
+    Between, 'between'
+)
+#define bendNouns ('corner'|'curve'|'bend'|'edge'|'ledge')
+DefinePeekMethod(
+    peekVerb(('around'|'over') (('the'|) bendNouns ('of'|)|) singleDobj) |
+    peekVerb(('around'|'over') singleDobj bendNouns),
+    Around, 'around'
+)
+DefinePeekMethod(
+    [badness 100] peekVerb(('in'|'inside' ('of'|)|'in' 'to'|'into') singleDobj),
+    Into, 'into'
+)
 
-DefineTAction(PeekInto)
-    implicitAnnouncement(success) {
-        if (success) {
-            return 'peeking into {the dobj}';
-        }
-        return 'failing to peek into {the dobj}';
-    }
+#define oldExpandedSearch ('look'|'l'|expandableSearch)
+
+modify VerbRule(LookUnder)
+    oldExpandedSearch 'under' singleDobj |
+    peekVerb('under' singleDobj) :
+    allowAll = nil
 ;
 
 VerbRule(PeekDirection)
@@ -158,10 +206,9 @@ DefineTAction(PeekDirection)
         // Make sure we are on the floor
         sneakyCore.performStagingCheck(gActor.getOutermostRoom());
 
-        "{I} carefully peek <<direction.name>>...<.p>";
-        //conn.destination.getOutermostRoom().peekInto();
-        conn.destination.getOutermostRoom().observeFrom(
-            gActor, 'to the <<direction.name>>'
+        handleComplexPeekThrough(
+            conn.destination.getOutermostRoom(),
+            '<<direction.name>>', 'to the <<direction.name>>'
         );
     }
 ;
@@ -1179,6 +1226,7 @@ modify Door {
 
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
+    dobjFor(PeekAround) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
         verify() {
@@ -1188,17 +1236,7 @@ modify Door {
         }
         action() { }
         report() {
-            /*if (isTransparent || isOpen) {
-                "{I} peek{s/ed} through <<theName>>...\b";
-            }
-            else {
-                "{I} peek{s/ed} through the cat flap of <<theName>>...\b";
-            }
-            otherSide.getOutermostRoom().peekInto();*/
-            "{I} peek{s/ed} through <<theName>>...<.p>";
-            otherSide.getOutermostRoom().observeFrom(
-                gActor, 'through <<theName>>'
-            );
+            handlePeekThrough('through {the dobj}');
         }
     }
 
@@ -1284,8 +1322,9 @@ class CatFlap: Decoration {
         }
         action() { }
         report() {
-            lexicalParent.otherSide.getOutermostRoom().observeFrom(
-                gActor, 'through the cat flap of <<lexicalParent.theName>>'
+            handleCustomPeekThrough(
+                lexicalParent.otherSide.getOutermostRoom(),
+                'through the cat flap of <<lexicalParent.theName>>'
             );
         }
     }

@@ -378,13 +378,19 @@ modify Continue {
 #define DefineNodeVentGrateWestTo(outerRoom, localRoom, localPlat, theLocalDoorName) \
     DefineNodeVentGrateAwayTo(west, east, outerRoom, localRoom, localPlat, theLocalDoorName)
 
-#define windowLookBlock \
+#define windowLookBlock(mcwRoom, mcwRemoteHeader) \
     canLookThroughMe = true \
     skipInRemoteList = true \
     allowLookThroughSearch \
     dobjFor(LookIn) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
-    dobjFor(PeekThrough) asDobjFor(LookThrough)
+    dobjFor(PeekThrough) asDobjFor(LookThrough) \
+    dobjFor(LookThrough) { \
+        action() { } \
+        report() { \
+            handleCustomPeekThrough(mcwRoom, mcwRemoteHeader); \
+        } \
+    }
 
 #define windowTravelBlock \
     configureDoorOrPassageAsLocalPlatform(TravelVia) \
@@ -411,13 +417,7 @@ modify Continue {
         travelDesc = otherSide.travelDesc \
         location = outerRoom \
         otherSide = windowIn##localRoom \
-        windowLookBlock \
-        dobjFor(LookThrough) { \
-            action() { } \
-            report() { \
-                localRoom.observeFrom(gActor, otherSide.remoteHeader); \
-            } \
-        } \
+        windowLookBlock(localRoom, otherSide.remoteHeader) \
         dobjFor(Break) { \
             validate() { \
                 illogical(otherSide.breakMsg); \
@@ -436,13 +436,7 @@ modify Continue {
         location = localRoom \
         otherSide = windowIn##outerRoom \
         destination = outerRoom \
-        windowLookBlock \
-        dobjFor(LookThrough) { \
-            action() { } \
-            report() { \
-                outerRoom.observeFrom(gActor, remoteHeader); \
-            } \
-        } \
+        windowLookBlock(outerRoom, remoteHeader) \
         dobjFor(Break) { \
             validate() { \
                 illogical(breakMsg); \
@@ -457,13 +451,7 @@ modify Continue {
         desc = otherSide.desc \
         location = outerRoom \
         otherSide = windowIn##localRoom \
-        windowLookBlock \
-        dobjFor(LookThrough) { \
-            action() { } \
-            report() { \
-                localRoom.observeFrom(gActor, otherSide.remoteHeader); \
-            } \
-        } \
+        windowLookBlock(localRoom, otherSide.remoteHeader) \
         dobjFor(Break) { \
             validate() { \
                 illogical(otherSide.breakMsg); \
@@ -474,13 +462,7 @@ modify Continue {
     windowIn##localRoom: Fixture \
         location = localRoom \
         otherSide = windowIn##outerRoom \
-        windowLookBlock \
-        dobjFor(LookThrough) { \
-            action() { } \
-            report() { \
-                outerRoom.observeFrom(gActor, remoteHeader); \
-            } \
-        } \
+        windowLookBlock(outerRoom, remoteHeader) \
         dobjFor(Break) { \
             validate() { \
                 illogical(breakMsg); \

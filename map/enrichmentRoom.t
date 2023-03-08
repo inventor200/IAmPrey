@@ -13,13 +13,16 @@ enrichmentRoom: Room { 'The Enrichment Room'
     otherSide = southEnrichmentRoomDoorExterior
 }
 
-+commonRoomHall: Passage { //TODO: Make sure that peeking through this is handled well
++commonRoomHall: Passage {
     vocab = otherSide.vocab
     desc = "A short passage to the <<hyperDir('east')>>, curving toward the north.
     <<otherSide.standardDesc>>"
 
     otherSide = enrichmentRoomHall
     destination = commonRoom
+
+    dobjFor(PeekAround) asDobjFor(LookThrough)
+    attachPeakingAbility('around {the dobj}')
 }
 
 DefineDoorWestTo(westHall, enrichmentRoom, 'the enrichment room door')
