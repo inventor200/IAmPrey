@@ -169,7 +169,6 @@ class CoolingDuctInnerDoor: Door {
 
     airlockDoor = true
     passActionStr = 'exit'
-    secretLocalPlatform = true
 
     standardExitMsg =
         '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
@@ -182,6 +181,7 @@ class CoolingDuctInnerDoor: Door {
 class CoolingDuctOuterDoor: CoolingDuctInnerDoor {
     vocab = 'cooling duct;access;door hatch'
     passActionStr = 'enter'
+    secretLocalPlatform = true
 }
 
 lifeSupportTop: Room { 'Life Support (Upper Level)'

@@ -39,7 +39,7 @@ centralRoom: Room { 'Central Room'
     }
 }
 ++HighFloorHeight;
-++ClimbUpLink -> cargoShelf;
+++ClimbUpLink ->cargoShelf;
 
 ++grayCrate: FixedPlatform { 'gray crate;grey'
     "A gray crate. It looks suspiciously-boring to climb on. "

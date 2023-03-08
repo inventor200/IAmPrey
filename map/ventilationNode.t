@@ -18,22 +18,82 @@ ventilationNode: Room { 'The Central Ventilation Node'
     wallsObj = ventDuctWalls
     floorObj = ventDuctFloor
 
-    east = labAEntryVentGrate
-    west = commonRoomEntryVentGrate
+    north = assemblyShopExitVentGrate
+    east = labAExitVentGrate
+    south = lifeSupportTopExitVentGrate
+    west = commonRoomExitVentGrate
+}
+
++assemblyShopExitVentGrate: VentGrateDoor {
+    vocab = 'assembly shop ' + defaultVentVocab
+    otherSide = assemblyShopNodeGrate
+    isConnectorListed = true
+}
++lifeSupportTopExitVentGrate: VentGrateDoor {
+    vocab = 'life support ' + defaultVentVocab
+    otherSide = lifeSupportTopNodeGrate
+    isConnectorListed = true
+}
++labAExitVentGrate: VentGrateDoor {
+    vocab = 'lab A ' + defaultVentVocab
+    otherSide = labANodeGrate
+    isConnectorListed = true
+}
++commonRoomExitVentGrate: VentGrateDoor {
+    vocab = 'common room ' + defaultVentVocab
+    otherSide = commonRoomNodeGrate
+    isConnectorListed = true
+
+    travelDesc = "<<if gCatMode
+        >><<if commonRoom.getVentSurprise()
+        >>You know the route well.
+        <<end>>You smoothly exit the ventilation node,
+        and skillfully find your footing on the ledge.\b
+        <<else>><<if commonRoom.getVentSurprise()
+        >>You damn-near have a heart attack.\b
+        <<end>>
+        The path abruptly ends with a sharp drop to the floor, far below.
+        You grip the sides of the vent, and carefully find your footing
+        on the ledge.\b
+        <<end>>
+        You are now atop the east wall; the only wall in the
+        room where the upper and lower sections aren't flush with each other. "
 }
 
 //TODO: Put these in interesting locations
-DefineNodeVentGrateNorthTo(ventilationNode, lifeSupportTop, nil, 'life support vent grate;ventilation;door')
-DefineNodeVentGrateSouthTo(ventilationNode, assemblyShop, nil, 'assembly shop vent grate;ventilation;door')
-DefineVentGrateEastTo(ventilationNode, nil, commonRoom, nil, 'common room vent grate;ventilation;door', 'primary vent grate;main central node ventilation;door')
-DefineVentGrateWestTo(ventilationNode, nil, labA, nil, 'lab A vent grate;ventilation;door', 'primary vent grate;main central node ventilation;door')
-
-modify commonRoomEntryVentGrate {
-    isConnectorListed = true
+assemblyShopNodeGrate: VentGrateDoor {
+    vocab = defaultVentVocab
+    location = assemblyShop
+    otherSide = assemblyShopExitVentGrate
+    soundSourceRepresentative = (otherSide)
 }
+lifeSupportTopNodeGrate: VentGrateDoor {
+    vocab = defaultVentVocab
+    location = lifeSupportTop
+    otherSide = lifeSupportTopExitVentGrate
+    soundSourceRepresentative = (otherSide)
+}
+labANodeGrate: VentGrateDoor {
+    vocab = defaultVentVocab
+    location = labA
+    otherSide = labAExitVentGrate
+    soundSourceRepresentative = (otherSide)
+}
+commonRoomNodeGrate: VentGrateDoor {
+    vocab = 'primary ' + defaultVentVocab
+    location = topOfEastWall
+    otherSide = commonRoomExitVentGrate
+    soundSourceRepresentative = (otherSide)
+    //isConnectorListed = (gPlayerChar.isIn(topOfEastWall))
 
-modify labAEntryVentGrate {
-    isConnectorListed = true
+    travelDesc = "<<if gCatMode
+        >>You gracefully slip<<else
+        >>You carefully (and awkwardly) shuffle atop
+        the narrow ledge of the east wall, and climb<<end>>
+        through the vent grate. It's only another meter before you reach
+        <<if gCatMode>>your favorite eating spot:
+        The Central Ventilation Node.<<else>>
+        the central ventilation node.<<end>> "
 }
 
 class VentGrateDoor: Door {

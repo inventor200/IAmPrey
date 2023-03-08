@@ -315,6 +315,8 @@ modify Continue {
 #define DefineDoorWestTo(outerRoom, localRoom, theLocalDoorName) \
     DefineDoorAwayTo(west, east, outerRoom, localRoom, theLocalDoorName)
 
+#define defaultVentVocab 'vent grate;ventilation;door'
+
 #define DefineVentGrateAwayTo(outDir, inDir, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
     localRoom##ExitVentGrate: VentGrateDoor { \
         vocab = theExitDoorName \
@@ -326,7 +328,7 @@ modify Continue {
     } \
     localRoom##EntryVentGrate: VentGrateDoor { \
         vocab = theLocalDoorName \
-        location = outerRoom \
+        location = outerPlat \
         destinationPlatform = localPlat \
         desc = standardDoorDescription \
         otherSide = localRoom##ExitVentGrate \
@@ -348,7 +350,7 @@ modify Continue {
 #define DefineNodeVentGrateAwayTo(outDir, inDir, outerRoom, localRoom, localPlat, theLocalDoorName) \
     localRoom##ExitVentGrate: VentGrateDoor { \
         vocab = 'vent grate;ventilation;door' \
-        location = localRoom \
+        location = localPlat \
         desc = standardDoorDescription \
         otherSide = localRoom##EntryVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \

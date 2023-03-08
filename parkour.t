@@ -616,7 +616,7 @@ reachGhostTest_: Thing {
     }
 }
 
-#define __PARKOUR_REACH_DEBUG nil
+#define __PARKOUR_REACH_DEBUG true
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
@@ -907,9 +907,14 @@ modify actorInStagingLocation {
             realStagingLocation = stagingMod;
         }
 
-        say('{I} need{s/ed} to be
-            <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
-            to do that. ');
+        if (realStagingLocation.omitFromStagingError()) {
+            say('{I} need{s/ed} to be in a better spot to do that. ');
+        }
+        else {
+            say('{I} need{s/ed} to be
+                <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
+                to do that. ');
+        }
         
         return nil;
     }
@@ -1325,6 +1330,14 @@ modify Thing {
         return prefAct.getVerbPhrase1(
             true, prefAct.verbRule.verbPhrase, theName, nil
         ).trim().toLower();
+    }
+
+    omitFromStagingError() {
+        if (parkourCore.requireRouteRecon) {
+            if (forcedLocalPlatform) return secretLocalPlatform;
+            else return !hasParkourRecon;
+        }
+        return nil;
     }
 
     // Do any solvers searching for local platforms consider this?
@@ -2905,7 +2918,8 @@ class ParkourModule: SubComponent {
                 realSource = source.location;
             }
             #if __PARKOUR_REACH_DEBUG
-            extraReport('\nNo parkour mod on <<realSource.theName>> (<<realSource.contType.prep>>).\n');
+            //extraReport('\nNo parkour mod on <<realSource.theName>> (<<realSource.contType.prep>>).\n');
+            extraReport('\nNo parkour mod on <<source.theName>> (<<source.contType.prep>>).\n');
             #endif
             // Check two SubComponents a part of the same container
             if (realSource.lexicalParent == self.lexicalParent) {
@@ -2934,19 +2948,23 @@ class ParkourModule: SubComponent {
             #endif
 
             // Check other normal container relations
+            local testStagLoc = realSource.stagingLocation;
+            local testExitLoc = realSource.stagingLocation;
+            if (testStagLoc == nil) testStagLoc = realSource;
+            if (testExitLoc == nil) testExitLoc = realSource;
             #if __PARKOUR_REACH_DEBUG
-            extraReport('\nStaging: <<realSource.stagingLocation.theName>>\n');
+            extraReport('\nStaging: <<testStagLoc.theName>>\n');
             #endif
-            if (checkStagingExitLocationConnection(realSource.stagingLocation)) {
+            if (checkStagingExitLocationConnection(testStagLoc)) {
                 #if __PARKOUR_REACH_DEBUG
                 extraReport('\nFOUND!\n');
                 #endif
                 return parkourReachSuccessful;
             }
             #if __PARKOUR_REACH_DEBUG
-            extraReport('\nExit: <<realSource.exitLocation.theName>>\n');
+            extraReport('\nExit: <<testExitLoc.theName>>\n');
             #endif
-            if (checkStagingExitLocationConnection(realSource.exitLocation)) {
+            if (checkStagingExitLocationConnection(testExitLoc)) {
                 #if __PARKOUR_REACH_DEBUG
                 extraReport('\nFOUND!\n');
                 #endif
@@ -3725,6 +3743,45 @@ class DangerousProviderBridge: ParkourBridgeMaker {
         remap = targetPlatform \
     }
 
+#define localPlatformAdjustMoveAction(inheritedRoot) \
+    inheritedRoot \
+    if (destinationPlatform != nil) { \
+        if (!destinationPlatform.ofKind(Room)) { \
+            parkourCore.cacheParkourRunner(gActor); \
+            local pm = destinationPlatform.parkourModule; \
+            if (pm == nil) { \
+                gParkourRunner.actionMoveInto(destinationPlatform); \
+            } \
+            else { \
+                gParkourLastPath = self; \
+                pm.provideMoveFor(gParkourRunner); \
+            } \
+            /*FIXME: Do recon for destination, so it is mentioned in staging errors*/ \
+            pm.doParkourSearch(); \
+        } \
+    }
+
+#define localPlatformAdjustMoveCheck \
+    check() { \
+        inherited(); \
+        local pm = destinationPlatform.parkourModule; \
+        if (pm != nil) pm.checkParkour(gActor); \
+    }
+
+#define localPlatformAdjustMove \
+    localPlatformAdjustMoveCheck \
+    action() { \
+        localPlatformAdjustMoveAction(inherited();) \
+    }
+
+#define learnTraversal(actor) \
+    noteTraversal(actor) { \
+        if (gPlayerChar.isOrIsIn(actor)) { \
+            learnLocalPlatform(self, say); \
+        } \
+        inherited(actor); \
+    }
+
 class LocalClimbPlatform: TravelConnector, Fixture {
     forcedLocalPlatform = true
     isConnectorListed = !secretLocalPlatform
@@ -3732,6 +3789,7 @@ class LocalClimbPlatform: TravelConnector, Fixture {
         oppositeLocalPlatform == nil ? nil :
         (oppositeLocalPlatform.stagingLocation)
     )
+    destination = (otherSide.getOutermostRoom())
 
     localAliasPlatform = self
 
@@ -3745,26 +3803,7 @@ class LocalClimbPlatform: TravelConnector, Fixture {
             [travelPermitted, actorInStagingLocation, objOpen] :
             [travelPermitted, actorInStagingLocation]
         )
-        check() {
-            inherited();
-            local pm = destinationPlatform.parkourModule;
-            if (pm != nil) pm.checkParkour(gActor);
-        }
-        action() {
-            inherited();
-            learnLocalPlatform(localAliasPlatform, reportAfter);
-            if (destinationPlatform != nil) {
-                parkourCore.cacheParkourRunner(gActor);
-                local pm = destinationPlatform.parkourModule;
-                if (pm == nil) {
-                    gParkourRunner.actionMoveInto(destinationPlatform);
-                }
-                else {
-                    gParkourLastPath = self;
-                    pm.provideMoveFor(gParkourRunner);
-                }
-            }
-        }
+        localPlatformAdjustMove
     }
 
     dobjFor(Search) {
@@ -3775,6 +3814,8 @@ class LocalClimbPlatform: TravelConnector, Fixture {
             wrapParkourSearch();
         }
     }
+
+    learnTraversal(actor)
 }
 
 class ClimbUpPlatform: LocalClimbPlatform {
@@ -3841,10 +3882,18 @@ class ClimbDownEnterPlatform: ClimbDownIntoPlatform {
 
 modify Door {
     oppositeLocalPlatform = (otherSide)
+    destination = (otherSide.getOutermostRoom())
+    destinationPlatform = (
+        oppositeLocalPlatform == nil ? nil :
+        (oppositeLocalPlatform.stagingLocation)
+    )
+    stagingLocation = (location)
+
     configureDoorOrPassageAsLocalPlatform(GoThrough)
 
     dobjFor(GoThrough) {
         preCond = [travelPermitted, actorInStagingLocation, objOpen]
+        localPlatformAdjustMoveCheck
     }
 
     dobjFor(Open) {
@@ -3856,10 +3905,13 @@ modify Door {
         }
     }
 
-    noteTraversal(actor) {
-        if (gPlayerChar.isOrIsIn(actor)) {
-            learnLocalPlatform(self, say);
-        }
-        inherited(actor);
+    learnTraversal(actor)
+
+    travelVia(actor) {
+        localPlatformAdjustMoveAction(inherited(actor););
+    }
+
+    getParkourModule() {
+        return location.parkourModule;
     }
 }
