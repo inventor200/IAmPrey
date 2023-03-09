@@ -151,7 +151,7 @@ huntCore: InitObject {
     playerAction = nil
     playerActionActor = nil
 
-    setDifficult(index, midGame?) { //TODO: Set according to difficulty setting objects
+    setDifficult(index, midGame?) {
         sneakyCore.armSneaking = nil;
         sneakyCore.armEndSneaking = nil;
         sneakyCore.sneakDirection = nil;

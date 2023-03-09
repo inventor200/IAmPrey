@@ -14,7 +14,6 @@ commonRoom: Room { 'The Common Room'
     ceilingObj = commonRoomCeiling
 
     north = assemblyShop
-    //east = commonRoomNodeGrate
     south = enrichmentRoomHall
 
     northwestMuffle = directorsOffice

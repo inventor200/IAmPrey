@@ -616,7 +616,7 @@ reachGhostTest_: Thing {
     }
 }
 
-#define __PARKOUR_REACH_DEBUG true
+#define __PARKOUR_REACH_DEBUG nil
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
@@ -1052,6 +1052,7 @@ modify actorInStagingLocation {
     reportMethod('<.p>' + str + '<.p>')
 
 #define learnOnlyLocalPlatform(plat, reportMethod) \
+    searchCore.startSearch(true, true); \
     if (plat.secretLocalPlatform) { \
         local discoveryStr = \
             '(It seems that {i} {can} ' + \
@@ -1059,26 +1060,31 @@ modify actorInStagingLocation {
             '!) '; \
         announcePathDiscovery(discoveryStr, reportMethod); \
         plat.secretLocalPlatform = nil; \
-    }
+        searchCore.reportedSuccess = true; \
+    } \
+    searchCore.concludeSearch(plat, nil, nil, true);
 
 #define learnLocalPlatform(plat, reportMethod) \
     learnOnlyLocalPlatform(plat, reportMethod) \
     learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod)
 
 #define learnPath(path, reportMethod) \
+    searchCore.startSearch(true, true); \
     if (!path.isAcknowledged) { \
         if (path.isKnown) { \
             path.acknowledge(); \
             if (parkourCore.showNewRoute) { \
                 announcePathDiscovery(path.getDiscoverMsg(), reportMethod); \
+                searchCore.reportedSuccess = true; \
             } \
         } \
-    }
+    } \
+    searchCore.concludeSearch(path.destination, nil, nil, true);
 
 // Actual parkour reporting
 #define reportParkour \
     if (!parkourCore.hadAccident) { \
-        "<.p><<gParkourLastPath.getPerformMsg()>><.p>"; \
+        "<<gParkourLastPath.getPerformMsg()>><.p>"; \
         if (parkourCore.lookAroundAfter != nil) { \
             parkourCore.lookAroundAfter.lookAroundWithin(); \
             parkourCore.lookAroundAfter = nil; \
@@ -1368,14 +1374,6 @@ modify Thing {
 
     doParkourSearch() {
         doRecon();
-    }
-
-    checkParkourReconState() {
-        return hasParkourRecon;
-    }
-
-    checkLocalPlatformSecretState() {
-        return secretLocalPlatform;
     }
 
     dobjFor(Board) {
@@ -3756,7 +3754,6 @@ class DangerousProviderBridge: ParkourBridgeMaker {
                 gParkourLastPath = self; \
                 pm.provideMoveFor(gParkourRunner); \
             } \
-            /*FIXME: Do recon for destination, so it is mentioned in staging errors*/ \
             pm.doParkourSearch(); \
         } \
     }
@@ -3811,7 +3808,7 @@ class LocalClimbPlatform: TravelConnector, Fixture {
         remap = nil
         verify() { }
         action() {
-            wrapParkourSearch();
+            doParkourSearch();
         }
     }
 

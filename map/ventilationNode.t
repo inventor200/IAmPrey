@@ -84,7 +84,6 @@ commonRoomNodeGrate: VentGrateDoor {
     location = topOfEastWall
     otherSide = commonRoomExitVentGrate
     soundSourceRepresentative = (otherSide)
-    //isConnectorListed = (gPlayerChar.isIn(topOfEastWall))
 
     travelDesc = "<<if gCatMode
         >>You gracefully slip<<else

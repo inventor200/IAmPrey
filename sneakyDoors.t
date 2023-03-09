@@ -1372,6 +1372,7 @@ modify Room {
     }
 
     travelerEntering(traveler, origin) {
+        inherited(traveler, origin);
         if (gPlayerChar.isOrIsIn(traveler)) {
             startDoorScan();
         }

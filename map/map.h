@@ -7,7 +7,7 @@
 //TODO: Finish decoration description stage
 
 #if __DEBUG
-//#include "testArea.t"
+#include "testArea.t"
 #endif
 #include "mainHallway.t"      // Stage: Parkour
 #include "deliveryRoom.t"     // Stage: Parkour
