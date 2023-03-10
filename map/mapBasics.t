@@ -386,6 +386,7 @@ modify Continue {
     canLookThroughMe = true \
     skipInRemoteList = true \
     allowLookThroughSearch \
+    remappingLookIn = true \
     dobjFor(LookIn) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
     dobjFor(PeekThrough) asDobjFor(LookThrough) \

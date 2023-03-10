@@ -2,10 +2,9 @@
 #define maxPhysicalFactor (5 * physicalFactorScale)
 #define conditionReportDelay 3
 #define maxExhaustionInertia 3
-#define actorCapacity 10
 
 modify Actor {
-    bulk = 25
+    bulk = actorBulk
     bulkCapacity = actorCapacity
     maxSingleBulk = 2
 

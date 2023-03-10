@@ -1,24 +1,49 @@
 #define expandableSearch 'search'|'srch'|'src'|'sr'
 
+modify Action {
+    remappingSearchCheckProp = nil
+
+    skipSearch() {
+        if (remappingSearchCheckProp == nil) return nil;
+        return gDobj.(remappingSearchCheckProp);
+    }
+}
+
 modify VerbRule(Search)
     [badness 20] (expandableSearch) singleDobj :
     allowAll = nil
 ;
+
+modify Search {
+    remappingSearchCheckProp = &remappingSearch
+}
 
 modify VerbRule(LookIn)
     ('look'|'l'|expandableSearch) ('in'|'inside' ('of'|)|'in' 'to'|'into') singleDobj :
     allowAll = nil
 ;
 
+modify LookIn {
+    remappingSearchCheckProp = &remappingLookIn
+}
+
 modify VerbRule(LookUnder)
     ('look'|'l'|expandableSearch) 'under' singleDobj :
     allowAll = nil
 ;
 
+modify LookUnder {
+    remappingSearchCheckProp = &remappingLookUnder
+}
+
 modify VerbRule(LookBehind)
     ('look'|'l'|expandableSearch) 'behind' singleDobj :
     allowAll = nil
 ;
+
+modify LookBehind {
+    remappingSearchCheckProp = &remappingLookBehind
+}
 
 VerbRule(SearchDistant)
     [badness 30] (expandableSearch) singleDobj
@@ -30,6 +55,7 @@ VerbRule(SearchDistant)
 ;
 
 DefineTAction(SearchDistant)
+    remappingSearchCheckProp = &remappingSearchDistant
 ;
 
 VerbRule(SearchClose)
@@ -42,23 +68,34 @@ VerbRule(SearchClose)
 ;
 
 DefineTAction(SearchClose)
+    remappingSearchCheckProp = &remappingSearchClose
 ; 
 
+#if __DEBUG
 #define __DEBUG_SEARCH_LAYERS nil
+#else
+#define __DEBUG_SEARCH_LAYERS nil
+#endif
 
 #define Searchify(originalAction) \
     modify originalAction { \
         execCycle(cmd) { \
             if (allowDebug) extraReport('\bNew cycle!\b'); \
-            searchCore.startSearch(nil); \
+            if (!skipSearch()) { \
+                if (isImplicit) searchCore.clearHistory(); \
+                searchCore.startSearch(nil); \
+            } \
             inherited(cmd); \
-            searchCore.concludeSearch(gDobj, nil, nil, nil); \
+            if (!skipSearch()) searchCore.concludeSearch(gDobj, nil, nil, nil); \
         } \
         execAction(cmd) { \
             local isFastAction = searchCore.forceFastSearch(); \
-            searchCore.startSearch(isFastAction); \
+            if (!skipSearch()) { \
+                if (isImplicit) searchCore.clearHistory(); \
+                searchCore.startSearch(isFastAction); \
+            } \
             inherited(cmd); \
-            searchCore.concludeSearch(gDobj, nil, nil, isFastAction); \
+            if (!skipSearch()) searchCore.concludeSearch(gDobj, nil, nil, isFastAction); \
         } \
     }
 
@@ -238,6 +275,11 @@ searchCore: object {
         distantIsSubStep = nil;
         simplyParkour = nil;
     }
+
+    clearHistory() {
+        reportedSuccess = nil;
+        reportedFailure = nil;
+    }
 }
 
 modify Actor {
@@ -273,6 +315,13 @@ modify Thing {
 
     noSearchResultsAtAllMsg =
         'You find nothing of interest about {the dobj}. ';
+    
+    remappingSearch = nil
+    remappingLookIn = nil
+    remappingLookUnder = nil
+    remappingLookBehind = nil
+    remappingSearchClose = (remappingSearch)
+    remappingSearchDistant = (remappingSearch)
 
     finalizeSearch(searchAction) {
         // Implemented by author for post-search effects
@@ -362,29 +411,31 @@ modify Thing {
             return;
         }
         else {
-            local searchingSubs = (remapOn != nil || remapIn != nil);
-            local multiSub = (remapOn != nil && remapIn != nil);
-            if (remapOn != nil) {
-                if (multiSub) {
-                    "(searching the top of <<theName>>)\n";
-                    searchCore.reportedSuccess = nil;
-                    searchCore.reportedFailure = nil;
-                }
-                doNested(SearchClose, remapOn);
-                doubleCheckGenericSearch(remapOn);
+            doMultiSearch();
+        }
+    }
+
+    doMultiSearch() {
+        local searchingSubs = (remapOn != nil || remapIn != nil);
+        local multiSub = (remapOn != nil && remapIn != nil);
+        if (remapOn != nil) {
+            if (multiSub) {
+                "(searching the top of <<theName>>)\n";
+                searchCore.clearHistory();
             }
-            if (remapIn != nil) {
-                if (multiSub) {
-                    "\b(searching in <<theName>>)\n";
-                    searchCore.reportedSuccess = nil;
-                    searchCore.reportedFailure = nil;
-                }
-                doSafeLookIn(remapIn);
+            doNested(SearchClose, remapOn);
+            doubleCheckGenericSearch(remapOn);
+        }
+        if (remapIn != nil) {
+            if (multiSub) {
+                "\b(searching in <<theName>>)\n";
+                searchCore.clearHistory();
             }
-            if (!searchingSubs) {
-                doNested(SearchClose, self);
-                doubleCheckGenericSearch();
-            }
+            doSafeLookIn(remapIn);
+        }
+        if (!searchingSubs) {
+            doNested(SearchClose, self);
+            doubleCheckGenericSearch();
         }
     }
 
@@ -427,6 +478,10 @@ modify Thing {
             if (contType != In) {
                 // We are only interested in seeing eyes
                 // through distant grates and such
+                searchCore.searchedFromDistance = true;
+                return;
+            }
+            if (maxSingleBulk < actorBulk) {
                 searchCore.searchedFromDistance = true;
                 return;
             }

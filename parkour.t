@@ -653,7 +653,11 @@ reachGhostTest_: Thing {
     }
 }
 
+#if __DEBUG
 #define __PARKOUR_REACH_DEBUG nil
+#else
+#define __PARKOUR_REACH_DEBUG nil
+#endif
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
@@ -2074,7 +2078,10 @@ modify SubComponent {
     isLikelyContainer() {
         if (forcedLocalPlatform) return nil;
         if (parkourModule != nil) return true;
-        return lexicalParent.isLikelyContainer();
+        if (lexicalParent != nil) {
+            return lexicalParent.isLikelyContainer();
+        }
+        return inherited();
     }
 
     getParkourModule() {

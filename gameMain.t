@@ -22,7 +22,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM commonRoom
+/*-*/  #define __TEST_ROOM northeastCubicle
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -43,6 +43,8 @@
 #define gActorIsCat (gActor == cat)
 #define gEndingOptionsWin [finishOptionCredits, finishOptionAmusing]
 #define gEndingOptionsLoss [finishOptionCredits, finishOptionUndo]
+#define actorCapacity 10
+#define actorBulk 25
 #include "forEveryone.t"
 #include "cutsceneCore.t"
 #include "moddedSearch.t"

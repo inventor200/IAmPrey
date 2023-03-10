@@ -6,7 +6,11 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define gPlayerIobj huntCore.playerAction.curIobj
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
 
+#if __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS true
+#else
+#define __DEBUG_SKASHEK_ACTIONS nil
+#endif
 
 class DifficultySetting: object {
     title = '(unnamed difficulty)'

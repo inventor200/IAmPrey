@@ -202,6 +202,8 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 
     noDoorHereMsg = 'This segment of the duct has no access door. '
 
+    remappingLookIn = true
+
     decorationActions = [Examine, Open, Close, Enter, GoThrough, LookIn, PeekThrough, PeekInto]
     dobjFor(Close) asDobjFor(Open)
     dobjFor(Enter) asDobjFor(Open)

@@ -22,6 +22,7 @@
     canLookThroughMe = true \
     skipInRemoteList = true \
     remoteHeader = mcRemoteHeader \
+    remappingLookIn = true \
     dobjFor(PeekThrough) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
     dobjFor(LookIn) asDobjFor(LookThrough) \
@@ -1230,6 +1231,7 @@ modify Door {
 
     allowPeek = (isOpen || hasCatFlap || isTransparent)
 
+    remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(PeekAround) asDobjFor(LookThrough)
@@ -1319,6 +1321,7 @@ class CatFlap: Decoration {
         remap = lexicalParent
     }
 
+    remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(LookThrough) {

@@ -276,6 +276,9 @@ reservoir: Room { 'The Reactor Reservoir'
     ]
     notImportantMsg = '{The subj cobj} {is} too far away. '
     
+    remappingSearch = true
+    remappingLookIn = true
+
     dobjFor(Search) asDobjFor(Examine)
     dobjFor(LookIn) asDobjFor(Examine)
     dobjFor(SearchClose) asDobjFor(Examine)

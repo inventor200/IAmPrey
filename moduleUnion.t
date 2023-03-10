@@ -248,6 +248,7 @@ class Mirror: Decoration {
 
     confirmSmashed() { }
 
+    remappingLookIn = true
     dobjFor(LookIn) asDobjFor(Examine)
 
     dobjFor(Break) {
