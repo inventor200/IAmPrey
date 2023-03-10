@@ -1,81 +1,83 @@
-centralRoom: Room { 'Central Room'
+TEST_centralRoom: Room { 'Central Room'
     "The main room in the center."
 
-    north = hallwayDoor
-    westMuffle = sideRoom
-    east = eastGap
+    north = TEST_hallwayDoor
+    westMuffle = TEST_sideRoom
+    east = TEST_eastGap
 }
 
-+hallwayDoor: Door { 'hallway door'
++TEST_hallwayDoor: Door { 'hallway door'
     "The door to the hallway. <<catFlapDesc>> "
-    otherSide = centralRoomDoor
+    otherSide = TEST_centralRoomDoor
 }
 
-+cargoShelf: FixedPlatform { 'tall cargo shelf'
++TEST_cargoShelf: FixedPlatform { 'tall cargo shelf'
     "A tall series of cargo shelves. "
     isListed = true
 }
 ++DangerousFloorHeight;
 
-++bottle: Thing { 'water bottle'
+++TEST_bottle: Thing { 'water bottle'
     "A difficult water bottle. "
 }
 
-++dogCage: Booth { 'dog cage'
+++TEST_dogCage: Booth { 'dog cage'
     "A weird dog cage. "
 }
 
-+cabinet: Fixture { 'tall lab cabinet'
++TEST_cabinet: Fixture { 'tall lab cabinet'
     "A locked, metal cabinet, likely containing lab materials. "
     isListed = true
+
+    betterStorageHeader
 
     remapIn: SubComponent {
         isOpenable = true
         isEnterable = true
-        includeGrate(cabinet)
+        includeGrate(TEST_cabinet)
     }
     remapOn: SubComponent {
         isBoardable = true
     }
 }
 ++HighFloorHeight;
-++ClimbUpLink ->cargoShelf;
+++ClimbUpLink ->TEST_cargoShelf;
 
-++grayCrate: FixedPlatform { 'gray crate;grey'
+++TEST_grayCrate: FixedPlatform { 'gray crate;grey'
     "A gray crate. It looks suspiciously-boring to climb on. "
     subLocation = &remapOn
     isListed = true
 }
 
-++blueCrate: FixedPlatform { 'blue crate'
+++TEST_blueCrate: FixedPlatform { 'blue crate'
     "A gray crate. It looks suspiciously-fun to climb on. "
     subLocation = &remapOn
     isListed = true
 }
 +++LowFloorHeight;
 
-++cup: Thing { 'cup'
+++TEST_cup: Thing { 'cup'
     "A ceramic cup. "
     subLocation = &remapOn
 }
 
-+exosuit: CoveredVehicle { 'exosuit;small exo;suit'
++TEST_exosuit: CoveredVehicle { 'exosuit;small exo;suit'
     "A small exosuit, not much larger than a person. "
     fitForParkour = true
 }
 
-+metalCrate: FixedPlatform { 'metal crate'
++TEST_metalCrate: FixedPlatform { 'metal crate'
     "A big metal crate, sitting alone in the corner. "
-    //parkourBarriers = [fragileCrateBarrier]
+    //parkourBarriers = [TEST_fragileCrateBarrier]
     /*doAccident(actor, traveler, path) {
-        traveler.moveInto(centralRoom);
+        traveler.moveInto(TEST_centralRoom);
         "{I} {swing} on the flagpole, and land{s/ed} on the metal crate,
         but it collapses, and {i} {am} thrown to the floor. ";
     }*/
 }
 ++LowFloorHeight;
 
-+fragileCrateBarrier: TravelBarrier {
++TEST_fragileCrateBarrier: TravelBarrier {
     canTravelerPass(actor, connector) {
         return nil;
     }
@@ -85,21 +87,21 @@ centralRoom: Room { 'Central Room'
     }
 }
 
-+flagPole: Fixture { 'flagpole'
++TEST_flagPole: Fixture { 'flagpole'
     "A barren flagpole, sticking horizontally out of the wall,
     between the lab desk and metal crate. "
     isListed = true
     canSwingOnMe = true
-    //parkourBarriers = [fragilePoleBarrier]
+    //parkourBarriers = [TEST_fragilePoleBarrier]
     /*doProviderAccident(actor, traveler, path) {
-        traveler.moveInto(centralRoom);
+        traveler.moveInto(TEST_centralRoom);
         "{I} {swing} on the flagpole, but only for a moment.
         With a horrible, metal-wrenching sound, the pole snaps
         free of the wall, dropping {me} to the floor. ";
     }*/
 }
 
-/*+fragilePoleBarrier: TravelBarrier {
+/*+TEST_fragilePoleBarrier: TravelBarrier {
     canTravelerPass(actor, connector) {
         return nil;
     }
@@ -109,83 +111,83 @@ centralRoom: Room { 'Central Room'
     }
 }*/
 
-+desk: FixedPlatform { 'lab desk'
++TEST_desk: FixedPlatform { 'lab desk'
     "A simple lab desk. "
     isListed = true
     canSlideUnderMe = true
 }
 ++LowFloorHeight;
-++ClimbUpLink -> cabinet;
-++JumpUpLink -> cargoShelf
+++ClimbUpLink -> TEST_cabinet;
+++JumpUpLink -> TEST_cargoShelf
     pathDescription = 'scale the cargo shelves'
 ;
-++ProviderLink @flagPole ->metalCrate;
+++ProviderLink @TEST_flagPole ->TEST_metalCrate;
 
-+table: FixedPlatform { 'generic table'
++TEST_table: FixedPlatform { 'generic table'
     "A generic table, outside of any parkour system. "
     isListed = true
     //doNotSuggestGetOff = true
 }
 
-++puzzleCube: Trinket { 'puzzle cube'
+++TEST_puzzleCube: Trinket { 'puzzle cube'
     "A 3x3 puzzle cube. "
 }
 
-++postItNote: Thing { 'note;postit post-it post sticky'
+++TEST_postItNote: Thing { 'note;postit post-it post sticky'
     "A simple note. "
     readDesc = "Hello world!"
 }
 
-+eastGap: ParkourBridgeConnector { 'east gap;eastern;divide'
++TEST_eastGap: ParkourBridgeConnector { 'east gap;eastern;divide'
     "The eastern wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true
 }
 
-+AwkwardProviderBridge @eastGap ->subtleRoom @westGap;
++AwkwardProviderBridge @TEST_eastGap ->TEST_subtleRoom @TEST_westGap;
 
-sideRoom: Room { 'Side Room'
+TEST_sideRoom: Room { 'Side Room'
     "The additional room to the side."
 
-    north = centerHallway
-    eastMuffle = centralRoom
+    north = TEST_centerHallway
+    eastMuffle = TEST_centralRoom
 }
 
-longHallway: SenseRegion {
+TEST_longHallway: SenseRegion {
     //
 }
 
-centerHallway: Room { 'Hallway (Center)'
+TEST_centerHallway: Room { 'Hallway (Center)'
     "The central section of a long hallway. "
 
-    southeast = centralRoomDoor
-    southwest = sideRoom
-    east = eastHallway
+    southeast = TEST_centralRoomDoor
+    southwest = TEST_sideRoom
+    east = TEST_eastHallway
 
-    regions = [longHallway]
+    regions = [TEST_longHallway]
 }
 
-+centralRoomDoor: Door { 'central room door'
++TEST_centralRoomDoor: Door { 'central room door'
     "The door to the central room. <<catFlapDesc>> "
-    otherSide = hallwayDoor
+    otherSide = TEST_hallwayDoor
 }
 
-eastHallway: Room { 'Hallway (East)'
+TEST_eastHallway: Room { 'Hallway (East)'
     "The eastern section of a long hallway. "
-    west = centerHallway
-    south = subtleRoom
+    west = TEST_centerHallway
+    south = TEST_subtleRoom
 
-    regions = [longHallway]
+    regions = [TEST_longHallway]
 }
 
 // East of central room
-subtleRoom: Room { 'Subtle Room'
+TEST_subtleRoom: Room { 'Subtle Room'
     "Just a subtle room. "
-    north = eastHallway
-    west = westGap
+    north = TEST_eastHallway
+    west = TEST_westGap
 }
 
-+westGap: ParkourBridgeConnector { 'west gap;western;divide'
++TEST_westGap: ParkourBridgeConnector { 'west gap;western;divide'
     "The western wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true

@@ -17,6 +17,12 @@
         return 'failing to climb to {the dobj}'; \
     }
 
+#define climbForcesNoJumpFactor true
+
+modify Action {
+    forceDoNoFactorJump = nil
+}
+
 VerbRule(ParkourClimbOverTo)
     ('climb'|'cl'|'get'|'step') genericAcrossPrep singleDobj
     : VerbProduction
@@ -27,6 +33,7 @@ VerbRule(ParkourClimbOverTo)
 
 DefineTAction(ParkourClimbOverTo)
     climbImplicitReport
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourClimbOverInto)
@@ -39,6 +46,7 @@ VerbRule(ParkourClimbOverInto)
 
 DefineTAction(ParkourClimbOverInto)
     allowImplicit = nil
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourJumpOverTo)
@@ -51,6 +59,7 @@ VerbRule(ParkourJumpOverTo)
 
 DefineTAction(ParkourJumpOverTo)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourJumpOverInto)
@@ -63,6 +72,7 @@ VerbRule(ParkourJumpOverInto)
 
 DefineTAction(ParkourJumpOverInto)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourJumpUpTo)
@@ -76,6 +86,7 @@ VerbRule(ParkourJumpUpTo)
 
 DefineTAction(ParkourJumpUpTo)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourJumpUpInto)
@@ -88,6 +99,7 @@ VerbRule(ParkourJumpUpInto)
 
 DefineTAction(ParkourJumpUpInto)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourJumpDownTo)
@@ -100,6 +112,7 @@ VerbRule(ParkourJumpDownTo)
 
 DefineTAction(ParkourJumpDownTo)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourJumpDownInto)
@@ -112,6 +125,7 @@ VerbRule(ParkourJumpDownInto)
 
 DefineTAction(ParkourJumpDownInto)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourClimbDownTo)
@@ -124,6 +138,7 @@ VerbRule(ParkourClimbDownTo)
 
 DefineTAction(ParkourClimbDownTo)
     climbImplicitReport
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourClimbDownInto)
@@ -136,6 +151,7 @@ VerbRule(ParkourClimbDownInto)
 
 DefineTAction(ParkourClimbDownInto)
     allowImplicit = nil
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourClimbUpInto)
@@ -148,6 +164,7 @@ VerbRule(ParkourClimbUpInto)
 
 DefineTAction(ParkourClimbUpInto)
     allowImplicit = nil
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourClimbUpTo)
@@ -160,6 +177,7 @@ VerbRule(ParkourClimbUpTo)
 
 DefineTAction(ParkourClimbUpTo)
     climbImplicitReport
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 VerbRule(ParkourJumpGeneric)
@@ -172,6 +190,7 @@ VerbRule(ParkourJumpGeneric)
 
 DefineTAction(ParkourJumpGeneric)
     allowImplicit = nil
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(ParkourClimbGeneric)
@@ -186,11 +205,16 @@ VerbRule(ParkourClimbGeneric)
 
 DefineTAction(ParkourClimbGeneric)
     climbImplicitReport
+    forceDoNoFactorJump = climbForcesNoJumpFactor
 ;
 
 modify VerbRule(JumpOver)
     ('jump'|'jm'|'hop'|'leap'|'vault') ('over'|) singleDobj :
 ;
+
+modify JumpOver {
+    forceDoNoFactorJump = true
+}
 
 VerbRule(SlideUnder)
     ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither'|'climb'|'cl') 'under' singleDobj
@@ -241,6 +265,7 @@ DefineTAction(SwingOn)
         }
         return 'failing to swing on {the dobj}';
     }
+    forceDoNoFactorJump = true
 ;
 
 VerbRule(SqueezeThrough)
@@ -347,6 +372,18 @@ modify VerbRule(ClimbDown)
     ('climb'|'cl'|'descend'|'go'|'walk') 'down' singleDobj |
     'descend' singleDobj :
 ;
+
+modify Climb {
+    forceDoNoFactorJump = climbForcesNoJumpFactor
+}
+
+modify ClimbUp {
+    forceDoNoFactorJump = climbForcesNoJumpFactor
+}
+
+modify ClimbDown {
+    forceDoNoFactorJump = climbForcesNoJumpFactor
+}
 
 #define expandableLocalPlats 'platforms'|'plats'|'surfaces'|'supporters'
 #define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search'|'scan')
@@ -543,8 +580,8 @@ parkourCore: object {
             "<.p>{I} {see} no known or notable surfaces in easy reach.<.p>";
             return;
         }
-        "<.p>The following surfaces{plural} {is} both in easy reach,
-        and rest{s/ed} on the same surface that {i} {do}:<.p>";
+        "<.p>The following surfaces{plural} {is} either in easy reach,
+        or rest{s/ed} on the same surface that {i} {do}:<.p>";
         if (formatForScreenReader) {
             "<<makeListStr(platList, &theName, 'and')>>";
         }
@@ -642,9 +679,48 @@ QParkour: Special {
             <<gCommand.verbProd.verbPhrase>>)\n');
         #endif
 
+        local needsTouchObj = nil;
+        local preCondProp = nil;
+        if (gDobj == b) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(B is Dobj.)\n');
+            #endif
+            if (b.isDecoration) {
+                preCondProp = &preCondDobjDefault;
+            }
+            else {
+                preCondProp = gAction.preCondDobjProp;
+            }
+        }
+        else if (gIobj == b) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(B is Iobj.)\n');
+            #endif
+            if (b.isDecoration) {
+                preCondProp = &preCondIobjDefault;
+            }
+            else {
+                preCondProp = gAction.preCondIobjProp;
+            }
+        }
+        else {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(B is Aobj.)\n');
+            #endif
+            if (b.isDecoration) {
+                preCondProp = &preCondAobjDefault;
+            }
+            else {
+                preCondProp = gAction.preCondAobjProp;
+            }
+        }
+
+        needsTouchObj = (valToList(b.(preCondProp)).indexOf(touchObj) != nil);
+        local doNotFactorJump = !needsTouchObj || gAction.forceDoNoFactorJump;
+
         if (a.isLikelyContainer()) {
             aLoc = a;
-            doNotFactorJumpForA = true;
+            doNotFactorJumpForA = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(LOC A: <<aLoc.theName>> (<<aLoc.contType.prep>>)
                 in <<aLoc.getOutermostRoom().theName>>.)\n');
@@ -661,7 +737,7 @@ QParkour: Special {
 
         if (b.isLikelyContainer()) {
             bLoc = b;
-            doNotFactorJumpForB = true;
+            doNotFactorJumpForB = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(LOC B: <<bLoc.theName>> (<<bLoc.contType.prep>>)
                 in <<aLoc.getOutermostRoom().theName>>.)\n');
@@ -729,15 +805,17 @@ QParkour: Special {
     }
 
     getMessageFromReachResult(a, b, aItem, bItem, aLoc, bLoc, reachResult) {
-        switch (reachResult) {
-            case parkourReachTopTooFar:
-                return new ReachProblemParkour(
-                    a, b, aItem, bItem, aLoc, bLoc
-                );
-            case parkourSubComponentTooFar:
-                return new ReachProblemParkourFromTopOfSame(
-                    a, b, aItem, bItem, aLoc, bLoc
-                );
+        if (!bLoc.omitFromStagingError()) {
+            switch (reachResult) {
+                case parkourReachTopTooFar:
+                    return new ReachProblemParkour(
+                        a, b, aItem, bItem, aLoc, bLoc
+                    );
+                case parkourSubComponentTooFar:
+                    return new ReachProblemParkourFromTopOfSame(
+                        a, b, aItem, bItem, aLoc, bLoc
+                    );
+            }
         }
         return new ReachProblemDistance(a, b);
     }
@@ -1321,6 +1399,18 @@ modify Thing {
     // After moving into the destination, the traveler will be moved
     // to the destination platform
     destinationPlatform = nil
+    // Has the player been here before?
+    // SET WITH markAsClimbed()
+    // GET WITH hasBeenClimbed()
+    playerClimbed = nil
+
+    markAsClimbed() {
+        playerClimbed = true;
+    }
+
+    hasBeenClimbed() {
+        return playerClimbed;
+    }
 
     getPreferredBoardingAction() {
         if (preferredBoardingAction != nil) return preferredBoardingAction;
@@ -1341,7 +1431,8 @@ modify Thing {
     omitFromStagingError() {
         if (parkourCore.requireRouteRecon) {
             if (forcedLocalPlatform) return secretLocalPlatform;
-            else return !hasParkourRecon;
+            if (hasParkourRecon) return nil;
+            return !hasBeenClimbed();
         }
         return nil;
     }
@@ -2031,6 +2122,16 @@ modify SubComponent {
             return lexicalParent.omitFromPrintedLocalsList();
         }
         return nil;
+    }
+
+    markAsClimbed() {
+        if (lexicalParent != nil) lexicalParent.markAsClimbed();
+        playerClimbed = true;
+    }
+
+    hasBeenClimbed() {
+        if (lexicalParent != nil) return lexicalParent.hasBeenClimbed();
+        return playerClimbed;
     }
 
     #if __DEBUG
@@ -2812,6 +2913,7 @@ class ParkourModule: SubComponent {
             }
 
             actor.actionMoveInto(plat);
+            markAsClimbed();
 
             if (playerIsOrIsInActor) {
                 local notifyList = roomB.allContents.subset({o: o.ofKind(Actor)});

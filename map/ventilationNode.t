@@ -46,7 +46,7 @@ ventilationNode: Room { 'The Central Ventilation Node'
 
     travelDesc = "<<if gCatMode
         >><<if commonRoom.getVentSurprise()
-        >>You know the route well.
+        >>You know the route well.\b
         <<end>>You smoothly exit the ventilation node,
         and skillfully find your footing on the ledge.\b
         <<else>><<if commonRoom.getVentSurprise()

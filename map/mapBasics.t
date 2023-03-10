@@ -216,6 +216,8 @@ class Ceiling: MultiLoc, Thing {
 
 defaultCeiling: Ceiling { 'ceiling'
     "TODO: Add description. "
+
+    notImportantMsg = '{That dobj} {is} too far above you. '
 }
 
 industrialCeiling: Floor { 'pipes[weak] on[prep] the ceiling'

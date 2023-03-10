@@ -206,9 +206,15 @@ DefineTAction(PeekDirection)
         // Make sure we are on the floor
         sneakyCore.performStagingCheck(gActor.getOutermostRoom());
 
+        local remoteHeader = 'to the <<direction.name>>';
+        if (direction == outDir || direction == inDir ||
+            direction == upDir || direction == downDir) {
+            remoteHeader = '<<direction.name>> there';
+        }
+
         handleComplexPeekThrough(
             conn.destination.getOutermostRoom(),
-            '<<direction.name>>', 'to the <<direction.name>>'
+            '<<direction.name>>', remoteHeader
         );
     }
 ;

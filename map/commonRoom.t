@@ -1,12 +1,68 @@
-commonRoomCeiling: Ceiling {
-    desc =
-        "The room here is taller than it should be, because the ceiling
-        tiles and frames have been removed, exposing an extra meter of
-        space. A support beam and ventilation duct would normally have been
-        hidden behind these tiles, but the beam is exposed, and the duct
-        has <i>also</i> been removed, leaving two vents on the east and
-        west side of the upper ceiling. "
+commonRoomCeiling: Ceiling { 'ceiling'
+    "The room here is taller than it should be, because the ceiling
+    tiles and frames have been removed, exposing an extra meter of
+    space. A support beam and ventilation duct would normally have been
+    hidden behind these tiles, but the beam is exposed, and the duct
+    has <i>also</i> been removed, leaving two vents on the east and
+    west side of the upper ceiling. "
+
+    notImportantMsg = (gActor.isIn(exposedSupportBeam) ?
+        '{The dobj} {is} not important. '
+        :
+        '{That dobj} {is} too far above you. '
+    )
+    
+    contType = On
+    omitFromStagingError() {
+        return nil;
+    }
+
+    getOutermostRoom() {
+        return commonRoom;
+    }
 }
+
++exposedSupportBeam: FixedPlatform { 'exposed support beam;ventilation[weak] structural north-south north[weak] south[weak];girder i-beam duct[weak] brackets'
+    "A north-south structural beam.
+    <<if gCatMode
+    >>It used to be hidden behind the ceiling tiles, but <<gSkashekName>> tore them
+    all out&mdash;along with a ventilation duct&mdash;long ago.
+    You used to be able to run through
+    that duct to go between administration and your secret eating spot.\b
+    You still have a route, though, but it's trickier for your old bones.<<else
+    >>It could have once secured a length of east-west ventilation duct,
+    connecting the administration vent (west) to the primary vent (east) of this room.
+    It was likely hidden behind ceiling tiles (which are also missing).<<end>> "
+
+    //canSwingOnMe = true
+    //stagingLocation = (gPlayerChar.isIn(topOfEastWall) ? topOfEastWall : displayShelf)
+    //exitLocation = commonRoom
+
+    omitFromStagingError() {
+        return nil;
+    }
+
+    dobjFor(RunAcross) {
+        preCond = [touchObj]
+        verify() {
+            inaccessible('The beam runs orthogonal to the line between the administration
+            vent and primary vent. Running across the beam will just move you between
+            the north and south walls. ');
+        }
+    }
+
+    doAccident(actor, traveler, path) {
+        "<.p>It's<<if gCatMode>>
+        <<one of>>rough<<or>>hard<<or>>awkward<<or>>painful<<at random>>,
+        but you leap across the divide, and come to a careful landing on the beam.
+        You do a quick stretch before continuing.
+        <<else>>
+        terrifying, but you jump across the divide, and catch yourself on the
+        beam. You manage to pull yourself up, and find your balance.
+        <<end>>";
+    }
+}
+++FallDownPath ->commonRoom;
 
 commonRoom: Room { 'The Common Room'
     "TODO: Add description. "
@@ -55,44 +111,6 @@ commonRoom: Room { 'The Common Room'
     during strange renovations.<<end>> '
 }
 
-+exposedSupportBeam: FixedPlatform { 'exposed support beam;ventilation[weak] structural north-south north[weak] south[weak];girder i-beam duct[weak] brackets'
-    "A north-south structural beam.
-    <<if gCatMode
-    >>It used to be hidden behind the ceiling tiles, but <<gSkashekName>> tore them
-    all out&mdash;along with a ventilation duct&mdash;long ago.
-    You used to be able to run through
-    that duct to go between administration and your secret eating spot.\b
-    You still have a route, though, but it's trickier for your old bones.<<else
-    >>It could have once secured a length of east-west ventilation duct,
-    connecting the administration vent (west) to the primary vent (east) of this room.
-    It was likely hidden behind ceiling tiles (which are also missing).<<end>> "
-
-    canSwingOnMe = true
-    stagingLocation = (gPlayerChar.isIn(topOfEastWall) ? topOfEastWall : displayShelf)
-    exitLocation = commonRoom
-
-    dobjFor(RunAcross) {
-        preCond = [touchObj]
-        verify() {
-            inaccessible('The beam runs orthogonal to the line between the administration
-            vent and primary vent. Running across the beam will just move you between
-            the north and south walls. ');
-        }
-    }
-
-    doAccident(actor, traveler, path) {
-        "<.p>It's<<if gCatMode>>
-        <<one of>>rough<<or>>hard<<or>>awkward<<or>>painful<<at random>>,
-        but you leap across the divide, and come to a careful landing on the beam.
-        You do a quick stretch before continuing.
-        <<else>>
-        terrifying, but you jump across the divide, and catch yourself on the
-        beam. You manage to pull yourself up, and find your balance.
-        <<end>>";
-    }
-}
-++FallDownPath ->commonRoom;
-
 +displayShelf: FixedPlatform { 'display shelf;simple metal decorative'
     "A simple metal shelf for displaying decorative items. "
 }
@@ -136,13 +154,28 @@ commonRoom: Room { 'The Common Room'
 ++HighFloorHeight;
 ++JumpUpLink ->displayShelf;
 
-//TODO: There is a support beam across the ceiling, exposed because the ceiling
-// tiles were removed. Falling from this beam is a hard impact, and it takes more turns
-// to reach it from the ground than Skashek will allow.
-// This support beam can be used as a swing between the east and west sides of the room.
-// It is only possible to climb from the floor to the vent leading to the central node.
-// You must swing from that vent to access the one by admin.
-// The one by admin is a hard fall to the floor.
-// You can jump onto the beam, and jump to the other vent, but it is costly and loud
-// Swinging is quieter and takes less energy
-//DefineVentGrateEastTo(commonRoom, displayShelf, administration, nil, 'administration vent grate;ventilation;door', 'common room vent grate;ventilation;door')
+commonRoomToAdministrationVentGrate: VentGrateDoor {
+    vocab = 'administration ' + defaultVentVocab
+    location = displayShelf
+    otherSide = administrationToCommonRoomVentGrate
+}
+
+administrationToCommonRoomVentGrate: VentGrateDoor {
+    vocab = 'common room ' + defaultVentVocab
+    location = northeastCubicleFilingCabinet
+    subLocation = &remapOn
+    otherSide = commonRoomToAdministrationVentGrate
+    soundSourceRepresentative = (otherSide)
+
+    travelDesc = "<<if gCatMode
+        >><<if commonRoom.getVentSurprise()
+        >>You know the route well.\b
+        <<end>>Exiting the ventilation node, in one practiced motion,
+        you find yourself on a display shelf, high above the floor.<<
+        else>><<if commonRoom.getVentSurprise()
+        >>Your heart lurches.\b
+        <<end>>
+        The path abruptly ends with a sharp drop to the floor, far below.
+        You grip the sides of the vent, and carefully find your footing
+        on a convenient display shelf.<<end>> "
+}

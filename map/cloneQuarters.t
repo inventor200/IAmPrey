@@ -65,14 +65,15 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
             return obj == underBedWallPipes && underBedWallPipes.revealedUnderBed;
         }
 
-        doStandardLook(prep, hiddenPrep, hiddenProp, lookPrepMsgProp) {
-            inherited(prep, hiddenPrep, hiddenProp, lookPrepMsgProp);
-            // This is here to facilitate the discovery message, but needs
-            // to be removed afterward.
-            if (holeUnderBedDiscovery.isIn(southeastCloneBed.remapUnder)) {
-                holeUnderBedDiscovery.moveInto(nil);
+        finalizeSearch(searchAction) {
+            if (searchAction.ofKind(LookUnder)) {
+                // This is here to facilitate the discovery message, but needs
+                // to be removed afterward.
+                if (holeUnderBedDiscovery.isIn(southeastCloneBed.remapUnder)) {
+                    holeUnderBedDiscovery.moveInto(nil);
+                }
+                underBedWallPipes.revealUnderBed();
             }
-            underBedWallPipes.revealUnderBed();
         }
     }
 
