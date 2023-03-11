@@ -21,8 +21,8 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM northeastCubicle
+/*--*/  #define __FAST_DIFFICULTY 1
+/*-*/  #define __TEST_ROOM TEST_centralRoom
 ///////////////////////////////////////*||*\
 
 // End compile modes

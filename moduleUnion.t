@@ -122,6 +122,211 @@ modify Thing {
     }
 
     dobjFor(Lick) asDobjFor(Taste)
+
+    selfPropulsionMsg = 'There{plural} {is} better ways{dummy} to move {myself} around. '
+    catCannotMoveMsg = '{That dobj} {is} too heavy for an old king to move. '
+    pawsCannotPullMsg = 'Your paws will not let you pull anything. '
+
+    verifyPushBasically() {
+        if (gActor.isOrIsIn(self)) {
+            inaccessible(selfPropulsionMsg);
+        }
+        if (isFixed) {
+            illogicalNow(cannotTakeMsg);
+        }
+        if (gActorIsCat && bulk > 1) {
+            illogical(catCannotMoveMsg);
+        }
+    }
+
+    dobjFor(Pull) {
+        preCond = [touchObj]
+        verify() {
+            verifyPushBasically();
+            if (gActorIsCat) {
+                inaccessible(pawsCannotPullMsg);
+            }
+            else {
+                inaccessible(cannotPullMsg);
+            }
+        }
+    }
+
+    iobjFor(MoveTo) {
+        preCond = [objVisible]
+        verify() {
+            if (!gActorIsCat) {
+                illogical(cannotPushMsg);
+            }
+            else if (gDobj.location == getStandardOn()) {
+                logical;
+            }
+            else {
+                local currentContainer = gDobj.location;
+                local nextContainer = nil;
+                while (currentContainer.exitLocation != nil) {
+                    nextContainer = currentContainer;
+
+                    if (nextContainer.contType != In) {
+                        if (nextContainer.ofKind(SubComponent)) {
+                            do {
+                                nextContainer = nextContainer.lexicalParent;
+                                if (nextContainer.contType == In) break;
+                            } while (nextContainer.ofKind(SubComponent));
+                        }
+
+                        currentContainer = nextContainer;
+                    }
+
+                    if (currentContainer.contType != In) {
+                        if (currentContainer.exitLocation != nil) {
+                            currentContainer = currentContainer.exitLocation;
+                        }
+                    }
+
+                    if (currentContainer == getStandardOn()) {
+                        break;
+                    }
+
+                    if (currentContainer.contType == In) {
+                        illogical(noBounceRouteMsg);
+                    }
+                }
+                if (currentContainer == getStandardOn()) {
+                    logical;
+                }
+                else {
+                    illogical(noBounceRouteMsg);
+                }
+            }
+        }
+    }
+
+    noBounceRouteMsg = 'You do not think {that dobj} will bounce all the way down there. '
+
+    dobjFor(Move) asDobjFor(Push)
+    dobjFor(MoveTo) asDobjFor(Push)
+    dobjFor(MoveWith) asDobjFor(Push)
+    dobjFor(Push) {
+        preCond = [touchObj]
+        verify() {
+            verifyPushBasically();
+            if (gActorIsCat) {
+                if (location.contType == In) {
+                    catPushFailure(location, true);
+                }
+            }
+            else {
+                inaccessible(cannotPushMsg);
+            }
+        }
+        check() { }
+        action() {
+            if (location.exitLocation == nil) {
+                "You push {the dobj} around
+                <<location.objInPrep>> <<location.theName>>.
+                It seems to satisfy some urge in your mind. ";
+            }
+            else {
+                local currentContainer = location;
+                local nextContainer = nil;
+                local firstPush = nil;
+                while (currentContainer.exitLocation != nil) {
+                    nextContainer = currentContainer;
+
+                    if (nextContainer.contType != In) {
+                        if (nextContainer.ofKind(SubComponent)) {
+                            do {
+                                nextContainer = nextContainer.lexicalParent;
+                                if (nextContainer.contType == In) {
+                                    break;
+                                }
+                            } while (nextContainer.ofKind(SubComponent));
+                        }
+
+                        currentContainer = nextContainer;
+                    }
+
+                    if (currentContainer.contType != In) {
+                        if (currentContainer.exitLocation != nil) {
+                            currentContainer = currentContainer.exitLocation;
+                            if (!firstPush) {
+                                firstPush = true;
+                                "You push {the dobj}, and it falls to
+                                <<currentContainer.theName>>. ";
+                            }
+                            else {
+                                "\b(bounce!)\b{The dobj} falls to
+                                <<currentContainer.theName>>. ";
+                            }
+                        }
+                        else {
+                            "\b<<bouncedAsFarAsPossibleMsg>>";
+                            break;
+                        }
+                    }
+
+                    if (currentContainer.contType == In) {
+                        if (!firstPush) {
+                            catPushFailure(currentContainer);
+                        }
+                        else {
+                            "\b<<bouncedAsFarAsPossibleMsg>>";
+                            break;
+                        }
+                    }
+                }
+                "\bYou glare at {the dobj}. <<one of>>
+                You work so hard to make this house a home!<<or>>
+                You <i>know</i> that wasn't where you left {that dobj} yesterday...<<or>>
+                You decide {that dobj} <i>definitely</i> looks better there!<<or>>
+                You hate it when <<gSkashekName>> picks stuff up...
+                <<at random>> ";
+            }
+        }
+    }
+
+    bouncedAsFarAsPossibleMsg = '{The dobj} has fallen as far as it can go. '
+
+    catCannotPushOutMsg(currentContainer) {
+        return '{That dobj} {is} being contained by
+            <<currentContainer.theName>>, and you cannot push it out! ';
+    }
+
+    catPushFailure(currentContainer, isVerify?) {
+        if (isVerify) {
+            inaccessible(catCannotPushOutMsg(currentContainer));
+        }
+        else {
+            say(catCannotPushOutMsg(currentContainer));
+            exit;
+        }
+    }
+
+    cannotPushTravelMsg() {
+        if (gActorIsCat) {
+            return 'You have no wish to push things anywhere,
+                but to the <i>floor</i>. ';
+        }
+        return cannotPushMsg;
+    }
+
+    verifyPushTravel(via) {
+        viaMode = via;
+        
+        if (!canPushTravel && !canPullTravel) {
+            illogical(cannotPushTravelMsg);
+        }      
+        
+        verifyPushBasically();
+        if (!gActorIsCat) {
+            inaccessible(cannotPushMsg);
+        }
+        
+        if (gIobj == self) {
+            illogicalSelf(cannotPushViaSelfMsg);
+        }
+    }
 }
 
 #define roomCapacity 100000
@@ -131,7 +336,7 @@ modify Room {
 }
 
 modify Floor {
-    floorActions = [Examine, Search, SearchClose, SearchDistant, LookUnder, TakeFrom]
+    floorActions = [Examine, Search, SearchClose, SearchDistant, LookUnder, TakeFrom, MoveTo]
 
     cannotLookUnderFloorMsg = 'It is impossible to look under <<theName>>. '
 
@@ -139,6 +344,16 @@ modify Floor {
         verify() {
             illogical(cannotLookUnderFloorMsg);
         }
+    }
+
+    dobjFor(MoveTo) {
+        verify() {
+            illogical(cannotTakeMsg);
+        }
+    }
+
+    iobjFor(MoveTo) {
+        remap = (gPlayerChar.outermostVisibleParent())
     }
 }
 
@@ -598,6 +813,29 @@ DefineDistSubComponentFor(BottomCabinetDrawer, FilingCabinet, bottomDrawer)
         } \
     }
 
+#define handleActions(targetAction, actionTarget) \
+    dobjFor(Push) { \
+        verify() { \
+            if (!isPushable) illogical(cannotPushMsg); \
+        } \
+        check() { } \
+        action() { \
+            doInstead(targetAction, actionTarget); \
+        } \
+        report() { } \
+    } \
+    dobjFor(Pull) { \
+        verify() { \
+            if (!isPullable) illogical(cannotPullMsg); \
+            if (gActorIsCat) inaccessible(pawsCannotPullMsg); \
+        } \
+        check() { } \
+        action() { \
+            doInstead(targetAction, actionTarget); \
+        } \
+        report() { } \
+    }
+
 #define pushPullHandleProperties \
     basicHandleProperties \
     postCreate(_lexParent) { \
@@ -605,20 +843,7 @@ DefineDistSubComponentFor(BottomCabinetDrawer, FilingCabinet, bottomDrawer)
     } \
     cannotPushMsg = '{That dobj} {is} not a push door. ' \
     cannotPullMsg = '{That dobj} {is} not a pull door. ' \
-    dobjFor(Push) { \
-        check() { } \
-        action() { \
-            doInstead(Open, lexicalParent); \
-        } \
-        report() { } \
-    } \
-    dobjFor(Pull) { \
-        check() { } \
-        action() { \
-            doInstead(Open, lexicalParent); \
-        } \
-        report() { } \
-    }
+    handleActions(Open, lexicalParent)
 
 DefineDistComponentFor(PushDoorHandle, Door)
     vocab = 'handle;door[weak] push[weak] pull[weak];bar'
@@ -672,20 +897,7 @@ DefineDistComponentFor(PullDoorHandle, Door)
     remapReach(action) { \
         return hatch; \
     } \
-    dobjFor(Push) { \
-        check() { } \
-        action() { \
-            doInstead(Open, hatch); \
-        } \
-        report() { } \
-    } \
-    dobjFor(Pull) { \
-        check() { } \
-        action() { \
-            doInstead(Open, hatch); \
-        } \
-        report() { } \
-    }
+    handleActions(Open, hatch)
 
 DefineDistComponent(TinyDoorHandle)
     getLikelyHatch(obj) {
