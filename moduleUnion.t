@@ -54,6 +54,18 @@ modify actorInStagingLocation {
 
 #define holdActorStorage 100
 
+VerbRule(Lick)
+    ('lick'|'mlem') singleDobj
+    : VerbProduction
+    action = Lick
+    verbPhrase = 'lick/licking (what)'
+    missingQ = 'what do you want to lick'
+;
+
+DefineTAction(Lick)
+    turnsTaken = (Taste.turnsTaken)
+;
+
 modify Thing {
     bulk = ((isEnterable || isBoardable) ? 2 : (isDecoration ? 0 : 1))
     bulkCapacity = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
@@ -108,6 +120,8 @@ modify Thing {
             actor == gPlayerChar
         );
     }
+
+    dobjFor(Lick) asDobjFor(Taste)
 }
 
 #define roomCapacity 100000
@@ -363,3 +377,354 @@ mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[wea
         }
     }
 }
+
+// Filing cabinets
+class FilingCabinet: Fixture {
+    vocab = 'filing cabinet;office paper papers metal'
+    desc = "TODO: Add description. "
+    
+    betterStorageHeader
+    IncludeDistComponent(TinyDoorTopDrawerHandle)
+    IncludeDistComponent(TinyDoorMiddleDrawerHandle)
+    IncludeDistComponent(TinyDoorBottomDrawerHandle)
+
+    getDrawer(index) {
+        switch(index) {
+            default:
+                return topDrawer;
+            case 2:
+                return middleDrawer;
+            case 3:
+                return bottomDrawer;
+        }
+    }
+
+    doMultiSearch() {
+        "(searching the top of <<theName>>)\n";
+        searchCore.clearHistory();
+        doNested(SearchClose, remapOn);
+        doubleCheckGenericSearch(remapOn);
+
+        "\b(searching in the drawers of <<theName>>)\n";
+        searchCore.clearHistory();
+        doNested(LookIn, remapIn);
+        doubleCheckGenericSearch(remapIn);
+    }
+
+    dobjFor(Open) {
+        remap = remapIn
+    }
+
+    dobjFor(Close) {
+        remap = remapIn
+    }
+
+    iobjFor(TakeFrom) {
+        remap = (gTentativeDobj.overlapsWith(remapOn.contents) ? remapOn : remapIn)
+    }
+
+    notionalContents() {
+        return inherited() + remapIn.notionalContents();
+    }
+}
+
+DefineDistSubComponentFor(FilingCabinetRemapOn, FilingCabinet, remapOn)
+    isBoardable = true
+    betterStorageHeader
+;
+
+DefineDistSubComponentFor(FilingCabinetRemapIn, FilingCabinet, remapIn)
+    isOpenable = nil
+    isOpen = true
+    bulkCapacity = 0
+    maxSingleBulk = 0
+
+    getDrawer(index) {
+        return lexicalParent.getDrawer(index);
+    }
+
+    dobjFor(Open) {
+        verify() { }
+        check() { }
+        action() {
+            for (local i = 1; i <= 3; i++) {
+                local drawer = getDrawer(i);
+                if (!drawer.isOpen) tryImplicitAction(Open, drawer);
+            }
+            "<.p>Done. ";
+        }
+        report() { }
+    }
+
+    dobjFor(Close) {
+        verify() { }
+        check() { }
+        action() {
+            for (local i = 1; i <= 3; i++) {
+                local drawer = getDrawer(i);
+                if (drawer.isOpen) tryImplicitAction(Close, drawer);
+            }
+            "<.p>Done. ";
+        }
+        report() { }
+    }
+
+    dobjFor(LookIn) {
+        action() {
+            for (local i = 1; i <= 3; i++) {
+                local drawer = getDrawer(i);
+                tryImplicitAction(Open, drawer);
+                if (i > 1) "\b";
+                "(searching in <<drawer.theName>>)\n";
+                searchCore.clearHistory();
+                doNested(LookIn, drawer);
+            }
+        }
+    }
+
+    iobjFor(PutIn) {
+        verify() { }
+        check() { }
+        action() {
+            local chosenDrawer = nil;
+            for (local i = 1; i <= 3; i++) {
+                local drawer = getDrawer(i);
+                chosenDrawer = drawer;
+                if (i > 1) "\b";
+                else "\n";
+                extraReport('(perhaps in <<drawer.theName>>?)\n');
+                if (!drawer.isOpen) {
+                    extraReport('(first opening <<drawer.theName>>)\n');
+                    drawer.makeOpen(true);
+                }
+                if (gOutStream.watchForOutput({: drawer.checkIobjPutIn() }) != nil) {
+                    chosenDrawer = nil;
+                }
+                if (chosenDrawer != nil) break;
+            }
+            if (chosenDrawer == nil) {
+                "<.p>It{dummy} seem{s/ed} like none of the drawers{plural}
+                {is} suitable for {that dobj}. ";
+                exit;
+            }
+            doNested(PutIn, gDobj, chosenDrawer);
+        }
+        report() { }
+    }
+
+    iobjFor(TakeFrom) {
+        action() {
+            for (local i = 1; i <= 3; i++) {
+                local drawer = getDrawer(i);
+                if (gDobj.isIn(drawer)) {
+                    extraReport('\n(taking from <<drawer.theName>>)\n');
+                    doNested(TakeFrom, gDobj, drawer);
+                    return;
+                }
+            }
+        }
+        report() { }
+    }
+
+    notionalContents() {
+        local nc = [];
+        
+        for (local i = 1; i <= 3; i++) {
+            local drawer = getDrawer(i);
+            if (drawer.isOpen || drawer.isTransparent) {
+                nc = nc + drawer.contents;
+            }
+        }
+        
+        return nc;
+    }
+;
+
+#define CabinetDrawerProperties \
+    desc = "TODO: Add description. " \
+    subLocation = &remapIn \
+    contType = In \
+    bulkCapacity = actorCapacity \
+    maxSingleBulk = 1 \
+    isOpenable = true \
+    distOrder = 1
+
+DefineDistSubComponentFor(TopCabinetDrawer, FilingCabinet, topDrawer)
+    vocab = 'top drawer;upper first'
+    nameAs(parent) {
+        name = 'top drawer';
+    }
+    CabinetDrawerProperties
+;
+
+DefineDistSubComponentFor(MiddleCabinetDrawer, FilingCabinet, middleDrawer)
+    vocab = 'middle drawer;mid second center'
+    nameAs(parent) {
+        name = 'middle drawer';
+    }
+    CabinetDrawerProperties
+;
+
+DefineDistSubComponentFor(BottomCabinetDrawer, FilingCabinet, bottomDrawer)
+    vocab = 'bottom drawer;lower lowest third'
+    nameAs(parent) {
+        name = 'bottom drawer';
+    }
+    CabinetDrawerProperties
+;
+
+// Handles and other details
+#define basicHandleProperties \
+    distOrder = 2 \
+    isDecoration = true \
+    decorationActions = [Examine, Push, Pull, Taste, Lick] \
+    matchPhrases = ['handle', 'bar', 'latch'] \
+    addParentVocab(_lexParent) { \
+        if (_lexParent != nil) { \
+            addVocab(';' + _lexParent.name + ';'); \
+        } \
+    } \
+    dobjFor(Taste) { \
+        verify() { } \
+        check() { } \
+        action() { } \
+        report() { \
+            "<.p>As your tongue leaves its surface, subtle flashbacks of someone \
+            else's memories pass through your mind, like muffled echoes.\b \
+            You think you remember a name, reaching out from the whispers:\b \
+            <center><i><q>Rovarsson...</q></i></center>\b \
+            You're not really sure what to make of that. Probably should not \
+            lick random handles anymore, though. "; \
+        } \
+    }
+
+#define pushPullHandleProperties \
+    basicHandleProperties \
+    postCreate(_lexParent) { \
+        addParentVocab(_lexParent); \
+    } \
+    cannotPushMsg = '{That dobj} {is} not a push door. ' \
+    cannotPullMsg = '{That dobj} {is} not a pull door. ' \
+    dobjFor(Push) { \
+        check() { } \
+        action() { \
+            doInstead(Open, lexicalParent); \
+        } \
+        report() { } \
+    } \
+    dobjFor(Pull) { \
+        check() { } \
+        action() { \
+            doInstead(Open, lexicalParent); \
+        } \
+        report() { } \
+    }
+
+DefineDistComponentFor(PushDoorHandle, Door)
+    vocab = 'handle;door[weak] push[weak] pull[weak];bar'
+    desc = "A push bar spans the width of the door. "
+
+    getMiscInclusionCheck(obj, normalInclusionCheck) {
+        return normalInclusionCheck && !obj.skipHandle && !obj.pullHandleSide;
+    }
+
+    isPushable = true
+
+    pushPullHandleProperties
+;
+
+DefineDistComponentFor(PullDoorHandle, Door)
+    vocab = 'handle;door[weak] push[weak] pull[weak] metal[weak];bar loop track'
+    desc = "A large, metal loop sits in a track, which spans half the width
+        of the door. "
+
+    getMiscInclusionCheck(obj, normalInclusionCheck) {
+        return normalInclusionCheck && !obj.skipHandle && obj.pullHandleSide;
+    }
+
+    isPullable = true
+
+    pushPullHandleProperties
+;
+
+#define tinyDoorHandleProperties \
+    vocab = 'handle;metal[weak] pull[weak];latch' \
+    desc = "A tiny pull latch, which can open \
+        <<hatch == nil ? 'containers' : hatch.theName>>. " \
+    basicHandleProperties \
+    cannotPushMsg = '{That dobj} {is} not a push latch. ' \
+    cannotPullMsg = '{That dobj} {is} not a pull latch. ' \
+    isPullable = true \
+    hatch = nil \
+    getMiscInclusionCheck(obj, normalInclusionCheck) { \
+        return normalInclusionCheck && !obj.ofKind(Door) && (getLikelyHatch(obj) != nil); \
+    } \
+    preCreate(_lexParent) { \
+        hatch = getLikelyHatch(_lexParent); \
+        if (hatch != nil) { \
+            owner = hatch; \
+            ownerNamed = true; \
+        } \
+    } \
+    postCreate(_lexParent) { \
+        addParentVocab(hatch); \
+    } \
+    remapReach(action) { \
+        return hatch; \
+    } \
+    dobjFor(Push) { \
+        check() { } \
+        action() { \
+            doInstead(Open, hatch); \
+        } \
+        report() { } \
+    } \
+    dobjFor(Pull) { \
+        check() { } \
+        action() { \
+            doInstead(Open, hatch); \
+        } \
+        report() { } \
+    }
+
+DefineDistComponent(TinyDoorHandle)
+    getLikelyHatch(obj) {
+        if (obj.remapIn != nil) {
+            if (obj.remapIn.contType == In && obj.remapIn.isOpenable) {
+                return obj.remapIn;
+            }
+        }
+        if (obj.remapOn != nil) {
+            if (obj.remapOn.contType == In && obj.remapOn.isOpenable) {
+                return obj.remapOn;
+            }
+        }
+        return nil;
+    }
+
+    tinyDoorHandleProperties
+;
+
+DefineDistComponent(TinyDoorTopDrawerHandle)
+    getLikelyHatch(obj) {
+        return obj.topDrawer;
+    }
+
+    tinyDoorHandleProperties
+;
+
+DefineDistComponent(TinyDoorMiddleDrawerHandle)
+    getLikelyHatch(obj) {
+        return obj.middleDrawer;
+    }
+
+    tinyDoorHandleProperties
+;
+
+DefineDistComponent(TinyDoorBottomDrawerHandle)
+    getLikelyHatch(obj) {
+        return obj.bottomDrawer;
+    }
+
+    tinyDoorHandleProperties
+;

@@ -9,6 +9,7 @@ TEST_centralRoom: Room { 'Central Room'
 +TEST_hallwayDoor: Door { 'hallway door'
     "The door to the hallway. <<catFlapDesc>> "
     otherSide = TEST_centralRoomDoor
+    pullHandleSide = nil
 }
 
 +TEST_cargoShelf: FixedPlatform { 'tall cargo shelf'
@@ -30,11 +31,13 @@ TEST_centralRoom: Room { 'Central Room'
     isListed = true
 
     betterStorageHeader
+    IncludeDistComponent(ContainerGrate)
+    IncludeDistComponent(TinyDoorHandle)
 
     remapIn: SubComponent {
         isOpenable = true
         isEnterable = true
-        includeGrate(TEST_cabinet)
+        //includeGrate(TEST_cabinet)
     }
     remapOn: SubComponent {
         isBoardable = true
@@ -170,6 +173,7 @@ TEST_centerHallway: Room { 'Hallway (Center)'
 +TEST_centralRoomDoor: Door { 'central room door'
     "The door to the central room. <<catFlapDesc>> "
     otherSide = TEST_hallwayDoor
+    pullHandleSide = true
 }
 
 TEST_eastHallway: Room { 'Hallway (East)'

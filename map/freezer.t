@@ -103,6 +103,7 @@ freezer: Room { 'The Freezer'
     soundSourceRepresentative = freezerNorthEntry
 
     airlockDoor = true
+    pullHandleSide = nil
 }
 
 +freezerWestExit: Door { 'the exit door'
@@ -111,6 +112,7 @@ freezer: Room { 'The Freezer'
     soundSourceRepresentative = freezerWestEntry
 
     airlockDoor = true
+    pullHandleSide = nil
 }
 
 northFreezerFog: ColdFog;
@@ -122,6 +124,7 @@ freezerNorthEntry: Door { 'the freezer loading door'
     location = storageBay
 
     airlockDoor = true
+    pullHandleSide = true
 
     makeOpen(stat) {
         inherited(stat);
@@ -141,6 +144,7 @@ freezerWestEntry: Door { 'the freezer door'
     location = southeastHall
 
     airlockDoor = true
+    pullHandleSide = true
 
     makeOpen(stat) {
         inherited(stat);

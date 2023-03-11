@@ -13,6 +13,7 @@ kitchen: Room { 'The Kitchen'
     soundSourceRepresentative = kitchenNorthEntry
 
     airlockDoor = true
+    pullHandleSide = true
 }
 
 kitchenNorthEntry: Door { 'the kitchen access door'
@@ -21,6 +22,7 @@ kitchenNorthEntry: Door { 'the kitchen access door'
     location = freezer
 
     airlockDoor = true
+    pullHandleSide = nil
 }
 
 DefineDoorWestTo(southHall, kitchen, 'the kitchen door')

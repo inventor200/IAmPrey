@@ -11,6 +11,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     desc = standardDoorDescription
     otherSide = southEnrichmentRoomDoorInterior
     soundSourceRepresentative = southEnrichmentRoomDoorInterior
+    pullHandleSide = nil
 }
 
 +southeastCloneBed: Fixture { 'southeast[weak] bed;se[weak] bunk;cot'

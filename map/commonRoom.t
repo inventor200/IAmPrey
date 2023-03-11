@@ -13,9 +13,6 @@ commonRoomCeiling: Ceiling { 'ceiling'
     )
     
     contType = On
-    omitFromStagingError() {
-        return nil;
-    }
 
     getOutermostRoom() {
         return commonRoom;

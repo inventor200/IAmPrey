@@ -169,6 +169,7 @@ class CoolingDuctInnerDoor: Door {
 
     airlockDoor = true
     passActionStr = 'exit'
+    skipHandle = true
 
     standardExitMsg =
         '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}

@@ -11,6 +11,7 @@ enrichmentRoom: Room { 'The Enrichment Room'
 +southEnrichmentRoomDoorInterior: Door { 'the south enrichment room door'
     desc = standardDoorDescription
     otherSide = southEnrichmentRoomDoorExterior
+    pullHandleSide = true
 }
 
 +commonRoomHall: Passage {

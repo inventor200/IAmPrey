@@ -1,4 +1,9 @@
 #define showPrologue prologueCore.play()
+#if __DEBUG
+#define __ALLOW_CLS true
+#else
+#define __ALLOW_CLS true
+#endif
 
 prologueCore: InitObject {
     introCutscene = nil
@@ -7,7 +12,9 @@ prologueCore: InitObject {
     execBeforeMe = [screenReaderInit]
 
     selectDifficulty() {
+        #if __ALLOW_CLS
         cls();
+        #endif
         #if __SHOW_PROLOGUE
         "<b>Content warning:</b>\n";
         if (gFormatForScreenReader) {
@@ -29,10 +36,14 @@ prologueCore: InitObject {
         inputManager.pauseForMore();
         #if __IS_MAP_TEST // is map test
         huntCore.setDifficult(1);
+        #if __ALLOW_CLS
         cls();
+        #endif
         catCutscene.play();
         #else // is not map test
+        #if __ALLOW_CLS
         cls();
+        #endif
         "\b<b>Definition of AUTO-SNEAKING:</b>\n
         Players must remember to perform <i>all</i> precautions
         for <i>stealth</i> and <i>safety</i>, as a core part of this game!\b
@@ -54,7 +65,9 @@ prologueCore: InitObject {
         }
         local result = difficultyQuestion.ask();
         huntCore.setDifficult(result);
+        #if __ALLOW_CLS
         cls();
+        #endif
         if (!huntCore.difficultySettingObj.skipPrologue) {
             if (result == 1) {
                 catCutscene.play();

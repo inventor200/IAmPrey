@@ -660,6 +660,7 @@ modify explicitExitLister {
 
 modify Thing {
     requiresPeekAngle = nil
+    skipHandle = nil
 
     dobjFor(SneakThrough) {
         verify() {
@@ -750,7 +751,6 @@ modify Thing {
 enum normalClosingSound, slamClosingSound;
 
 modify Door {
-    hasCatFlap = nil
     catFlap = nil
     airlockDoor = nil
     isVentGrateDoor = nil
@@ -760,6 +760,8 @@ modify Door {
     primedPlayerAudio = nil
     passActionStr = 'enter'
     canSlamMe = true
+
+    pullHandleSide = (airlockDoor)
 
     // One must be on the staging location to peek through me
     requiresPeekAngle = true
@@ -776,16 +778,6 @@ modify Door {
     // open states.
     playerExpectsAirlockOpen = nil
     skashekExpectsAirlockOpen = nil
-
-    preinitThing() {
-        inherited();
-        if ((hasCatFlap || !isLocked) && catFlap == nil && !airlockDoor) {
-            hasCatFlap = true;
-            otherSide.hasCatFlap = true;
-            catFlap = new CatFlap(self);
-            catFlap.preinitThing();
-        }
-    }
 
     getScanName() {
         local omr = getOutermostRoom();
@@ -1160,7 +1152,7 @@ modify Door {
         verify() {
             if (gActorIsCat && !isVentGrateDoor) {
                 illogical('{That subj dobj} {is} too heavy for an old cat to open.<<
-                if hasCatFlap>> That\'s probably why the Royal Subject installed a cat
+                if hasDistCompCatFlap>> That\'s probably why the Royal Subject installed a cat
                 flap<<first time>> <i>(cut a ragged square hold into the bottom with
                 power tools)</i><<only>>.<<end>> ');
                 return;
@@ -1216,7 +1208,7 @@ modify Door {
     }
 
     getCatAccessibility() {
-        if (!hasCatFlap) {
+        if (!hasDistCompCatFlap) {
             return [travelPermitted, actorInStagingLocation, objOpen];
         }
         if (gActorIsCat) {
@@ -1229,14 +1221,14 @@ modify Door {
         preCond = (getCatAccessibility())
     }
 
-    allowPeek = (isOpen || hasCatFlap || isTransparent)
+    allowPeek = (isOpen || hasDistCompCatFlap || isTransparent)
 
     remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
     dobjFor(PeekAround) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
-        remap = (isOpen ? nil : (hasCatFlap ? catFlap : nil))
+        remap = (isOpen ? nil : (hasDistCompCatFlap ? catFlap : nil))
         verify() {
             if (!allowPeek) {
                 illogical('{I} {cannot} peek through an opaque door. ');
@@ -1250,7 +1242,7 @@ modify Door {
 
     isActuallyPassable(traveler) {
         if (traveler == cat) {
-            return hasCatFlap;
+            return hasDistCompCatFlap;
         }
         return isOpen;
     }
@@ -1295,20 +1287,20 @@ modify Door {
     }
 }
 
-class CatFlap: Decoration {
-    construct(door) {
-        owner = door;
-        ownerNamed = true;
-        vocab = 'cat flap;pet kitty;door[weak] catflap petflap';
-        inherited();
-        lexicalParent = door;
-        moveInto(door);
+DefineDistComponentFor(CatFlap, Door)
+    vocab = 'cat flap;pet kitty;door[weak] catflap petflap catdoor kittydoor'
+
+    getMiscInclusionCheck(obj, normalInclusionCheck) {
+        return (normalInclusionCheck || !obj.isLocked) && !obj.airlockDoor;
     }
+
+    subReferenceProp = &catFlap
 
     desc = "A ragged, square hole that has been cut into the bottom of the thick, industrial
     door. It must have required a combination of incredible power tools, <i>lots</i> of
     free time, and a radiant, heartfelt fondness for a certain cat."
 
+    isDecoration = true
     decorationActions = [Examine, GoThrough, Enter, PeekThrough, LookThrough, PeekInto, LookIn, Search]
 
     canGoThroughMe = true
@@ -1341,7 +1333,7 @@ class CatFlap: Decoration {
     locType() {
         return Outside;
     }
-}
+;
 
 class MaintenanceDoor: Door {
     keyList = [maintenanceKey]

@@ -660,28 +660,47 @@ modify Door {
     allowLookThroughSearch
 }
 
-#define includeGrate(destination) \
-    preinitThing() { \
-        inherited(); \
-        if (grate == nil) { \
-            hasGrating = true; \
-            grate = new ContainerGrate(self, destination); \
-            grate.preinitThing(); \
-        } \
+DefineDistComponent(ContainerGrate)
+    vocab = 'grate;;grating'
+
+    preCreate(_lexParent) {
+        hatch = _lexParent;
+        local hatchHandled = nil;
+
+        if (_lexParent.contType == In && _lexParent.isOpenable) {
+            hatchHandled = true;
+        }
+        if (_lexParent.remapIn != nil && !hatchHandled) {
+            if (_lexParent.remapIn.contType == In && _lexParent.remapIn.isOpenable) {
+                hatch = _lexParent.remapIn;
+                hatchHandled = true;
+            }
+        }
+        if (_lexParent.remapOn != nil && !hatchHandled) {
+            if (_lexParent.remapOn.contType == In && _lexParent.remapOn.isOpenable) {
+                hatch = _lexParent.remapOn;
+                hatchHandled = true;
+            }
+        }
+        
+        if (hatchHandled) {
+            owner = hatch;
+            ownerNamed = true;
+        }
     }
 
-class ContainerGrate: Decoration {
-    construct(_hatch, destination) {
-        owner = hatch;
-        ownerNamed = true;
-        vocab = 'grate;;grating';
-        inherited();
-        hatch = _hatch;
-        lexicalParent = destination;
-        moveInto(destination);
+    postCreate(_lexParent) {
+        hatch.hasGrating = true;
     }
 
+    remapReach(action) {
+        return hatch;
+    }
+
+    distOrder = 1
     hatch = nil
+    isDecoration = true
+    distComponentOwnerNamed = nil
 
     desc = "A small metal frame with horizontal slits machined into it.
         You might be able to look through it."
@@ -708,4 +727,4 @@ class ContainerGrate: Decoration {
     locType() {
         return Outside;
     }
-}
+;

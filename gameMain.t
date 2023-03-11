@@ -47,6 +47,7 @@
 #define actorBulk 25
 #include "forEveryone.t"
 #include "cutsceneCore.t"
+#include "distributedComponents.t"
 #include "moddedSearch.t"
 #include "awareVehicles.t"
 #define gCatMode huntCore.inCatMode

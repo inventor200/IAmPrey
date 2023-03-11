@@ -111,23 +111,27 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     desc = lockedDoorDescription
     otherSide = northReservoirCorridorEntry
     soundSourceRepresentative = northReservoirCorridorEntry
+    pullHandleSide = true
 }
 
 +southReservoirCorridorExit: MaintenanceDoor { 'the reactor access door'
     desc = lockedDoorDescription
     otherSide = southReservoirCorridorEntry
     travelBarriers = [wasteProcessingBarrier]
+    pullHandleSide = true
 }
 
 northReservoirCorridorEntry: MaintenanceDoor { 'the reservoir access door' @freezer
     desc = lockedDoorDescription
     otherSide = northReservoirCorridorExit
+    pullHandleSide = nil
 }
 
 southReservoirCorridorEntry: MaintenanceDoor { 'the reservoir access south door' @fakePumpRoom
     desc = lockedDoorDescription
     otherSide = southReservoirCorridorExit
     soundSourceRepresentative = southReservoirCorridorExit
+    pullHandleSide = nil
 }
 
 reservoirControlSightLine: WindowRegion;

@@ -198,7 +198,11 @@ class Walls: MultiLoc, Thing {
     initialLocationClass = Room
     
     isInitiallyIn(obj) { return obj.wallsObj == self; }
-    decorationActions = [Examine]       
+    decorationActions = [Examine]
+
+    omitFromStagingError() {
+        return nil;
+    }
 }
 
 defaultWalls: Walls { 'walls;north[weak] n[weak] south[weak] s[weak] east[weak] e[weak] west[weak] w[weak];wall'
@@ -211,7 +215,11 @@ class Ceiling: MultiLoc, Thing {
     initialLocationClass = Room
     
     isInitiallyIn(obj) { return obj.ceilingObj == self; }
-    decorationActions = [Examine]       
+    decorationActions = [Examine]
+
+    omitFromStagingError() {
+        return nil;
+    }
 }
 
 defaultCeiling: Ceiling { 'ceiling'
@@ -290,6 +298,7 @@ modify Continue {
         desc = standardDoorDescription \
         otherSide = localRoom##EntryDoor \
         soundSourceRepresentative = localRoom##EntryDoor \
+        pullHandleSide = nil \
     } \
     localRoom##EntryDoor: Door { \
         vocab = theLocalDoorName \
@@ -297,6 +306,7 @@ modify Continue {
         desc = standardDoorDescription \
         otherSide = localRoom##ExitDoor \
         soundSourceRepresentative = localRoom##EntryDoor \
+        pullHandleSide = true \
     } \
     modify localRoom { \
         outDir = localRoom##ExitDoor \
@@ -324,7 +334,6 @@ modify Continue {
         vocab = theExitDoorName \
         location = localRoom \
         destinationPlatform = outerPlat \
-        desc = standardDoorDescription \
         otherSide = localRoom##EntryVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \
     } \
@@ -332,7 +341,6 @@ modify Continue {
         vocab = theLocalDoorName \
         location = outerPlat \
         destinationPlatform = localPlat \
-        desc = standardDoorDescription \
         otherSide = localRoom##ExitVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \
     }
@@ -353,7 +361,6 @@ modify Continue {
     localRoom##ExitVentGrate: VentGrateDoor { \
         vocab = 'vent grate;ventilation;door' \
         location = localPlat \
-        desc = standardDoorDescription \
         otherSide = localRoom##EntryVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \
     } \
@@ -361,7 +368,6 @@ modify Continue {
         vocab = theLocalDoorName \
         location = outerRoom \
         destinationPlatform = localPlat \
-        desc = standardDoorDescription \
         otherSide = localRoom##ExitVentGrate \
         soundSourceRepresentative = localRoom##EntryVentGrate \
         isConnectorListed = true \

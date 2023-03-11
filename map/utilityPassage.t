@@ -13,11 +13,13 @@ utilityPassage: Room { 'The Utility Corridor'
     desc = lockedDoorDescription
     otherSide = southUtilityPassageEntry
     soundSourceRepresentative = southUtilityPassageEntry
+    pullHandleSide = nil
 }
 
 +northUtilityPassageExit: MaintenanceDoor { 'the door to[weak] life support'
     desc = lockedDoorDescription
     otherSide = northUtilityPassageEntry
+    pullHandleSide = true
 }
 
 +utilityWallPipes: PassablePipes { 'pipes[n] on[prep] the wall;west[weak] w[weak] in[prep] the wall[n];tubing tubes hole'
@@ -77,12 +79,14 @@ utilityPassage: Room { 'The Utility Corridor'
 southUtilityPassageEntry: MaintenanceDoor { 'the south-end access door' @southHall
     desc = lockedDoorDescription
     otherSide = southUtilityPassageExit
+    pullHandleSide = true
 }
 
 northUtilityPassageEntry: MaintenanceDoor { 'the exit door' @lifeSupportTop
     desc = lockedDoorDescription
     otherSide = northUtilityPassageExit
     soundSourceRepresentative = northUtilityPassageExit
+    pullHandleSide = nil
 }
 
 class PassablePipes: LocalClimbPlatform {

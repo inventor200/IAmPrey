@@ -104,6 +104,8 @@ class VentGrateDoor: Door {
     isVentGrateDoor = true
     isConnectorListed = nil
 
+    skipHandle = true
+
     dobjFor(Open) {
         report() {
             if (gActorIsCat) {
@@ -122,9 +124,10 @@ class VentGrateDoor: Door {
     }
 }
 
-ventGrateDoorHinge: MultiLoc, Thing { 'vent door hinge;grate'
-    "A 3D-printed, plastic hinge. This was a long-term, homemade modification. "
+DefineDistComponentFor(VentGrateDoorHinge, VentGrateDoor)
+    vocab = 'vent door hinge;grate'
+    desc = "A 3D-printed, plastic hinge. This was a long-term, homemade modification. "
 
-    initialLocationClass = VentGrateDoor
     isDecoration = true
-}
+    ambiguouslyPlural = true
+;

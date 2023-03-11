@@ -671,11 +671,18 @@ QParkour: Special {
         // Don't worry about room connections
         if (a.ofKind(Room) || b.ofKind(Room)) return issues;
 
+        local aReach = a;
         local aItem = nil;
+        //local aItemReach = nil;
         local aLoc = nil;
+        local aLocReach = nil;
         local doNotFactorJumpForA = nil;
+
+        local bReach = b;
         local bItem = nil;
+        //local bItemReach = nil;
         local bLoc = nil;
+        local bLocReach = nil;
         local doNotFactorJumpForB = nil;
 
         #if __PARKOUR_REACH_DEBUG
@@ -719,11 +726,23 @@ QParkour: Special {
             }
         }
 
-        needsTouchObj = (valToList(b.(preCondProp)).indexOf(touchObj) != nil);
+        if (preCondProp != nil) {
+            needsTouchObj = (valToList(b.(preCondProp)).indexOf(touchObj) != nil);
+        }
         local doNotFactorJump = !needsTouchObj || gAction.forceDoNoFactorJump;
+
+        local remapA = a.remapReach(gAction);
+        local remapB = b.remapReach(gAction);
 
         if (a.isLikelyContainer()) {
             aLoc = a;
+            if (remapA != nil) {
+                aReach = remapA;
+                aLocReach = remapA;
+            }
+            else {
+                aLocReach = aLoc;
+            }
             doNotFactorJumpForA = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(LOC A: <<aLoc.theName>> (<<aLoc.contType.prep>>)
@@ -733,6 +752,15 @@ QParkour: Special {
         else {
             aItem = a;
             aLoc = a.location;
+            if (remapA != nil) {
+                aReach = remapA;
+                //aItemReach = remapA;
+                aLocReach = remapA.location;
+            }
+            else {
+                //aItemReach = aItem;
+                aLocReach = aLoc;
+            }
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(ITEM A: <<aItem.theName>> (<<aItem.contType.prep>>)
                 in <<aLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
@@ -741,6 +769,13 @@ QParkour: Special {
 
         if (b.isLikelyContainer()) {
             bLoc = b;
+            if (remapB != nil) {
+                bReach = remapB;
+                bLocReach = remapB;
+            }
+            else {
+                bLocReach = bLoc;
+            }
             doNotFactorJumpForB = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(LOC B: <<bLoc.theName>> (<<bLoc.contType.prep>>)
@@ -750,6 +785,15 @@ QParkour: Special {
         else {
             bItem = b;
             bLoc = b.location;
+            if (remapB != nil) {
+                bReach = remapB;
+                //bItemReach = remapB;
+                bLocReach = remapB.location;
+            }
+            else {
+                //bItemReach = bItem;
+                bLocReach = bLoc;
+            }
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(ITEM B: <<bItem.theName>> (<<bItem.contType.prep>>)
                 in <<bLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
@@ -757,11 +801,11 @@ QParkour: Special {
         }
 
         // Attempt to end early with bonus reaches
-        if (aLoc.canBonusReachDuring(bLoc, gAction)) return issues;
-        if (bLoc.canBonusReachDuring(aLoc, gAction)) return issues;
+        if (aLocReach.canBonusReachDuring(bLocReach, gAction)) return issues;
+        if (bLocReach.canBonusReachDuring(aLocReach, gAction)) return issues;
 
-        local parkourA = a.getParkourModule();
-        local parkourB = b.getParkourModule();
+        local parkourA = aReach.getParkourModule();
+        local parkourB = bReach.getParkourModule();
 
         if (parkourA == nil && parkourB == nil) {
             // Parkour checks will be useless here
@@ -774,7 +818,7 @@ QParkour: Special {
             #endif
             if (parkourA != nil) {
                 local reachResult = parkourA.isInReachFromVerbose(
-                    b, true, doNotFactorJumpForA
+                    bReach, true, doNotFactorJumpForA
                 );
                 if (reachResult != parkourReachSuccessful) {
                     issues += getMessageFromReachResult(
@@ -795,7 +839,7 @@ QParkour: Special {
         }
         else {
             local reachResult = parkourB.isInReachFromVerbose(
-                a, true, doNotFactorJumpForB
+                aReach, true, doNotFactorJumpForB
             );
             if (reachResult != parkourReachSuccessful) {
                 issues += getMessageFromReachResult(
@@ -809,17 +853,20 @@ QParkour: Special {
     }
 
     getMessageFromReachResult(a, b, aItem, bItem, aLoc, bLoc, reachResult) {
-        if (!bLoc.omitFromStagingError()) {
-            switch (reachResult) {
-                case parkourReachTopTooFar:
+        switch (reachResult) {
+            case parkourReachTopTooFar:
+                if (!bLoc.omitFromStagingError()) {
                     return new ReachProblemParkour(
                         a, b, aItem, bItem, aLoc, bLoc
                     );
-                case parkourSubComponentTooFar:
-                    return new ReachProblemParkourFromTopOfSame(
-                        a, b, aItem, bItem, aLoc, bLoc
-                    );
-            }
+                }
+                else {
+                    return new ReachProblemDistance(a, b);
+                }
+            case parkourSubComponentTooFar:
+                return new ReachProblemParkourFromTopOfSame(
+                    a, b, aItem, bItem, aLoc, bLoc
+                );
         }
         return new ReachProblemDistance(a, b);
     }
@@ -1433,6 +1480,14 @@ modify Thing {
     }
 
     omitFromStagingError() {
+        // Being on the floor is obvious
+        if (stagingLocation.ofKind(Room)) return nil;
+
+        // Being on the same surface as it is obvious
+        parkourCore.cacheParkourRunner(gPlayerChar);
+        if (stagingLocation == gParkourRunner.location) return nil;
+
+        // The rest is not obvious
         if (parkourCore.requireRouteRecon) {
             if (forcedLocalPlatform) return secretLocalPlatform;
             if (hasParkourRecon) return nil;
@@ -1783,7 +1838,13 @@ modify Thing {
     parkourProviderAction(SwingOn, remapOn)
     parkourProviderAction(SqueezeThrough, remapIn)
 
+    // Best for parkour surfaces only
     canBonusReachDuring(obj, action) {
+        return nil;
+    }
+
+    // Best for parkour surfaces only
+    remapReach(action) {
         return nil;
     }
 
@@ -1991,6 +2052,10 @@ modify Room {
     getOffFloor() {
         jumpOffFloor();
     }
+
+    omitFromStagingError() {
+        return nil;
+    }
 }
 
 #define redirectJumpOffFloor(originalAction) \
@@ -2063,6 +2128,10 @@ modify Floor {
     redirectJumpOffFloor(ParkourJumpOffOf)
     redirectGetOffFloor(GetOff)
     redirectGetOffFloor(ParkourClimbOffOf)
+
+    omitFromStagingError() {
+        return nil;
+    }
 }
 
 modify SubComponent {
@@ -2127,6 +2196,15 @@ modify SubComponent {
         if (ret) return ret;
         if (lexicalParent != nil) {
             return lexicalParent.omitFromPrintedLocalsList();
+        }
+        return nil;
+    }
+
+    omitFromStagingError() {
+        local ret = inherited();
+        if (ret == nil) return ret;
+        if (lexicalParent != nil) {
+            return lexicalParent.omitFromStagingError();
         }
         return nil;
     }
@@ -3356,6 +3434,8 @@ class ParkourPath: object {
 }
 
 class ParkourPathMaker: PreinitObject {
+    execBeforeMe = [distributedComponentDistributor]
+
     location = nil
     destination = nil
     provider = nil

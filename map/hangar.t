@@ -24,6 +24,7 @@ storageBay: Room { 'The Storage Bay'
     desc = lockedDoorDescription
     otherSide = southUtilityPassageExit
     travelBarriers = [wasteProcessingBarrier]
+    pullHandleSide = true
 }
 
 wasteProcessingBarrier: TravelBarrier {
@@ -89,6 +90,7 @@ wasteProcessing: Room { 'Waste Processing'
     desc = lockedDoorDescription
     otherSide = wasteProcessingEntry
     soundSourceRepresentative = wasteProcessingEntry
+    pullHandleSide = nil
 }
 
 emergencyAirlock: Room { 'The Emergency Airlock'
