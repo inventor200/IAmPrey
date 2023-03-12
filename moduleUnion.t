@@ -66,6 +66,12 @@ DefineTAction(Lick)
     turnsTaken = (Taste.turnsTaken)
 ;
 
+modify VerbRule(Attack)
+    ('attack'|'kill'|'hit'|'kick'|'punch'|'strike'|'punish'|'swat' ('at'|)|
+    ('lunge'|'dive') (('down'|) 'at'|)|'pounce' ('at'|'on'|'upon')|
+    'tackle'|'ambush') singleDobj :
+;
+
 modify Thing {
     bulk = ((isEnterable || isBoardable) ? 2 : (isDecoration ? 0 : 1))
     bulkCapacity = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
@@ -123,6 +129,40 @@ modify Thing {
 
     dobjFor(Lick) asDobjFor(Taste)
 
+    verifyAttackBasically() {
+        if (gActor == gDobj) {
+            illogical('You deserve better treatment than that.
+            <<if gCatMode>>You are a wonderful king, after all!<<else
+            >>You are already surviving longer than the vast majority
+            of previous prey clones!<<end>> &lt;3 ');
+        } 
+        else if (gActorIsPrey) {
+            illogical(cannotAttackMsg);
+        }
+    }
+
+    dobjFor(Attack) {
+        verify() {
+            verifyAttackBasically();
+        }
+        check() { }
+        action() {
+            doInstead(Move, gDobj);
+        }
+        report() { }
+    }
+
+    dobjFor(AttackWith) {
+        verify() {
+            verifyAttackBasically();
+        }
+        check() { }
+        action() {
+            doInstead(MoveWith, gDobj, gIobj);
+        }
+        report() { }
+    }
+
     selfPropulsionMsg = 'There{plural} {is} better ways{dummy} to move {myself} around. '
     catCannotMoveMsg = '{That dobj} {is} too heavy for an old king to move. '
     pawsCannotPullMsg = 'Your paws will not let you pull anything. '
@@ -130,20 +170,24 @@ modify Thing {
     verifyPushBasically() {
         if (gActor.isOrIsIn(self)) {
             inaccessible(selfPropulsionMsg);
+            return true;
         }
         if (isFixed) {
-            illogicalNow(cannotTakeMsg);
+            illogical(cannotTakeMsg);
+            return true;
         }
         if (gActorIsCat && bulk > 1) {
             illogical(catCannotMoveMsg);
+            return true;
         }
+        return nil;
     }
 
     dobjFor(Pull) {
         preCond = [touchObj]
         verify() {
-            verifyPushBasically();
-            if (gActorIsCat) {
+            if (verifyPushBasically()) { }
+            else if (gActorIsCat) {
                 inaccessible(pawsCannotPullMsg);
             }
             else {
@@ -210,8 +254,8 @@ modify Thing {
     dobjFor(Push) {
         preCond = [touchObj]
         verify() {
-            verifyPushBasically();
-            if (gActorIsCat) {
+            if (verifyPushBasically()) { }
+            else if (gActorIsCat) {
                 if (location.contType == In) {
                     catPushFailure(location, true);
                 }

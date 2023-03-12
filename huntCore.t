@@ -232,8 +232,8 @@ huntCore: InitObject {
         "<.p>The voice of your Royal Subject is heard over the facility's
         intercom:\n
         <q><<gCatNickname>>...!
-        It's bath time! I can smell you from the other side of the facility!</q>\b
-        Oh no. You fucking <i>hate</i> bath time...!! Time to make
+        It's Bath Time! I can smell you from the other side of the facility!</q>\b
+        Oh no. You fucking <i>hate</i> Bath Time...!! Time to make
         the Royal Subject <i>regret</i> that!<<
         skashekFishing.suggestAttackInSuspicion()>> ";
         bathTimeFuse = nil;

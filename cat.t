@@ -10,8 +10,11 @@
 #define catNicknameVocab ('king arthur')
 #endif
 
-cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself'
-    "TODO: old salt-and-pepper cat desc. "
+cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws'
+    "You are a beautiful, regal, and <i>graceful</i> cat!
+    And a <i>grand</i> ruler, too!\b
+    Your black coat is speckled  with streaks of silvery tips.
+    White highlights your chest and paws, like a tuxedo. "
     person = (gCatMode ? 2 : 3)
     isHim = true
 
@@ -29,7 +32,8 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself'
         mirror.confirmSmashed();
         if (mirror.isSmashed) {
             return 'It\'s difficult to see yourself in the broken mirror,
-                but the reflection patterns show black fluff, with streaks of gray. ';
+                but the reflection patterns show black fluff,
+                with streaks of silver. ';
         }
         desc();
         return '';
@@ -57,9 +61,3 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself'
     which is a little difficult to read, still. However, it seems to
     indicate the cat's name is <q><<gCatName>></q>.<<end>>"
 }
-
-//TODO: All cat conversation is "meow", unless you do a streak of 20 to Skashek, in which case
-// the case makes a fully-articulated complaint, catching Skashek off-guard.
-
-//TODO: Cat mode involves Skashek trying to give you a bath. If you jump in the reactor
-// reservoir, he's waiting at the end to rescue you, worried as fuck.

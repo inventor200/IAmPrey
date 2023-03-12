@@ -255,7 +255,9 @@ reservoir: Room { 'The Reactor Reservoir'
             <i>giant spider</i>&mdash;is
             <<gSkashekName>>. He sweeps you up in his arms and holds you close.\b
             <q>Bloody <i>hell</i>, <<gCatNickname>>, there are <i>other</i> ways to
-            get my attention! I guess we're skipping bath time, then...</q>";
+            get my attention! </q>\b
+            <i><q>I demand cancellation of Bath Time, peasant!!</q></i> you shout,
+            but all that seems to come out is: <i><q>Mraow!!</q></i> ";
             finishGameMsg(ftVictory, gEndingOptionsWin);
         }
         else { //TODO: Write this better
@@ -321,12 +323,6 @@ reservoir: Room { 'The Reactor Reservoir'
     ambiguouslyPlural = true
     notImportantMsg = '{The subj cobj} {is} too far away. '
 }
-
-modify VerbRule(Attack)
-    ('attack'|'kill'|'hit'|'kick'|'punch'|'strike'|'punish'|
-    ('lunge'|'dive') (('down'|) 'at'|)|'pounce' ('at'|'on'|'upon')|
-    'tackle'|'ambush') singleDobj :
-;
 
 skashekFishing: Decoration {
     vocab = skashek.vocab
