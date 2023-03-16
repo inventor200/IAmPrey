@@ -96,7 +96,7 @@ modify Thing {
     doJumpPunishment(actor, traveler, path) {
         actor.addExhaustion(2);
 
-        if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
+        if (gActorIsCat) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
                 impactNoiseProfile,
@@ -640,7 +640,8 @@ mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[wea
 // Filing cabinets
 class FilingCabinet: Fixture {
     vocab = 'filing cabinet;office paper papers metal'
-    desc = "TODO: Add description. "
+    desc = "A standard, metal filing cabinet. It has a top, middle, and bottom
+    drawer for storage. "
     
     betterStorageHeader
     IncludeDistComponent(TinyDoorTopDrawerHandle)
@@ -800,7 +801,7 @@ DefineDistSubComponentFor(FilingCabinetRemapIn, FilingCabinet, remapIn)
 ;
 
 #define CabinetDrawerProperties \
-    desc = "TODO: Add description. " \
+    desc = "A metal drawer of a filing cabinet. " \
     subLocation = &remapIn \
     contType = In \
     bulkCapacity = actorCapacity \
@@ -830,6 +831,26 @@ DefineDistSubComponentFor(BottomCabinetDrawer, FilingCabinet, bottomDrawer)
         name = 'bottom drawer';
     }
     CabinetDrawerProperties
+;
+
+// Fridge
+class Fridge: Fixture {
+    vocab = 'refrigerator;snack;fridge'
+    desc = "A normal refrigerator, painted white. "
+
+    betterStorageHeader
+    IncludeDistComponent(TinyDoorHandle)
+}
+
+DefineDistSubComponentFor(FridgeRemapOn, Fridge, remapOn)
+    isBoardable = true
+    betterStorageHeader
+;
+
+DefineDistSubComponentFor(FridgeRemapIn, Fridge, remapIn)
+    isOpenable = true
+    bulkCapacity = actorCapacity
+    maxSingleBulk = 1
 ;
 
 // Handles and other details

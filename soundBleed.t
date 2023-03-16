@@ -140,12 +140,22 @@ soundBleedCore: object {
                 if (sourceDirection != nil) {
                     local sourceConnector = room.(sourceDirection.dirProp);
                     if (sourceConnector != nil) {
+                        #if __DEBUG_SOUND_PLAYER_SIDE
+                        if (sourceConnector.isOpenable) {
+                            "\n(Player hears through door)";
+                        }
+                        #endif
                         throughDoor = sourceConnector.isOpenable;
                     }
                 }
 
                 currentSoundImpact.sourceDirection = sourceDirection;
                 currentSoundImpact.form = form;
+                
+                #if __DEBUG_SOUND_PLAYER_SIDE
+                "\n(Players hears as a <<currentSoundImpact.getFormString()>>)";
+                #endif
+
                 currentSoundImpact.throughDoor = throughDoor;
                 currentSoundImpact.strength = strength;
                 currentSoundImpact.priority = getPriorityFromForm(form, throughDoor);
@@ -224,7 +234,8 @@ soundBleedCore: object {
             local nextForm = propagationMode == 0 ? form : wallMuffle;
             if (nextForm == bleedSource) nextForm = closeEcho;
 
-            if (falloff > 0 && propagationMode != 0) {
+            // Was "propagationMode != 0", which is weird...
+            if (falloff > 0 && propagationMode == 0) {
                 nextForm = distantEcho;
 
                 if (form == closeEcho || form == bleedSource) {
@@ -462,6 +473,12 @@ class SoundImpact: object {
 
     impactPlayer() {
         setSourceBuffer();
+
+        #if __SHOW_EMISSION_STARTS
+        "<.p>Impacting with form of <<getFormString()>>,
+        through <<throughDoor ? 'door' : 'other'>>.<.p>";
+        #endif
+
         soundProfile.doPlayerPerception(
             form, sourceDirection, throughDoor
         );
@@ -476,24 +493,22 @@ class SoundImpact: object {
         );
     }
 
-    getStrengthDebug() {
-        local formStr;
+    getFormString() {
         switch (form) {
             default:
-                formStr = 'bleedSource';
-                break;
+                return 'bleedSource';
             case closeEcho:
-                formStr = 'closeEcho';
-                break;
+                return 'closeEcho';
             case distantEcho:
-                formStr = 'distantEcho';
-                break;
+                return 'distantEcho';
             case wallMuffle:
-                formStr = 'wallMuffle';
-                break;
+                return 'wallMuffle';
         }
+    }
+
+    getStrengthDebug() {
         return 'S: <<strength>>/<<soundProfile.getCloseStrength()>>;
-        P: <<priority>>; PS: <<priorityStrength>>; F: <<formStr>>';
+        P: <<priority>>; PS: <<priorityStrength>>; F: <<getFormString()>>';
     }
 }
 

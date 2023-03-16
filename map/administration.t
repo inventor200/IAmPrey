@@ -7,10 +7,11 @@ administrationAudioRegion: SenseRegion {
     autoGoTo = nil
 }
 
+//TODO: Furnish more
 #define populateCubicle(cubicleName) \
 +cubicleName##Desk: FixedPlatform { \
-    vocab = 'desk;office cubicle;table' \
-    desc = "TODO: Add description. " \
+    vocab = 'desk;office wide cubicle;table' \
+    desc = "A wide office desk sits in the corner of the cubicle. " \
 } \
 ++LowFloorHeight; \
 +cubicleName##FilingCabinet: FilingCabinet; \
@@ -18,7 +19,12 @@ administrationAudioRegion: SenseRegion {
 
 class Cubicle: Room {
     desc() {
-        "TODO: Add description. ";
+        "The cubicle is shaped by thin walls, which don't extend
+        all the way to the ceiling.\b
+        A wide office desk rests in the corner, with a metal filing cabinet
+        beside it.\b
+        From here, you can go <<hyperDir('out')>> to where the other cubicles
+        connect. ";
     }
 
     out = administration
@@ -27,12 +33,22 @@ class Cubicle: Room {
 }
 
 class FakeCubicle: Passage {
+    desc = "The cubicles take up most of the space here, and their walls form the
+    L-shaped hall you find yourself in. "
+    ambiguouslyPlural = true
     otherSide = destination
     attachPeakingAbility('in {the dobj}')
 }
 
 administration: Room { 'Administration'
-    "TODO: Add description. "
+    "The lights here are in low-power mode, with only a few still on.
+    You are in a narrow, L-shaped hallway of cubicle walls, directing your attention
+    to the door of the Director's Office, to the <<hyperDir('north')>>.
+    To the <<hyperDir('west')>>, the cubicles shape a sharp turn to the
+    exit.\b
+    From this hallway, you can enter the <<hyperDir('northwest')>>,
+    <<hyperDir('northeast')>>, <<hyperDir('southeast')>>, or
+    <<hyperDir('southwest')>> cubicle. "
 
     northeast = fakeNortheastCubicle
     southeast = fakeSoutheastCubicle
@@ -44,22 +60,23 @@ administration: Room { 'Administration'
 
     regions = [administrationAudioRegion]
 }
-+fakeNortheastCubicle: FakeCubicle { 'northeast[weak] cubicle;ne[weak];office'
++fakeNortheastCubicle: FakeCubicle { 'northeast cubicle;ne;office'
     destination = northeastCubicle
 }
-+fakeSoutheastCubicle: FakeCubicle { 'southeast[weak] cubicle;se[weak];office'
++fakeSoutheastCubicle: FakeCubicle { 'southeast cubicle;se;office'
     destination = southeastCubicle
 }
-+fakeNorthwestCubicle: FakeCubicle { 'northwest[weak] cubicle;nw[weak];office'
++fakeNorthwestCubicle: FakeCubicle { 'northwest cubicle;nw;office'
     destination = northwestCubicle
 }
-+fakeSouthwestCubicle: FakeCubicle { 'southwest[weak] cubicle;sw[weak];office'
++fakeSouthwestCubicle: FakeCubicle { 'southwest cubicle;sw;office'
     destination = southwestCubicle
 }
 
 northeastCubicle: Cubicle { 'The Northeast Cubicle'
     desc() {
         inherited();
+        "\bAbove the filing cabinet, you can see a vent grate. ";
     }
 }
 populateCubicle(northeastCubicle)

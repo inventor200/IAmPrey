@@ -1,5 +1,9 @@
 class ArtificialWomb: Fixture {
-    desc = "TODO: Add description. "
+    desc = "A half-pipe of metal frame is suspended above a catch net.
+    The inner surface of this frame must be coated in some kind of substrate,
+    because the fleshy parts of the giant, artificial womb cling to it.
+    There is some springiness to the design, in case a developing clone
+    twitches as it grows. "
     isBoardable = true
 
     matchPhrases = ['womb', 'tank']
@@ -161,14 +165,20 @@ modify Actor {
 
 deliveryRoom: Room { 'The Delivery Room'
     "<<first time>><<happyBirthdayPlayer()>>\b<<only>>
-    TODO: Add description. "
+    The ceiling tiles have been removed here, to make the room taller. On the west
+    wall, three artificial wombs hang on suspended metal frames. Each has dark
+    cables running into them from an opening in the northwest corner of the ceiling.
+    In the southwest corner, a towel rack, makeup vanity, and wardrobe closet
+    have been provided for newborns. "
 
     northMuffle = itOffice
     northwestMuffle = serverRoomBottom
     westMuffle = breakroom
     southMuffle = southHall
 
-    happyBirthdayPlayer() { //TODO: Implement catcher's net, and hasLeftTheNet
+    ceilingObj = industrialCeiling
+
+    happyBirthdayPlayer() {
         if (gCatMode) return '';
         local openingLine =
             '<.p><b>Happy birthday!</b>
@@ -180,8 +190,9 @@ deliveryRoom: Room { 'The Delivery Room'
             You cough, but it transforms into vomiting, and most of it lands on
             your own body. You seem to be cradled in some kind of large,
             rubbery fishnet mesh, likely designed to catch newborns like you.\b
-            Human newborns are tiny, and cry when entering the world. Clone
-            newborns seem to be tall&mdash;if your factory-standard memories are
+            Human newborns are tiny, and cry when entering the world.
+            Clone newborns seem to arrive fully-grown&mdash;if
+            your factory-standard memories are
             reliable in that regard&mdash;and so far you have been a bit too
             delirious to do much of anything.';
     }
@@ -282,12 +293,27 @@ deliveryRoom: Room { 'The Delivery Room'
         '{I} {put} {the dobj} back in front of the makeup vanity, where it belongs. '
 }
 
++dresser: Fixture { 'wardrobe closet;;dresser'
+    "A metal locker, which has been converted to store a selection of clothes. "
+    betterStorageHeader
+
+    remapIn: SubComponent {
+        isOpenable = nil
+    }
+    remapOn: SubComponent {
+        isBoardable = true
+    }
+}
+++AwkwardFloorHeight;
+
 +makeupVanity: FixedPlatform { 'makeup vanity;;table'
     "A small table with a mirror attached to it; perfect for applying one's
-    makeup (or generally correcting one's appearance).<<gPlayerChar.ponderVanity()>>"
+    makeup (or generally correcting one's appearance).
+    It sits between the towel rack and wardrobe closet.<<gPlayerChar.ponderVanity()>>"
 }
 ++LowFloorHeight;
 ++ClimbUpLink ->deliveryRoomTowelRack;
+++ClimbUpLink ->dresser;
 #if __DEBUG
 ++SmashedMirror;
 #else
@@ -397,16 +423,16 @@ deliveryRoom: Room { 'The Delivery Room'
 
 // Disrupts the player's ability to specify which component
 #define expandComponentVocab(nounSection, adjSection, altSection) \
-    nounSection + ';northwest[weak] nw[weak] west[weak] w[weak] southwest[weak] sw[weak] artificial[weak] womb\'s tank\'s ' + adjSection + ';' + altSection
+    nounSection + ';northwest nw west w southwest sw artificial[weak] womb\'s tank\'s ' + adjSection + ';' + altSection
 
-createArtificialWomb(Unique, northwestWomb, 'northwest[weak] artificial[weak] womb;nw[weak] grow birthing iron;tank')
-createArtificialWomb(Simple, westWomb, 'west[weak] artificial[weak] womb;w[weak] grow birthing iron;tank')
-createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] womb;sw[weak] grow birthing iron;tank')
+createArtificialWomb(Unique, northwestWomb, 'northwest artificial[weak] womb;nw grow birthing iron;tank')
+createArtificialWomb(Simple, westWomb, 'west artificial[weak] womb;w grow birthing iron;tank')
+createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw grow birthing iron;tank')
 
 +genericCatchNet: Fixture {
     vocab = expandComponentVocab('catch net', 'catcher\'s catchers', 'fishnet fish[weak] net basket catcher')
     desc = "A large, rubbery, fishnet-like mesh, put in place
-        to gently catch newborn clones. "
+    to gently catch newborn clones. It sits above a trough drain in the floor."
     contType = In
 
     isEnterable = true
@@ -455,9 +481,40 @@ createArtificialWomb(Simple, southwestWomb, 'southwest[weak] artificial[weak] wo
                 and nothing else. ');
         }
     }
+
+    dobjFor(LookUnder) {
+        verify() { }
+        check() { }
+        action() {
+            doInstead(Examine, genericTroughDrain);
+        }
+        report() { }
+    }
 }
 
-+deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n];hole hatch gap space[weak]'
++Decoration {
+    vocab = expandComponentVocab('substrate', 'womb fleshy', 'parts[weak]')
+    desc = "Closer to the metal of the frame, the substrate is a solid, pink mass.
+    As you look closer to the womb (in the heart of the frame), the pink deepens to red,
+    as it transitions to bubbly, and then to stringy and veiny. "
+}
+
++Decoration {
+    vocab = expandComponentVocab('frame', 'springy metal half[weak]', 'half-pipe pipe[weak] nanomaterial springs joints')
+    desc = "A sheet metal with a thick layer of nanomaterial. It conforms to a semicircle
+    curve, with the nanomaterial on the inside, which the biological part of the womb
+    fuses to.\b
+    The whole sheet is suspended from the ground by a complex system of springs and joints. "
+}
+
++genericTroughDrain: Decoration {
+    vocab = expandComponentVocab('drain', 'trough grated', 'trough grate')
+    desc = "A grated drain divides the floor, like a dark line under the wombs.
+    When embryonic fluid falls out, it passes through the net, and is collected in the
+    drain. "
+}
+
+deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n];hole hatch gap space[weak]'
     "There is a wide opening or hatch in the ceiling, above the northwest artificial womb.
     From it, data cables spill out.\b
     You notice some extra space around the cables, as if there

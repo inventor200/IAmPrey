@@ -1,9 +1,14 @@
-defaultLabFloor: Floor { 'the floor'
-    "TODO: Add description. "
+defaultLabFloor: Floor { 'the floor;terrazzo floor;tiles'
+    "Plain, terrazzo tiles, colored an average of light silver. "
+    ambiguouslyPlural = true
 }
 
-cementFloor: Floor { 'the floor'
-    "TODO: Add description. "
+cementFloor: Floor { 'the floor;concrete cement'
+    "The dark-gray floors are made of smooth concrete here. "
+}
+
+carpetedFloor: Floor { 'the floor;;carpet rug'
+    "The floor here has a dark gray-blue carpet. "
 }
 
 #define airlockDisclaimer '\n<b>It probably does not close itself automatically.</b>'
@@ -205,8 +210,9 @@ class Walls: MultiLoc, Thing {
     }
 }
 
-defaultWalls: Walls { 'walls;north[weak] n[weak] south[weak] s[weak] east[weak] e[weak] west[weak] w[weak];wall'
+defaultWalls: Walls { 'walls;north n south s east e west w'
     "{I} {see} nothing special about the walls. "
+    ambiguouslyPlural = true
 }
 
 class Ceiling: MultiLoc, Thing {
@@ -222,15 +228,20 @@ class Ceiling: MultiLoc, Thing {
     }
 }
 
-defaultCeiling: Ceiling { 'ceiling'
-    "TODO: Add description. "
-
+defaultCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles frame[weak] lights'
+    "Industrial panels of expanded polystyrene foam create the ceiling here. "
+    ambiguouslyPlural = true
     notImportantMsg = '{That dobj} {is} too far above you. '
 }
 
-industrialCeiling: Floor { 'pipes[weak] on[prep] the ceiling'
-    "TODO: Add description. "
-    plural = true
+industrialCeiling: Ceiling { 'pipes[n][weak] on[prep] the ceiling;upper[weak] lower[weak];sections[weak]'
+    "The upper section of the walls are exposed here, as there are no ceiling panels
+    to cover them. The ceiling is much higher, too, and the various pipes of the
+    facility are visible. "
+    matchPhrases = [
+        'ceiling', 'pipes', 'upper section of wall',
+        'upper section of walls', 'upper wall section'
+    ]
     ambiguouslyPlural = true
 }
 
@@ -328,65 +339,6 @@ modify Continue {
     DefineDoorAwayTo(west, east, outerRoom, localRoom, theLocalDoorName)
 
 #define defaultVentVocab 'vent grate;ventilation;door'
-
-#define DefineVentGrateAwayTo(outDir, inDir, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
-    localRoom##ExitVentGrate: VentGrateDoor { \
-        vocab = theExitDoorName \
-        location = localRoom \
-        destinationPlatform = outerPlat \
-        otherSide = localRoom##EntryVentGrate \
-        soundSourceRepresentative = localRoom##EntryVentGrate \
-    } \
-    localRoom##EntryVentGrate: VentGrateDoor { \
-        vocab = theLocalDoorName \
-        location = outerPlat \
-        destinationPlatform = localPlat \
-        otherSide = localRoom##ExitVentGrate \
-        soundSourceRepresentative = localRoom##EntryVentGrate \
-    }
-
-#define DefineVentGrateNorthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
-    DefineVentGrateAwayTo(north, south, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
-
-#define DefineVentGrateEastTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
-    DefineVentGrateAwayTo(east, west, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
-
-#define DefineVentGrateSouthTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
-    DefineVentGrateAwayTo(south, north, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
-
-#define DefineVentGrateWestTo(outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName) \
-    DefineVentGrateAwayTo(west, east, outerRoom, outerPlat, localRoom, localPlat, theLocalDoorName, theExitDoorName)
-
-#define DefineNodeVentGrateAwayTo(outDir, inDir, outerRoom, localRoom, localPlat, theLocalDoorName) \
-    localRoom##ExitVentGrate: VentGrateDoor { \
-        vocab = 'vent grate;ventilation;door' \
-        location = localPlat \
-        otherSide = localRoom##EntryVentGrate \
-        soundSourceRepresentative = localRoom##EntryVentGrate \
-    } \
-    localRoom##EntryVentGrate: VentGrateDoor { \
-        vocab = theLocalDoorName \
-        location = outerRoom \
-        destinationPlatform = localPlat \
-        otherSide = localRoom##ExitVentGrate \
-        soundSourceRepresentative = localRoom##EntryVentGrate \
-        isConnectorListed = true \
-    } \
-    modify outerRoom { \
-        inDir = localRoom##EntryVentGrate \
-    }
-
-#define DefineNodeVentGrateNorthTo(outerRoom, localRoom, localPlat, theLocalDoorName) \
-    DefineNodeVentGrateAwayTo(north, south, outerRoom, localRoom, localPlat, theLocalDoorName)
-
-#define DefineNodeVentGrateEastTo(outerRoom, localRoom, localPlat, theLocalDoorName) \
-    DefineNodeVentGrateAwayTo(east, west, outerRoom, localRoom, localPlat, theLocalDoorName)
-
-#define DefineNodeVentGrateSouthTo(outerRoom, localRoom, localPlat, theLocalDoorName) \
-    DefineNodeVentGrateAwayTo(south, north, outerRoom, localRoom, localPlat, theLocalDoorName)
-
-#define DefineNodeVentGrateWestTo(outerRoom, localRoom, localPlat, theLocalDoorName) \
-    DefineNodeVentGrateAwayTo(west, east, outerRoom, localRoom, localPlat, theLocalDoorName)
 
 #define windowLookBlock(mcwRoom, mcwRemoteHeader) \
     canLookThroughMe = true \

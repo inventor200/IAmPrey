@@ -54,14 +54,14 @@ prey: Actor { 'The Prey;;me self myself'
             For one, you have a unique hairstyle, <<commentOnIndiduality>>
             You stare into the reddish eyeshine of your pupils, and see only
             yourself in there.'
-            : //TODO: Keep some of these observations when looking at skashek
+            :
             'Your skin is as pale as death herself, and your lips conceal two
             rows of sharp teeth. Your deadpan face is framed by your white hair,
-            <<commentOnIndiduality>> Your nose is thin by the bridge, and
-            upturned slightly. Your jawline is somewhere between round and
-            angular, while your chin is long and thin enough to weaponize.
+            <<commentOnIndiduality>>
+            Your nose is upturned slightly, with a thin bridge, and
+            your jawline is angular, with an extended chin.
             You stare into your own eyes&mdash;pupils red with the shine of
-            nightvision&mdash;and ponder the designs of human engineering
+            night vision&mdash;and ponder the designs of human engineering
             within your form. ';
 
         return '<<seenSelfIntro>><<appearanceIntro>>
@@ -84,7 +84,8 @@ prey: Actor { 'The Prey;;me self myself'
 
     shatteredVanityMsg =
         '<.p>Judging by the damage to the mirror,
-        someone in the facility does <i>not</i> enjoy pondering their appearance...<.p>';
+        someone in the facility does <i>not</i> enjoy
+        pondering their appearance...<.p>';
 
     seeShatteredVanity() {
         if (hasPonderedShatteredMirror) return '';
@@ -94,7 +95,12 @@ prey: Actor { 'The Prey;;me self myself'
     }
 
     getClothingDescription() {
-        return 'TODO: Describe clothing';
+        if (outfit == nil) {
+            "You are currently stark-naked. ";
+        }
+        else {
+            outfit.wornDesc();
+        }
     }
 
     hasLeftTheNet = nil
@@ -140,9 +146,7 @@ prey: Actor { 'The Prey;;me self myself'
         #if __DEBUG
         local startWet = nil;
         local startOutsideNet = true;
-        #endif
-
-        #if __DEBUG
+        
         hasLeftTheNet = startOutsideNet;
         if (startWet) {
             soak();

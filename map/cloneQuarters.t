@@ -5,6 +5,9 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
 
     muffleEast = utilityPassage
     southMuffle = southHall
+
+    ceilingObj = industrialCeiling
+    floorObj = carpetedFloor
 }
 
 +southEnrichmentRoomDoorExterior: Door { 'the enrichment room door'
@@ -14,7 +17,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     pullHandleSide = nil
 }
 
-+southeastCloneBed: Fixture { 'southeast[weak] bed;se[weak] bunk;cot'
++southeastCloneBed: Fixture { 'southeast bed;se bunk;cot'
     "TODO: Add description. "
 
     remapOn: SubComponent {

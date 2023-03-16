@@ -44,17 +44,12 @@ prologueCore: InitObject {
         #if __ALLOW_CLS
         cls();
         #endif
-        "\b<b>Definition of AUTO-SNEAKING:</b>\n
-        Players must remember to perform <i>all</i> precautions
-        for <i>stealth</i> and <i>safety</i>, as a core part of this game!\b
-        However, there are a few to
-        remember&mdash;<i>especially while under pressure</i>&mdash;so
-        both tutorial modes offer <b>AUTO-SNEAKING</b>, which will perform these
-        precautions <i>automatically</i>, giving new players a chance to explore
-        and get used to other mechanics first.\b
-        Once the player feels comfortable enough to remember these
-        precautions for themselves, the non-tutorial modes will prevent use
-        of the <b>SNEAK</b> action <i>entirely</i>.\b";
+        "\b<b>Note for new and experienced players:</b>\n
+        This will not be a standard parser game. Players of <b>all skill levels</b>
+        should consult the HELP command, or refer to the <i>How to Play</i>
+        guide (which should have come with this game).\b
+        There are a number of game mechanics ahead, but
+        they were not designed with the traditions of this medium in mind. ";
         inputManager.pauseForMore();
         "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');

@@ -1,5 +1,8 @@
 serverRoomBottom: Room { 'Server Access'
-    "TODO: Add description. "
+    "The room is pretty barren; the server banks are all found upstairs.\b
+    A ladder can be found here, and the exit to the <<hyperDir('east')>>
+    goes to the IT Office, while a door to the <<hyperDir('west')>> goes
+    to the Utility Corridor. "
 
     up = serverLadderBottom
     east = itOffice
@@ -7,6 +10,9 @@ serverRoomBottom: Room { 'Server Access'
     northMuffle = lifeSupportTop
     southeastMuffle = deliveryRoom
     southMuffle = breakroom
+
+    ceilingObj = industrialCeiling
+    floorObj = cementFloor
 
     roomDaemon() {
         "A <<freezer.coldSynonyms>> <<one of>>mist<<or>>fog<<at random>>
@@ -21,7 +27,8 @@ serverRoomBottom: Room { 'Server Access'
 +serverFog: ColdFog;
 
 +serverLadderBottom: ClimbUpIntoPlatform { 'ladder;access in[prep] the ceiling[n];opening hatch hole'
-    "TODO: Add description. "
+    "A ladder provides access to the chilled room above.
+    It is inclined, and looks more like a steep stairway. "
 
     travelDesc =
         "{I} quickly<<one of>>{aac} 
@@ -30,25 +37,14 @@ serverRoomBottom: Room { 'Server Access'
         <<freezer.subclauseAmbienceOnEntry>><<end>>. "
 
     destination = serverRoomTop
-    travelBarriers = [catUpALadderBarrier]
-}
-
-catUpALadderBarrier: TravelBarrier {
-    canTravelerPass(actor, connector) {
-        return actor != cat;
-    }
-    
-    explainTravelBarrier(actor, connector) {
-        "Maybe you could have achieved this in your youth, but you are an old
-        (but still very regal!) cat now. You might need to find another way to
-        the room beyond this ladder. ";
-    }
 }
 
 DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the server access door')
 
 serverRoomTop: Room { 'The Chilled Server Room'
-    "TODO: Add description. "
+    "The room here would normally be engulfed in total darkness, if it weren't
+    for light spilling in from the ladder, in addition to all the running lights
+    of the surrounding server banks. "
 
     down = serverLadderTop
     out asExit(down)
@@ -57,8 +53,17 @@ serverRoomTop: Room { 'The Chilled Server Room'
     isFreezing = true
 }
 
+//TODO: Refuse to break these
++serverBanks: Decoration { 'server banks;;computers servers'
+    "Large, black cabinets full of running computers, wired together in
+    complex ways. Thick cables run from their tops, and feed into an alcove
+    to the southeast.\b
+    To the north, there is a large vent grate, which pumps freezing air into
+    the room. "
+}
+
 +serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening[weak] hatch[weak] hole[weak]'
-    "TODO: Add description. "
+    "A ladder allows travel to the floor below. "
 
     travelDesc =
         "<<if gActorIsCat>>It's a little painful for your old

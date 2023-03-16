@@ -1,5 +1,8 @@
 utilityPassage: Room { 'The Utility Corridor'
-    "TODO: Add description. "
+    "The hallway is made of stone, cement, and pipes. At the north end, it
+    curves slightly to the east, connecting to Life Support. The exit is to the
+    south. To the <<hyperDir('east')>>, a door leads to Server Access. The west
+    wall has suffered some damage, leaving pipes exposed. "
 
     northeast = northUtilityPassageExit
     south = southUtilityPassageExit
@@ -7,6 +10,9 @@ utilityPassage: Room { 'The Utility Corridor'
     northwestMuffle = enrichmentRoom
     southeastMuffle = breakroom
     westMuffle = cloneQuarters
+
+    ceilingObj = industrialCeiling
+    floorObj = cementFloor
 }
 
 +southUtilityPassageExit: MaintenanceDoor { 'the south-end exit door'
@@ -22,7 +28,7 @@ utilityPassage: Room { 'The Utility Corridor'
     pullHandleSide = true
 }
 
-+utilityWallPipes: PassablePipes { 'pipes[n] on[prep] the wall;west[weak] w[weak] in[prep] the wall[n];tubing tubes hole'
++utilityWallPipes: PassablePipes { 'pipes[n] on[prep] the wall;west w in[prep] the wall[n];tubing tubes hole'
     desc = "Part of the wall here has been demolished, leaving some pipes exposed.<<
         observeHistory()>> "
     destination = cloneQuarters

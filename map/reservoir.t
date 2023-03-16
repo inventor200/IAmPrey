@@ -62,8 +62,9 @@ turbineSound: SoundProfile
 waterfallSound: SoundProfile
     'the muffled, <<standardString>>'
     'the <<standardString>>'
-    'the <<standardString>>'
-    strength = 3
+    'the distant, <<standardString>>'
+    strength = 2
+    immediateFalloff = true
 
     standardString =
         '<<one of>>all-consuming<<or>>reality-filling<<or
@@ -79,6 +80,27 @@ waterfallSound: SoundProfile
 ambientReactorNoiseRunner: InitObject {
     noiseDaemon = nil
 
+    subWaterfallString =
+        '<<one of>>hiss<<or>>noise<<or
+        >>rush<<at random>> of
+        <<one of>>waterfalls<<or>><<one of
+        >>falling<<or>>plummeting<<or>>surging<<at random>> water<<at random>>'
+
+    fullWaterfallString =
+        '<<one of>>all-consuming<<or>>reality-filling<<or
+        >><<one of>>awesome<<or>>grand<<or>>colossal<<at random>>,
+        <<one of>>steady<<or>>gushing<<or>>constant<<at random
+        >><<at random>>
+        <<subWaterfallString>>'
+    
+    mildWaterfall =
+        '<<one of>>steady<<or>>gushing<<or>>constant<<at random>>
+        <<subWaterfallString>>'
+
+    hearWaterfall(directionStr) {
+        "<<directionStr>><<mildWaterfall>>. ";
+    }
+
     execute() {
         if (noiseDaemon == nil) {
             noiseDaemon = new Daemon(self, &playNoise, 0);
@@ -88,7 +110,7 @@ ambientReactorNoiseRunner: InitObject {
     playNoise() {
         soundBleedCore.createSound(reactorHumSound, reactor, reactorNoiseRoom, nil);
         soundBleedCore.createSound(turbineSound, reactorTurbines, fakePumpRoom, nil);
-        soundBleedCore.createSound(waterfallSound, reservoirWaterFromAbove, reservoir, nil);
+        //soundBleedCore.createSound(waterfallSound, reservoirWaterFromAbove, reservoir, nil);
     }
 }
 
@@ -105,6 +127,13 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     ceilingObj = industrialCeiling
     atmosphereObj = humidAtmosphere
     moistureFactor = 0
+
+    roomDaemon() {
+        ambientReactorNoiseRunner.hearWaterfall(
+            'From the east, you hear the distant, '
+        );
+        inherited();
+    }
 }
 
 +northReservoirCorridorExit: MaintenanceDoor { 'the exit door'
@@ -154,6 +183,13 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     getSpecialPeekDirectionTarget(dirObj) {
         if (dirObj == eastDir) return windowInreservoirControlRoom;
         return inherited(dirObj);
+    }
+
+    roomDaemon() {
+        ambientReactorNoiseRunner.hearWaterfall(
+            'From the east, you hear the '
+        );
+        inherited();
     }
 }
 
@@ -223,6 +259,12 @@ reservoir: Room { 'The Reactor Reservoir'
             exit;
         }
 
+        inherited();
+    }
+
+    roomDaemon() {
+        "From all around, you hear the
+        <<ambientReactorNoiseRunner.fullWaterfallString>>. ";
         inherited();
     }
 }

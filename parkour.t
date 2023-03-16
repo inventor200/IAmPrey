@@ -1195,7 +1195,9 @@ modify actorInStagingLocation {
 
 #define learnLocalPlatform(plat, reportMethod) \
     learnOnlyLocalPlatform(plat, reportMethod) \
-    learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod)
+    if (plat.oppositeLocalPlatform != nil) { \
+        learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod) \
+    }
 
 #define learnPath(path, reportMethod) \
     searchCore.startSearch(true, true); \

@@ -1,5 +1,5 @@
-commonRoomCeiling: Ceiling { 'ceiling'
-    "The room here is taller than it should be, because the ceiling
+commonRoomCeiling: industrialCeiling {
+    desc = "The room here is taller than it should be, because the ceiling
     tiles and frames have been removed, exposing an extra meter of
     space. A support beam and ventilation duct would normally have been
     hidden behind these tiles, but the beam is exposed, and the duct
@@ -19,7 +19,7 @@ commonRoomCeiling: Ceiling { 'ceiling'
     }
 }
 
-+exposedSupportBeam: FixedPlatform { 'exposed support beam;ventilation[weak] structural north-south north[weak] south[weak];girder i-beam duct[weak] brackets'
++exposedSupportBeam: FixedPlatform { 'exposed support beam;ventilation[weak] structural north-south north south;girder i-beam duct[weak] brackets'
     "A north-south structural beam.
     <<if gCatMode
     >>It used to be hidden behind the ceiling tiles, but <<gSkashekName>> tore them
@@ -34,6 +34,8 @@ commonRoomCeiling: Ceiling { 'ceiling'
     //canSwingOnMe = true
     //stagingLocation = (gPlayerChar.isIn(topOfEastWall) ? topOfEastWall : displayShelf)
     //exitLocation = commonRoom
+
+    cannotSwingOnMsg = 'The beam is a little too thick to swing on. '
 
     omitFromStagingError() {
         return nil;
@@ -62,9 +64,25 @@ commonRoomCeiling: Ceiling { 'ceiling'
 ++FallDownPath ->commonRoom;
 
 commonRoom: Room { 'The Common Room'
-    "TODO: Add description. "
+    "<<if gCatMode
+    >>You remember when <<gSkashekName>> went absolutely <i>wild</i> in here
+    for a few days. He tore out all the ceiling tiles, and ripped out a length
+    of ventilation duct, leaving a support beam and two vents exposed.
+    That duct was your route from Administration to your favorite eating spot,
+    and you're still grumpy about it.
+    <<else
+    >>This room looks like it's being renovated, except all the tools and
+    scraps of trash are nowhere to be found. Someone seems to have torn out
+    the ceiling tiles, leaving a support beam (and two vents) exposed.
+    <<end>>\b
+    Against the west wall, a table and fridge sit next to each other, and a
+    decorative display shelf sits above both of them.
+    To the <<hyperDir('north')>> is the Assembly Shop, and a passage
+    to the <<hyperDir('south')>> (curving to the west) leads to the
+    Enrichment Room. "
 
     ceilingObj = commonRoomCeiling
+    floorObj = carpetedFloor
 
     north = assemblyShop
     south = enrichmentRoomHall
@@ -83,10 +101,7 @@ commonRoom: Room { 'The Common Room'
 }
 
 +enrichmentRoomHall: Passage { 'passage;curving curved;corridor hall'
-    "A short passage to the <<hyperDir('south')>>, curving toward the west.
-    <<standardDesc>>"
-
-    standardDesc = 'TODO: Add description. '
+    "A short passage to the <<hyperDir('south')>>, curving toward the west. "
 
     otherSide = commonRoomHall
     destination = enrichmentRoom
@@ -100,7 +115,7 @@ commonRoom: Room { 'The Common Room'
     plural = true
 }
 
-+missingVentilationDuct: Unthing { 'missing ventilation duct;east-west east[weak] west[weak] length;shaft'
++missingVentilationDuct: Unthing { 'missing ventilation duct;east-west east west length;shaft'
     '<<if gCatMode>>You remember<<else>>Evidence indicates<<end>>
     that a length of ventilation duct used to connect
     what are now the administration (west) and primary (east) vent grates.
@@ -108,13 +123,14 @@ commonRoom: Room { 'The Common Room'
     during strange renovations.<<end>> '
 }
 
+//TODO: Put a plant on this
 +displayShelf: FixedPlatform { 'display shelf;simple metal decorative'
     "A simple metal shelf for displaying decorative items. "
 }
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
 
-+topOfEastWall: FixedPlatform { 'top[n] of[prep] the east wall;e[weak] northern[weak] north[weak] n[weak] half[weak];ledge[weak]'
++topOfEastWall: FixedPlatform { 'top[n] of[prep] the east wall;e northern north n half[weak];ledge[weak]'
     "The northern half of the east wall is nearer to the primary vent.
     The southern half is actually angled toward the southwest.\b
     There seems to be enough of a ledge there to stand on. "
@@ -122,31 +138,19 @@ commonRoom: Room { 'The Common Room'
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
 
-+topOfOtherWalls: Unthing { 'top[n] of[prep] the wall;west[weak] w[weak] south[weak] s[weak] north[weak] n[weak] upper lower'
++topOfOtherWalls: Unthing { 'top[n] of[prep] the wall;west w south s north n'
     'Only the east wall seems to have a ledge. The upper and lower sections of the
     other walls are flush with each other. '
 }
 
-+chessTable: FixedPlatform { 'empty chess table;game chessboard'
-    "An empty table against the west wall, with a chess board engraved into it. "
++chessTable: FixedPlatform { 'empty chess table;game;chessboard board gameboard'
+    "An empty table with a chess board engraved into it. "
 }
 ++LowFloorHeight;
 ++JumpUpLink ->snackFridge;
 
-+snackFridge: Fixture { 'snack fridge'
-    "TODO: Description. "
-
-    betterStorageHeader
-
-    remapOn: SubComponent {
-        isBoardable = true
-        betterStorageHeader
-    }
-    remapIn: SubComponent {
-        isOpenable = true
-        bulkCapacity = actorCapacity
-        maxSingleBulk = 1
-    }
++snackFridge: Fridge {
+    vocab = 'snack fridge'
 }
 ++HighFloorHeight;
 ++JumpUpLink ->displayShelf;

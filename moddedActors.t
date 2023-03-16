@@ -8,6 +8,8 @@ modify Actor {
     bulkCapacity = actorCapacity
     maxSingleBulk = 2
 
+    outfit = nil
+
     wetness = 0
     d_wetness = 0
     exhaustion = 0

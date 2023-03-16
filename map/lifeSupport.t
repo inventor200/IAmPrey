@@ -6,7 +6,7 @@ fakeDuctCeiling: Ceiling { 'ceiling;top;top[weak] end airflow'
 }
 
 coolingDuctWalls: Walls { 'walls;inner metal cooling;insides panels duct'
-    "TODO: Add description."
+    "Metal panels form the cold walls of the claustrophobic duct."
 
     decorationActions = [
         Examine, Climb, ParkourClimbGeneric,
@@ -54,7 +54,10 @@ class CoolingDuctSegment: HallwaySegment {
         >>You <<one of>><<one of>>hold onto<<or>>grip<<at random>><<or
         >><<one of>>hold<<or>>press<<or>>push<<at random>>
         yourself against<<at random>> <<insidesDesc>>.
-        TODO: Add description. <<end>>"
+        <<if coolingDuctLowerOuterDoor.isOpen
+        >>Light spills in from the open access door at the bottom,<<else
+        >>Minimal hints of light bounce from the server room above,<<end>>
+        giving your night vision enough to see.<<end>> "
     nameHeader = 'Inside Cooling Duct'
 
     wallsDesc =
@@ -148,7 +151,15 @@ class CoolingDuctSegment: HallwaySegment {
                 <<gDirectCmdStr('up')>> or <<gDirectCmdStr('down')>><.p> ";
             }
         }
-        //TODO: Climbing noise
+        if (gPlayerChar.isOrIsIn(actor)) {
+            soundBleedCore.createSound(
+                climbingNoiseProfile,
+                actor,
+                self,
+                true
+            );
+        }
+        //TODO: Skashek climbing up makes noise
     }
 
     setClimbStreak(value) {
@@ -163,49 +174,124 @@ class CoolingDuctSegment: HallwaySegment {
     }
 }
 
-class CoolingDuctInnerDoor: Door {
-    vocab = 'access door;cooling[weak] duct;hatch'
-    desc = "TODO: Add description. "
+lifeSupportSound: SoundProfile
+    'the <<standardString>>'
+    'the <<standardString>>'
+    'the distant, <<standardString>>'
+    strength = 3
 
-    airlockDoor = true
-    passActionStr = 'exit'
-    skipHandle = true
+    standardString =
+        '<<one of>>noise<<or>>racket<<or>>din<<or>>activity<<at random>>
+        of <<one of>>air moving through ducts<<or>>industrial fans<<or
+        >>industrious life support<<or>>the turbine pumps<<at random>>'
+;
 
-    standardExitMsg =
-        '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
-        prop{s/?ed} {myself} into position, and exit{s/ed} through <<theName>>'
+ambientLifeSupportNoiseRunner: InitObject {
+    noiseDaemon = nil
 
-    travelDesc =
-        "<<standardExitMsg>>. "
+    execute() {
+        if (noiseDaemon == nil) {
+            noiseDaemon = new Daemon(self, &playNoise, 0);
+        }
+    }
+
+    playNoise() {
+        soundBleedCore.createSound(
+            lifeSupportSound, lifeSupportMachines,
+            lifeSupportMachines.getOutermostRoom(), nil
+        );
+    }
 }
 
-class CoolingDuctOuterDoor: CoolingDuctInnerDoor {
-    vocab = 'cooling duct;access;door hatch'
-    passActionStr = 'enter'
-    secretLocalPlatform = true
+lifeSupportMachines: MultiLoc, Thing { 'machines;;machinery pipes tubes fans'
+    "Pipes, tubes, and machines fill the room with activity. Some even
+    span the top and bottom floors of Life Support. "
+
+    plural = true
+
+    locationList = [lifeSupportTop, lifeSupportBottom]
+
+    getOutermostRoom() {
+        local om = gPlayerChar.getOutermostRoom();
+        if (om == lifeSupportBottom || om == reservoirStrainer ||
+            om == insideCoolingDuctLower) {
+            return lifeSupportBottom;
+        }
+        return lifeSupportTop;
+    }
+
+    getAmbience() {
+        "<<one of>><<or
+        >>The mechanical roar of machinery continues.
+        <<or>>The room is full of noise.
+        <<or>>The industrious fans and other mechanisms fill the room with sound.
+        <<at random>>";
+    }
+}
+
+catDownALadderBarrier: TravelBarrier {
+    canTravelerPass(actor, connector) {
+        return actor != cat;
+    }
+    
+    explainTravelBarrier(actor, connector) {
+        "Unlike the other ladder (found by Server Access), this one
+        is completely vertical, which you cannot climb safely. ";
+    }
 }
 
 lifeSupportTop: Room { 'Life Support (Upper Level)'
-    "TODO: Add description. "
+    "Machines, ducts, and pipes fill the room.
+    One machine, in particular, occupies the north half of the room:
+    the primary fan unit.\b
+    The exit door is to the southwest, but it seems to be locked.
+    A ladder is available to take you to the lower floor of Life Support. "
 
     southwest = northUtilityPassageEntry
-    down = lifeSupportBottom
+    down = lifeSupportLadderTop
 
     northwestMuffle = assemblyShop
     eastMuffle = labA
     westMuffle = commonRoom
     southeastMuffle = itOffice
     southMuffle = serverRoomBottom
+
+    roomDaemon() {
+        lifeSupportMachines.getAmbience();
+        inherited();
+    }
 }
 
++lifeSupportLadderTop: ClimbDownIntoPlatform { 'ladder'
+    "A ladder allows travel to the floor below. "
+
+    travelDesc =
+        "{I} quickly<<one of>>{aac}
+        climb{s/ed} down<<or>>{aac}
+        descend{s/ed}<<at random>> the ladder. "
+
+    destination = lifeSupportBottom
+    travelBarriers = [catDownALadderBarrier]
+}
+
++primaryFanUnit: FixedPlatform { 'primary fan unit;;machine'
+    "A massive, metal box, covered in ducts, and roaring with life.
+    A strong breeze comes from a vent on the outside of the machine. "
+}
+++AwkwardFloorHeight;
+
 +coolingDuctMiddleSegment: Decoration { 'cooling duct;access;door hatch'
-    "TODO: Add description. "
+    "A large, metal duct, running vertically up the south wall. "
 
     noDoorHereMsg = 'This segment of the duct has no access door. '
 
     remappingLookIn = true
 
-    decorationActions = [Examine, Open, Close, Enter, GoThrough, LookIn, PeekThrough, PeekInto]
+    decorationActions = [
+        Examine, Open, Close, Enter, GoThrough,
+        LookIn, PeekThrough, PeekInto,
+        Search, SearchClose, SearchDistant
+    ]
     dobjFor(Close) asDobjFor(Open)
     dobjFor(Enter) asDobjFor(Open)
     dobjFor(GoThrough) asDobjFor(Open)
@@ -220,18 +306,71 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 }
 
 lifeSupportBottom: Room { 'Life Support (Lower Level)'
-    "TODO: Add description. "
+    "Machines, ducts, and pipes fill the room, and
+    the floor is damp with residual water.\b
+    To the east, a door provides access to the Reservoir Strainer Stage.
+    A ladder, meanwhile, provides access to the upper floor of Life Support. "
 
-    up = lifeSupportTop
+    up = lifeSupportLadderBottom
 
     roomDaemon() {
+        lifeSupportMachines.getAmbience();
         ductFog.rollingDesc(coolingDuctLowerOuterDoor);
         inherited();
     }
 }
 
-+coolingDuctLowerOuterDoor: CoolingDuctOuterDoor {
++Decoration { 'puddle;residual;water'
+    "Water, which has not dried after
+    a recent entry from the Reservoir Strainer Stage. "
+    ambiguouslyPlural = true
+}
+
++lifeSupportLadderBottom: ClimbUpIntoPlatform { 'ladder'
+    "A ladder allows travel to the floor above. "
+
+    travelDesc =
+        "{I} quickly<<one of>>{aac} 
+        climb{s/ed}<<or>>{aac} 
+        scale{s/ed}<<at random>> the ladder. "
+
+    destination = lifeSupportTop
+}
+
++coolingDuctLowerSegment: Decoration { 'cooling duct'
+    desc = coolingDuctMiddleSegment.desc
+
+    remappingLookIn = true
+
+    decorationActions = (coolingDuctMiddleSegment.decorationActions)
+    dobjFor(Open) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(Close) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(Enter) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(GoThrough) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(LookIn) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(PeekThrough) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(PeekInto) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(Search) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(SearchClose) { remap = coolingDuctLowerOuterDoor }
+    dobjFor(SearchDistant) { remap = coolingDuctLowerOuterDoor }
+}
+
+++coolingDuctLowerOuterDoor: Door {
+    vocab = 'access door;cooling[weak] duct;hatch'
+    desc = "A discreet access door, probably for maintenance and repairs. "
+    passActionStr = 'enter'
+    secretLocalPlatform = true
     otherSide = coolingDuctLowerInnerDoor
+
+    airlockDoor = true
+    skipHandle = true
+
+    standardExitMsg =
+        '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
+        prop{s/?ed} {myself} into position, and exit{s/ed} through <<theName>>'
+
+    travelDesc =
+        "<<standardExitMsg>>. "
 
     makeOpen(stat) {
         inherited(stat);
@@ -277,15 +416,12 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
 
 +coolingDuctUpperInnerGrate: CoolingDuctGrate {
     vocab = coolingDuctUpperOuterGrate.vocab
-    //desc = coolingDuctUpperOuterGrate.desc
     otherSide = coolingDuctUpperOuterGrate
 
     passActionStr = 'exit'
 }
 
 coolingDuctUpperOuterGrate: CoolingDuctGrate { 'cooling outlet grate;access duct' @serverRoomTop
-    //"TODO: Add description. "
-
     otherSide = coolingDuctUpperInnerGrate
 }
 
@@ -319,8 +455,18 @@ insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
     }
 }
 
-+coolingDuctLowerInnerDoor: CoolingDuctInnerDoor {
++coolingDuctLowerInnerDoor: Door {
+    vocab = 'access door;cooling[weak] duct;hatch'
+    desc = "An access door, probably for maintenance and repairs. "
     otherSide = coolingDuctLowerOuterDoor
+
+    airlockDoor = true
+    passActionStr = 'exit'
+    skipHandle = true
+
+    standardExitMsg =
+        '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
+        prop{s/?ed} {myself} into position, and exit{s/ed} through <<theName>>'
 
     travelDesc =
         "<<standardExitMsg>>.

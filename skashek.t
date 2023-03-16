@@ -41,8 +41,20 @@ modify Thing {
     }
 }
 
-skashek: Actor { 'Skashek;royal[weak];predator hunter subject sheki shek'
-    "A rather terrifying visage! " //TODO: Describe
+skashek: Actor {
+    vocab = 'Skashek;royal[weak];predator hunter subject sheki shek'
+    desc() {
+        "<<gSkashekName>>'s skin is as pale as death herself,
+        and his grin reveals two rows of sharp teeth.
+        His long, bone-white hair is combed over, but the sides and back
+        of his head are shaved.
+        His nose is slightly upturned, with a thin bridge, and
+        his angular jawline is accentuated by an extended chin.
+        His steady gaze glows red with the shine of night vision.
+        His long arms end in clawed hands, engineered to grab
+        humanoid prey by the throat.\b";
+        outfit.wornDesc();
+    }
     isHim = true
     theName = (globalParamName)
     trueNameKnown = nil
@@ -51,6 +63,8 @@ skashek: Actor { 'Skashek;royal[weak];predator hunter subject sheki shek'
         (trueNameKnown ? '<b>Skashek</b>' : '<b>The Predator</b>'))
 
     location = dreamWorldSkashek
+
+    outfit = skashekUniform
 
     doPerception() {
         //TODO: Handle Skashek sound perception

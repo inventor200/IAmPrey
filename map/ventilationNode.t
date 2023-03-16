@@ -1,19 +1,29 @@
-ventDuctCeiling: Ceiling { 'ventilation duct ceiling;vent top;roof panel[weak]'
-    "TODO: Add description. "
+ventDuctCeiling: Ceiling {
+    vocab = 'ventilation duct ceiling;vent top;roof panel[weak]'
+    desc = ventDuctWalls.desc
     ambiguouslyPlural = true
 }
 
 ventDuctWalls: Walls { 'ventilation duct walls;vent;sides siding panels[weak]'
-    "TODO: Add description. "
+    "Plain, bare metal panels form the walls, ceiling, and floor of the duct. "
 }
 
-ventDuctFloor: Floor { 'ventilation duct floor;vent bottom;ground panel[weak]'
-    "TODO: Add description. "
+ventDuctFloor: Floor {
+    vocab = 'ventilation duct floor;vent bottom;ground panel[weak]'
+    desc = ventDuctWalls.desc
     ambiguouslyPlural = true
 }
 
 ventilationNode: Room { 'The Central Ventilation Node'
-    "TODO: Add description. "
+    "<<if !gCatMode>>You find that you have to crawl here, confined to a
+    claustrophobic duct of metal panels.<<end>>
+    The Central Ventilation Node is the heart of air circulation systems
+    for the core facility rooms. <<if gCatMode>>It also serves as your
+    favorite eating spot!<<end>> There is hardly any light here, which forces
+    you to rely entirely on your natural night vision.\b
+    The ducts contort into four directions: <<hyperDir('north')>> to
+    the Assembly Shop, <<hyperDir('east')>> to Lab A, <<hyperDir('south')>>
+    to Life Support, and <<hyperDir('west')>> to the Common Room. "
     ceilingObj = ventDuctCeiling
     wallsObj = ventDuctWalls
     floorObj = ventDuctFloor
@@ -22,6 +32,13 @@ ventilationNode: Room { 'The Central Ventilation Node'
     east = labAExitVentGrate
     south = lifeSupportTopExitVentGrate
     west = commonRoomExitVentGrate
+}
+
++Decoration { 'dried blood;favorite eating;spot place evidence meal food'
+    "<<if gCatMode
+    >>The remains of my last meal!<<else
+    >>Something probably ate a previous prey clone here...<<end>> "
+    specialDesc = "A patch of dried blood and bones can be seen in the corner."
 }
 
 +assemblyShopExitVentGrate: VentGrateDoor {
@@ -38,6 +55,8 @@ ventilationNode: Room { 'The Central Ventilation Node'
     vocab = 'lab A ' + defaultVentVocab
     otherSide = labANodeGrate
     isConnectorListed = true
+
+    travelDesc = "<<labAShelves.travelPreface>> the IT Office vent grate. "
 }
 +commonRoomExitVentGrate: VentGrateDoor {
     vocab = 'common room ' + defaultVentVocab
@@ -69,13 +88,13 @@ assemblyShopNodeGrate: VentGrateDoor {
 }
 lifeSupportTopNodeGrate: VentGrateDoor {
     vocab = defaultVentVocab
-    location = lifeSupportTop
+    location = primaryFanUnit
     otherSide = lifeSupportTopExitVentGrate
     soundSourceRepresentative = (otherSide)
 }
 labANodeGrate: VentGrateDoor {
-    vocab = defaultVentVocab
-    location = labA
+    vocab = 'primary ' + defaultVentVocab
+    location = labAShelves
     otherSide = labAExitVentGrate
     soundSourceRepresentative = (otherSide)
 }

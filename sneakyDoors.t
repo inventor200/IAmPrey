@@ -103,7 +103,7 @@ doorSuspiciousSilenceProfile: SoundProfile {
     }
 
 DefinePeekMethod(
-    peekVerb(('through'|'thru'|'down'|) singleDobj),
+    [badness 50] peekVerb(('through'|'thru'|'down'|) singleDobj),
     Through, 'through'
 )
 DefinePeekMethod(
@@ -1242,7 +1242,7 @@ modify Door {
 
     isActuallyPassable(traveler) {
         if (traveler == cat) {
-            return hasDistCompCatFlap;
+            return hasDistCompCatFlap || isVentGrateDoor;
         }
         return isOpen;
     }
@@ -1272,7 +1272,7 @@ modify Door {
 
     replace noteTraversal(actor) {
         if (gPlayerChar.isOrIsIn(actor) && !(gAction.isPushTravelAction && suppressTravelDescForPushTravel)) {
-            if (!gOutStream.watchForOutput({:travelDesc}) && actor == cat) {
+            if (!gOutStream.watchForOutput({:travelDesc}) && actor == cat && hasDistCompCatFlap) {
                 local obj = gActor;
                 gMessageParams(obj);
                 "{The subj obj} carefully climb{s/ed} through the cat flap of <<theName>>.";

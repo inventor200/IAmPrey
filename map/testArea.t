@@ -147,6 +147,28 @@ TEST_centralRoom: Room { 'Central Room'
     canJumpOverMe = true
 }
 
++TEST_eastPillar: Fixture { 'east pillar;e'
+    "A pillar to the east. "
+}
+
++TEST_westPillar: Fixture { 'west pillar;w'
+    "A pillar to the west. "
+}
+
++TEST_northPorthole: Fixture { 'north porthole;n'
+    "A weird porthole. "
+
+    canLookThroughMe = true
+
+    dobjFor(PeekThrough) asDobjFor(LookThrough)
+    dobjFor(LookThrough) {
+        action() {
+            "You peek through the porthole. ";
+        }
+        report() { }
+    }
+}
+
 +AwkwardProviderBridge @TEST_eastGap ->TEST_subtleRoom @TEST_westGap;
 
 TEST_sideRoom: Room { 'Side Room'

@@ -207,7 +207,7 @@ huntCore: InitObject {
         #if __DEBUG
         cat.moveInto(__TEST_ROOM);
         #else
-        cat.moveInto(directorsOffice); //TODO: Add cat bed
+        cat.moveInto(directorsOffice);
         #endif
     }
 
@@ -215,7 +215,7 @@ huntCore: InitObject {
         #if __DEBUG
         prey.moveInto(__TEST_ROOM);
         #else
-        prey.moveInto(genericCatchNet); //TODO: Add cat bed
+        prey.moveInto(genericCatchNet);
         #endif
         //TODO: Later on, we can have him start in the map during cat mode,
         //      and slowly make his way down to the reservoir after checking

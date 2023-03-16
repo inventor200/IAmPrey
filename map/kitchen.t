@@ -7,6 +7,12 @@ kitchen: Room { 'The Kitchen'
     southMuffle = reactorNoiseRoom
 }
 
++kitchenVentGrate: VentGrateDoor {
+    vocab = defaultVentVocab
+    location = reservoirVentGrate
+    otherSide = labAExitVentGrate
+}
+
 +kitchenNorthExit: Door { 'the freezer door'
     freezerDoorDesc
     otherSide = kitchenNorthEntry
@@ -27,4 +33,9 @@ kitchenNorthEntry: Door { 'the kitchen access door'
 
 DefineDoorWestTo(southHall, kitchen, 'the kitchen door')
 
-DefineVentGrateEastTo(reservoirCorridor, nil, kitchen, nil, 'kitchen vent grate;ventilation;door', 'vent grate;ventilation;door')
+reservoirVentGrate: VentGrateDoor {
+    vocab = defaultVentVocab
+    location = reservoirCorridor
+    otherSide = kitchenVentGrate
+    soundSourceRepresentative = (otherSide)
+}

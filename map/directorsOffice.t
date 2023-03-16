@@ -17,6 +17,8 @@ directorsOffice: Room { 'The Director\'s Office'
 //TODO: Broken shards multiloc here and in the north hall, explaining that
 // the shards are nowhere to be found
 
+//TODO: Add cat bed
+
 DefineBrokenWindowPairLookingAway(north, southwest, northHall, directorsOffice)
     vocab = 'broken director\'s office window;directors[weak] shattered'
     desc = "TODO: Add description. "
