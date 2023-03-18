@@ -15,9 +15,13 @@ storageBay: Room { 'The Storage Bay'
     ceilingObj = industrialCeiling
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         northFreezerFog.rollingDesc(freezerNorthEntry);
         inherited();
     }
+
+    mapModeDirections = [&northwest, &south, &east]
+    familiar = roomsFamiliarByDefault
 }
 
 +wasteProcessingEntry: MaintenanceDoor { 'the waste processing door'
@@ -55,6 +59,9 @@ hangar: Room { 'The Hangar'
     
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+
+    mapModeDirections = [&west, &east]
+    familiar = roomsFamiliarByDefault
 }
 
 +airlockInsideEntry: Door { 'the emergency airlock door'
@@ -98,6 +105,9 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     east = airlockOutsideExit
     west = airlockInsideExit
+
+    mapModeDirections = [&east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 +airlockInsideExit: Door { 'the inner exit door'
@@ -134,6 +144,10 @@ fakeOutside: Room { 'Outside the Facility'
     "Ominous toxic fumes fill the air; a measure taken by
     those who wanted to control you. Luckily, the suit allows
     you to walk through it all. "
+
+    west = airlockOutsideEntry
+
+    mapModeDirections = [&west]
 }
 
 +airlockOutsideEntry: Door { 'the outer airlock door'

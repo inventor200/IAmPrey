@@ -4,6 +4,8 @@ TEST_centralRoom: Room { 'Central Room'
     north = TEST_hallwayDoor
     westMuffle = TEST_sideRoom
     east = TEST_eastGap
+
+    mapModeDirections = [&north]
 }
 
 +TEST_hallwayDoor: Door { 'hallway door'
@@ -176,6 +178,8 @@ TEST_sideRoom: Room { 'Side Room'
 
     north = TEST_centerHallway
     eastMuffle = TEST_centralRoom
+
+    mapModeDirections = [&north]
 }
 
 TEST_longHallway: SenseRegion {
@@ -190,6 +194,8 @@ TEST_centerHallway: Room { 'Hallway (Center)'
     east = TEST_eastHallway
 
     regions = [TEST_longHallway]
+
+    mapModeDirections = [&east, &southeast, &southwest]
 }
 
 +TEST_centralRoomDoor: Door { 'central room door'
@@ -204,6 +210,8 @@ TEST_eastHallway: Room { 'Hallway (East)'
     south = TEST_subtleRoom
 
     regions = [TEST_longHallway]
+
+    mapModeDirections = [&south, &west]
 }
 
 // East of central room
@@ -211,6 +219,8 @@ TEST_subtleRoom: Room { 'Subtle Room'
     "Just a subtle room. "
     north = TEST_eastHallway
     west = TEST_westGap
+
+    mapModeDirections = [&north]
 }
 
 +TEST_westGap: ParkourBridgeConnector { 'west gap;western;divide'

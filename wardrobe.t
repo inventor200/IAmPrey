@@ -65,6 +65,9 @@ class Outfit: Wearable {
     dobjFor(Doff) {
         action() {
             gActor.outfit = nil;
+            if (skashek.canSee(gActor)) {
+                skashek.witnessPreyStripping();
+            }
             inherited();
         }
     }

@@ -1,15 +1,15 @@
 ventDuctCeiling: Ceiling {
-    vocab = 'ventilation duct ceiling;vent top;roof panel[weak]'
+    vocab = 'ventilation duct ceiling;vent air[weak] top;roof panel[weak]'
     desc = ventDuctWalls.desc
     ambiguouslyPlural = true
 }
 
-ventDuctWalls: Walls { 'ventilation duct walls;vent;sides siding panels[weak]'
+ventDuctWalls: Walls { 'ventilation duct walls;vent air[weak];sides siding panels[weak]'
     "Plain, bare metal panels form the walls, ceiling, and floor of the duct. "
 }
 
 ventDuctFloor: Floor {
-    vocab = 'ventilation duct floor;vent bottom;ground panel[weak]'
+    vocab = 'ventilation duct floor;vent air[weak] bottom;ground panel[weak]'
     desc = ventDuctWalls.desc
     ambiguouslyPlural = true
 }
@@ -45,18 +45,23 @@ ventilationNode: Room { 'The Central Ventilation Node'
     vocab = 'assembly shop ' + defaultVentVocab
     otherSide = assemblyShopNodeGrate
     isConnectorListed = true
+
+    travelDesc = "You climb through, and land on a CNC machine in the Assembly Shop. "
 }
 +lifeSupportTopExitVentGrate: VentGrateDoor {
     vocab = 'life support ' + defaultVentVocab
     otherSide = lifeSupportTopNodeGrate
     isConnectorListed = true
+
+    travelDesc = "You climb through, and find yourself on the structure of the
+    primary fan unit. "
 }
 +labAExitVentGrate: VentGrateDoor {
     vocab = 'lab A ' + defaultVentVocab
     otherSide = labANodeGrate
     isConnectorListed = true
 
-    travelDesc = "<<labAShelves.travelPreface>> the IT Office vent grate. "
+    travelDesc = "<<labAShelves.travelPreface>> the library vent grate. "
 }
 +commonRoomExitVentGrate: VentGrateDoor {
     vocab = 'common room ' + defaultVentVocab
@@ -79,10 +84,9 @@ ventilationNode: Room { 'The Central Ventilation Node'
         room where the upper and lower sections aren't flush with each other. "
 }
 
-//TODO: Put these in interesting locations
 assemblyShopNodeGrate: VentGrateDoor {
     vocab = defaultVentVocab
-    location = assemblyShop
+    location = cncMachine
     otherSide = assemblyShopExitVentGrate
     soundSourceRepresentative = (otherSide)
 }
@@ -144,7 +148,7 @@ class VentGrateDoor: Door {
 }
 
 DefineDistComponentFor(VentGrateDoorHinge, VentGrateDoor)
-    vocab = 'vent door hinge;grate'
+    vocab = 'vent door hinge;air[weak];grate'
     desc = "A 3D-printed, plastic hinge. This was a long-term, homemade modification. "
 
     isDecoration = true

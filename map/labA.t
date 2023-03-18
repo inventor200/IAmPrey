@@ -1,9 +1,14 @@
 labA: Room { 'Lab A'
-    "TODO: Add description. "
+    "TODO: Add description.\b
+    A tall set of storage shelves can be found in the southwest corner.\b
+    The exit door is to the <<hyperDir('east')>>. "
 
     northMuffle = northHall
     westMuffle = lifeSupportTop
-    southMuffle = itOffice
+    southMuffle = library
+
+    mapModeDirections = [&east]
+    familiar = roomsFamiliarByDefault
 }
 
 +labAShelves: FixedPlatform { 'storage shelves;cargo;rack'
@@ -17,31 +22,22 @@ labA: Room { 'Lab A'
 }
 ++AwkwardFloorHeight;
 
-labAToITOfficeVentGrate: VentGrateDoor {
-    vocab = 'it office ' + defaultVentVocab
+labAToLibraryVentGrate: VentGrateDoor {
+    vocab = 'library ' + defaultVentVocab
     location = labAShelves
-    otherSide = ITOfficeTolabAVentGrate
+    otherSide = LibraryTolabAVentGrate
 
-    travelDesc = "<<labAShelves.travelPreface>> the primary vent grate. "
+    travelDesc = "You carefully find your balance on a stepladder, once you're on
+    the other side of the vent grate. "
 }
 
-ITOfficeTolabAVentGrate: VentGrateDoor {
+LibraryTolabAVentGrate: VentGrateDoor {
     vocab = 'lab A ' + defaultVentVocab
-    location = itOffice
-    otherSide = labAToITOfficeVentGrate
+    location = stepLadder
+    otherSide = labAToLibraryVentGrate
     soundSourceRepresentative = (otherSide)
 
-    travelDesc = "<<if gCatMode
-        >><<if commonRoom.getVentSurprise()
-        >>You know the route well.\b
-        <<end>>Exiting the ventilation node, in one practiced motion,
-        you find yourself on a display shelf, high above the floor.<<
-        else>><<if commonRoom.getVentSurprise()
-        >>Your heart lurches.\b
-        <<end>>
-        The path abruptly ends with a sharp drop to the floor, far below.
-        You grip the sides of the vent, and carefully find your footing
-        on a convenient display shelf.<<end>> "
+    travelDesc = "<<labAShelves.travelPreface>> the primary vent grate. "
 }
 
 DefineDoorEastTo(northeastHall, labA, 'the door to[weak] lab A[weak]')

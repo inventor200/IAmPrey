@@ -14,15 +14,15 @@
 #include "betterChoices.t"
 
 // Begin compile modes
-#define __IS_MAP_TEST nil
+#define __IS_MAP_TEST true
 
-#if __DEBUG
+#ifdef __DEBUG
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM lifeSupportTop
+/*-*/  #define __TEST_ROOM deliveryRoom
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -70,12 +70,14 @@
 #include "epilogue.t"
 #include "preciseHelp.t"
 #include "wardrobe.t"
+#include "mapMode.t"
 #include "map/map.h"
 
 gameMain: GameMainDef {
     initialPlayerChar = prey
 
     formatForScreenReader = nil
+    lickedHandle = nil
 
     showIntro() {
         showPrologue;

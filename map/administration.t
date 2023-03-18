@@ -14,6 +14,7 @@ administrationAudioRegion: SenseRegion {
     desc = "A wide office desk sits in the corner of the cubicle. " \
 } \
 ++LowFloorHeight; \
+++JumpUpLink ->cubicleName##FilingCabinet; \
 +cubicleName##FilingCabinet: FilingCabinet; \
 ++HighFloorHeight;
 
@@ -30,6 +31,9 @@ class Cubicle: Room {
     out = administration
 
     regions = [administrationAudioRegion]
+
+    mapModeDirections = [&out]
+    familiar = roomsFamiliarByDefault
 }
 
 class FakeCubicle: Passage {
@@ -59,6 +63,9 @@ administration: Room { 'Administration'
     southMuffle = enrichmentRoom
 
     regions = [administrationAudioRegion]
+
+    mapModeDirections = [&north, &west, &northeast, &southeast, &northwest, &southwest]
+    familiar = roomsFamiliarByDefault
 }
 +fakeNortheastCubicle: FakeCubicle { 'northeast cubicle;ne;office'
     destination = northeastCubicle
@@ -80,10 +87,6 @@ northeastCubicle: Cubicle { 'The Northeast Cubicle'
     }
 }
 populateCubicle(northeastCubicle)
-
-JumpUpLink { ->northeastCubicleFilingCabinet
-    location = northeastCubicleDesk
-}
 
 southeastCubicle: Cubicle { 'The Southeast Cubicle'
     desc() {

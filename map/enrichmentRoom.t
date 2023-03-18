@@ -6,6 +6,9 @@ enrichmentRoom: Room { 'The Enrichment Room'
 
     northMuffle = administration
     eastMuffle = utilityPassage
+
+    mapModeDirections = [&west, &east, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 +southEnrichmentRoomDoorInterior: Door { 'the south enrichment room door'

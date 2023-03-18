@@ -6,7 +6,7 @@
 //TODO: Finish decoration stage
 //TODO: Finish decoration description stage
 
-#if __DEBUG
+#ifdef __DEBUG
 #include "testArea.t"
 #endif
 #include "mainHallway.t"      // Stage: Parkour
@@ -26,9 +26,9 @@
 #include "evaluationRoom.t"   // Stage: Parkour
 #include "bathrooms.t"        // Stage: Parkour
 #include "utilityPassage.t"   // Stage: Described decorations
-#include "lifeSupport.t"      // Stage: Muffle
+#include "lifeSupport.t"      // Stage: Described decorations
 #include "serverRoom.t"       // Stage: Described decorations
-#include "itOffice.t"         // Stage: Muffle
+#include "library.t"         // Stage: Parkour
 #include "hangar.t"           // Stage: Parkour
 #include "kitchen.t"          // Stage: Muffle
 #include "freezer.t"          // Stage: Parkour

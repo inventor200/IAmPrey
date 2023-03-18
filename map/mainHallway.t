@@ -19,12 +19,17 @@ loadingArea: Room { 'The Loading Area'
         }
         return inherited(pov);
     }
+
+    mapModeDirections = [&east, &west, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 class HallwaySegment: Room {
     desc = "You are <<inRoomName(gPlayerChar)>>.
-        <<if lookAroundArmed>>TODO: Add description. <<end>>"
+        <<if lookAroundArmed>>TODO: Add description. <<end>><<additionalDesc()>>"
     nameHeader = 'The Main Hallway Ring'
+
+    additionalDesc() { }
 
     descFrom(pov) {
         "TODO: Add remote description. ";
@@ -37,7 +42,11 @@ eastHallRegion: HallRegion;
 westHallRegion: HallRegion;
 
 northHall: HallwaySegment { '<<nameHeader>> (North)'
-    //
+    additionalDesc = "\b
+    The hall continues <<hyperDir('east')>> and <<hyperDir('west')>>.
+    To the <<hyperDir('north')>> is a bathroom. To the <<hyperDir('south')>>
+    is the door to the Assembly Shop, and beside it (to the <<hyperDir('southwest')>>)
+    is a broken window. "
 
     regions = [loadingAreaSightLine, directorsOfficeSightLine]
 
@@ -61,6 +70,9 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
     descFrom(pov) {
         "TODO: Add remote description. ";
     }
+
+    mapModeDirections = [&north, &east, &west, &south, &southwest]
+    familiar = roomsFamiliarByDefault
 }
 
 northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
@@ -78,6 +90,9 @@ northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
         }
         return 'in the north end of the hall';
     }
+
+    mapModeDirections = [&north, &south, &east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 eastHall: HallwaySegment { '<<nameHeader>> (East)'
@@ -90,6 +105,9 @@ eastHall: HallwaySegment { '<<nameHeader>> (East)'
     lookAroundRegion = eastHallRegion
 
     inRoomName(pov) { return 'near the middle of the hall'; }
+
+    mapModeDirections = [&north, &south, &east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
@@ -105,9 +123,13 @@ southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
     inRoomName(pov) { return 'in the south end of the hall'; }
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         westFreezerFog.rollingDesc(freezerWestEntry);
         inherited();
     }
+
+    mapModeDirections = [&north, &south, &east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 southHall: HallwaySegment { '<<nameHeader>> (South)'
@@ -120,6 +142,9 @@ southHall: HallwaySegment { '<<nameHeader>> (South)'
     northeastMuffle = deliveryRoom
     northwestMuffle = cloneQuarters
     southeastMuffle = reactorNoiseRoom
+
+    mapModeDirections = [&north, &south, &east, &west, &northeast]
+    familiar = roomsFamiliarByDefault
 }
 
 northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
@@ -134,6 +159,9 @@ northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
     lookAroundRegion = westHallRegion
 
     inRoomName(pov) { return 'in the north end of the hall'; }
+
+    mapModeDirections = [&north, &south, &east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 westHall: HallwaySegment { '<<nameHeader>> (West)'
@@ -148,6 +176,9 @@ westHall: HallwaySegment { '<<nameHeader>> (West)'
     lookAroundRegion = westHallRegion
 
     inRoomName(pov) { return 'near the middle of the hall'; }
+
+    mapModeDirections = [&north, &south, &east]
+    familiar = roomsFamiliarByDefault
 }
 
 southwestHall: HallwaySegment { '<<nameHeader>> (Southwest)'
@@ -160,4 +191,7 @@ southwestHall: HallwaySegment { '<<nameHeader>> (Southwest)'
     lookAroundRegion = westHallRegion
 
     inRoomName(pov) { return 'in the south end of the hall'; }
+
+    mapModeDirections = [&north, &south, &east, &west]
+    familiar = roomsFamiliarByDefault
 }

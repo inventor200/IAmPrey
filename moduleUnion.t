@@ -72,7 +72,12 @@ modify VerbRule(Attack)
     'tackle'|'ambush') singleDobj :
 ;
 
+modify ParkourModule {
+    canStandOnMe = true
+}
+
 modify Thing {
+    canStandOnMe = (isBoardable)
     bulk = ((isEnterable || isBoardable) ? 2 : (isDecoration ? 0 : 1))
     bulkCapacity = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
     maxSingleBulk = ((isEnterable || isBoardable) ? holdActorStorage : actorCapacity)
@@ -869,12 +874,18 @@ DefineDistSubComponentFor(FridgeRemapIn, Fridge, remapIn)
         check() { } \
         action() { } \
         report() { \
-            "<.p>As your tongue leaves its surface, subtle flashbacks of someone \
-            else's memories pass through your mind, like muffled echoes.\b \
-            You think you remember a name, reaching out from the whispers:\b \
-            <center><i><q>Rovarsson...</q></i></center>\b \
-            You're not really sure what to make of that. Probably should not \
-            lick random handles anymore, though. "; \
+            if (gameMain.lickedHandle) { \
+                "Tastes like it's been well-used. "; \
+            } \
+            else { \
+                gameMain.lickedHandle = true; \
+                "As your tongue leaves its surface, subtle flashbacks of someone \
+                else's memories pass through your mind, like muffled echoes.\b \
+                You think you remember a name, reaching out from the whispers:\b \
+                <center><i><q>Rovarsson...</q></i></center>\b \
+                You're not really sure what to make of that. Probably should not \
+                lick random handles anymore, though. "; \
+            } \
         } \
     }
 

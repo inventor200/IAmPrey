@@ -4,6 +4,9 @@ breakroom: Room { 'The Breakroom'
     northMuffle = serverRoomBottom
     eastMuffle = deliveryRoom
     westMuffle = utilityPassage
+
+    mapModeDirections = [&south]
+    familiar = roomsFamiliarByDefault
 }
 
 DefineDoorSouthTo(southHall, breakroom, 'the breakroom door')

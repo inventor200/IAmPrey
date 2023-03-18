@@ -171,7 +171,7 @@ deliveryRoom: Room { 'The Delivery Room'
     In the southwest corner, a towel rack, makeup vanity, and wardrobe closet
     have been provided for newborns. "
 
-    northMuffle = itOffice
+    northMuffle = library
     northwestMuffle = serverRoomBottom
     westMuffle = breakroom
     southMuffle = southHall
@@ -212,9 +212,13 @@ deliveryRoom: Room { 'The Delivery Room'
         >>One of the wombs can be heard, quietly digesting something<<at random>>. '
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         "<<one of>><<or>><<ceilingFog>><<or>><<wombAmbience>><<at random>>";
         inherited();
     }
+
+    mapModeDirections = [&east]
+    familiar = roomsFamiliarByDefault
 }
 
 +deliveryRoomFog: ColdFog;
@@ -314,7 +318,7 @@ deliveryRoom: Room { 'The Delivery Room'
 ++LowFloorHeight;
 ++ClimbUpLink ->deliveryRoomTowelRack;
 ++ClimbUpLink ->dresser;
-#if __DEBUG
+#ifdef __DEBUG
 ++SmashedMirror;
 #else
 ++SmashedMirror;

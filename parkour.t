@@ -463,7 +463,7 @@ DefineSystemAction(ShowAllParkourRoutes)
     }
 ;
 
-#if __DEBUG
+#ifdef __DEBUG
 VerbRule(DebugCheckForContainer)
     'is' singleDobj ('a'|'an'|) ('container'|'item') |
     ('container'|'cont'|'c') 'check' ('for'|'on'|) singleDobj |
@@ -653,7 +653,7 @@ reachGhostTest_: Thing {
     }
 }
 
-#if __DEBUG
+#ifdef __DEBUG
 #define __PARKOUR_REACH_DEBUG nil
 #else
 #define __PARKOUR_REACH_DEBUG nil
@@ -1313,7 +1313,7 @@ modify Thing {
             // Do NOT let forced local surfaces be parkour surfaces!!
             // These have VERY specific overrides that will absolutely
             // ruin a parkour module!
-            #if __DEBUG
+            #ifdef __DEBUG
             "<.p>ERROR: \^<<theName>> is a forced local surface,
             and is being asked to become a parkour surface!\b
             Luckily, the system have intervened, and maintained
@@ -1482,6 +1482,9 @@ modify Thing {
     }
 
     omitFromStagingError() {
+        // There isn't anything to suggest, so omit it.
+        if (stagingLocation == nil) return true;
+
         // Being on the floor is obvious
         if (stagingLocation.ofKind(Room)) return nil;
 
@@ -1850,7 +1853,7 @@ modify Thing {
         return nil;
     }
 
-    #if __DEBUG
+    #ifdef __DEBUG
     dobjFor(DebugCheckForContainer) {
         preCond = nil
         verify() { }
@@ -2221,7 +2224,7 @@ modify SubComponent {
         return playerClimbed;
     }
 
-    #if __DEBUG
+    #ifdef __DEBUG
     dobjFor(DebugCheckForContainer) {
         preCond = nil
         verify() { }
@@ -3832,7 +3835,7 @@ class ParkourBridgeMaker: ParkourLinkMaker {
             backwardProvider.providerClient = getTrueLocation().parkourModule;
             backwardProvider.destination = getTrueLocation().getOutermostRoom();
         }
-        #if __DEBUG
+        #ifdef __DEBUG
         if (provider == backwardProvider && provider != nil) {
             if (!provider.ofKind(MultiLoc)) {
                 "WARNING: There is a provider bridge (initialized in
@@ -3940,20 +3943,23 @@ class DangerousProviderBridge: ParkourBridgeMaker {
             local pm = destinationPlatform.parkourModule; \
             if (pm == nil) { \
                 gParkourRunner.actionMoveInto(destinationPlatform); \
+                destinationPlatform.doParkourSearch(); \
             } \
             else { \
                 gParkourLastPath = self; \
                 pm.provideMoveFor(gParkourRunner); \
+                pm.doParkourSearch(); \
             } \
-            pm.doParkourSearch(); \
         } \
     }
 
 #define localPlatformAdjustMoveCheck \
     check() { \
         inherited(); \
-        local pm = destinationPlatform.parkourModule; \
-        if (pm != nil) pm.checkParkour(gActor); \
+        if (destinationPlatform != nil) { \
+            local pm = destinationPlatform.parkourModule; \
+            if (pm != nil) pm.checkParkour(gActor); \
+        } \
     }
 
 #define localPlatformAdjustMove \

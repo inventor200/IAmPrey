@@ -115,7 +115,13 @@ ambientReactorNoiseRunner: InitObject {
 }
 
 reservoirCorridor: Room { 'The Reservoir Corridor'
-    "TODO: Add description. "
+    "A barren, naked corridor, with cement floors, and exposed pipes
+    on the ceiling. A rusty crate sits by the west wall, under a small,
+    metal door.\b
+    To the south, a locked door goes to the Reactor Turbine Room.
+    To the north, another locked door leads to the Freezer.
+    To the <<hyperDir('east')>>, a doorway leads to the Reservoir
+    Control Room. "
 
     north = northReservoirCorridorExit
     east = reservoirControlRoom
@@ -129,12 +135,21 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     moistureFactor = 0
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         ambientReactorNoiseRunner.hearWaterfall(
             'From the east, you hear the distant, '
         );
         inherited();
     }
+
+    mapModeDirections = [&east]
+    familiar = roomsFamiliarByDefault
 }
+
++reservoirCorridorCrate: FixedPlatform { 'rusty crate;metal;box'
+    "A rusty, metal crate. "
+}
+++LowFloorHeight;
 
 +northReservoirCorridorExit: MaintenanceDoor { 'the exit door'
     desc = lockedDoorDescription
@@ -186,11 +201,15 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     }
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         ambientReactorNoiseRunner.hearWaterfall(
             'From the east, you hear the '
         );
         inherited();
     }
+
+    mapModeDirections = [&east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 +reservoirDoorwayOut: Passage { 'the access doorway;;door'
@@ -263,10 +282,14 @@ reservoir: Room { 'The Reactor Reservoir'
     }
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         "From all around, you hear the
         <<ambientReactorNoiseRunner.fullWaterfallString>>. ";
         inherited();
     }
+
+    mapModeDirections = [&west]
+    familiar = roomsFamiliarByDefault
 }
 
 +diveIntoWaterConnector: TravelConnector {
@@ -459,11 +482,15 @@ reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     }
 }
 
+//TODO: Sounds of rushing water
 reservoirStrainer: Room { 'The Strainer Stage'
     "TODO: Add description. "
 
     north = "Swimming against the current would only dead-end you in the reservoir. "
     south = "The grate won't budge. "
+
+    mapModeDirections = [&west]
+    familiar = roomsFamiliarByDefault
 }
 
 DefineDoorWestTo(lifeSupportBottom, reservoirStrainer, 'the reservoir access door')

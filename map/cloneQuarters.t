@@ -8,6 +8,9 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
 
     ceilingObj = industrialCeiling
     floorObj = carpetedFloor
+
+    mapModeDirections = [&north, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 +southEnrichmentRoomDoorExterior: Door { 'the enrichment room door'

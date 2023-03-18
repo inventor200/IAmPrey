@@ -13,6 +13,9 @@ utilityPassage: Room { 'The Utility Corridor'
 
     ceilingObj = industrialCeiling
     floorObj = cementFloor
+
+    mapModeDirections = [&east]
+    familiar = roomsFamiliarByDefault
 }
 
 +southUtilityPassageExit: MaintenanceDoor { 'the south-end exit door'

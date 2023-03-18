@@ -10,6 +10,38 @@
 #define catNicknameVocab ('king arthur')
 #endif
 
+VerbRule(SayMeow)
+    'meow'
+    : VerbProduction
+    action = SayMeow
+    verbPhrase = 'meow/meowing'
+;
+
+DefineIAction(SayMeow)
+;
+
+VerbRule(Sing)
+    'sing'
+    : VerbProduction
+    action = Sing
+    verbPhrase = 'sing/singing'
+;
+
+DefineIAction(Sing)
+;
+
+VerbRule(Purr)
+    'purr'
+    : VerbProduction
+    action = Purr
+    verbPhrase = 'purr/purring'
+;
+
+DefineIAction(Purr)
+;
+
+#define meowPrompt "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> "
+
 cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws'
     "You are a beautiful, regal, and <i>graceful</i> cat!
     And a <i>grand</i> ruler, too!\b
@@ -37,6 +69,17 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws
         }
         desc();
         return '';
+    }
+
+    actorAction() {
+        if (gActionIs(Yell) || gActionIs(SayMeow) || gActionIs(Sing)) {
+            meowPrompt;
+            exit;
+        }
+        if (gActionIs(Purr)) {
+            "You vocalize a soft, purring sound. ";
+            exit;
+        }
     }
 }
 

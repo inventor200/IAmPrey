@@ -245,7 +245,8 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     One machine, in particular, occupies the north half of the room:
     the primary fan unit.\b
     The exit door is to the southwest, but it seems to be locked.
-    A ladder is available to take you to the lower floor of Life Support. "
+    A ladder is available to take you <<hyperDir('down')>>
+    to the lower floor of Life Support. "
 
     southwest = northUtilityPassageEntry
     down = lifeSupportLadderTop
@@ -253,13 +254,17 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     northwestMuffle = assemblyShop
     eastMuffle = labA
     westMuffle = commonRoom
-    southeastMuffle = itOffice
+    southeastMuffle = library
     southMuffle = serverRoomBottom
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         lifeSupportMachines.getAmbience();
         inherited();
     }
+
+    mapModeDirections = [&down]
+    familiar = roomsFamiliarByDefault
 }
 
 +lifeSupportLadderTop: ClimbDownIntoPlatform { 'ladder'
@@ -308,16 +313,20 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 lifeSupportBottom: Room { 'Life Support (Lower Level)'
     "Machines, ducts, and pipes fill the room, and
     the floor is damp with residual water.\b
-    To the east, a door provides access to the Reservoir Strainer Stage.
-    A ladder, meanwhile, provides access to the upper floor of Life Support. "
+    To the <<hyperDir('east')>>, a door provides access to the Reservoir Strainer Stage.
+    A ladder, meanwhile, goes <<hyperDir('up')>> to the upper floor of Life Support. "
 
     up = lifeSupportLadderBottom
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         lifeSupportMachines.getAmbience();
         ductFog.rollingDesc(coolingDuctLowerOuterDoor);
         inherited();
     }
+
+    mapModeDirections = [&up, &east]
+    familiar = roomsFamiliarByDefault
 }
 
 +Decoration { 'puddle;residual;water'

@@ -1,5 +1,5 @@
 #define showPrologue prologueCore.play()
-#if __DEBUG
+#ifdef __DEBUG
 #define __ALLOW_CLS true
 #else
 #define __ALLOW_CLS true

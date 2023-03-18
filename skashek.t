@@ -85,6 +85,16 @@ skashek: Actor {
         "<.p><i>\^<<gSkashekName>> is in there!</i> ";
     }
 
+    hasSeenPreyStrip = nil
+
+    witnessPreyStripping() {
+        if (hasSeenPreyStrip) return;
+        hasSeenPreyStrip = true;
+        reportAfter('<.p><q>Hah!</q> <<gSkashekName>> exclaims.
+            <q>You\'ll need to do more than <i>that</i> to distract me,
+            Prey!</q><.p>');
+    }
+
     //Reckless actions lol
     getCombatPreface() {
         return '<i>It all happened so fast.</i>\b

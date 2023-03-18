@@ -4,6 +4,9 @@ armory: Room { 'The Armory'
     north = securityOffice
     
     eastMuffle = westHall
+
+    mapModeDirections = [&north, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 DefineDoorSouthTo(humanQuarters, armory, 'the armory door')

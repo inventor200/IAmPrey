@@ -71,7 +71,7 @@ DefineTAction(SearchClose)
     remappingSearchCheckProp = &remappingSearchClose
 ; 
 
-#if __DEBUG
+#ifdef __DEBUG
 #define __DEBUG_SEARCH_LAYERS nil
 #else
 #define __DEBUG_SEARCH_LAYERS nil

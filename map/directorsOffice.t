@@ -1,5 +1,7 @@
 directorsOffice: Room { 'The Director\'s Office'
-    "TODO: Add description. "
+    "TODO: Add description.\b
+    An exit door is to the <<hyperDir('south')>>, and a broken window
+    opens a way to the <<hyperDir('north')>>. "
 
     eastMuffle = assemblyShop
     southeastMuffle = commonRoom
@@ -12,6 +14,9 @@ directorsOffice: Room { 'The Director\'s Office'
     descFrom(pov) {
         "TODO: Add remote description. ";
     }
+
+    mapModeDirections = [&north, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 //TODO: Broken shards multiloc here and in the north hall, explaining that

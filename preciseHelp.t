@@ -5,6 +5,11 @@
  * made for everything covered in this game.
  */
 
+#define testerHelpDisclaimer "Hello, tester!\b \
+        Please refer to the Tester's Guide for any help!\b \
+        The full help menu has yet to be finished. \
+        Thank you for your understanding! "
+
 instructionsCore: InitObject {
     instructionsCutscene = nil
 
@@ -236,17 +241,24 @@ instructionsCore: InitObject {
     }
 }
 
+
+
 modify Instructions {
     showInstructions() {
+        #if __IS_MAP_TEST
+        testerHelpDisclaimer;
+        #else
         "\b";
         instructionsCore.instructionsCutscene.play();
         "\b\b\b";
         gPlayerChar.getOutermostRoom().lookAroundWithin();
+        #endif
     }
 }
 
 modify helpMessage {
     showHowToWinAndProgress() {
+        if (gCatMode) return;
         //TODO: Show progress
         "<b>Find all seven pieces of the environment suit, and escape through the
         emergency airlock to win!</b>";
@@ -274,6 +286,9 @@ modify helpMessage {
     }
 
     printMsg() {
+        #if __IS_MAP_TEST
+        testerHelpDisclaimer;
+        #else
         showHowToWinAndProgress();
 
         "\bFor a categorized guide on how to play this game, type in the
@@ -292,9 +307,32 @@ modify helpMessage {
            extraHintManager.explainExtraHints();*/
         
         showHeader();
+        #endif
     }
 
     briefIntro() {
         Instructions.showInstructions();
     }
+
+    showVerbs() {
+        #if __IS_MAP_TEST
+        testerHelpDisclaimer;
+        #else
+        //TODO: Implement VERBS
+        #endif
+    }
 }
+
+VerbRule(Verbs)
+    ('show'|'remind' 'me' 'of'|'refresh' ('me'|) ('on'|'about')|'review'|'see'|) 'verbs'
+    : VerbProduction
+    action = Verbs
+    verbPhrase = 'show/showing verbs'
+    priority = 80
+;
+
+DefineSystemAction(Verbs)
+    execAction(cmd) {
+        helpMessage.showVerbs();
+    }
+;

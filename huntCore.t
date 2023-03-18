@@ -6,7 +6,7 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define gPlayerIobj huntCore.playerAction.curIobj
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
 
-#if __DEBUG
+#ifdef __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS true
 #else
 #define __DEBUG_SKASHEK_ACTIONS nil
@@ -129,7 +129,6 @@ nightmareModeSetting: DifficultySetting {
 
 huntCore: InitObject {
     revokedFreeTurn = nil
-    inMapMode = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
@@ -204,7 +203,7 @@ huntCore: InitObject {
         // End hacky method
 
         bathTimeFuse = new Fuse(self, &startBathTime, 9);
-        #if __DEBUG
+        #ifdef __DEBUG
         cat.moveInto(__TEST_ROOM);
         #else
         cat.moveInto(directorsOffice);
@@ -212,7 +211,7 @@ huntCore: InitObject {
     }
 
     movePrey() {
-        #if __DEBUG
+        #ifdef __DEBUG
         prey.moveInto(__TEST_ROOM);
         #else
         prey.moveInto(genericCatchNet);
@@ -220,7 +219,7 @@ huntCore: InitObject {
         //TODO: Later on, we can have him start in the map during cat mode,
         //      and slowly make his way down to the reservoir after checking
         //      the director's office for the cat.
-        #if __DEBUG
+        #ifdef __DEBUG
         skashek.moveInto(breakroom);
         #else
         skashek.moveInto(breakroom);
@@ -439,7 +438,7 @@ modify Action {
 
     turnSequence() {
         // Map mode is done with everything frozen in time
-        if (huntCore.inMapMode || gAction.actionFailed) {
+        if (mapModeDatabase.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;
             return;
         }
@@ -482,32 +481,26 @@ modify Read {
     turnsTaken = 0
 }
 
-#define reinventForSkashek(action) \
-    modify action { \
-        skashekActionDProp = &dobjForDoSkashek##action \
-        skashekVisibilityDProp = &dobjForVisibilitySkashek##action \
-        skashekReportDProp = &dobjForReportSkashek##action \
-        skashekActionIProp = &iobjForDoSkashek##action \
-        skashekVisibilityIProp = &iobjForVisibilitySkashek##action \
-        skashekReportIProp = &iobjForReportSkashek##action \
+#define reinventForSkashek(targetAction) \
+    modify targetAction { \
+        skashekActionDProp = &dobjForDoSkashek##targetAction \
+        skashekVisibilityDProp = &dobjForVisibilitySkashek##targetAction \
+        skashekReportDProp = &dobjForReportSkashek##targetAction \
+        skashekActionIProp = &iobjForDoSkashek##targetAction \
+        skashekVisibilityIProp = &iobjForVisibilitySkashek##targetAction \
+        skashekReportIProp = &iobjForReportSkashek##targetAction \
     } \
     modify Thing { \
-        dobjForDoSkashek##action##() { \
-            local actionName = actionTab.symbolToVal(action); \
-            "<.p>ERROR: MISSING DOBJ SKASHEK ACTION <<actionName>>!<.p>"; \
-        } \
-        dobjForVisibilitySkashek##action##() { \
+        dobjForDoSkashek##targetAction() { } \
+        dobjForVisibilitySkashek##targetAction() { \
             return dobjForVisibilitySkashekDefault(); \
         } \
-        dobjForReportSkashek##action##() { } \
-        iobjForDoSkashek##action##() { \
-            local actionName = actionTab.symbolToVal(action); \
-            "<.p>ERROR: MISSING IOBJ SKASHEK ACTION <<actionName>>!<.p>"; \
-        } \
-        iobjForVisibilitySkashek##action##() { \
+        dobjForReportSkashek##targetAction() { } \
+        iobjForDoSkashek##targetAction() { } \
+        iobjForVisibilitySkashek##targetAction() { \
             return iobjForVisibilitySkashekDefault(); \
         } \
-        iobjForReportSkashek##action##() { } \
+        iobjForReportSkashek##targetAction() { } \
     }
 
 reinventForSkashek(Open)

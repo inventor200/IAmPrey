@@ -17,6 +17,9 @@ labB: Room { 'Lab B'
         if (dirObj == southDir) return windowInlabB;
         return inherited(dirObj);
     }
+
+    mapModeDirections = [&west]
+    familiar = roomsFamiliarByDefault
 }
 
 DefineWindowPair(evaluationRoom, labB)

@@ -95,6 +95,9 @@ freezer: Room { 'The Freezer'
             "<.p>\^<<expressAmbienceOnExit>>.<.p> ";
         }
     }
+
+    mapModeDirections = [&north, &west, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 +freezerNorthExit: Door { 'the loading door'

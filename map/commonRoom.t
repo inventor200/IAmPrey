@@ -98,6 +98,9 @@ commonRoom: Room { 'The Common Room'
         hasVentSurprise = nil;
         return hadSurprise;
     }
+
+    mapModeDirections = [&north, &south]
+    familiar = roomsFamiliarByDefault
 }
 
 +enrichmentRoomHall: Passage { 'passage;curving curved;corridor hall'

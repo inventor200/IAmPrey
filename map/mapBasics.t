@@ -1,3 +1,5 @@
+#define roomsFamiliarByDefault true
+
 defaultLabFloor: Floor { 'the floor;terrazzo floor;tiles'
     "Plain, terrazzo tiles, colored an average of light silver. "
     ambiguouslyPlural = true
@@ -72,13 +74,19 @@ modify Thing {
     skipInRemoteList = nil
 }
 
+roomDaemonTurnTracker: object {
+    lastRoomDaemonTurn = 0
+}
+
+#define checkRoomDaemonTurns if (roomDaemonTurnTracker.lastRoomDaemonTurn == gTurns) return
+
 modify Room {
     floorObj = defaultLabFloor
     wallsObj = defaultWalls
     ceilingObj = defaultCeiling
     atmosphereObj = defaultAtmosphere
 
-    isFamiliar = true
+    //isFamiliar = true
 
     isFreezing = nil
     moistureFactor = (isFreezing ? 0 : -1)
@@ -105,10 +113,14 @@ modify Room {
     }
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         if (isFreezing) {
             "<.p>\^<<freezer.expressAmbience>>.";
         }
         inherited();
+        if (!gActionIs(TravelAction)) {
+            roomDaemonTurnTracker.lastRoomDaemonTurn = gTurns;
+        }
     }
 
     roomBeforeAction() {
@@ -283,25 +295,6 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
     isFamiliar = nil
 }
 
-modify GoTo {
-    turnsTaken = 0
-
-    exec(cmd) {
-        "Sorry!\b
-        Due to the high level of caution required during travel, the <b>GOTO</b>
-        command has been disabled for this game! ";
-        exit;
-    }
-}
-
-modify Continue {
-    turnsTaken = 0
-    
-    exec(cmd) {
-        GoTo.exec(cmd);
-    }
-}
-
 #define DefineDoorAwayTo(outDir, inDir, outerRoom, localRoom, theLocalDoorName) \
     localRoom##ExitDoor: Door { \
         vocab = 'the exit door' \
@@ -338,7 +331,7 @@ modify Continue {
 #define DefineDoorWestTo(outerRoom, localRoom, theLocalDoorName) \
     DefineDoorAwayTo(west, east, outerRoom, localRoom, theLocalDoorName)
 
-#define defaultVentVocab 'vent grate;ventilation;door'
+#define defaultVentVocab 'vent grate;ventilation air;door[weak]'
 
 #define windowLookBlock(mcwRoom, mcwRemoteHeader) \
     canLookThroughMe = true \

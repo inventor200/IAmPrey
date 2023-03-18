@@ -1,11 +1,11 @@
 serverRoomBottom: Room { 'Server Access'
     "The room is pretty barren; the server banks are all found upstairs.\b
     A ladder can be found here, and the exit to the <<hyperDir('east')>>
-    goes to the IT Office, while a door to the <<hyperDir('west')>> goes
+    goes to the Library, while a door to the <<hyperDir('west')>> goes
     to the Utility Corridor. "
 
     up = serverLadderBottom
-    east = itOffice
+    east = library
 
     northMuffle = lifeSupportTop
     southeastMuffle = deliveryRoom
@@ -15,6 +15,7 @@ serverRoomBottom: Room { 'Server Access'
     floorObj = cementFloor
 
     roomDaemon() {
+        checkRoomDaemonTurns;
         "A <<freezer.coldSynonyms>> <<one of>>mist<<or>>fog<<at random>>
         <<one of>>falls<<or>>rolls<<at random>>
         <<one of>>down from<<or>>out of<<at random>> the
@@ -22,6 +23,9 @@ serverRoomBottom: Room { 'Server Access'
         >>hatch in the ceiling<<or>>ladder<<at random>>. ";
         inherited();
     }
+
+    mapModeDirections = [&up, &east, &west]
+    familiar = roomsFamiliarByDefault
 }
 
 +serverFog: ColdFog;
@@ -51,6 +55,9 @@ serverRoomTop: Room { 'The Chilled Server Room'
     
     atmosphereObj = freezingAtmosphere
     isFreezing = true
+
+    mapModeDirections = [&down]
+    familiar = roomsFamiliarByDefault
 }
 
 //TODO: Refuse to break these

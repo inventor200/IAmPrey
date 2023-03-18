@@ -14,6 +14,9 @@ evaluationRoom: Room { 'The Evaluation Room'
         if (dirObj == northDir) return windowInevaluationRoom;
         return inherited(dirObj);
     }
+
+    mapModeDirections = [&west]
+    familiar = roomsFamiliarByDefault
 }
 
 DefineDoorWestTo(eastHall, evaluationRoom, 'the evaluation room door')

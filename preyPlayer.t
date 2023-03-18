@@ -107,10 +107,23 @@ prey: Actor { 'The Prey;;me self myself'
     hasCriedLikeABaby = nil
 
     actorAction() {
-        if (gActionIs(Yell)) {
+        if (gActionIs(Yell) || gActionIs(SayMeow)) {
             if (hasLeftTheNet) {
                 "You find that making any kind of loud vocalization is a
                 deeply-uncomfortable action to take. ";
+            }
+            else if (gActionIs(SayMeow)) {
+                meowPrompt;
+                "\b<i>(Hm. Maybe you were a cat in a past life!)</i> ";
+            }
+            else if (gActionIs(Sing)) {
+                "Your voice is rough, but you make pitched vocalizations.
+                There is no way to determine if you were any good at it, though. ";
+            }
+            else if (gActionIs(Purr)) {
+                "You make a quiet, purring sound in the back of your throat.
+                You're not sure why, but it feels natural. Maybe it's something
+                clones normally do? ";
             }
             else if (hasCriedLikeABaby) {
                 "Okay, the first time was cathartic, but now it feels like
@@ -134,6 +147,10 @@ prey: Actor { 'The Prey;;me self myself'
             }
             exit;
         }
+        if (gActionIs(SayMeow)) {
+            "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> ";
+            exit;
+        }
     }
 
     // Everything below this is one unit
@@ -143,7 +160,7 @@ prey: Actor { 'The Prey;;me self myself'
     startTheDay() {
         inherited();
 
-        #if __DEBUG
+        #ifdef __DEBUG
         local startWet = nil;
         local startOutsideNet = true;
         
