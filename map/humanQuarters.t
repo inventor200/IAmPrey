@@ -5,4 +5,4 @@ humanQuarters: Room { 'Human Sleeping Quarters'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorEastTo(southwestHall, humanQuarters, 'the human sleeping quarters door')
+DefineDoorEastTo(southwestHall, humanQuarters, 'the Human Sleeping Quarters door')

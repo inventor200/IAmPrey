@@ -204,7 +204,7 @@ prologueCore: InitObject {
             "You returned to your role as <i>watchful ruler</i>, once a few short
             fights were all that remained between surviving citizens. Eventually, a
             single Royal Subject still lived, hands caked in blood,
-            and he graciously shared this world with you.\b
+            and you graciously shared this world with him.\b
             For a while, he would sob every night. You understood why: He was clearly
             <i>starving</i>, but wasn't <i>eating</i> for some reason. You wondered
             if&mdash;perhaps&mdash;he was waiting for you to feed first? Was

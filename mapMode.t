@@ -1,3 +1,27 @@
+// Lmao, we going DEEP, bois!
+// Intercept any action execution and suspend it,
+// if it's not valid for map mode.
+// Intercepting it waaaayyyyy out here, because
+// this cannot afford to be modified by any other shenanigans.
+modify Command {
+    exec() {
+        if (mapModeDatabase.inMapMode && !action.isAllowedInMapMode) {
+            mapModeDatabase.cancelNonMapAction();
+        }
+        else {
+            inherited();
+        }
+    }
+}
+
+modify Action {
+    isAllowedInMapMode = nil
+}
+
+modify SystemAction {
+    isAllowedInMapMode = true
+}
+
 VerbRule(ToggleMapMode)
     ('toggle'|'switch'|) 'map' ('mode'|)
     : VerbProduction
@@ -5,7 +29,7 @@ VerbRule(ToggleMapMode)
     verbPhrase = 'toggle/toggling map mode'
 ;
 
-DefineIAction(ToggleMapMode)
+DefineSystemAction(ToggleMapMode)
     execAction(cmd) {
         if (mapModeDatabase.inMapMode) {
             mapModeDatabase.mapModeOff();
@@ -25,7 +49,7 @@ VerbRule(SetMapModeOn)
     verbPhrase = 'set/setting map mode on'
 ;
 
-DefineIAction(SetMapModeOn)
+DefineSystemAction(SetMapModeOn)
     execAction(cmd) {
         if (mapModeDatabase.inMapMode) {
             "You are already in map mode. ";
@@ -46,7 +70,7 @@ VerbRule(SetMapModeOff)
     verbPhrase = 'set/setting map mode off'
 ;
 
-DefineIAction(SetMapModeOff)
+DefineSystemAction(SetMapModeOff)
     execAction(cmd) {
         if (mapModeDatabase.inMapMode) {
             mapModeDatabase.mapModeOff();
@@ -67,7 +91,7 @@ VerbRule(RecenterMap)
     verbPhrase = 'recenter/recentering map'
 ;
 
-DefineIAction(RecenterMap)
+DefineSystemAction(RecenterMap)
     execAction(cmd) {
         if (mapModeDatabase.inMapMode) {
             mapModePlayer.moveInto(mapModeStart);
@@ -90,15 +114,23 @@ VerbRule(MapModeCompass)
     verbPhrase = 'check/checking compass'
 ;
 
-DefineIAction(MapModeCompass)
+DefineSystemAction(MapModeCompass)
     execAction(cmd) {
         mapModeDatabase.checkCompass();
     }
     turnsTaken = 0
 ;
 
+modify VerbRule(GoTo)
+    ('go' 'to'|'goto'|'walk' 'to'|('plot'|'set') 'route' 'to'|
+    'set' 'compass' ('to'|'for')|'set' 'goal' ('as'|)|'goal')
+    singleDobj
+    :
+;
+
 modify GoTo {
     turnsTaken = 0
+    isAllowedInMapMode = true
 
     execAction(cmd) {
         if (gDobj == nil) {
@@ -113,10 +145,64 @@ modify GoTo {
 
 modify Continue {
     turnsTaken = 0
+    isAllowedInMapMode = true
     
     exec(cmd) {
         MapModeCompass.exec(cmd);
     }
+}
+
+modify Look {
+    isAllowedInMapMode = true
+}
+
+modify Examine {
+    isAllowedInMapMode = true
+}
+
+modify ExamineOrGoTo {
+    isAllowedInMapMode = true
+}
+
+modify TravelAction {
+    isAllowedInMapMode = true
+}
+
+modify Wait {
+    isAllowedInMapMode = true
+    exec(cmd) {
+        if (mapModeDatabase.inMapMode) {
+            "Time does not pass in map mode. ";
+            exit;
+        }
+        else {
+            inherited(cmd);
+        }
+    }
+}
+
+modify ShowParkourRoutes {
+    isAllowedInMapMode = nil
+}
+
+modify ShowParkourLocalPlatforms {
+    isAllowedInMapMode = nil
+}
+
+modify ShowAllParkourRoutes {
+    isAllowedInMapMode = nil
+}
+
+modify PeekDirection {
+    isAllowedInMapMode = nil
+}
+
+modify SneakDirection {
+    isAllowedInMapMode = nil
+}
+
+modify ChangeSneakMode {
+    isAllowedInMapMode = nil
 }
 
 #ifdef __DEBUG
@@ -127,19 +213,52 @@ VerbRule(DumpRouteTable)
     verbPhrase = 'dump/dumping route table'
 ;
 
-DefineIAction(DumpRouteTable)
+DefineSystemAction(DumpRouteTable)
     execAction(cmd) {
         mapModeDatabase.getMapLocation().dumpRouteTable();
     }
-    turnsTaken = 0
 ;
 #endif
+
+class CarryMap: Decoration {
+    vocab = 'mental map'
+    bulk = 0
+    dobjFor(Search) asDobjFor(Examine)
+    dobjFor(Examine) {
+        verify() { }
+        check() { }
+        action() {
+            doInstead(ToggleMapMode);
+        }
+        report() { }
+    }
+}
+
+class CarryCompass: Decoration {
+    vocab = 'mental compass'
+    bulk = 0
+    dobjFor(Search) asDobjFor(Examine)
+    dobjFor(Examine) {
+        verify() { }
+        check() { }
+        action() {
+            doInstead(MapModeCompass);
+        }
+        report() { }
+    }
+}
 
 modify Room {
     mapModeVersion = nil
     actualRoom = nil
     isMapModeRoom = nil
     mapModeDirections = nil
+    mapModeLockedDoors = nil
+
+    elligibleForMapMode() {
+        return ((valToList(mapModeDirections)).length
+            + (valToList(mapModeLockedDoors)).length) > 0;
+    }
 
     initMapModeVersion() {
         mapModeVersion = MapModeRoom.createInstance(self);
@@ -157,7 +276,30 @@ mapModeDatabase: object {
 
     allRooms = static new Vector()
 
-    notOnMapMsg = 'You cannot see that on your map. '
+    notOnMapMsg = 'You cannot see that on your map.
+        It might exist, omitted from the map, or it might
+        not be in the facility at all. '
+    noRouteOnMapMsg = 'You cannot see a way there on your map.
+        A hidden route might be omitted from the map, or it might
+        not exist in the facility at all. '
+
+    cancelNonMapAction() {
+        "You cannot do that in map mode.\n
+        The available actions in map mode are:\n";
+        if (gFormatForScreenReader) {
+            "<b>GO</b> <i>(direction)</i>, <b>GO TO</b> <i>(location)</i>,
+            <b>EXAMINE COMPASS</b>, and <b>LOOK AROUND</b>. ";
+        }
+        else {
+            """
+            \t<tt>[&gt;&gt;]</tt> <b>GO</b> <i>(direction)</i>\n
+            \t<tt>[&gt;&gt;]</tt> <b>GO TO</b> <i>(location)</i>\n
+            \t<tt>[&gt;&gt;]</tt> <b>COMPASS</b>\n
+            \t<tt>[&gt;&gt;]</tt> <b>LOOK AROUND</b>
+            """;
+        }
+        //exit;
+    }
 
     setGoto(target) {
         local room = target;
@@ -173,8 +315,8 @@ mapModeDatabase: object {
             exit;
         }
 
-        if (getMapLocation().findBestDirectionTo(room.mapModeVersion) == nil) {
-            "You cannot see a way there on your map. ";
+        if (getMapLocation().playerRouteTable.hasDirectionTo(room.mapModeVersion) == nil) {
+            say(noRouteOnMapMsg);
         }
 
         compassTarget = room;
@@ -185,12 +327,15 @@ mapModeDatabase: object {
     checkCompass() {
         if (compassTarget == nil) {
             "You have not set your compass yet.\n
-            Use the GO TO command.\n
-            \tExample: GO TO HANGAR";
+            Use the <b>GO TO</b> command.\n
+            \tExample: <b>GO TO HANGAR</b>";
             exit;
         }
 
-        getMapLocation().findBestDirectionTo(compassTarget.mapModeVersion);
+        local mapLocation = getMapLocation();
+        local goalRoom = compassTarget.mapModeVersion;
+        local nextDir = mapLocation.playerRouteTable.findBestDirectionTo(goalRoom);
+        reportBestDirectionTo(nextDir);
     }
 
     getMapLocation() {
@@ -241,9 +386,23 @@ mapModeDatabase: object {
     }
 
     calculatePathBetween(startMapRoom, endMapRoom) {
-        startMapRoom.populateRouteTable();
-        resetPathCalculation();
-        startMapRoom.calculateRouteTo(endMapRoom, 0);
+        startMapRoom.calculatePathBetweenMeAnd(endMapRoom);
+    }
+
+    reportBestDirectionTo(direction) {
+        if (direction == compassAlreadyHereSignal) {
+            "You have arrived at your destination. ";
+            exit;
+        }
+        if (direction == nil) {
+            say(mapModeDatabase.noRouteOnMapMsg);
+            exit;
+        }
+        direction.sayDir(
+            'NEXT STEP: ',
+            'To reach <<mapModeDatabase.compassTarget.roomTitle>>,
+            you must '
+        );
     }
 }
 
@@ -251,19 +410,24 @@ mapModePlayer: Actor { 'avatar;;me self myself'
     "You are as you appear in your own imagination. "
 }
 
-//TODO: Implement (secret) connectors
-//TODO: Implement skashek route table
++CarryMap;
++CarryCompass;
+
 class MapModeDirection: object {
-    construct(_dirProp, _dest, _conn) {
+    construct(_dirProp, _dest, _conn, _isLockedDoor?) {
         dirProp = _dirProp;
         destination = _dest;
         connector = _conn;
+        isLockedDoor = _isLockedDoor;
     }
     dirProp = nil
     destination = nil
     connector = nil
+    isLockedDoor = nil
 
     getDirOrder() {
+        if (isLockedDoor) return 13;
+
         if (dirProp == &north) return 1;
         if (dirProp == &northeast) return 2;
         if (dirProp == &east) return 3;
@@ -278,19 +442,34 @@ class MapModeDirection: object {
         return 12;
     }
 
+    getDirNameFromProp() {
+        if (isLockedDoor) return 'through a door';
+        
+        if (dirProp == &north) return 'north';
+        if (dirProp == &northeast) return 'northeast';
+        if (dirProp == &east) return 'east';
+        if (dirProp == &southeast) return 'southeast';
+        if (dirProp == &south) return 'south';
+        if (dirProp == &southwest) return 'southwest';
+        if (dirProp == &west) return 'west';
+        if (dirProp == &northwest) return 'northwest';
+        if (dirProp == &up) return 'up';
+        if (dirProp == &down) return 'down';
+        if (dirProp == &in) return 'in';
+        return 'out';
+    }
+
+    isDirHorizontal() {
+        if (dirProp == &up) return nil;
+        if (dirProp == &down) return nil;
+        if (dirProp == &in) return nil;
+        if (dirProp == &out) return nil;
+        return true;
+    }
+
     getHyperDir() {
-        if (dirProp == &north) return 'to the ' + hyperDir('north');
-        if (dirProp == &northeast) return 'to the ' + hyperDir('northeast');
-        if (dirProp == &east) return 'to the ' + hyperDir('east');
-        if (dirProp == &southeast) return 'to the ' + hyperDir('southeast');
-        if (dirProp == &south) return 'to the ' + hyperDir('south');
-        if (dirProp == &southwest) return 'to the ' + hyperDir('southwest');
-        if (dirProp == &west) return 'to the ' + hyperDir('west');
-        if (dirProp == &northwest) return 'to the ' + hyperDir('northwest');
-        if (dirProp == &up) return 'by going ' + hyperDir('up');
-        if (dirProp == &down) return 'by going ' + hyperDir('down');
-        if (dirProp == &in) return 'by going ' + hyperDir('in');
-        return 'by going ' + hyperDir('out');
+        return (isDirHorizontal() ? 'to the ' : 'by going ')
+            + hyperDir(getDirNameFromProp());
     }
 
     sayDir(prefix, screenReaderPrefix) {
@@ -303,35 +482,32 @@ class MapModeDirection: object {
             >>\n\t(<<getHyperDir()>>)";
         }
     }
+
+    getSkashekDir() {
+        local roomName = ' to ' + destination.actualRoom.roomTitle;
+        if (isLockedDoor) {
+            return 'through '
+                + connector.soundSourceRepresentative.theName + roomName;
+        }
+        return getDirNameFromProp() + roomName;
+    }
 }
 
-class MapModeRoom: Room {
-    construct(_actual) {
-        actualRoom = _actual;
-        vocab = _actual.vocab;
-        roomTitle = _actual.roomTitle + ' (IN MAP MODE)';
-        inherited Room.construct();
+class RouteTable: object {
+    construct(_parentRoom, _isForSkashek) {
+        parentRoom = _parentRoom;
         knownDirections = new Vector();
-        mapRoomIndex = mapModeDatabase.allRooms.length + 1;
+        isForSkashek = _isForSkashek;
+        fellowProp = isForSkashek ? &skashekRouteTable : &playerRouteTable;
     }
 
-    knownDirections = nil;
-    isMapModeRoom = true
-    familiar = true
-    mapRoomIndex = -1
+    isForSkashek = nil
+    parentRoom = nil
+    table = nil
+    knownDirections = nil
+    fellowProp = nil
 
-    pathCalculationScore = 10000
-    routeTable = nil
-
-    populateRouteTable() {
-        if (routeTable != nil) return;
-        routeTable = new Vector();
-        for (local i = 1; i <= mapModeDatabase.allRooms.length; i++) {
-            routeTable.append(nil);
-        }
-    }
-
-    desc() {
+    showAvailableDirections() {
         if (knownDirections == nil || knownDirections.length == 0) {
             "The map does not show any way out of here. ";
             return;
@@ -343,10 +519,12 @@ class MapModeRoom: Room {
     }
 
     createLinks() {
-        local directionList = actualRoom.mapModeDirections;
+        local directionList = valToList(parentRoom.actualRoom.mapModeDirections);
+
+        // Basic directions
         for (local i = 1; i <= directionList.length; i++) {
             local dirProp = directionList[i];
-            local actualDestination = actualRoom.(dirProp);
+            local actualDestination = parentRoom.actualRoom.(dirProp);
             if (!actualDestination.ofKind(Room)) {
                 actualDestination = actualDestination.destination.getOutermostRoom();
             }
@@ -356,72 +534,52 @@ class MapModeRoom: Room {
                 actualDestination.mapModeVersion,
                 actualDestination.mapModeVersion
             ));
-            self.(dirProp) = actualDestination.mapModeVersion;
+
+            // Only build the connectors once.
+            // Arbitrarily do this for player's table only.
+            if (!isForSkashek) {
+                parentRoom.(dirProp) = actualDestination.mapModeVersion;
+            }
+        }
+
+        // Locked doors (Skashek's route table only)
+        if (isForSkashek) {
+            local doorList = valToList(parentRoom.actualRoom.mapModeLockedDoors);
+            for (local i = 1; i <= doorList.length; i++) {
+                local door = doorList[i];
+                local actualDestination = door.otherSide.getOutermostRoom();
+                if (actualDestination.mapModeVersion == nil) continue;
+                knownDirections.append(new MapModeDirection(
+                    nil,
+                    actualDestination.mapModeVersion,
+                    door,
+                    true
+                ));
+            }
         }
 
         knownDirections.sort(nil, { a, b: a.getDirOrder() - b.getDirOrder() });
     }
 
-    roomBeforeAction() {
-        if (gActionIs(Wait)) {
-            "Time does not pass in map mode. ";
-            exit;
-        }
+    calculatePathBetweenMeAnd(endMapRoom) {
+        populate();
+        mapModeDatabase.resetPathCalculation();
+        calculateRouteTo(endMapRoom, 0);
+    }
 
-        local isClear = nil;
-        if (gActionIs(SystemAction)) {
-            isClear = true;
-        }
-        else if (gActionIs(TravelAction)) {
-            isClear = true;
-        }
-        else if (gActionIs(ToggleMapMode)) {
-            isClear = true;
-        }
-        else if (gActionIs(SetMapModeOn)) {
-            isClear = true;
-        }
-        else if (gActionIs(SetMapModeOff)) {
-            isClear = true;
-        }
-        else if (gActionIs(Look)) {
-            isClear = true;
-        }
-        else if (gActionIs(Examine)) {
-            isClear = true;
-        }
-        else if (gActionIs(ExamineOrGoTo)) {
-            isClear = true;
-        }
-        else if (gActionIs(GoTo)) {
-            isClear = true;
-        }
-        else if (gActionIs(Continue)) {
-            isClear = true;
-        }
-        else if (gActionIs(MapModeCompass)) {
-            isClear = true;
-        }
-        else if (gActionIs(RecenterMap)) {
-            isClear = true;
-        }
-        #ifdef __DEBUG
-        else if (gActionIs(DumpRouteTable)) {
-            isClear = true;
-        }
-        #endif
-
-        if (!isClear) {
-            "You cannot do that in map mode.\n
-            You can only travel, go to, continue, examine, or look around. ";
-            exit;
+    populate() {
+        if (table == nil) {
+            table = new Vector(mapModeDatabase.allRooms.length);
+            for (local i = 1; i <= mapModeDatabase.allRooms.length; i++) {
+                table.append(nil);
+            }
         }
     }
 
     calculateRouteTo(mapModeRoom, currentSteps) {
-        if (mapModeRoom == self) return currentSteps;
-        if (currentSteps >= pathCalculationScore) return -1;
-        pathCalculationScore = currentSteps;
+        if (mapModeRoom == parentRoom) return currentSteps;
+        if (currentSteps >= parentRoom.pathCalculationScore) return -1;
+        parentRoom.pathCalculationScore = currentSteps;
 
         local startLowest = 10000;
         local lowest = startLowest;
@@ -429,7 +587,7 @@ class MapModeRoom: Room {
 
         for (local i = 1; i <= knownDirections.length; i++) {
             local attemptDir = knownDirections[i];
-            local attempt = attemptDir.destination;
+            local attempt = attemptDir.destination.(fellowProp);
             local stepCount = attempt.calculateRouteTo(mapModeRoom, currentSteps + 1);
             if (stepCount < 0) continue;
             if (stepCount < lowest) {
@@ -441,43 +599,98 @@ class MapModeRoom: Room {
         local res = (lowest == startLowest) ? -1 : lowest;
 
         if (currentSteps == 0) {
-            /*if (actualRoom == deliveryRoom && mapModeRoom.actualRoom == hangar) {
-                "\bRoute to: <<(lowestDirection == nil) ? 'nil' : 'found'>>\b";
-            }*/
-            routeTable[mapModeRoom.mapRoomIndex] = lowestDirection;
+            table[mapModeRoom.mapRoomIndex] = lowestDirection;
         }
 
         return res;
     }
 
+    hasDirectionTo(mapModeRoom) {
+        return findBestDirectionTo(mapModeRoom) != nil;
+    }
+
     findBestDirectionTo(mapModeRoom) {
-        local knownDir = routeTable[mapModeRoom.mapRoomIndex];
-        if (knownDir == nil) {
-            "You cannot see a way there on your compass. ";
-            exit;
+        if (mapModeRoom == parentRoom) {
+            return compassAlreadyHereSignal;
         }
 
-        knownDir.sayDir(
-            'NEXT STEP: ',
-            'To reach <<mapModeDatabase.compassTarget.roomTitle>>,
-            you must '
-        );
+        return table[mapModeRoom.mapRoomIndex];
+    }
+
+    dump() {
+        "\bRoute table length: <<table.length>>";
+        for (local i = 1; i <= table.length; i++) {
+            "\n<<mapModeDatabase.allRooms[i].actualRoom.roomTitle>>:
+            <<(table[i] == nil) ? 'no route' : 'has route'>>";
+        }
+    }
+}
+
+class MapModeRoom: Room {
+    construct(_actual) {
+        actualRoom = _actual;
+        vocab = _actual.vocab;
+        roomTitle = _actual.roomTitle + ' (IN MAP MODE)';
+        inherited Room.construct();
+        mapRoomIndex = mapModeDatabase.allRooms.length + 1;
+        playerRouteTable = new RouteTable(self, nil);
+        skashekRouteTable = new RouteTable(self, true);
+    }
+
+    isMapModeRoom = true
+    familiar = true
+    mapRoomIndex = -1
+
+    pathCalculationScore = 10000
+    playerRouteTable = nil
+    skashekRouteTable = nil
+
+    ceilingObj = mapModeCeiling
+    wallsObj = mapModeWalls
+    floorObj = mapModeFloor
+
+    calculatePathBetweenMeAnd(endMapRoom) {
+        playerRouteTable.calculatePathBetweenMeAnd(endMapRoom);
+        skashekRouteTable.calculatePathBetweenMeAnd(endMapRoom);
+    }
+
+    desc() {
+        playerRouteTable.showAvailableDirections();
+    }
+
+    createLinks() {
+        playerRouteTable.createLinks();
+        skashekRouteTable.createLinks();
     }
 
     dumpRouteTable() {
-        "\bRoute table length: <<routeTable.length>>";
-        for (local i = 1; i <= routeTable.length; i++) {
-            "\n<<mapModeDatabase.allRooms[i].actualRoom.roomTitle>>:
-            <<(routeTable[i] == nil) ? 'no route' : 'has route'>>";
-        }
+        playerRouteTable.dump();
     }
+}
+
+compassAlreadyHereSignal: object;
+
+#define standardMapModeSurfaceDesc \
+    "A black surface, outlined in white marker, but only \
+    a metaphor for your sense of direction. "
+
+mapModeCeiling: Ceiling { 'ceiling'
+    standardMapModeSurfaceDesc
+}
+
+mapModeWalls: Walls { 'walls;north n south s east e west w'
+    standardMapModeSurfaceDesc
+}
+
+mapModeFloor: Floor { 'floor;;ground'
+    standardMapModeSurfaceDesc
 }
 
 mapModePreinit: PreinitObject {
     executeBeforeMe = [thingPreinit]
 
     execute() {
-        local startingRooms = new Vector(32);
+        local startingRooms = new Vector(64);
         for (local cur = firstObj(Room);
             cur != nil ; cur = nextObj(cur, Room)) {
             startingRooms.append(cur);
@@ -485,7 +698,7 @@ mapModePreinit: PreinitObject {
 
         for (local i = 1; i <= startingRooms.length; i++) {
             local startingRoom = startingRooms[i];
-            if (startingRoom.mapModeDirections == nil) continue;
+            if (!startingRoom.elligibleForMapMode()) continue;
             startingRoom.initMapModeVersion();
         }
 
@@ -504,5 +717,10 @@ mapModePreinit: PreinitObject {
                 );
             }
         }
+
+        // Set up misc map anatomy
+        mapModeCeiling.addToLocations();
+        mapModeWalls.addToLocations();
+        mapModeFloor.addToLocations();
     }
 }

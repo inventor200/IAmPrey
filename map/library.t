@@ -20,4 +20,4 @@ library: Room { 'The Library'
 }
 ++LowFloorHeight;
 
-DefineDoorEastTo(eastHall, library, 'the library door')
+DefineDoorEastTo(eastHall, library, 'the Library door')

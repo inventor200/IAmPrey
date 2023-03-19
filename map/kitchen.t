@@ -62,7 +62,7 @@ kitchen: Room { 'The Kitchen'
 }
 ++LowFloorHeight;
 
-++kitchenStoveHood: ClimbUpEnterPlatform { 'stove hood;range fume;vent'
+++kitchenStoveHood: ClimbUpEnterPlatform { 'stove hood;range fume vapor;vent'
     "A large, metal hood. When smoke and fumes become too intense,
     a cook can turn on its fan to clear the air. "
 
@@ -132,8 +132,9 @@ kitchen: Room { 'The Kitchen'
     ambiguouslyPlural = true
 }
 
-+kitchenNorthExit: Door { 'the freezer door'
++kitchenNorthExit: PrefabDoor { 'the Freezer door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = kitchenNorthEntry
     soundSourceRepresentative = kitchenNorthEntry
 
@@ -141,8 +142,9 @@ kitchen: Room { 'The Kitchen'
     pullHandleSide = true
 }
 
-kitchenNorthEntry: Door { 'the kitchen access door'
+kitchenNorthEntry: PrefabDoor { 'the Kitchen access door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = kitchenNorthExit
     location = freezer
 
@@ -150,7 +152,7 @@ kitchenNorthEntry: Door { 'the kitchen access door'
     pullHandleSide = nil
 }
 
-DefineDoorWestTo(southHall, kitchen, 'the kitchen door')
+DefineDoorWestTo(southHall, kitchen, 'the Kitchen door')
 
 kitchenVentGrate: StoveVentDoor {
     otherSide = reservoirVentGrate

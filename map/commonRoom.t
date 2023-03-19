@@ -159,13 +159,13 @@ commonRoom: Room { 'The Common Room'
 ++JumpUpLink ->displayShelf;
 
 commonRoomToAdministrationVentGrate: VentGrateDoor {
-    vocab = 'administration ' + defaultVentVocab
+    vocab = 'Administration ' + defaultVentVocab + ' west' + defaultVentVocabSuffix
     location = displayShelf
     otherSide = administrationToCommonRoomVentGrate
 }
 
 administrationToCommonRoomVentGrate: VentGrateDoor {
-    vocab = 'common room ' + defaultVentVocab
+    vocab = 'Common Room[weak] ' + defaultVentVocab + ' east' + defaultVentVocabSuffix
     location = northeastCubicleFilingCabinet
     subLocation = &remapOn
     otherSide = commonRoomToAdministrationVentGrate

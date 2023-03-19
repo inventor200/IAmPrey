@@ -15,6 +15,7 @@ utilityPassage: Room { 'The Utility Corridor'
     floorObj = cementFloor
 
     mapModeDirections = [&east]
+    mapModeLockedDoors = [southUtilityPassageExit, northUtilityPassageExit]
     familiar = roomsFamiliarByDefault
 }
 

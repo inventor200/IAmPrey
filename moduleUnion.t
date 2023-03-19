@@ -130,6 +130,11 @@ modify Thing {
             traveler.getOutermostRoom(),
             actor == gPlayerChar
         );
+
+        extraReport('\n<i>(That will cost you a moment to recover...)</i>\n');
+        huntCore.addBonusSkashekTurn(
+            huntCore.difficultySettingObj.turnsSkipsForFalling
+        );
     }
 
     dobjFor(Lick) asDobjFor(Taste)

@@ -23,7 +23,7 @@ labA: Room { 'Lab A'
 ++AwkwardFloorHeight;
 
 labAToLibraryVentGrate: VentGrateDoor {
-    vocab = 'library ' + defaultVentVocab
+    vocab = 'Library ' + defaultVentVocab + ' south' + defaultVentVocabSuffix
     location = labAShelves
     otherSide = LibraryTolabAVentGrate
 
@@ -32,7 +32,7 @@ labAToLibraryVentGrate: VentGrateDoor {
 }
 
 LibraryTolabAVentGrate: VentGrateDoor {
-    vocab = 'lab A ' + defaultVentVocab
+    vocab = 'Lab A ' + defaultVentVocab + ' north' + defaultVentVocabSuffix
     location = stepLadder
     otherSide = labAToLibraryVentGrate
     soundSourceRepresentative = (otherSide)
@@ -40,4 +40,4 @@ LibraryTolabAVentGrate: VentGrateDoor {
     travelDesc = "<<labAShelves.travelPreface>> the primary vent grate. "
 }
 
-DefineDoorEastTo(northeastHall, labA, 'the door to[weak] lab A[weak]')
+DefineDoorEastTo(northeastHall, labA, 'the door[n] to[prep] Lab[n] A[weak]')

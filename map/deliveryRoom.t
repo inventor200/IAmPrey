@@ -565,6 +565,4 @@ wombFluidTraces: Decoration { 'puddle;wet water;droplet string fluid'
         in front of the northwest artificial womb. "
 }
 
-//TODO: Data bundles parkour exit to upper server room
-
-DefineDoorEastTo(southeastHall, deliveryRoom, 'the delivery room door')
+DefineDoorEastTo(southeastHall, deliveryRoom, 'the Delivery Room door')

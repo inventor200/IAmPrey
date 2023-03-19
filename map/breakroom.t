@@ -9,4 +9,4 @@ breakroom: Room { 'The Breakroom'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorSouthTo(southHall, breakroom, 'the breakroom door')
+DefineDoorSouthTo(southHall, breakroom, 'the Breakroom door')

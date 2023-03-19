@@ -34,7 +34,7 @@ ventilationNode: Room { 'The Central Ventilation Node'
     west = commonRoomExitVentGrate
 }
 
-+Decoration { 'dried blood;favorite eating;spot place evidence meal food'
++Decoration { 'dried blood;favorite eating;spot place evidence meal food bones remains corpse'
     "<<if gCatMode
     >>The remains of my last meal!<<else
     >>Something probably ate a previous prey clone here...<<end>> "
@@ -42,14 +42,14 @@ ventilationNode: Room { 'The Central Ventilation Node'
 }
 
 +assemblyShopExitVentGrate: VentGrateDoor {
-    vocab = 'assembly shop ' + defaultVentVocab
+    vocab = 'Assembly Shop ' + defaultVentVocab + defaultVentVocabSuffix
     otherSide = assemblyShopNodeGrate
     isConnectorListed = true
 
     travelDesc = "You climb through, and land on a CNC machine in the Assembly Shop. "
 }
 +lifeSupportTopExitVentGrate: VentGrateDoor {
-    vocab = 'life support ' + defaultVentVocab
+    vocab = 'Life Support ' + defaultVentVocab + defaultVentVocabSuffix
     otherSide = lifeSupportTopNodeGrate
     isConnectorListed = true
 
@@ -57,14 +57,14 @@ ventilationNode: Room { 'The Central Ventilation Node'
     primary fan unit. "
 }
 +labAExitVentGrate: VentGrateDoor {
-    vocab = 'lab A ' + defaultVentVocab
+    vocab = 'Lab A[weak] ' + defaultVentVocab + defaultVentVocabSuffix
     otherSide = labANodeGrate
     isConnectorListed = true
 
     travelDesc = "<<labAShelves.travelPreface>> the library vent grate. "
 }
 +commonRoomExitVentGrate: VentGrateDoor {
-    vocab = 'common room ' + defaultVentVocab
+    vocab = 'Common Room[weak] ' + defaultVentVocab + defaultVentVocabSuffix
     otherSide = commonRoomNodeGrate
     isConnectorListed = true
 
@@ -85,25 +85,25 @@ ventilationNode: Room { 'The Central Ventilation Node'
 }
 
 assemblyShopNodeGrate: VentGrateDoor {
-    vocab = defaultVentVocab
+    vocab = defaultVentVocab + ' east' + defaultVentVocabSuffix
     location = cncMachine
     otherSide = assemblyShopExitVentGrate
     soundSourceRepresentative = (otherSide)
 }
 lifeSupportTopNodeGrate: VentGrateDoor {
-    vocab = defaultVentVocab
+    vocab = 'primary[weak] fan[weak] unit[weak] ' + defaultVentVocab + ' north' + defaultVentVocabSuffix
     location = primaryFanUnit
     otherSide = lifeSupportTopExitVentGrate
     soundSourceRepresentative = (otherSide)
 }
 labANodeGrate: VentGrateDoor {
-    vocab = 'primary ' + defaultVentVocab
+    vocab = 'west ' + defaultVentVocab + defaultVentVocabSuffix
     location = labAShelves
     otherSide = labAExitVentGrate
     soundSourceRepresentative = (otherSide)
 }
 commonRoomNodeGrate: VentGrateDoor {
-    vocab = 'primary ' + defaultVentVocab
+    vocab = 'east ' + defaultVentVocab + defaultVentVocabSuffix
     location = topOfEastWall
     otherSide = commonRoomExitVentGrate
     soundSourceRepresentative = (otherSide)
@@ -118,7 +118,7 @@ commonRoomNodeGrate: VentGrateDoor {
         the central ventilation node.<<end>> "
 }
 
-class VentGrateDoor: Door {
+class VentGrateDoor: PrefabDoor {
     desc = "Thin cross-hatch wires over a rectangular, aluminum frame.
     Someone has installed a fabricated hinge,
     making it readily-accessible to someone in a pinch. "
@@ -128,6 +128,8 @@ class VentGrateDoor: Door {
     isConnectorListed = nil
 
     skipHandle = true
+
+    fellowMatchClass = VentGrateDoor
 
     dobjFor(Open) {
         report() {
@@ -145,12 +147,17 @@ class VentGrateDoor: Door {
         makeOpen(nil);
         "<.p>(\^<<theName>> falls closed behind{dummy} {me}.) ";
     }
+
+    hasPrefabMatchWith(obj) {
+        return obj.ofKind(VentGrateDoor);
+    }
 }
 
 DefineDistComponentFor(VentGrateDoorHinge, VentGrateDoor)
-    vocab = 'vent door hinge;air[weak];grate'
+    vocab = 'vent door hinge;air[weak] grate'
     desc = "A 3D-printed, plastic hinge. This was a long-term, homemade modification. "
 
     isDecoration = true
     ambiguouslyPlural = true
+    matchPhrases = 'hinge'
 ;

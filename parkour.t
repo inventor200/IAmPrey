@@ -577,10 +577,10 @@ parkourCore: object {
         local platList = getLocalPlatforms();
         platList = platList.subset({p: !p.omitFromPrintedLocalsList()});
         if (platList.length == 0) {
-            "<.p>{I} {see} no known or notable surfaces in easy reach.<.p>";
+            "{I} {see} no known or notable surfaces in easy reach.<.p>";
             return;
         }
-        "<.p>The following surfaces{plural} {is} either in easy reach,
+        "The following surfaces{plural} {is} either in easy reach,
         or rest{s/ed} on the same surface that {i} {do}:<.p>";
         if (formatForScreenReader) {
             "<<makeListStr(platList, &theName, 'and')>>";

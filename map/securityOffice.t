@@ -7,4 +7,4 @@ securityOffice: Room { 'The Security Office'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorEastTo(northwestHall, securityOffice, 'the security office door')
+DefineDoorEastTo(northwestHall, securityOffice, 'the Security Office door')

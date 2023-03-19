@@ -43,7 +43,7 @@ serverRoomBottom: Room { 'Server Access'
     destination = serverRoomTop
 }
 
-DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the server access door')
+DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the Server Access door')
 
 serverRoomTop: Room { 'The Chilled Server Room'
     "The room here would normally be engulfed in total darkness, if it weren't

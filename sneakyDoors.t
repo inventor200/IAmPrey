@@ -129,6 +129,85 @@ modify VerbRule(LookUnder)
     allowAll = nil
 ;
 
+modify TravelAction {
+    execCycle(cmd) {
+        actionFailed = nil;
+        parkourCore.cacheParkourRunner(gActor);
+        local traveler = parkourCore.currentParkourRunner;
+        local oldLoc = traveler.location;
+        try {
+            inherited(cmd);
+        } catch(ExitSignal ex) {
+            actionFailed = true;
+        }
+        if (oldLoc == traveler.location) {
+            // We didn't move. We failed.
+            actionFailed = true;
+        }
+    }
+
+    execAction(cmd) {
+        easeIntoTravel();
+        doTravel();
+    }
+
+    easeIntoTravel() {
+        parkourCore.cacheParkourRunner(gActor);
+
+        // Re-interpreting getting out?
+        //TODO: Pop these changes to TravelAction out, so
+        // more modules can use them later.
+        if (!gActor.location.ofKind(Room)) {
+            local getOutAction = nil;
+            if (direction == outDir) {
+                getOutAction = GetOutOf;
+            }
+            else if (direction == downDir) {
+                getOutAction = GetOff;
+            }
+            if (getOutAction != nil) {
+                replaceAction(getOutAction, gActor.location);
+                return;
+            }
+        }
+
+        sneakyCore.performStagingCheck(gActor.getOutermostRoom());
+    }
+
+    doTravel() {
+        local loc = gActor.getOutermostRoom();
+        local conn;
+        local illum = loc.allowDarkTravel || loc.isIlluminated;
+        local traveler = parkourCore.currentParkourRunner;
+        if (loc.propType(direction.dirProp) == TypeObject) {
+            conn = loc.(direction.dirProp);
+            if (conn.isConnectorVisible) {
+                if (gActorIsPlayer) {
+                    sneakyCore.doSneakStart(conn, direction);
+                    conn.travelVia(traveler);
+                    sneakyCore.doSneakEnd(conn);
+                }
+                else {
+                    sneakyCore.disarmSneaking();
+                    gActor.travelVia(conn);
+                }
+            }
+            else if (illum && gActorIsPlayer) {
+                sneakyCore.disarmSneaking();
+                loc.cannotGoThatWay(direction);
+            }
+            else if (gActorIsPlayer) {
+                sneakyCore.disarmSneaking();
+                loc.cannotGoThatWayInDark(direction);
+            }
+        }
+        else {
+            sneakyCore.disarmSneaking();
+            nonTravel(loc, direction);
+        }
+    }
+}
+
 VerbRule(PeekDirection)
     (peekExpansion|'look'|'x'|'l') singleDir
     : VerbProduction
@@ -219,77 +298,6 @@ DefineTAction(PeekDirection)
         );
     }
 ;
-
-modify TravelAction {
-    execCycle(cmd) {
-        actionFailed = nil;
-        parkourCore.cacheParkourRunner(gActor);
-        local traveler = parkourCore.currentParkourRunner;
-        local oldLoc = traveler.location;
-        try {
-            inherited(cmd);
-        } catch(ExitSignal ex) {
-            actionFailed = true;
-        }
-        if (oldLoc == traveler.location) {
-            // We didn't move. We failed.
-            actionFailed = true;
-        }
-    }
-
-    execAction(cmd) {
-        easeIntoTravel();
-        doTravel();
-    }
-
-    easeIntoTravel() {
-        local getOutAction;
-
-        parkourCore.cacheParkourRunner(gActor);
-
-        // Re-interpreting getting out?
-        if (!gActor.location.ofKind(Room) && direction == outDir) {
-            getOutAction = gActor.location.contType == On ? GetOff : GetOutOf;
-            replaceAction(getOutAction, gActor.location);
-            return;
-        }
-
-        sneakyCore.performStagingCheck(gActor.getOutermostRoom());
-    }
-
-    doTravel() {
-        local loc = gActor.getOutermostRoom();
-        local conn;
-        local illum = loc.allowDarkTravel || loc.isIlluminated;
-        local traveler = parkourCore.currentParkourRunner;
-        if (loc.propType(direction.dirProp) == TypeObject) {
-            conn = loc.(direction.dirProp);
-            if (conn.isConnectorVisible) {
-                if (gActorIsPlayer) {
-                    sneakyCore.doSneakStart(conn, direction);
-                    conn.travelVia(traveler);
-                    sneakyCore.doSneakEnd(conn);
-                }
-                else {
-                    sneakyCore.disarmSneaking();
-                    gActor.travelVia(conn);
-                }
-            }
-            else if (illum && gActorIsPlayer) {
-                sneakyCore.disarmSneaking();
-                loc.cannotGoThatWay(direction);
-            }
-            else if (gActorIsPlayer) {
-                sneakyCore.disarmSneaking();
-                loc.cannotGoThatWayInDark(direction);
-            }
-        }
-        else {
-            sneakyCore.disarmSneaking();
-            nonTravel(loc, direction);
-        }
-    }
-}
 
 #define slamAdverbsExpansion 'violently'|'loudly'|'forcefully'
 
@@ -1291,7 +1299,7 @@ DefineDistComponentFor(CatFlap, Door)
     vocab = 'cat flap;pet kitty;door[weak] catflap petflap catdoor kittydoor'
 
     getMiscInclusionCheck(obj, normalInclusionCheck) {
-        return (normalInclusionCheck || !obj.isLocked) && !obj.airlockDoor;
+        return normalInclusionCheck && !obj.isLocked && !obj.airlockDoor;
     }
 
     subReferenceProp = &catFlap
@@ -1335,9 +1343,18 @@ DefineDistComponentFor(CatFlap, Door)
     }
 ;
 
-class MaintenanceDoor: Door {
+class MaintenanceDoor: PrefabDoor {
     keyList = [maintenanceKey]
 }
+
+DefineDistComponentFor(ProximityScanner, MaintenanceDoor)
+    vocab = 'proximity lock;RFID[weak];scanner'
+
+    desc = "A small, metal box. If someone with the right keycard approaches,
+    it unlocks, but only for a moment. "
+
+    isDecoration = true
+;
 
 modify Room {
     hasDanger() {
@@ -1437,6 +1454,7 @@ modify Room {
             if (!gPlayerChar.canSee(obj)) continue;
             if (!obj.ofKind(Door)) continue;
             if (!obj.isConnectorListed) continue;
+            if (obj.isVentGrateDoor) continue;
             if (obj.isStatusSuspiciousTo(gPlayerChar, &playerCloseExpectationFuse)) {
                 if (obj.isOpen) {
                     suspiciousOpenDoors.appendUnique(obj);

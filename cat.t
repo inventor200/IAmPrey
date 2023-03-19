@@ -104,3 +104,6 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws
     which is a little difficult to read, still. However, it seems to
     indicate the cat's name is <q><<gCatName>></q>.<<end>>"
 }
+
++CarryMap;
++CarryCompass;

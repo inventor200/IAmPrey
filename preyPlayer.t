@@ -346,6 +346,9 @@ prey: Actor { 'The Prey;;me self myself'
     }
 }
 
++CarryMap;
++CarryCompass;
+
 class ConditionScale: object {
     conditionReports = perInstance(new Vector(maxPhysicalFactor))
     lastIndex = 0

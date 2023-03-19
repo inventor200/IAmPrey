@@ -144,6 +144,7 @@ southHall: HallwaySegment { '<<nameHeader>> (South)'
     southeastMuffle = reactorNoiseRoom
 
     mapModeDirections = [&north, &south, &east, &west, &northeast]
+    mapModeLockedDoors = [southUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
 }
 

@@ -97,11 +97,13 @@ freezer: Room { 'The Freezer'
     }
 
     mapModeDirections = [&north, &west, &south]
+    mapModeLockedDoors = [northReservoirCorridorEntry]
     familiar = roomsFamiliarByDefault
 }
 
-+freezerNorthExit: Door { 'the loading door'
++freezerNorthExit: PrefabDoor { 'the loading door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = freezerNorthEntry
     soundSourceRepresentative = freezerNorthEntry
 
@@ -109,8 +111,9 @@ freezer: Room { 'The Freezer'
     pullHandleSide = nil
 }
 
-+freezerWestExit: Door { 'the exit door'
++freezerWestExit: PrefabDoor { 'the exit door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = freezerWestEntry
     soundSourceRepresentative = freezerWestEntry
 
@@ -121,8 +124,9 @@ freezer: Room { 'The Freezer'
 northFreezerFog: ColdFog;
 westFreezerFog: ColdFog;
 
-freezerNorthEntry: Door { 'the freezer loading door'
+freezerNorthEntry: PrefabDoor { 'the Freezer loading door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = freezerNorthExit
     location = storageBay
 
@@ -141,8 +145,9 @@ freezerNorthEntry: Door { 'the freezer loading door'
     }
 }
 
-freezerWestEntry: Door { 'the freezer door'
+freezerWestEntry: PrefabDoor { 'the Freezer door'
     freezerDoorDesc
+    isFreezerDoor = true
     otherSide = freezerWestExit
     location = southeastHall
 

@@ -8,7 +8,7 @@ TEST_centralRoom: Room { 'Central Room'
     mapModeDirections = [&north]
 }
 
-+TEST_hallwayDoor: Door { 'hallway door'
++TEST_hallwayDoor: PrefabDoor { 'Hallway door'
     "The door to the hallway. <<catFlapDesc>> "
     otherSide = TEST_centralRoomDoor
     pullHandleSide = nil
@@ -198,7 +198,7 @@ TEST_centerHallway: Room { 'Hallway (Center)'
     mapModeDirections = [&east, &southeast, &southwest]
 }
 
-+TEST_centralRoomDoor: Door { 'central room door'
++TEST_centralRoomDoor: PrefabDoor { 'Central Room door'
     "The door to the central room. <<catFlapDesc>> "
     otherSide = TEST_hallwayDoor
     pullHandleSide = true

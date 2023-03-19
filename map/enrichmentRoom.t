@@ -11,7 +11,7 @@ enrichmentRoom: Room { 'The Enrichment Room'
     familiar = roomsFamiliarByDefault
 }
 
-+southEnrichmentRoomDoorInterior: Door { 'the south enrichment room door'
++southEnrichmentRoomDoorInterior: PrefabDoor { 'the south Enrichment Room door'
     desc = standardDoorDescription
     otherSide = southEnrichmentRoomDoorExterior
     pullHandleSide = true
@@ -28,4 +28,4 @@ enrichmentRoom: Room { 'The Enrichment Room'
     attachPeakingAbility('around {the dobj}')
 }
 
-DefineDoorWestTo(westHall, enrichmentRoom, 'the enrichment room door')
+DefineDoorWestTo(westHall, enrichmentRoom, 'the Enrichment Room door')

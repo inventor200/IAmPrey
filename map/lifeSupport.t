@@ -245,8 +245,10 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     One machine, in particular, occupies the north half of the room:
     the primary fan unit.\b
     The exit door is to the southwest, but it seems to be locked.
-    A ladder is available to take you <<hyperDir('down')>>
-    to the lower floor of Life Support. "
+    <<if gCatMode>>A ladder is here, but it's not accessible
+    to cats.<<else
+    >>A ladder is available to take you <<hyperDir('down')>>
+    to the lower floor of Life Support.<<end>> "
 
     southwest = northUtilityPassageEntry
     down = lifeSupportLadderTop
@@ -264,11 +266,14 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     }
 
     mapModeDirections = [&down]
+    mapModeLockedDoors = [northUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
 }
 
 +lifeSupportLadderTop: ClimbDownIntoPlatform { 'ladder'
-    "A ladder allows travel to the floor below. "
+    "<<if gCatMode>>A ladder for citizens, but it's far too vertical
+    for your old bones to climb.<<
+    else>>A ladder allows travel to the floor below.<<end>> "
 
     travelDesc =
         "{I} quickly<<one of>>{aac}
@@ -279,7 +284,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     travelBarriers = [catDownALadderBarrier]
 }
 
-+primaryFanUnit: FixedPlatform { 'primary fan unit;;machine'
++primaryFanUnit: FixedPlatform { 'primary fan unit;;machine[weak]'
     "A massive, metal box, covered in ducts, and roaring with life.
     A strong breeze comes from a vent on the outside of the machine. "
 }
@@ -364,7 +369,7 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
     dobjFor(SearchDistant) { remap = coolingDuctLowerOuterDoor }
 }
 
-++coolingDuctLowerOuterDoor: Door {
+++coolingDuctLowerOuterDoor: PrefabDoor {
     vocab = 'access door;cooling[weak] duct;hatch'
     desc = "A discreet access door, probably for maintenance and repairs. "
     passActionStr = 'enter'
@@ -464,7 +469,7 @@ insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
     }
 }
 
-+coolingDuctLowerInnerDoor: Door {
++coolingDuctLowerInnerDoor: PrefabDoor {
     vocab = 'access door;cooling[weak] duct;hatch'
     desc = "An access door, probably for maintenance and repairs. "
     otherSide = coolingDuctLowerOuterDoor

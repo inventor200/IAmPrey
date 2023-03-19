@@ -19,4 +19,4 @@ assemblyShop: Room { 'The Assembly Shop'
 }
 ++LowFloorHeight;
 
-DefineDoorNorthTo(northHall, assemblyShop, 'the assembly shop door')
+DefineDoorNorthTo(northHall, assemblyShop, 'the Assembly Shop door')

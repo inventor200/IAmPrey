@@ -13,7 +13,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     familiar = roomsFamiliarByDefault
 }
 
-+southEnrichmentRoomDoorExterior: Door { 'the enrichment room door'
++southEnrichmentRoomDoorExterior: PrefabDoor { 'the Enrichment Room door'
     desc = standardDoorDescription
     otherSide = southEnrichmentRoomDoorInterior
     soundSourceRepresentative = southEnrichmentRoomDoorInterior
@@ -194,4 +194,4 @@ holeUnderBedDiscovery: Thing { 'discovered pipes'
     }*/
 }
 
-DefineDoorWestTo(southwestHall, cloneQuarters, 'the clone sleeping quarters door')
+DefineDoorWestTo(southwestHall, cloneQuarters, 'the Clone Sleeping Quarters door')

@@ -9,4 +9,4 @@ armory: Room { 'The Armory'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorSouthTo(humanQuarters, armory, 'the armory door')
+DefineDoorSouthTo(humanQuarters, armory, 'the Armory door')

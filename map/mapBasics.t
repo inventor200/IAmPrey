@@ -36,6 +36,20 @@ carpetedFloor: Floor { 'the floor;;carpet rug'
     the facility. \
     <<airlockDisclaimer>> "
 
+// Allowing doors to use prefab grouping
+class PrefabDoor: PrefabObject, Door {
+    isFreezerDoor = nil
+
+    hasPrefabMatchWith(obj) {
+        if (!obj.ofKind(Door)) return nil;
+        if (isFreezerDoor != obj.isFreezerDoor) return nil;
+        if (airlockDoor != obj.airlockDoor) return nil;
+        if (isLocked != obj.isLocked) return nil;
+        if (isVentGrateDoor != obj.isVentGrateDoor) return nil;
+        return true;
+    }
+}
+
 modify SenseRegion {
     lookAroundArmed = true
     /*familiar() {
@@ -189,7 +203,7 @@ modify Room {
             botherToGiveDescription = !self.(obProp) && !visited;
         }
 
-        "<.p><i>(Looking into <<roomTitle>>...)</i><.p>";
+        "<.p><i>(looking into <<roomTitle>>...)</i><.p>";
         if(botherToGiveDescription) {
             "<.roomdesc>";
             descFrom(pov);
@@ -201,10 +215,16 @@ modify Room {
         if (lst.length == 0) {
             "{I} {see} nothing<<if lookedThru>> else<<end>> <<locPhrase>>. ";
             peekInto();
+            endObserveFrom(pov);
             return;
         }
         "{I}<<if lookedThru>> also<<end>>{aac} {see} <<makeListStr(lst, &aName, 'and')>> <<locPhrase>>. ";
         peekInto();
+        endObserveFrom(pov);
+    }
+
+    endObserveFrom(pov) {
+        "<.p><i>(returning your attention to <<pov.getOutermostRoom().roomTitle>>...)</i><.p>";
     }
 }
 
@@ -296,7 +316,7 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
 }
 
 #define DefineDoorAwayTo(outDir, inDir, outerRoom, localRoom, theLocalDoorName) \
-    localRoom##ExitDoor: Door { \
+    localRoom##ExitDoor: PrefabDoor { \
         vocab = 'the exit door' \
         location = localRoom \
         desc = standardDoorDescription \
@@ -304,7 +324,7 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
         soundSourceRepresentative = localRoom##EntryDoor \
         pullHandleSide = nil \
     } \
-    localRoom##EntryDoor: Door { \
+    localRoom##EntryDoor: PrefabDoor { \
         vocab = theLocalDoorName \
         location = outerRoom \
         desc = standardDoorDescription \
@@ -331,7 +351,8 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
 #define DefineDoorWestTo(outerRoom, localRoom, theLocalDoorName) \
     DefineDoorAwayTo(west, east, outerRoom, localRoom, theLocalDoorName)
 
-#define defaultVentVocab 'vent grate;ventilation air;door[weak]'
+#define defaultVentVocab 'vent[n] grate;ventilation air'
+#define defaultVentVocabSuffix ';door'
 
 #define windowLookBlock(mcwRoom, mcwRemoteHeader) \
     canLookThroughMe = true \

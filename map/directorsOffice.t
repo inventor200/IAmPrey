@@ -19,8 +19,10 @@ directorsOffice: Room { 'The Director\'s Office'
     familiar = roomsFamiliarByDefault
 }
 
-//TODO: Broken shards multiloc here and in the north hall, explaining that
-// the shards are nowhere to be found
++brokenGlass: Unthing { 'broken glass;shattered smashed;shards'
+    'The window might be smashed, but the shards have been cleaned up. '
+    ambiguouslyPlural = true
+}
 
 //TODO: Add cat bed
 
@@ -33,4 +35,4 @@ DefineBrokenWindowPairLookingAway(north, southwest, northHall, directorsOffice)
     remoteHeader = 'through the broken window'
 ;
 
-DefineDoorSouthTo(administration, directorsOffice, 'the director\'s office door')
+DefineDoorSouthTo(administration, directorsOffice, 'the Director\'s Office door')

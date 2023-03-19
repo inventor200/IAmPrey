@@ -6,6 +6,8 @@ fakePumpRoom: Room { 'The Reactor Turbine Room'
     ceilingObj = industrialCeiling
 
     eastMuffle = reservoirControlRoom
+
+    mapModeLockedDoors = [southReservoirCorridorEntry]
 }
 +reactorTurbines: Decoration 'the reactor turbine pumps'
     plural = true
@@ -143,6 +145,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     }
 
     mapModeDirections = [&east]
+    mapModeLockedDoors = [northReservoirCorridorExit, southReservoirCorridorExit]
     familiar = roomsFamiliarByDefault
 }
 
@@ -218,7 +221,7 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
 }
 
 DefineWindowPair(reservoirControlRoom, reservoir)
-    vocab = 'observation window;reinforced monitoring control room[weak] reactor[weak] reservoir'
+    vocab = 'observation window;reinforced monitoring control room[weak] reactor[weak] reservoir glass;glass pane'
     desc = "TODO: Add description. "
     breakMsg = 'The window is reinforced, and designed to resist creatures like you. '
     remoteHeader = 'through the window'
@@ -493,4 +496,4 @@ reservoirStrainer: Room { 'The Strainer Stage'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorWestTo(lifeSupportBottom, reservoirStrainer, 'the reservoir access door')
+DefineDoorWestTo(lifeSupportBottom, reservoirStrainer, 'the Reservoir Access door')

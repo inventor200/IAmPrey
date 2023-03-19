@@ -22,6 +22,7 @@ class DifficultySetting: object {
     turnsBeforeSkashekChecks = 3
     skipPrologue = nil
     startingFreeTurnAlerts = 2
+    turnsSkipsForFalling = 1
 
     getBlurb() {
         local strBfr = new StringBuffer(12);
@@ -74,6 +75,7 @@ basicTutorialSetting: DifficultySetting {
         <b>This tutorial will also introduce you to the game\'s parkour
         movement mechanics!</b>'
     isCatMode = true
+    turnsSkipsForFalling = 0
 }
 
 preyTutorialSetting: DifficultySetting {
@@ -125,6 +127,7 @@ nightmareModeSetting: DifficultySetting {
     turnsBeforeSkashekChecks = 1
     skipPrologue = true
     startingFreeTurnAlerts = 0
+    turnsSkipsForFalling = 2
 }
 
 huntCore: InitObject {
@@ -287,12 +290,35 @@ huntCore: InitObject {
         //
     }
 
+    addBonusSkashekTurn(count?) {
+        if (count == 0) return;
+        if (count == nil) count = 1;
+        skashekAIControls.bonusTurns += count;
+    }
+
     // Shashek's actions go here
     handleSkashekAction() {
+        if (skashekAIControls.isFrozen) {
+            "<.p>(Skashek's AI is frozen, so he skips this turn)<.p>";
+            return;
+        }
+        skashekAIControls.startTurn();
+        for (local i = 1; i <= skashekAIControls.availableTurns; i++) {
+            if (i > 1) {
+                "<.p><i>(<<gSkashekName>> takes a bonus turn!)</i><.p>";
+            }
+            doSkashekTurn();
+        }
+        skashekAIControls.endTurn();
+
+        // If Skashek did anything, then handle the sounds here
+        handleSoundPropagation();
+    }
+
+    doSkashekTurn() {
         /*if (gTurns == 6) {
             doSkashekAction(Open, hallwayDoor);
         }*/
-        handleSoundPropagation();
     }
 
     // Perform any considerations for sound propagation

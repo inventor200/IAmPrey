@@ -10,6 +10,8 @@ class AbstractDistributedComponent: object {
     distOrder = 0
     prototypeVocab = nil
 
+    originalPrototype = nil
+
     constructStageOne(_lexParent) {
         prototypeVocab = (vocab == nil ? 'prototype object' : vocab);
         if (_lexParent != nil) {
@@ -93,6 +95,9 @@ class AbstractDistributedComponent: object {
             local cur = distributionTargets[i];
             if (includeMeOn(cur) && !hasMeOn(cur)) {
                 local myClone = createInstance(cur);
+                // Just in case instances don't init this
+                // or init themselves into this
+                myClone.originalPrototype = originalPrototype;
                 cur.(hasMeProp) = true;
                 if (subReferenceProp != nil) {
                     cur.(subReferenceProp) = myClone;
@@ -105,7 +110,64 @@ class AbstractDistributedComponent: object {
     }
 }
 
-class DistributedComponent: AbstractDistributedComponent, Thing {
+//#include "reflect.t"
+
+class PrefabObject: object {
+    // Filter matches
+    filterResolveList(np, cmd, mode) {
+        local matchProp;
+        switch (np.role) {
+            default:
+                matchProp = &dobjMatch;
+                break;
+            case IndirectObject:
+                matchProp = &iobjMatch;
+                break;
+            case AccessoryObject:
+                matchProp = &accMatch;
+                break;
+        }
+        local fellowMatches = getMatchCountForFellowClass(np.matches);
+        if (actionIsSpecific(cmd) || (np.role != DirectObject)) {
+            if (cmd.verbProd.(matchProp).grammarTag == 'single') return;
+            if (fellowMatches <= 1) return;
+            if (mode == Definite) return;
+        }
+        if (fellowMatches > 1) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+    }
+
+    // We primarily want to skip redundant responses,
+    // and these actions are the usual suspects:
+    actionIsSpecific(cmd) {
+        if (cmd.action.ofKind(Examine)) return nil;
+        if (cmd.action.ofKind(Feel)) return nil;
+        if (cmd.action.ofKind(SmellSomething)) return nil;
+        if (cmd.action.ofKind(Taste)) return nil;
+        if (cmd.action.ofKind(ListenTo)) return nil;
+        return true;
+    }
+
+    // How many matches of our fellow class were there?
+    getMatchCountForFellowClass(matches) {
+        local count = 0;
+        for (local i = 1; i <= matches.length; i++) {
+            if (hasPrefabMatchWith(matches[i].obj)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // What determines a fellow prefab?
+    hasPrefabMatchWith(obj) {
+        return true;
+    }
+}
+
+class DistributedComponent: AbstractDistributedComponent, PrefabObject, Thing {
     construct(_lexParent) {
         constructStageOne(_lexParent);
         inherited Thing.construct();
@@ -113,9 +175,14 @@ class DistributedComponent: AbstractDistributedComponent, Thing {
     }
 
     isFixed = true
+
+    hasPrefabMatchWith(obj) {
+        if (!obj.ofKind(AbstractDistributedComponent)) return nil;
+        return obj.originalPrototype == originalPrototype;
+    }
 }
 
-class DistributedSubComponent: AbstractDistributedComponent, SubComponent {
+class DistributedSubComponent: AbstractDistributedComponent, PrefabObject, SubComponent {
     construct(_lexParent) {
         constructStageOne(_lexParent);
         inherited SubComponent.construct();
@@ -123,6 +190,11 @@ class DistributedSubComponent: AbstractDistributedComponent, SubComponent {
     }
 
     distFromSubComponent = true
+
+    hasPrefabMatchWith(obj) {
+        if (!obj.ofKind(AbstractDistributedComponent)) return nil;
+        return obj.originalPrototype == originalPrototype;
+    }
 }
 
 class DistributedComponentDistributor: PreinitObject {
@@ -165,7 +237,8 @@ modify thingPreinit {
     } \
     prototype##ComponentClassName: DistributedComponent \
         includeMeProp = &includeDistComp##ComponentClassName \
-        hasMeProp = &hasDistComp##ComponentClassName
+        hasMeProp = &hasDistComp##ComponentClassName \
+        originalPrototype = prototype##ComponentClassName
 
 #define DefineDistComponentFor(ComponentClassName, TargetClassName) \
     modify TargetClassName { \
@@ -175,7 +248,8 @@ modify thingPreinit {
     prototype##ComponentClassName: DistributedComponent \
         includeMeProp = &includeDistComp##ComponentClassName \
         hasMeProp = &hasDistComp##ComponentClassName \
-        targetParentClass = TargetClassName
+        targetParentClass = TargetClassName \
+        originalPrototype = prototype##ComponentClassName
 
 #define DefineDistSubComponent(ComponentClassName, mySubReferenceProp) \
     modify Thing { \
@@ -186,7 +260,8 @@ modify thingPreinit {
     prototype##ComponentClassName: DistributedSubComponent \
         includeMeProp = &includeDistComp##ComponentClassName \
         hasMeProp = &hasDistComp##ComponentClassName \
-        subReferenceProp = &mySubReferenceProp
+        subReferenceProp = &mySubReferenceProp \
+        originalPrototype = prototype##ComponentClassName
 
 #define DefineDistSubComponentFor(ComponentClassName, TargetClassName, mySubReferenceProp) \
     modify TargetClassName { \
@@ -198,7 +273,8 @@ modify thingPreinit {
         includeMeProp = &includeDistComp##ComponentClassName \
         hasMeProp = &hasDistComp##ComponentClassName \
         targetParentClass = TargetClassName \
-        subReferenceProp = &mySubReferenceProp
+        subReferenceProp = &mySubReferenceProp \
+        originalPrototype = prototype##ComponentClassName
 
 #define IncludeDistComponent(ComponentClassName) \
     includeDistComp##ComponentClassName = true

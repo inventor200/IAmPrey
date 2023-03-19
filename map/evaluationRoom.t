@@ -19,4 +19,4 @@ evaluationRoom: Room { 'The Evaluation Room'
     familiar = roomsFamiliarByDefault
 }
 
-DefineDoorWestTo(eastHall, evaluationRoom, 'the evaluation room door')
+DefineDoorWestTo(eastHall, evaluationRoom, 'the Evaluation Room door')

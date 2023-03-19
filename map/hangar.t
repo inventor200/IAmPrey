@@ -21,6 +21,7 @@ storageBay: Room { 'The Storage Bay'
     }
 
     mapModeDirections = [&northwest, &south, &east]
+    mapModeLockedDoors = [wasteProcessingEntry]
     familiar = roomsFamiliarByDefault
 }
 
@@ -64,7 +65,7 @@ hangar: Room { 'The Hangar'
     familiar = roomsFamiliarByDefault
 }
 
-+airlockInsideEntry: Door { 'the emergency airlock door'
++airlockInsideEntry: PrefabDoor { 'the Emergency Airlock door'
     airlockDoorDesc
     otherSide = airlockInsideExit
 
@@ -91,6 +92,7 @@ wasteProcessing: Room { 'Waste Processing'
     
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+    mapModeLockedDoors = [wasteProcessingExit]
 }
 
 +wasteProcessingExit: MaintenanceDoor { 'the waste processing exit'
@@ -110,7 +112,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
     familiar = roomsFamiliarByDefault
 }
 
-+airlockInsideExit: Door { 'the inner exit door'
++airlockInsideExit: PrefabDoor { 'the inner exit door'
     airlockDoorDesc
     otherSide = airlockInsideEntry
     soundSourceRepresentative = airlockInsideEntry
@@ -120,7 +122,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
     canSlamMe = nil
 }
 
-+airlockOutsideExit: Door { 'the outer exit door'
++airlockOutsideExit: PrefabDoor { 'the outer exit door'
     airlockDoorDesc
     otherSide = airlockOutsideEntry
     soundSourceRepresentative = airlockOutsideEntry
@@ -150,7 +152,7 @@ fakeOutside: Room { 'Outside the Facility'
     mapModeDirections = [&west]
 }
 
-+airlockOutsideEntry: Door { 'the outer airlock door'
++airlockOutsideEntry: PrefabDoor { 'the outer Airlock door'
     airlockDoorDesc
     otherSide = airlockOutsideExit
 

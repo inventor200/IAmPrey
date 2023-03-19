@@ -109,4 +109,4 @@ southwestCubicle: Cubicle { 'The Southwest Cubicle'
 }
 populateCubicle(southwestCubicle)
 
-DefineDoorWestTo(northwestHall, administration, 'the administration door')
+DefineDoorWestTo(northwestHall, administration, 'the Administration door')
