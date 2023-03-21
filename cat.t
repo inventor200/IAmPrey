@@ -107,3 +107,13 @@ cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws
 
 +CarryMap;
 +CarryCompass;
+
+modify bodyParts {
+    vocab = 'body; (my) (your) (his) (her) (this) (left) (right);
+    head hand ear fist finger thumb arm leg foot eye face nose mouth
+    tooth tongue lip knee elbow tail paw; it them'
+
+    notHereMsg =
+    'Body parts are not important enough to
+    specifically refer to them. '
+}

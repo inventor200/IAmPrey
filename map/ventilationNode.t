@@ -103,7 +103,7 @@ labANodeGrate: VentGrateDoor {
     soundSourceRepresentative = (otherSide)
 }
 commonRoomNodeGrate: VentGrateDoor {
-    vocab = 'east ' + defaultVentVocab + defaultVentVocabSuffix
+    vocab = 'east ' + defaultVentVocab + ' top[weak] wall' + defaultVentVocabSuffix
     location = topOfEastWall
     otherSide = commonRoomExitVentGrate
     soundSourceRepresentative = (otherSide)

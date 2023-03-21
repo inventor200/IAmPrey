@@ -35,7 +35,7 @@ prologueCore: InitObject {
         "\b";
         inputManager.pauseForMore();
         #if __IS_MAP_TEST // is map test
-        huntCore.setDifficult(1);
+        huntCore.setDifficulty(1);
         #if __ALLOW_CLS
         cls();
         #endif
@@ -59,7 +59,7 @@ prologueCore: InitObject {
             difficultyQuestion.add(toString(i), difficulty.title, difficulty.getBlurb());
         }
         local result = difficultyQuestion.ask();
-        huntCore.setDifficult(result);
+        huntCore.setDifficulty(result);
         #if __ALLOW_CLS
         cls();
         #endif
@@ -74,7 +74,7 @@ prologueCore: InitObject {
         #endif // end is map test
         "\b";
         #else // do not show prologue
-        huntCore.setDifficult(__FAST_DIFFICULTY);
+        huntCore.setDifficulty(__FAST_DIFFICULTY);
         #endif // end show prologue
     }
 

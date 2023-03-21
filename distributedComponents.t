@@ -115,6 +115,13 @@ class AbstractDistributedComponent: object {
 class PrefabObject: object {
     // Filter matches
     filterResolveList(np, cmd, mode) {
+        if (isOutOfContext(np, cmd, mode)) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+    }
+
+    // Do we filter ourselves out?
+    isOutOfContext(np, cmd, mode) {
         local matchProp;
         switch (np.role) {
             default:
@@ -129,13 +136,11 @@ class PrefabObject: object {
         }
         local fellowMatches = getMatchCountForFellowClass(np.matches);
         if (actionIsSpecific(cmd) || (np.role != DirectObject)) {
-            if (cmd.verbProd.(matchProp).grammarTag == 'single') return;
-            if (fellowMatches <= 1) return;
-            if (mode == Definite) return;
+            if (cmd.verbProd.(matchProp).grammarTag == 'single') return nil;
+            if (fellowMatches <= 1) return nil;
+            if (mode == Definite) return nil;
         }
-        if (fellowMatches > 1) {
-            np.matches = np.matches.subset({m: m.obj != self});
-        }
+        return fellowMatches > 1;
     }
 
     // We primarily want to skip redundant responses,

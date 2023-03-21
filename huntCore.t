@@ -157,7 +157,7 @@ huntCore: InitObject {
     playerAction = nil
     playerActionActor = nil
 
-    setDifficult(index, midGame?) {
+    setDifficulty(index, midGame?) {
         sneakyCore.armSneaking = nil;
         sneakyCore.armEndSneaking = nil;
         sneakyCore.sneakDirection = nil;
@@ -192,7 +192,12 @@ huntCore: InitObject {
         }
         sneakyCore.allowSneak = difficultySettingObj.hasSneak;
         sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
+        if (!midGame) {
+            freeTurnAlertsRemaining = difficultySettingObj.startingFreeTurnAlerts;
+        }
     }
+
+    freeTurnAlertsRemaining = 2
 
     moveCat() {
         // Hacky method to set the cat character, because no command is performed
@@ -260,19 +265,17 @@ huntCore: InitObject {
     }
     #endif
 
-    startingFreeTurnAlerts = 2
-
     // Generically handle free action
     handleFreeTurn() {
-        if (gAction.freeTurnAlertsRemaining > 0) {
-            if (gAction.freeTurnAlertsRemaining > 1) {
+        if (freeTurnAlertsRemaining > 0) {
+            if (freeTurnAlertsRemaining > 1) {
                 "<.p><i>(You used this turn for FREE!)</i><.p>";
             }
             else {
                 "<.p><i>(From now-on, you will only be alerted if
                 this action </i>wasn't<i> a FREE turn!)</i><.p>";
             }
-            gAction.freeTurnAlertsRemaining = gAction.freeTurnAlertsRemaining - 1;
+            freeTurnAlertsRemaining--;
         }
     }
 
@@ -446,8 +449,6 @@ huntCore: InitObject {
     && !actionFailed)
 
 modify Action {
-    freeTurnAlertsRemaining = (huntCore.difficultySettingObj.startingFreeTurnAlerts)
-
     skashekActionDProp = nil
     skashekVisibilityDProp = nil
     skashekReportDProp = nil

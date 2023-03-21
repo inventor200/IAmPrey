@@ -1280,10 +1280,18 @@ modify Door {
 
     replace noteTraversal(actor) {
         if (gPlayerChar.isOrIsIn(actor) && !(gAction.isPushTravelAction && suppressTravelDescForPushTravel)) {
-            if (!gOutStream.watchForOutput({:travelDesc}) && actor == cat && hasDistCompCatFlap) {
+            if (!gOutStream.watchForOutput({:travelDesc}) &&
+                actor == cat && hasDistCompCatFlap &&
+                catFlapNotificationCounter.count > 0) {
                 local obj = gActor;
                 gMessageParams(obj);
-                "{The subj obj} carefully climb{s/ed} through the cat flap of <<theName>>.";
+                if (catFlapNotificationCounter.count > 2) {
+                    "{The subj obj} carefully climb{s/ed} through the cat flap of <<theName>>.";
+                }
+                else {
+                    "(using the cat flap of <<theName>>...)";
+                }
+                catFlapNotificationCounter.count--;
             }
             "<.p>";
         }
@@ -1293,6 +1301,10 @@ modify Door {
 
         traversedBy = traversedBy.appendUnique(travelers);
     }
+}
+
+catFlapNotificationCounter: object {
+    count = 4
 }
 
 DefineDistComponentFor(CatFlap, Door)

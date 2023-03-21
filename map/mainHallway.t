@@ -146,6 +146,14 @@ southHall: HallwaySegment { '<<nameHeader>> (South)'
     mapModeDirections = [&north, &south, &east, &west, &northeast]
     mapModeLockedDoors = [southUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
+
+    filterResolveList(np, cmd, mode) {
+        if (np.matches.length > 1) {
+            if (gActor.getOutermostRoom() != self) {
+                np.matches = np.matches.subset({m: m.obj != self});
+            }
+        }
+    }
 }
 
 northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'

@@ -6,6 +6,16 @@ class StoveVentDoor: VentGrateDoor {
     includeDistCompVentGrateDoorHinge = nil
 }
 
+#define remapHoodParkour(parkourAction) \
+    dobjFor(parkourAction) { \
+        preCond = [actorInStagingLocation] \
+        remap = nil \
+        verify() { } \
+        check() { } \
+        action() { attemptJump(); } \
+        report() { } \
+    }
+
 kitchen: Room { 'The Kitchen'
     "TODO: Add description.\b
     An electric oven sits under a stove hood by the east wall,
@@ -62,14 +72,12 @@ kitchen: Room { 'The Kitchen'
 }
 ++LowFloorHeight;
 
-++kitchenStoveHood: ClimbUpEnterPlatform { 'stove hood;range fume vapor;vent'
+++kitchenStoveHood: Fixture { 'stove hood;range fume vapor;vent'
     "A large, metal hood. When smoke and fumes become too intense,
     a cook can turn on its fan to clear the air. "
 
     missingFanMsg =
         'Apparently, the fan has actually been removed from the stove hood. '
-    
-    hiddenIn = [kitchenVentGrate]
 
     dobjFor(SwitchOff) asDobjFor(SwitchVague)
     dobjFor(SwitchOn) asDobjFor(SwitchVague)
@@ -78,8 +86,6 @@ kitchen: Room { 'The Kitchen'
             illogical(missingFanMsg);
         }
     }
-
-    contType = In
     subLocation = &remapOn
 
     dobjFor(LookUnder) asDobjFor(LookIn)
@@ -95,19 +101,16 @@ kitchen: Room { 'The Kitchen'
         report() { }
     }
 
-    dobjFor(TravelVia) {
-        verify() { }
-        check() { }
-        action() {
-            revealStoveHoodDoor();
-            doInstead(GoThrough, kitchenVentGrate);
-        }
-        report() { }
-    }
+    remapIn: SubComponent {
+        hiddenIn = [kitchenVentGrate]
 
-    revealStoveHoodDoor() {
-        if (!kitchenVentGrate.isIn(self)) {
-            moveHidden(&hiddenIn, self);
+        canBonusReachDuring(obj, action) {
+            return kitchenStoveHood.canBonusReachDuring(obj, action);
+        }
+    }
+    remapOn: SubComponent {
+        canBonusReachDuring(obj, action) {
+            return kitchenStoveHood.canBonusReachDuring(obj, action);
         }
     }
 
@@ -121,6 +124,39 @@ kitchen: Room { 'The Kitchen'
         }
         return nil;
     }
+
+    attemptJump() {
+        if (kitchenVentGrate.isIn(remapIn)) {
+            "You can't find a way of staying in or on the stove hood.
+            <<if gActor.isIn(kitchenVentGrate.stagingLocation)
+            >>However, you <i>probably</i> could enter the little hatch
+            inside...<<end>> ";
+        }
+        else {
+            "You scope out the surfaces of the stove hood,
+            but then you think you see something inside... ";
+        }
+    }
+
+    remapHoodParkour(ParkourJumpGeneric)
+    remapHoodParkour(ParkourClimbGeneric)
+    remapHoodParkour(ParkourClimbUpTo)
+    remapHoodParkour(ParkourClimbOverTo)
+    remapHoodParkour(ParkourClimbDownTo)
+    remapHoodParkour(ParkourJumpUpTo)
+    remapHoodParkour(ParkourJumpOverTo)
+    remapHoodParkour(ParkourJumpDownTo)
+    remapHoodParkour(ParkourClimbUpInto)
+    remapHoodParkour(ParkourClimbOverInto)
+    remapHoodParkour(ParkourClimbDownInto)
+    remapHoodParkour(ParkourJumpUpInto)
+    remapHoodParkour(ParkourJumpOverInto)
+    remapHoodParkour(ParkourJumpDownInto)
+    remapHoodParkour(Climb)
+    remapHoodParkour(ClimbUp)
+    remapHoodParkour(Enter)
+    remapHoodParkour(Board)
+    remapHoodParkour(StandOn)
 }
 
 +missingFan: Unthing { 'hood fan'
@@ -170,11 +206,6 @@ reservoirVentGrate: StoveVentDoor {
     location = reservoirCorridorCrate
     otherSide = kitchenVentGrate
     soundSourceRepresentative = (otherSide)
-
-    travelVia(actor) {
-        kitchenStoveHood.revealStoveHoodDoor();
-        inherited(actor);
-    }
 
     dobjFor(LookThrough) {
         verify() {

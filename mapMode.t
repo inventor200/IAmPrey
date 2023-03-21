@@ -143,6 +143,29 @@ modify GoTo {
     }
 }
 
+modify VerbRule(SetTo)
+    [badness 10] 'set' singleDobj 'to' literalIobj :
+;
+
+VerbRule(MapModeTeleport)
+    'imagine'
+        (('being'|'I\'m'|'i\'m'|'im'|'i am'|'I am'|'standing'|)
+        ('in'|'within'|'inside') ('of'|)|) singleDobj
+    : VerbProduction
+    action = MapModeTeleport
+    verbPhrase = 'imagine/imagining (what)'
+;
+
+DefineTAction(MapModeTeleport)
+    addExtraScopeItems(whichRole?) {
+       scopeList = scopeList.appendUnique(Q.knownScopeList);
+    }
+    againRepeatsParse = nil
+    reportImplicitActions = nil
+    isAllowedInMapMode = true
+    turnsTaken = 0
+;
+
 modify Continue {
     turnsTaken = 0
     isAllowedInMapMode = true
@@ -222,6 +245,9 @@ DefineSystemAction(DumpRouteTable)
 
 class CarryMap: Decoration {
     vocab = 'mental map'
+    notImportantMsg =
+        'Your mental map is simply a memory in your mind.
+        Its practical uses are limited. '
     bulk = 0
     dobjFor(Search) asDobjFor(Examine)
     dobjFor(Examine) {
@@ -236,6 +262,10 @@ class CarryMap: Decoration {
 
 class CarryCompass: Decoration {
     vocab = 'mental compass'
+    notImportantMsg =
+        'Your mental compass is simply an
+        imaginary tool of your mind.
+        Its practical uses are limited. '
     bulk = 0
     dobjFor(Search) asDobjFor(Examine)
     dobjFor(Examine) {
@@ -243,6 +273,30 @@ class CarryCompass: Decoration {
         check() { }
         action() {
             doInstead(MapModeCompass);
+        }
+        report() { }
+    }
+}
+
+modify Thing {
+    dobjFor(MapModeTeleport) {
+        verify() {
+            if (location == nil && !ofKind(Room)) {
+                inaccessible(mapModeDatabase.notOnMapMsg);
+            }
+            local om = getOutermostRoom();
+            if (om == nil) {
+                inaccessible(mapModeDatabase.notOnMapMsg);
+            }
+            if (!om.isMapModeRoom && om.mapModeVersion == nil) {
+                inaccessible(mapModeDatabase.notOnMapMsg);
+            }
+        }
+        check() { }
+        action() {
+            local om = getOutermostRoom();
+            if (!om.isMapModeRoom) om = om.mapModeVersion;
+            mapModeDatabase.gotoRoomInMapMode(om);
         }
         report() { }
     }
@@ -274,6 +328,8 @@ mapModeDatabase: object {
     mapModeStart = nil
     compassTarget = nil
 
+    travelAnnouncementsRemaining = 2
+
     allRooms = static new Vector()
 
     notOnMapMsg = 'You cannot see that on your map.
@@ -282,6 +338,18 @@ mapModeDatabase: object {
     noRouteOnMapMsg = 'You cannot see a way there on your map.
         A hidden route might be omitted from the map, or it might
         not exist in the facility at all. '
+
+    doTravelAnnouncement() {
+        if (travelAnnouncementsRemaining <= 0) return;
+        if (travelAnnouncementsRemaining >= 2) {
+            "<.p>You imagine yourself going that way,
+            through your mental map...<.p>";
+        }
+        else {
+            "<.p>(traveling through your mental map...)<.p>";
+        }
+        travelAnnouncementsRemaining--;
+    }
 
     cancelNonMapAction() {
         "You cannot do that in map mode.\n
@@ -357,19 +425,27 @@ mapModeDatabase: object {
 
     mapModeOn() {
         checkMapEntry();
-        inMapMode = true;
-        "<.p><tt>MAP MODE IS NOW ON.</tt><.p>";
-        if (!firstTimeMapMode) {
-            firstTimeMapMode = true;
-            "In map mode, you explore a simplified version of the world.
-            Your available actions will be limited, but you will also not
-            spend turns.<.p>";
+        gotoRoomInMapMode(
+            gPlayerChar.getOutermostRoom().mapModeVersion
+        );
+    }
+
+    gotoRoomInMapMode(mapModeRoom) {
+        if (!inMapMode) {
+            inMapMode = true;
+            "<.p><tt>MAP MODE IS NOW ON.</tt><.p>";
+            if (!firstTimeMapMode) {
+                firstTimeMapMode = true;
+                "In map mode, you explore a simplified version of the world.
+                Your available actions will be limited, but you will also not
+                spend turns.<.p>";
+            }
+            setPlayer(mapModePlayer);
+            actualPlayerChar = gPlayerChar;
+            mapModeStart = mapModeRoom;
         }
-        actualPlayerChar = gPlayerChar;
-        mapModeStart = actualPlayerChar.getOutermostRoom().mapModeVersion;
-        mapModePlayer.moveInto(mapModeStart);
-        setPlayer(mapModePlayer);
-        mapModeStart.lookAroundWithin();
+        mapModePlayer.moveInto(mapModeRoom);
+        mapModeRoom.lookAroundWithin();
     }
 
     mapModeOff() {
@@ -665,6 +741,11 @@ class MapModeRoom: Room {
 
     dumpRouteTable() {
         playerRouteTable.dump();
+    }
+
+    travelerEntering(traveler, origin) {
+        mapModeDatabase.doTravelAnnouncement();
+        inherited(traveler, origin);
     }
 }
 

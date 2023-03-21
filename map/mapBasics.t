@@ -1,7 +1,7 @@
 #define roomsFamiliarByDefault true
 
-defaultLabFloor: Floor { 'the floor;terrazzo floor;tiles'
-    "Plain, terrazzo tiles, colored an average of light silver. "
+defaultLabFloor: Floor { 'the floor;terrazzo floor;tiles flecks'
+    "Plain, white, terrazzo tiles with black flecks. "
     ambiguouslyPlural = true
 }
 
@@ -47,6 +47,12 @@ class PrefabDoor: PrefabObject, Door {
         if (isLocked != obj.isLocked) return nil;
         if (isVentGrateDoor != obj.isVentGrateDoor) return nil;
         return true;
+    }
+
+    isOutOfContext(np, cmd, mode) {
+        local isNormallyOutOfContext = inherited(np, cmd, mode);
+        if (isNormallyOutOfContext) return true;
+        return !gActor.canReach(self);
     }
 }
 
@@ -140,6 +146,7 @@ modify Room {
     roomBeforeAction() {
         if (gActionIs(Smell)) {
             doInstead(SmellSomething, atmosphereObj);
+            exit;
         }
 
         inherited();
@@ -266,7 +273,7 @@ defaultCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles fra
     notImportantMsg = '{That dobj} {is} too far above you. '
 }
 
-industrialCeiling: Ceiling { 'pipes[n][weak] on[prep] the ceiling;upper[weak] lower[weak];sections[weak]'
+industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[weak];sections[weak]'
     "The upper section of the walls are exposed here, as there are no ceiling panels
     to cover them. The ceiling is much higher, too, and the various pipes of the
     facility are visible. "
@@ -359,6 +366,7 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
     skipInRemoteList = true \
     allowLookThroughSearch \
     remappingLookIn = true \
+    remappingSearch = true \
     dobjFor(LookIn) asDobjFor(LookThrough) \
     dobjFor(PeekInto) asDobjFor(LookThrough) \
     dobjFor(PeekThrough) asDobjFor(LookThrough) \

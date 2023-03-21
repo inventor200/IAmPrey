@@ -146,11 +146,21 @@ commonRoom: Room { 'The Common Room'
     other walls are flush with each other. '
 }
 
-+chessTable: FixedPlatform { 'empty chess table;game;chessboard board gameboard'
++chessTable: FixedPlatform { 'chess[weak] table'
     "An empty table with a chess board engraved into it. "
 }
 ++LowFloorHeight;
 ++JumpUpLink ->snackFridge;
+++Decoration { 'chess board;empty[weak] game;chessboard board gameboard'
+    "The chess board is carved into the table. "
+    decorationActions = [Examine, Take, TakeFrom]
+    cannotTakeMsg = 'The chess board is carved into the table,
+        and not separate from it. '
+}
+++Unthing { 'chess[weak] pieces;game[weak];pawn knight rook queen king bishop'
+    'The chess board is clear of any pieces. '
+    ambiguouslyPlural = true
+}
 
 +snackFridge: Fridge {
     vocab = 'snack fridge'

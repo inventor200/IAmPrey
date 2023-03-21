@@ -22,7 +22,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM reservoirCorridor
+/*-*/  #define __TEST_ROOM displayShelf
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -85,6 +85,9 @@ gameMain: GameMainDef {
         skashek.startTheDay();
         gPlayerChar.startTheDay();
     }
+    showGoodbye() {
+        "Thank you for playing! Hope you come back soon! ";
+    }
 }
 
 versionInfo: GameID {
@@ -92,10 +95,15 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '1'
+    version = '0.9'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'
+    releaseDate = '2023-04-02'
+    licenseType = 'freeware'
+    copyingRules = '<a href="https://creativecommons.org/licenses/by-sa/4.0/"
+        >Creative Commons Attribution-ShareAlike 4.0 International</a>'
+    presentationProfile = 'Plain Text'
     showAbout() {
         "<i>I Am Prey</i> is a game about situational awareness, evasion, and
         escape.\b
@@ -111,12 +119,61 @@ versionInfo: GameID {
         "\t<i>I stand on the shoulders of giants...</i>\n
         <b>Author:</b> Joey Cramsey (<a href='mailto:josephcsoftware@gmail.com'>Email</a>)
         (<a href='https://joeycramsey.bandcamp.com/'>Link to Bandcamp</a>)\n
+        <b><<one of
+        >>Vibe Checker<<or
+        >>Master of Whimsey<<or
+        >>Comic Relief<<or
+        >>Interior Designer<<or
+        >>King Arthur played by<<or
+        >><q>God's Special Little Guy</q><<or
+        >>Maid Services<<or
+        >>Catering<<shuffled>>:</b> Akira Lowe\n
         <b>Special thanks</b> to my partners, friends, and the excellent community
         over at <a href='https://intfiction.org/'>Intfiction Forum</a>!\n
         <b>Adv3Lite library:</b> Eric Eve\n
         <b>TADS 3:</b> Michael J Roberts\b
         \t<i>Testing:</i>\n
-        Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)";
+        Mathbrush (<a href='https://ifdb.org/showuser?id=nufzrftl37o9rw5t'>Link to IFDB</a>)\n
+        Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)\n
+        Piergiorgio d'errico\n
+        Rovarsson";
+    }
+}
+
+modify Score {
+    execAction(cmd) {
+        helpMessage.showHowToWinAndProgress();
+    }
+}
+
+modify FullScore {
+    execAction(cmd) {
+        helpMessage.showHowToWinAndProgress();
+    }
+}
+
+modify finishOptionAmusing {
+    doOption() {
+        "<b>Here are some silly things you could try:</b>\n
+        Check Akira Lowe's credit in the CREDITS text. It changes!\n
+        As soon as you start a new game (outside of Cat Mode), try to CRY.\n
+        Try to HUG or KISS <<gSkashekName.toUpper()>>.\n
+        Try to TAKE SHARD from a broken mirror, and be seen by <<gSkashekName>>.\n
+        When <<gSkashekName>> is chasing you, try to TAKE OFF CLOTHES.\n
+        You can MEOW in Cat Mode!\n
+        Try to LICK DOOR HANDLE.\n
+        Attempting to ATTACK <<gSkashekName.toUpper()>> ends in catastrophe!\n
+        Outside of Nightmare Mode and Cat Mode, you can try waiting for
+        <<gSkashekName>> to walk into the starting room, and then CRY
+        in front of him.";
+        return true;
+    }
+}
+
+modify finishOptionFullScore {
+    doOption() {
+        "Ack!";
+        return true;
     }
 }
 
@@ -124,19 +181,9 @@ modify statusLine {
     showStatusHtml() {
         "<<statusHTML(0)>><<aHref('look around', nil, nil, AHREF_Plain)>>";
         showStatusLeft();
-            
-        /* 
-         *   end the left portion and start the right portion, then
-         *   generate the <A HREF> to link the score to a FULL SCORE
-         *   command 
-         */
-        //"<./a></a><<statusHTML(1)>><<aHref('full score', nil, nil, AHREF_Plain)>>";
         "<./a></a><<statusHTML(1)>>";
         showStatusRight();
-
         "<./a></a><<statusHTML(2)>>";
-
-        /* add the status-line exit list, if desired */
         if (gPlayerChar.location!= nil) {
             gPlayerChar.location.showStatuslineExits();
         }

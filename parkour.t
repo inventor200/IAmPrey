@@ -303,7 +303,7 @@ DefineTAction(ParkourClimbOffOf)
 ;
 
 VerbRule(ParkourClimbOffIntransitive)
-    ('get'|'climb'|'cl'|'parkour') ('off'|'down')
+    ('get'|'climb'|'cl'|'parkour') ('off'|'down') | 'off'
     : VerbProduction
     action = ParkourClimbOffIntransitive
     verbPhrase = 'climb/climbing off'        
@@ -485,6 +485,7 @@ parkourCore: object {
     formatForScreenReader = (gFormatForScreenReader)
     //autoPathCanDiscover = (!requireRouteRecon)
     autoPathCanDiscover = true
+    enforceDirectionality = nil
     announceRouteAfterTrying = true
     maxReconsPerTurn = 3
 
@@ -531,8 +532,10 @@ parkourCore: object {
         strBfr.append('\n');
         strBfr.append(aHrefAlt(
             'show parkour list key',
-            '<small>Click here for bullet symbol key!</small> ',
-            '(Enter <b>PARKOUR KEY</b> for help with bullet symbols.) '
+            '<small>Not sure what the bullet symbols mean?
+            Click here!</small> ',
+            '(Not sure what the bullet symbols mean?
+            Type <b>PARKOUR KEY</b> for clarification!) '
         ));
         strBfr.append('<.p>');
     }
@@ -886,6 +889,28 @@ class ReachProblemParkourBase: ReachProblemDistance {
     trgItem_ = nil;
     trgLoc_ = nil;
 
+    srcItemName = (srcItem_.theName);
+    srcItemIs() {
+        if (srcItem_.person == 1) {
+            return '{am|was}';
+        }
+        if (srcItem_.plural || srcItem_.person == 2) {
+            return '{are|were}';
+        }
+        return '{is|was}';
+    }
+    srcItemNameIs = (srcItemName + ' ' + srcItemIs())
+
+    srcLocSmart() {
+        if (srcLoc_.ofKind(Room)) {
+            if (srcLoc_.floorObj != nil) {
+                return 'on ' + srcLoc_.floorObj.theName +
+                    ' of ' + srcLoc_.roomTitle;
+            }
+        }
+        return srcLoc_.contType.prep + ' ' + srcLoc_.theName;
+    }
+
     trgItemName = (trgItem_.theName);
     trgItemIs() {
         if (trgItem_.person == 1) {
@@ -909,6 +934,10 @@ class ReachProblemParkourBase: ReachProblemDistance {
         return '{is|was}';
     }
     trgLocNameIs = (trgLocName + ' ' + trgLocIs())
+
+    getReasonPhrase = (
+        ', because <<srcItemNameIs>> <<srcLocSmart()>>'
+    )
 }
 
 // General error for being unable to reach, due to parkour limitations
@@ -916,17 +945,17 @@ class ReachProblemParkour: ReachProblemParkourBase {
     tooFarAwayMsg() {
         if (trgItem_ == nil) {
             if (trgLoc_.contType == On || trgLoc_.partOfParkourSurface) {
-                return 'The top of <<trgLocNameIs>> out of reach. ';
+                return 'The top of <<trgLocNameIs>> out of reach<<getReasonPhrase>>. ';
             }
-            return 'That part of <<trgLocNameIs>> out of reach. ';
+            return 'That part of <<trgLocNameIs>> out of reach<<getReasonPhrase>>. ';
         }
 
         if (trgLoc_.contType == On) {
             return '\^<<trgItemNameIs>> on top of <<trgLocName>>,
-                which <<trgLocIs>> out of reach. ';
+                which <<trgLocIs>> out of reach<<getReasonPhrase>>. ';
         }
         return '\^<<trgItemNameIs>> <<trgLoc_.contType.prep>> <<trgLocName>>,
-            which <<trgLocIs>> out of reach. ';
+            which <<trgLocIs>> out of reach<<getReasonPhrase>>. ';
     }
 }
 
@@ -935,17 +964,17 @@ class ReachProblemParkourFromTopOfSame: ReachProblemParkourBase {
     tooFarAwayMsg() {
         if (trgItem_ == nil) {
             if (trgLoc_.contType == On || trgLoc_.partOfParkourSurface) {
-                return 'The top of <<trgLocName>> {cannot} be reached from {here}. ';
+                return 'The top of <<trgLocName>> {cannot} be reached from {here}<<getReasonPhrase>>. ';
             }
-            return 'That part of <<trgLocName>> {cannot} be reached from {here}. ';
+            return 'That part of <<trgLocName>> {cannot} be reached from {here}<<getReasonPhrase>>. ';
         }
 
         if (trgLoc_.contType == On) {
             return '\^<<trgItemNameIs>> on top of <<trgLocName>>,
-                and that part {cannot} be reached from {here}. ';
+                and that part {cannot} be reached from {here}<<getReasonPhrase>>. ';
         }
         return '\^<<trgItemNameIs>> <<trgLoc_.contType.prep>> <<trgLocName>>,
-            and that part {cannot} be reached from {here}. ';
+            and that part {cannot} be reached from {here}<<getReasonPhrase>>. ';
     }
 }
 
@@ -1120,17 +1149,17 @@ modify actorInStagingLocation {
 
 #define fastParkourClimbMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getClimbUpDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
             '!) '; \
     } \
     getClimbOverDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
             '!) '; \
     } \
     getClimbDownDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
             '!) '; \
     } \
@@ -1146,17 +1175,17 @@ modify actorInStagingLocation {
 
 #define fastParkourJumpMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getJumpUpDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
             '!) '; \
     } \
     getJumpOverDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
             '!) '; \
     } \
     getJumpDownDiscoverMsg() { \
-        return '(It seems that {i} {can} ' + \
+        return '({I} learned a new route: ' + \
             gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
             '!) '; \
     }
@@ -1178,13 +1207,13 @@ modify actorInStagingLocation {
     }
 
 #define announcePathDiscovery(str, reportMethod) \
-    reportMethod('<.p>' + str + '<.p>')
+    reportMethod('\n' + str + '\n')
 
 #define learnOnlyLocalPlatform(plat, reportMethod) \
     searchCore.startSearch(true, true); \
     if (plat.secretLocalPlatform) { \
         local discoveryStr = \
-            '(It seems that {i} {can} ' + \
+            '({I} learned a new route: ' + \
             gDirectCmdStr(plat.getLocalPlatformBoardingCommand()) + \
             '!) '; \
         announcePathDiscovery(discoveryStr, reportMethod); \
@@ -1914,7 +1943,7 @@ modify Thing {
         '{I} need{s/ed} to JUMP instead, if {i} want{s/ed} to get there.
         However, the drop seems rather dangerous...! '
     parkourUnnecessaryJumpMsg =
-        '({I} {can} get there easily, so {i} decide{s/d} against jumping.) '
+        '({i} {can} get there easily, so {i} decide{s/d} against jumping...) '
     parkourCannotClimbUpMsg =
         '{I} {cannot} climb up to {that dobj}. '
     parkourCannotClimbOverMsg =
@@ -1974,7 +2003,7 @@ modify Thing {
     }
 
     getJumpOverToDiscoverMsg(destination) {
-        return '(It seems that {i} {can}
+        return '({I} learned a new route:
             <<gDirectCmdStr('jump over ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
@@ -1985,7 +2014,7 @@ modify Thing {
     }
 
     getRunAcrossToDiscoverMsg(destination) {
-        return '(It seems that {i} {can}
+        return '({I} learned a new route:
             <<gDirectCmdStr('run across ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
@@ -1996,7 +2025,7 @@ modify Thing {
     }
 
     getSwingOnToDiscoverMsg(destination) {
-        return '(It seems that {i} {can}
+        return '({I} learned a new route:
             <<gDirectCmdStr('swing on ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
@@ -2007,7 +2036,7 @@ modify Thing {
     }
 
     getSqueezeThroughToDiscoverMsg(destination) {
-        return '(It seems that {i} {can}
+        return '({I} learned a new route:
             <<gDirectCmdStr('squeeze through ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
@@ -2018,7 +2047,7 @@ modify Thing {
     }
 
     getSlideUnderToDiscoverMsg(destination) {
-        return '(It seems that {i} {can}
+        return '({I} learned a new route:
             <<gDirectCmdStr('slide under ' + theName)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
@@ -2303,8 +2332,10 @@ modify Actor {
 
 #define verifyDirection(parkourDir, climbOrJump) \
     if (gParkourLastPath.direction != parkour##parkourDir##Dir) { \
-        illogical(parkourCannot##climbOrJump##parkourDir##Msg); \
-        return; \
+        if (parkourCore.enforceDirectionality) { \
+            illogical(parkourCannot##climbOrJump##parkourDir##Msg); \
+            return; \
+        } \
     }
 
 #define verifyClimbDirPathFromActor(actor, parkourDir) \

@@ -94,6 +94,13 @@ modify Thing {
         but {i} {do} not see the tactical benefit. '
     )
 
+    cannotEnterMsg = (gCatMode ?
+        'You were once able to squeeze into remarkable places,
+        but you suppose you won\'t try it here. '
+        :
+        '{The subj dobj} {is} not something {i} {can} enter. '
+    )
+
     doClimbPunishment(actor, traveler, path) {
         actor.addExhaustion(1);
     }

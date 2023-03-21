@@ -41,6 +41,8 @@ class FakeCubicle: Passage {
     L-shaped hall you find yourself in. "
     ambiguouslyPlural = true
     otherSide = destination
+    remappingSearch = true
+    dobjFor(Search) asDobjFor(LookThrough)
     attachPeakingAbility('in {the dobj}')
 }
 
