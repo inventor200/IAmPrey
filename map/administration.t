@@ -1,11 +1,11 @@
-administrationAudioRegion: SenseRegion {
+/*administrationAudioRegion: SenseRegion {
     canSeeAcross = nil
     canHearAcross = true
     canSmellAcross = true
     canTalkAcross = true
     canThrowAcross = nil
     autoGoTo = nil
-}
+}*/
 
 //TODO: Furnish more
 #define populateCubicle(cubicleName) \
@@ -30,7 +30,7 @@ class Cubicle: Room {
 
     out = administration
 
-    regions = [administrationAudioRegion]
+    //regions = [administrationAudioRegion]
 
     mapModeDirections = [&out]
     familiar = roomsFamiliarByDefault
@@ -46,8 +46,10 @@ class FakeCubicle: Passage {
     attachPeakingAbility('in {the dobj}')
 }
 
-administration: Room { 'Administration'
-    "The lights here are in low-power mode, with only a few still on.
+administration: Room {
+    vocab = 'Administration;;admin'
+    roomTitle = 'Administration'
+    desc = "The lights here are in low-power mode, with only a few still on.
     You are in a narrow, L-shaped hallway of cubicle walls, directing your attention
     to the door of the Director's Office, to the <<hyperDir('north')>>.
     To the <<hyperDir('west')>>, the cubicles shape a sharp turn to the
@@ -64,7 +66,7 @@ administration: Room { 'Administration'
     eastMuffle = commonRoom
     southMuffle = enrichmentRoom
 
-    regions = [administrationAudioRegion]
+    //regions = [administrationAudioRegion]
 
     mapModeDirections = [&north, &west, &northeast, &southeast, &northwest, &southwest]
     familiar = roomsFamiliarByDefault
@@ -111,4 +113,4 @@ southwestCubicle: Cubicle { 'The Southwest Cubicle'
 }
 populateCubicle(southwestCubicle)
 
-DefineDoorWestTo(northwestHall, administration, 'the Administration door')
+DefineDoorWestTo(northwestHall, administration, 'the Administration door;admin')

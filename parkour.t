@@ -286,7 +286,8 @@ DefineTAction(SqueezeThrough)
 ;
 
 VerbRule(ParkourClimbOffOf)
-    ('get'|'climb'|'cl'|'parkour') ('off'|'off' 'of'|'down' 'from') singleDobj
+    ('get'|'climb'|'cl'|'parkour') ('off'|'off' 'of'|'down' 'from') singleDobj |
+    'off' singleDobj
     : VerbProduction
     action = ParkourClimbOffOf
     verbPhrase = 'get/getting off of (what)'
@@ -343,16 +344,27 @@ VerbRule(ParkourJumpOffIntransitive)
 ;
 
 DefineIAction(ParkourJumpOffIntransitive)
-    allowAll = nil
-
     execAction(cmd) {
         parkourCore.cacheParkourRunner(gActor);
         doInstead(ParkourJumpOffOf, gParkourRunner.location);
     }
 ;
 
+VerbRule(ParkourJumpInPlace)
+    ('jump'|'jm'|'hop') ('up'|) ('in' 'place'|'on' 'the' 'spot')
+    : VerbProduction
+    action = ParkourJumpInPlace
+    verbPhrase = 'jump/jumping in place'        
+;
+
+DefineIAction(ParkourJumpInPlace)
+    execAction(cmd) {
+        "{I} jump{s/ed} on the spot, fruitlessly. ";
+    }
+;
+
 modify VerbRule(Jump)
-    'jump' ('up'|)|'jm' ('up'|)|'dive' :
+    ('jump'|'jm'|'hop') ('up'|)|'dive' :
 ;
 
 modify VerbRule(ClimbUpWhat)
@@ -386,10 +398,10 @@ modify ClimbDown {
 }
 
 #define expandableLocalPlats 'platforms'|'plats'|'surfaces'|'supporters'
-#define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'ponder'|'study'|'find'|'search'|'scan')
+#define expandableParkourShowList ('show' ('list' ('of'|)|)|'list'|'remember'|'review'|'search')
 #define expandableParkourAvailability ('available'|'known'|'familiar'|'traveled'|'travelled'|)
 #define expandableRouteRoot ('parkour'|'prkr'|'pkr'|'pk'|expandableParkourTargetShort)
-#define expandableParkourTargetShort 'paths'|'pathways'|'routes'|expandableLocalPlats
+#define expandableParkourTargetShort 'paths'|'pathways'|'routes'|'route'|expandableLocalPlats
 
 VerbRule(ShowParkourRoutes)
     expandableParkourShowList expandableParkourAvailability (expandableParkourTargetShort) |
@@ -658,8 +670,10 @@ reachGhostTest_: Thing {
 
 #ifdef __DEBUG
 #define __PARKOUR_REACH_DEBUG nil
+#define __PARKOUR_REACH_TRUE_NAMES nil
 #else
 #define __PARKOUR_REACH_DEBUG nil
+#define __PARKOUR_REACH_TRUE_NAMES nil
 #endif
 
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
@@ -670,6 +684,13 @@ QParkour: Special {
 
     reachProblemVerify(a, b) {
         local issues = [];
+
+        if (a.ofKind(Floor)) {
+            a = gPlayerChar.outermostVisibleParent();
+        }
+        if (b.ofKind(Floor)) {
+            b = gPlayerChar.outermostVisibleParent();
+        }
 
         // Don't worry about room connections
         if (a.ofKind(Room) || b.ofKind(Room)) return issues;
@@ -782,7 +803,7 @@ QParkour: Special {
             doNotFactorJumpForB = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(LOC B: <<bLoc.theName>> (<<bLoc.contType.prep>>)
-                in <<aLoc.getOutermostRoom().theName>>.)\n');
+                in <<bLoc.getOutermostRoom().theName>>.)\n');
             #endif
         }
         else {
@@ -799,7 +820,7 @@ QParkour: Special {
             }
             #if __PARKOUR_REACH_DEBUG
             extraReport('\n(ITEM B: <<bItem.theName>> (<<bItem.contType.prep>>)
-                in <<bLoc.theName>>, <<aLoc.getOutermostRoom().theName>>.)\n');
+                in <<bLoc.theName>>, <<bLoc.getOutermostRoom().theName>>.)\n');
             #endif
         }
 
@@ -1264,7 +1285,6 @@ modify actorInStagingLocation {
 #define verifyParkourProviderFromActor(actor, ProviderAction) \
     local realProvider = getParkourProvider(nil, nil); \
     if (realProvider == nil) { \
-        "<.p>Coming from here<.p>"; \
         illogical(cannot##ProviderAction##Msg); \
         return; \
     } \
@@ -1964,6 +1984,8 @@ modify Thing {
         '{I} {am} already on {that dobj}. '
     noNewRoutesMsg =
         '{I} notice{s/d} no new parkour possibilities, beyond what{dummy} {is} already known. '
+    alreadyOnFloorMsg =
+        '{I} remain{s/ed} on <<gActor.getOutermostRoom().floorObj.theName>>. '
 
     getExitLocationName() {
         if (exitLocation == nil) return 'the void';
@@ -2090,17 +2112,32 @@ modify Room {
     omitFromStagingError() {
         return nil;
     }
+
+    getStandardOn() {
+        return self;
+    }
 }
+
+#define handleFloorCheck(roomRef) \
+    else if (roomRef.ofKind(Room) && !roomRef.canGetOffFloor) { \
+        illogical(alreadyOnFloorMsg); \
+    }
+    
+#define verifyGetOffFloorRedirect \
+    parkourCore.cacheParkourRunner(gActor); \
+    local om = gPlayerChar.outermostVisibleParent(); \
+    if (gParkourRunner.location != om) { \
+        illogical(actorNotOnMsg); \
+        return; \
+    } \
+    handleFloorCheck(om)
 
 #define redirectJumpOffFloor(originalAction) \
     dobjFor(originalAction) { \
         preCond = nil \
         remap = nil \
         verify() { \
-            parkourCore.cacheParkourRunner(gActor); \
-            if (gParkourRunner.location != gPlayerChar.outermostVisibleParent()) { \
-                illogical(actorNotOnMsg); \
-            } \
+            verifyGetOffFloorRedirect \
         } \
         check() { } \
         action() { \
@@ -2114,15 +2151,7 @@ modify Room {
         preCond = nil \
         remap = nil \
         verify() { \
-            parkourCore.cacheParkourRunner(gActor); \
-            local om = gPlayerChar.outermostVisibleParent(); \
-            if (gParkourRunner.location != om) { \
-                illogical(actorNotOnMsg); \
-                return; \
-            } \
-            if (!om.canGetOffFloor) { \
-                illogical('{I} remain{s/ed} on <<theName>>. '); \
-            } \
+            verifyGetOffFloorRedirect \
         } \
         check() { } \
         action() { \
@@ -2165,6 +2194,10 @@ modify Floor {
 
     omitFromStagingError() {
         return nil;
+    }
+
+    getStandardOn() {
+        return gPlayerChar.outermostVisibleParent();
     }
 }
 
@@ -2423,6 +2456,7 @@ modify Actor {
             if(!gParkourRunner.isIn(myOn) || myOn.contType != On) { \
                 illogicalNow(actorNotOnMsg); \
             } \
+            handleFloorCheck(myOn) \
         } \
         action() { \
             doInstead(redirectAction, exitLocation); \
@@ -2462,11 +2496,15 @@ class ParkourModule: SubComponent {
     isIt = (getVocabFromParent(&isIt))
     getVocabFromParent(vProp) {
         if (parent == nil) return '(oops)';
+        #if __PARKOUR_REACH_TRUE_NAMES
+        //
+        #else
         if (parent.ofKind(Room)) {
             if (parent.floorObj != nil) {
                 return parent.floorObj.(vProp);
             }
         }
+        #endif
         return parent.(vProp);
     }
     // End stuff for vocab

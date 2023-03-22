@@ -1,4 +1,4 @@
-prey: Actor { 'The Prey;;me self myself'
+prey: PlayerActor { 'The Prey;;me self myself'
     "<<getClothingDescription()>> "
     person = (gCatMode ? 3 : 2)
 

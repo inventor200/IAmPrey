@@ -264,7 +264,16 @@ DefineTAction(PeekDirection)
         }
 
         if (!clear || conn == nil) {
-            "{I} {cannot} peek that way. ";
+            if (direction == upDir && loc.ceilingObj != nil) {
+                "(examining <<loc.ceilingObj.theName>>)\n";
+                doInstead(Examine, loc.ceilingObj);
+            }
+            else if (direction == downDir) {
+                parkourCore.currentParkourRunner.examineSurfaceUnder();
+            }
+            else {
+                "{I} {cannot} peek that way. ";
+            }
             exit;
         }
 
@@ -318,7 +327,7 @@ DefineTAction(SlamClosed)
 #define sneakVerbExpansion ('auto-sneak'|'auto' 'sneak'|'autosneak'|'sneak'|'snk'|'sn'|'tiptoe'|'tip toe'|'tt')
 
 VerbRule(SneakThrough)
-    sneakVerbExpansion ('through'|'thru'|'into'|'via'|) singleDobj
+    [badness 60] sneakVerbExpansion ('through'|'thru'|'into'|'via'|) singleDobj
     : VerbProduction
     action = SneakThrough
     verbPhrase = 'sneak/sneaking through (what)'
@@ -336,7 +345,7 @@ DefineTAction(SneakThrough)
 ;
 
 VerbRule(SneakDirection)
-    sneakVerbExpansion singleDir
+    [badness 60] sneakVerbExpansion singleDir
     : VerbProduction
     action = SneakDirection
     verbPhrase = 'sneak/sneaking (where)'  
@@ -348,6 +357,20 @@ class SneakDirection: TravelAction {
         inherited(cmd);
     }
 }
+
+VerbRule(VagueSneak) 
+    [badness 55] sneakVerbExpansion 
+    : VerbProduction
+    action = VagueSneak
+    verbPhrase = 'sneak/sneaking'
+;
+
+DefineIAction(VagueSneak)
+    execAction(cmd) {
+        sneakyCore.trySneaking();
+        "Which way do you want to sneak? ";
+    }
+;
 
 VerbRule(ChangeSneakMode)
     [badness 10] sneakVerbExpansion literalDobj |
@@ -455,7 +478,7 @@ sneakyCore: object {
     }
 
     remindNoSneak() {
-        "<.p><i><b>(Auto-sneaking is disabled outside of tutorial modes!)</b></i>";
+        "<.p><i><b>Auto-sneaking is disabled outside of tutorial modes!</b></i>";
         if (useVerboseReminder) {
             "\b<b>REMEMBER:</b> If the Predator expects <b>silence</b>, then
             <b>maintain the silence</b>!

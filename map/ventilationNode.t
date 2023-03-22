@@ -71,7 +71,7 @@ ventilationNode: Room { 'The Central Ventilation Node'
     travelDesc = "<<if gCatMode
         >><<if commonRoom.getVentSurprise()
         >>You know the route well.\b
-        <<end>>You smoothly exit the ventilation node,
+        <<end>>You smoothly exit the Ventilation Node,
         and skillfully find your footing on the ledge.\b
         <<else>><<if commonRoom.getVentSurprise()
         >>You damn-near have a heart attack.\b
@@ -115,7 +115,7 @@ commonRoomNodeGrate: VentGrateDoor {
         through the vent grate. It's only another meter before you reach
         <<if gCatMode>>your favorite eating spot:
         The Central Ventilation Node.<<else>>
-        the central ventilation node.<<end>> "
+        the Central Ventilation Node.<<end>> "
 }
 
 class VentGrateDoor: PrefabDoor {

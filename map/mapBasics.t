@@ -52,7 +52,31 @@ class PrefabDoor: PrefabObject, Door {
     isOutOfContext(np, cmd, mode) {
         local isNormallyOutOfContext = inherited(np, cmd, mode);
         if (isNormallyOutOfContext) return true;
-        return !gActor.canReach(self);
+
+        local isAnyAltInContext = nil;
+        local isThisInContext = nil;
+
+        for (local i = 1; i <= np.matches.length; i++) {
+            local matchObj = np.matches[i].obj;
+            if (!hasPrefabMatchWith(matchObj)) continue;
+            if (gActor.canReach(matchObj)) {
+                isAnyAltInContext = true;
+                if (matchObj == self) {
+                    isThisInContext = true;
+                    break;
+                }
+            }
+        }
+
+        if (!isAnyAltInContext) {
+            // If nothing is in context, then being out-of-context
+            // means nothing. Default to being in-context.
+            return nil;
+        }
+
+        // If something IS in context, then is it us?
+
+        return !isThisInContext;
     }
 }
 
@@ -249,9 +273,10 @@ class Walls: MultiLoc, Thing {
     }
 }
 
-defaultWalls: Walls { 'walls;north n south s east e west w'
+defaultWalls: Walls { 'wall;north n south s east e west w'
     "{I} {see} nothing special about the walls. "
     ambiguouslyPlural = true
+    matchPhrases = ['wall', 'walls']
 }
 
 class Ceiling: MultiLoc, Thing {
@@ -322,6 +347,42 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
     isFamiliar = nil
 }
 
+// If the player tries to refer to their surroundings by "room",
+// then this will ensure the outermost room always matches, even
+// if it does not contain the vocab for "room".
+roomRemapObject: MultiLoc, Thing { 'room;surrounding my[weak];surroundings space'
+    isDecoration = true
+    decorationActions = []
+
+    initialLocationClass = Room
+
+    filterResolveList(np, cmd, mode) {
+        local om = gActor.getOutermostRoom();
+        local isRoomAlreadyMatched = nil;
+        for (local i = 1; i <= np.matches.length; i++) {
+            local matchObj = np.matches[i].obj;
+            if (matchObj == om) {
+                isRoomAlreadyMatched = true;
+                break;
+            }
+        }
+
+        if (isRoomAlreadyMatched) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+        else {
+            for (local i = 1; i <= np.matches.length; i++) {
+                local matchObj = np.matches[i].obj;
+                if (matchObj == self) {
+                    // Inject room match
+                    np.matches[i].obj = om;
+                    return;
+                }
+            }
+        }
+    }
+}
+
 #define DefineDoorAwayTo(outDir, inDir, outerRoom, localRoom, theLocalDoorName) \
     localRoom##ExitDoor: PrefabDoor { \
         vocab = 'the exit door' \
@@ -379,6 +440,15 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
 
 #define windowTravelBlock \
     configureDoorOrPassageAsLocalPlatform(TravelVia) \
+    dobjFor(SneakThrough) { \
+        verify() { } \
+        action() { \
+            sneakyCore.trySneaking(); \
+            sneakyCore.doSneakStart(self, self); \
+            doNested(TravelVia, self); \
+            sneakyCore.doSneakEnd(self); \
+        } \
+    } \
     dobjFor(TravelVia) { \
         preCond = [travelPermitted, actorInStagingLocation] \
         action() { \

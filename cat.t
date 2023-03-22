@@ -42,7 +42,7 @@ DefineIAction(Purr)
 
 #define meowPrompt "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> "
 
-cat: Actor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws'
+cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws'
     "You are a beautiful, regal, and <i>graceful</i> cat!
     And a <i>grand</i> ruler, too!\b
     Your black coat is speckled  with streaks of silvery tips.

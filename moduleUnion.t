@@ -388,6 +388,72 @@ modify Thing {
             illogicalSelf(cannotPushViaSelfMsg);
         }
     }
+
+    findSurfaceUnder() {
+        local surface = location;
+
+        if (surface.ofKind(Room)) {
+            return surface.floorObj;
+        }
+
+        if (surface.contType == In && surface.enclosing) {
+            return surface;
+        }
+
+        local masterSurface = surface;
+        while (masterSurface.ofKind(SubComponent)) {
+            masterSurface = masterSurface.lexicalParent;
+        }
+
+        if (surface.contType == On) {
+            return masterSurface;
+        }
+
+        return masterSurface.findSurfaceUnder();
+    }
+
+    examineSurfaceUnder() {
+        local xTarget = findSurfaceUnder();
+        if (xTarget != nil) {
+            "(examining <<xTarget.theName>>)\n";
+            doInstead(Examine, xTarget);
+            searchCore.reportedSuccess = true;
+        }
+        else {
+            "{I} {see} nothing under {the dobj}. ";
+            searchCore.reportedFailure = true;
+        }
+    }
+}
+
+modify Actor {
+    dobjFor(PeekInto) asDobjFor(Search)
+    dobjFor(PeekThrough) asDobjFor(Search)
+    dobjFor(LookIn) asDobjFor(Search)
+    dobjFor(Search) {
+        verify() {
+            if (gPlayerChar != self) {
+                inaccessible('{The dobj} will not let you search {him dobj}. ');
+            }
+            else {
+                logical;
+            }
+        }
+        check() { }
+        action() {
+            doInstead(Inventory);
+        }
+        report() { }
+    }
+
+    dobjFor(LookUnder) {
+        verify() { }
+        check() { }
+        action() {
+            examineSurfaceUnder();
+        }
+        report() { }
+    }
 }
 
 #define roomCapacity 100000
@@ -824,7 +890,12 @@ DefineDistSubComponentFor(FilingCabinetRemapIn, FilingCabinet, remapIn)
     bulkCapacity = actorCapacity \
     maxSingleBulk = 1 \
     isOpenable = true \
-    distOrder = 1
+    distOrder = 1 \
+    /* Stuff to acknowledge attempts to climb drawers */ \
+    getParkourModule() { return nil; } \
+    parkourModule = nil \
+    cannotBoardMsg = \
+        '{The dobj} {is} too unstable to use for climbing. '
 
 DefineDistSubComponentFor(TopCabinetDrawer, FilingCabinet, topDrawer)
     vocab = 'top drawer;upper first'
@@ -947,7 +1018,7 @@ DefineDistComponentFor(PushDoorHandle, Door)
 ;
 
 DefineDistComponentFor(PullDoorHandle, Door)
-    vocab = 'handle;door[weak] push[weak] pull[weak] metal[weak];bar loop track'
+    vocab = 'handle;door[weak] push[weak] pull[weak] metal[weak];bar loop'
     desc = "A large, metal loop sits in a track, which spans half the width
         of the door. "
 

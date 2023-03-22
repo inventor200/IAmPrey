@@ -10,6 +10,35 @@ modify Actor {
 
     outfit = nil
 
+    seeReflection(mirror) {
+        mirror.confirmSmashed();
+        return '{I} {see} a neat-looking creature. ';
+    }
+
+    seeShatteredVanity() {
+        return '';
+    }
+
+    ponderVanity() {
+        return '';
+    }
+
+    startTheDay() { }
+
+    getClamp(value, max) {
+        if (value < 0) value = 0;
+        if (value > max) value = max;
+        return value;
+    }
+
+    soak() { }
+    dryOff() { }
+    addExhaustion(amount) { }
+    updatePhysicalState() { }
+    applySweat(exhaustionLevel, wetnessLevel) { }
+}
+
+class PlayerActor: Actor {
     wetness = 0
     d_wetness = 0
     exhaustion = 0
@@ -50,6 +79,7 @@ modify Actor {
     }
 
     startTheDay() {
+        inherited();
         physicalStateDaemon = new Daemon(self, &updatePhysicalState, 0);
         physicalStateDaemon.eventOrder = 200;
     }
@@ -82,12 +112,6 @@ modify Actor {
         d_chillFactor = chillFactor - oldChillFactor;
 
         oldExhaustion = exhaustion;
-    }
-
-    getClamp(value, max) {
-        if (value < 0) value = 0;
-        if (value > max) value = max;
-        return value;
     }
 
     applySweat(exhaustionLevel, wetnessLevel) {

@@ -4,6 +4,7 @@ modify Action {
     remappingSearchCheckProp = nil
 
     skipSearch() {
+        if (gDobj == nil) return true;
         if (remappingSearchCheckProp == nil) return nil;
         return gDobj.(remappingSearchCheckProp);
     }

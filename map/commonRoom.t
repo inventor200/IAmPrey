@@ -28,12 +28,8 @@ commonRoomCeiling: industrialCeiling {
     that duct to go between administration and your secret eating spot.\b
     You still have a route, though, but it's trickier for your old bones.<<else
     >>It could have once secured a length of east-west ventilation duct,
-    connecting the administration vent (west) to the primary vent (east) of this room.
+    connecting the west vent to the east vent of this room.
     It was likely hidden behind ceiling tiles (which are also missing).<<end>> "
-
-    //canSwingOnMe = true
-    //stagingLocation = (gPlayerChar.isIn(topOfEastWall) ? topOfEastWall : displayShelf)
-    //exitLocation = commonRoom
 
     cannotSwingOnMsg = 'The beam is a little too thick to swing on. '
 
@@ -44,8 +40,8 @@ commonRoomCeiling: industrialCeiling {
     dobjFor(RunAcross) {
         preCond = [touchObj]
         verify() {
-            inaccessible('The beam runs orthogonal to the line between the administration
-            vent and primary vent. Running across the beam will just move you between
+            inaccessible('The beam runs orthogonal to the line between the west
+            vent and east vent. Running across the beam will just move you between
             the north and south walls. ');
         }
     }
@@ -75,7 +71,7 @@ commonRoom: Room { 'The Common Room'
     scraps of trash are nowhere to be found. Someone seems to have torn out
     the ceiling tiles, leaving a support beam (and two vents) exposed.
     <<end>>\b
-    Against the west wall, a table and fridge sit next to each other, and a
+    Against the west wall, a chess table and fridge sit next to each other, and a
     decorative display shelf sits above both of them.
     To the <<hyperDir('north')>> is the Assembly Shop, and a passage
     to the <<hyperDir('south')>> (curving to the west) leads to the
@@ -103,6 +99,12 @@ commonRoom: Room { 'The Common Room'
     familiar = roomsFamiliarByDefault
 }
 
++Unthing { 'two vents'
+    'The west vent and east vent are high up on the west and east walls,
+    above the altitude which would normally have ceiling tiles. '
+    matchPhrases = ['two vents', 'both vents']
+}
+
 +enrichmentRoomHall: Passage { 'passage;curving curved;corridor hall'
     "A short passage to the <<hyperDir('south')>>, curving toward the west. "
 
@@ -121,7 +123,7 @@ commonRoom: Room { 'The Common Room'
 +missingVentilationDuct: Unthing { 'missing ventilation duct;east-west east west length;shaft'
     '<<if gCatMode>>You remember<<else>>Evidence indicates<<end>>
     that a length of ventilation duct used to connect
-    what are now the administration (west) and primary (east) vent grates.
+    what are now the west and east vent grates.
     It\'s gone now, though.<<if gCatMode>> <<gSkashekName>> tore it all down
     during strange renovations.<<end>> '
 }
@@ -184,7 +186,7 @@ administrationToCommonRoomVentGrate: VentGrateDoor {
     travelDesc = "<<if gCatMode
         >><<if commonRoom.getVentSurprise()
         >>You know the route well.\b
-        <<end>>Exiting the ventilation node, in one practiced motion,
+        <<end>>Passing from Administration, in one practiced motion,
         you find yourself on a display shelf, high above the floor.<<
         else>><<if commonRoom.getVentSurprise()
         >>Your heart lurches.\b
