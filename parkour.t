@@ -635,7 +635,6 @@ parkourCore: object {
     currentParkourRunner = nil
     showNewRoute = nil
     hadAccident = nil
-    lookAroundAfter = nil
     hasShownClimbAbbreviationHint = nil
     noKnownRoutesMsg =
         '{I} {do} not {know} of any interesting routes from {here}. '
@@ -1254,10 +1253,6 @@ modify actorInStagingLocation {
 #define reportParkour \
     if (!parkourCore.hadAccident) { \
         "<<gParkourLastPath.getPerformMsg()>><.p>"; \
-        if (parkourCore.lookAroundAfter != nil) { \
-            parkourCore.lookAroundAfter.lookAroundWithin(); \
-            parkourCore.lookAroundAfter = nil; \
-        } \
     }
 
 // Fake parkour reporting
@@ -3038,43 +3033,9 @@ class ParkourModule: SubComponent {
         if (plat.remapOn != nil) {
             plat = plat.remapOn;
         }
-        local roomA = actor.getOutermostRoom();
-        local roomB = plat.getOutermostRoom();
-        if (roomA == roomB) {
-            // We are moving within the same room.
-            // No issues.
-            actor.actionMoveInto(plat);
-        }
-        else {
-            // We are moving into another room.
-            // We need to perform the necessary steps.
-            local oldLoc = roomA;
-            local lookAroundOnEntering = roomB.lookOnEnter(actor);
-            local playerIsOrIsInActor = gPlayerChar.isOrIsIn(actor);
-            local oldTravelInfo = actor.lastTravelInfo;
 
-            if (playerIsOrIsInActor) {
-                libGlobal.lastLoc = oldLoc;
-            }
-            else if (Q.canSee(gPlayerChar, actor)) {
-                actor.lastTravelInfo = [oldLoc, gParkourLastPath];
-            }
-
-            actor.actionMoveInto(plat);
-            markAsClimbed();
-
-            if (playerIsOrIsInActor) {
-                local notifyList = roomB.allContents.subset({o: o.ofKind(Actor)});
-                notifyList.forEach({a: a.pcArrivalTurn = gTurns });
-                
-                if (lookAroundOnEntering) {
-                    parkourCore.lookAroundAfter = roomB;
-                }
-            }
-            else if (roomA == oldLoc) {
-                actor.lastTravelInfo = oldTravelInfo;
-            }
-        }
+        actor.actionMoveInto(plat);
+        markAsClimbed();
     }
 
     getPathFrom(source, canBeUnknown?, allowProviders?) {
