@@ -3,7 +3,7 @@ TEST_centralRoom: Room { 'Central Room'
 
     north = TEST_hallwayDoor
     westMuffle = TEST_sideRoom
-    east = TEST_eastGap
+    //east = TEST_eastGap
 
     mapModeDirections = [&north]
 }
@@ -143,11 +143,11 @@ TEST_centralRoom: Room { 'Central Room'
     readDesc = "Hello world!"
 }
 
-+TEST_eastGap: ParkourBridgeConnector { 'east gap;eastern;divide'
+/*+TEST_eastGap: ParkourBridgeConnector { 'east gap;eastern;divide'
     "The eastern wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true
-}
+}*/
 
 +TEST_eastPillar: Fixture { 'east pillar;e'
     "A pillar to the east. "
@@ -171,7 +171,7 @@ TEST_centralRoom: Room { 'Central Room'
     }
 }
 
-+AwkwardProviderBridge @TEST_eastGap ->TEST_subtleRoom @TEST_westGap;
+//+AwkwardProviderBridge @TEST_eastGap ->TEST_subtleRoom @TEST_westGap;
 
 TEST_sideRoom: Room { 'Side Room'
     "The additional room to the side."
@@ -218,13 +218,13 @@ TEST_eastHallway: Room { 'Hallway (East)'
 TEST_subtleRoom: Room { 'Subtle Room'
     "Just a subtle room. "
     north = TEST_eastHallway
-    west = TEST_westGap
+    //west = TEST_westGap
 
     mapModeDirections = [&north]
 }
 
-+TEST_westGap: ParkourBridgeConnector { 'west gap;western;divide'
+/*+TEST_westGap: ParkourBridgeConnector { 'west gap;western;divide'
     "The western wall has a hole, and a sudden drop-off meets the floor there. "
     isListed = true
     canJumpOverMe = true
-}
+}*/

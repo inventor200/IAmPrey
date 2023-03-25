@@ -1237,12 +1237,6 @@ modify actorInStagingLocation {
     } \
     searchCore.concludeSearch(plat, nil, nil, true);
 
-#define learnLocalPlatform(plat, reportMethod) \
-    learnOnlyLocalPlatform(plat, reportMethod) \
-    if (plat.oppositeLocalPlatform != nil) { \
-        learnOnlyLocalPlatform(plat.oppositeLocalPlatform, reportMethod) \
-    }
-
 #define learnPath(path, reportMethod) \
     searchCore.startSearch(true, true); \
     if (!path.isAcknowledged) { \
@@ -1417,6 +1411,10 @@ modify Thing {
             return isDecoration;
         }
         return nil;
+    }
+
+    filterParkourList(np, cmd, mode, pm) {
+        //
     }
 
     climbOnAlternative = (isClimbable ? Climb : (canClimbUpMe ? ClimbUp : Board))
@@ -2320,10 +2318,6 @@ modify Actor {
         return nil;
     }
 }
-
-#define checkParkour(actor) \
-    lexicalParent.checkInsert(actor); \
-    doParkourCheck(actor, gParkourLastPath)
 
 #define parkourActionIntro \
     preCond = [parkourPreCond] \
@@ -3298,6 +3292,11 @@ class ParkourModule: SubComponent {
     dobjFor(GetOff) asDobjFor(ParkourClimbOffOf)
     dobjFor(JumpOff) asDobjFor(ParkourJumpOffOf)
 
+    checkParkour(actor) {
+        lexicalParent.checkInsert(actor);
+        doParkourCheck(actor, gParkourLastPath);
+    }
+
     dobjFor(ParkourClimbGeneric) {
         parkourActionIntro
         verify() {
@@ -3358,6 +3357,12 @@ class ParkourModule: SubComponent {
 
     parkourReshapeGetOff(ParkourClimbOffOf, ParkourClimbDownTo)
     parkourReshapeGetOff(ParkourJumpOffOf, ParkourJumpDownTo)
+
+    filterResolveList(np, cmd, mode) {
+        if (lexicalParent != nil) {
+            lexicalParent.filterParkourList(np, cmd, mode, self);
+        }
+    }
 }
 
 enum parkourUpDir, parkourOverDir, parkourDownDir;
@@ -3792,150 +3797,117 @@ class DangerousFloorHeight: FloorHeight {
     createBackwardPath() { } // No way up
 }
 
-// Two-way bridges
+// Simple Handler Surfaces
 modify TravelConnector {
-    // This keeps Skashek from seeing a ParkourBridgeConnector
-    // as a valid way out
-    requiresParkourToTravel = nil
-}
-
-class ParkourBridgeConnector: TravelConnector, Thing {
-    requiresParkourToTravel = true
-    providerClient = nil
-    isListed = nil
-    isFixed = true
-
-    visibleInDark {
-        if (destination != nil && transmitsLight) {
-            return destination.isIlluminated;
+    // Let it be known that on March 22nd of 2023,
+    // Nightshademaker found a bug in the parkour code which
+    // required me to modify the travel code of TravelConnectors,
+    // which is one giant function.
+    //
+    // This is largely taken from travel.t of Adv3Lite, but I only
+    // needed to make a few modifications.
+    execTravel(actor, traveler, conn) {
+        local oldLoc = traveler.getOutermostRoom();
+        local dest = getDestination(oldLoc);
+        local oldTravelInfo = nil;
+        
+        conn.beforeTravelNotifications(traveler);
+        
+        if (actor != gPlayerChar) {
+            oldTravelInfo = actor.lastTravelInfo;
         }
         
+        if (actor == gPlayerChar) {
+            libGlobal.lastLoc = oldLoc;                               
+        }
+        else if (Q.canSee(gPlayerChar, actor)) {
+            actor.lastTravelInfo = [oldLoc, conn];
+        }
+        
+        if (gPlayerChar.isOrIsIn(traveler)) {
+            local localPlat = getLocalPlatform();
+            if (localPlat != nil) doBeforeTravelDiscovery(gPlayerChar.location);
+        }
+        
+        conn.noteTraversal(actor); 
+        oldLoc.notifyDeparture(actor, dest);
+        
+        doTravelMoveInto(traveler, dest);
+        
+        if (gPlayerChar.isOrIsIn(traveler)) {
+            local notifyList = dest.allContents.subset({o: o.ofKind(Actor)});
+            
+            notifyList.forEach({a: a.pcArrivalTurn = gTurns });
+            
+            if (dest.lookOnEnter(actor)) {
+                dest.lookAroundWithin();
+            }
+
+            local oppoPlat = getOppositePlatform();
+            if (oppoPlat != nil) doAfterTravelDiscovery(oppoPlat);
+        }
+        
+        if (dest != oldLoc) {               
+            conn.afterTravelNotifications(traveler);
+        }
+        
+        if (actor != gPlayerChar && actor.getOutermostRoom == oldLoc) {
+            actor.lastTravelInfo = oldTravelInfo;
+        }
+    }
+
+    doTravelMoveInto(traveler, dest) {
+        traveler.actionMoveInto(dest);
+    }
+
+    doBeforeTravelDiscovery(oldPlat) {
+        //
+    }
+
+    doAfterTravelDiscovery(newPlat) {
+        //
+    }
+
+    getLocalPlatform() {
         return nil;
     }
 
-    isConnectorApparent = (isApparentForParkour())
-
-    isApparentForParkour() {
-        // Not a valid provider
-        local realProvider = getParkourProvider(nil, nil);
-        if (realProvider == nil) return nil;
-
-        local actor = (gActor == nil ? gPlayerChar : gActor);
-
-        parkourCore.cacheParkourRunner(actor);
-        local pm = gParkourRunnerModule;
-        // Not ready for parkour of any kind
-        if (pm == nil) return nil;
-
-        // Not elligible for MY parkour!
-        if (actor.getParkourModule() == providerClient) return nil;
-
-        local lastPath = pm.getPathThrough(realProvider);
-        // No path available
-        if (lastPath == nil) return nil;
-        
-        // Path is known
-        return lastPath.isKnown;
-    }
-
-    travelVia(actor) {
-        parkourCore.cacheParkourRunner(actor);
-        execTravel(actor, gParkourRunner, self);               
-    }
-
-    execTravel(actor, traveler, conn) {
-        local newAction = nil;
-        if (canJumpOverMe) newAction = JumpOver;
-        if (canSlideUnderMe) newAction = SlideUnder;
-        if (canRunAcrossMe) newAction = RunAcross;
-        if (canSwingOnMe) newAction = SwingOn;
-        if (canSqueezeThroughMe) newAction = SqueezeThrough;
-
-        if (newAction == nil) return;
-
-        doNested(newAction, self);
+    getOppositePlatform() {
+        return nil;
     }
 }
 
-class ParkourBridgeMaker: ParkourLinkMaker {
-    backwardProvider = nil
-
-    createForwardPath() {
-        local tempForward = inherited();
-        if (tempForward.provider.ofKind(ParkourBridgeConnector)) {
-            tempForward.provider.providerClient = getTrueDestination().parkourModule;
-            tempForward.provider.destination = getTrueDestination().getOutermostRoom();
-        }
+#define TravelConnectorUsesParkour \
+    doTravelMoveInto(traveler, dest) { \
+        if (destinationPlatform != nil) { \
+            if (!destinationPlatform.ofKind(Room)) { \
+                local pm = destinationPlatform.parkourModule; \
+                if (pm == nil) { \
+                    traveler.actionMoveInto(destinationPlatform); \
+                    return; \
+                } \
+                else if (gOutStream.watchForOutput({: pm.checkParkour(traveler) }) == nil) { \
+                    gParkourLastPath = self; \
+                    pm.provideMoveFor(traveler); \
+                    return; \
+                } \
+            } \
+        } \
+        traveler.actionMoveInto(dest); \
+    } \
+    doBeforeTravelDiscovery(oldPlat) { \
+        learnOnlyLocalPlatform(self, say); \
+    } \
+    doAfterTravelDiscovery(newPlat) { \
+        newPlat.doParkourSearch(); \
+    } \
+    getLocalPlatform() { \
+        return self; \
+    } \
+    getOppositePlatform() { \
+        return oppositeLocalPlatform; \
     }
 
-    createBackwardPath() {
-        createdBackward = getNewPathObject(startBackwardKnown);
-        createdBackward.maker = self;
-        createdBackward.isBackward = true;
-        createdBackward.injectedPathDescription = backwardPathDescription;
-        createdBackward.injectedDiscoverMsg = discoverBackwardMsg;
-        createdBackward.injectedPerformMsg = performBackwardMsg;
-        createdBackward.injectedParkourBarriers = backwardParkourBarriers;
-        createdBackward.destination = getTrueLocation();
-        createdBackward.provider = backwardProvider;
-        createdBackward.requiresJump = requiresJumpBack;
-        createdBackward.isHarmful = isHarmfulBack;
-        switch (createdBackward.direction) {
-            case parkourUpDir:
-                createdBackward.direction = parkourDownDir;
-                break;
-            case parkourDownDir:
-                createdBackward.direction = parkourUpDir;
-                break;
-        }
-        createdForward.provider.shareReconWithProcedural.appendUnique(
-            createdBackward.provider
-        );
-        createdBackward.provider.shareReconWithProcedural.appendUnique(
-            createdForward.provider
-        );
-        getTrueDestination().parkourModule.addPath(createdBackward);
-        if (backwardProvider.ofKind(ParkourBridgeConnector)) {
-            backwardProvider.providerClient = getTrueLocation().parkourModule;
-            backwardProvider.destination = getTrueLocation().getOutermostRoom();
-        }
-        #ifdef __DEBUG
-        if (provider == backwardProvider && provider != nil) {
-            if (!provider.ofKind(MultiLoc)) {
-                "WARNING: There is a provider bridge (initialized in
-                <<location.getOutermostRoom().theName>>) which has a
-                matching forward provider and backward provider. There
-                are two likely mistakes at play here:\n
-                <ol>
-                <li>This single provider wasn't a MultiLoc.</li>
-                <li>A copy-and-paste error filled set the same provider
-                for both directions in a template.</li>
-                </ol>";
-            }
-        }
-        #endif
-    }
-}
-
-ProviderBridge template @provider ->destination @backwardProvider;
-class ProviderBridge: ParkourBridgeMaker {
-    direction = parkourOverDir
-}
-
-AwkwardProviderBridge template @provider ->destination @backwardProvider;
-class AwkwardProviderBridge: ParkourBridgeMaker {
-    direction = parkourOverDir
-    requiresJump = true
-}
-
-DangerousProviderBridge template @provider ->destination @backwardProvider;
-class DangerousProviderBridge: ParkourBridgeMaker {
-    direction = parkourOverDir
-    requiresJump = true
-    isHarmful = true
-}
-
-// Simple Handler Surfaces
 #define rerouteBasicClimbForPlatform(oldAction, cancelMsg) \
     dobjFor(oldAction) { \
         preCond = [actorInStagingLocation] \
@@ -3999,7 +3971,7 @@ class DangerousProviderBridge: ParkourBridgeMaker {
         remap = targetPlatform \
     }
 
-#define localPlatformAdjustMoveAction(inheritedRoot) \
+/*#define localPlatformAdjustMoveAction(inheritedRoot) \
     inheritedRoot \
     if (destinationPlatform != nil) { \
         if (!destinationPlatform.ofKind(Room)) { \
@@ -4015,30 +3987,22 @@ class DangerousProviderBridge: ParkourBridgeMaker {
                 pm.doParkourSearch(); \
             } \
         } \
-    }
+    }*/
 
-#define localPlatformAdjustMoveCheck \
+/*#define localPlatformAdjustMoveCheck \
     check() { \
         inherited(); \
         if (destinationPlatform != nil) { \
             local pm = destinationPlatform.parkourModule; \
             if (pm != nil) pm.checkParkour(gActor); \
         } \
-    }
+    }*/
 
-#define localPlatformAdjustMove \
+/*#define localPlatformAdjustMove \
     localPlatformAdjustMoveCheck \
     action() { \
         localPlatformAdjustMoveAction(inherited();) \
-    }
-
-#define learnTraversal(actor) \
-    noteTraversal(actor) { \
-        if (gPlayerChar.isOrIsIn(actor)) { \
-            learnLocalPlatform(self, say); \
-        } \
-        inherited(actor); \
-    }
+    }*/
 
 class LocalClimbPlatform: TravelConnector, Fixture {
     forcedLocalPlatform = true
@@ -4061,7 +4025,6 @@ class LocalClimbPlatform: TravelConnector, Fixture {
             [travelPermitted, actorInStagingLocation, objOpen] :
             [travelPermitted, actorInStagingLocation]
         )
-        localPlatformAdjustMove
     }
 
     dobjFor(Search) {
@@ -4073,7 +4036,7 @@ class LocalClimbPlatform: TravelConnector, Fixture {
         }
     }
 
-    learnTraversal(actor)
+    TravelConnectorUsesParkour
 }
 
 class ClimbUpPlatform: LocalClimbPlatform {
@@ -4151,7 +4114,6 @@ modify Door {
 
     dobjFor(GoThrough) {
         preCond = [travelPermitted, actorInStagingLocation, objOpen]
-        localPlatformAdjustMoveCheck
     }
 
     dobjFor(Open) {
@@ -4163,13 +4125,9 @@ modify Door {
         }
     }
 
-    learnTraversal(actor)
-
-    travelVia(actor) {
-        localPlatformAdjustMoveAction(inherited(actor););
-    }
-
     getParkourModule() {
         return location.parkourModule;
     }
+
+    TravelConnectorUsesParkour
 }

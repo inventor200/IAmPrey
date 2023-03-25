@@ -78,6 +78,7 @@ commonRoom: Room { 'The Common Room'
     Enrichment Room. "
 
     ceilingObj = commonRoomCeiling
+    wallsObj = topOfOtherWalls
     floorObj = carpetedFloor
 
     north = assemblyShop
@@ -97,6 +98,26 @@ commonRoom: Room { 'The Common Room'
 
     mapModeDirections = [&north, &south]
     familiar = roomsFamiliarByDefault
+
+    /*filterResolveList(np, cmd, mode) {
+        filterParkourList(np, cmd, mode, parkourModule);
+    }
+    
+    filterParkourList(np, cmd, mode, pm) {
+        if (np.matches.length > 1) {
+            local eastWallMatched = nil;
+            for (local i = 1; i <= np.matches.length; i++) {
+                local matchObj = np.matches[i].obj;
+                if (matchObj == topOfEastWall || matchObj == topOfEastWall.parkourModule) {
+                    eastWallMatched = true;
+                    break;
+                }
+            }
+            if (eastWallMatched) {
+                np.matches = np.matches.subset({m: m.obj != pm && m.obj != self });
+            }
+        }
+    }*/
 }
 
 +Unthing { 'two vents'
@@ -135,17 +156,31 @@ commonRoom: Room { 'The Common Room'
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
 
-+topOfEastWall: FixedPlatform { 'top[n] of[prep] the east wall;e northern north n half[weak];ledge[weak]'
++topOfEastWall: FixedPlatform { 'east wall;e northern north n half[weak] top[n] of[prep];ledge[weak]'
     "The northern half of the east wall is nearer to the primary vent.
     The southern half is actually angled toward the southwest.\b
     There seems to be enough of a ledge there to stand on. "
+
+    matchPhrases = ['east wall', 'e wall', 'wall']
+
+    isLikelyContainer() {
+        return true;
+    }
 }
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
 
-+topOfOtherWalls: Unthing { 'top[n] of[prep] the wall;west w south s north n'
++topOfOtherWalls: Unthing { 'wall[weak];west w south s north n top[n] of[prep] other'
     'Only the east wall seems to have a ledge. The upper and lower sections of the
     other walls are flush with each other. '
+
+    ambiguouslyPlural = true
+
+    matchPhrases = [
+        'west wall', 'w wall',
+        'north wall', 'n wall',
+        'south wall', 's wall'
+    ]
 }
 
 +chessTable: FixedPlatform { 'chess[weak] table'
@@ -195,3 +230,40 @@ administrationToCommonRoomVentGrate: VentGrateDoor {
         You grip the sides of the vent, and carefully find your footing
         on a convenient display shelf.<<end>> "
 }
+
+#ifdef __DEBUG
+// Only reproduces in Cat Mode
+Test
+    testName = 'LPKE1'
+    testList = [
+        'cl table', 'jm fridge', 'jm shelf',
+        'enter vent', 'enter vent',
+        'jump beam',
+        'jump east wall',
+        'jump beam', 'jump east wall',
+        'enter vent', 'n', 'd',
+        'cl cnc machine', 'd'
+    ]
+;
+Test
+    testName = 'LPKE2'
+    testList = [
+        'cl table', 'jm fridge', 'jm shelf',
+        'enter vent', 'enter vent',
+        'jump fridge',
+        'jump shelf'
+    ]
+;
+Test
+    testName = 'LPKE3'
+    testList = [
+        'cl table', 'jm fridge', 'jm shelf',
+        'enter vent', 'enter vent',
+        'jump fridge',
+        'jump shelf',
+        'enter vent', 'enter vent',
+        'jump beam',
+        'jump shelf'
+    ]
+;
+#endif

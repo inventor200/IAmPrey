@@ -459,10 +459,6 @@ roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings spa
     } \
     dobjFor(TravelVia) { \
         preCond = [travelPermitted, actorInStagingLocation] \
-        action() { \
-            inherited(); \
-            learnLocalPlatform(self, reportAfter); \
-        } \
     }
 
 #define windowResolveBlock \
