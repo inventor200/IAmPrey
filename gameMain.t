@@ -22,7 +22,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM northeastCubicle
+/*-*/  #define __TEST_ROOM ventilationNode
 ///////////////////////////////////////*||*\
 
 // End compile modes

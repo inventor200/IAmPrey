@@ -693,18 +693,16 @@ QParkour: Special {
         }
 
         // Don't worry about room connections
-        if (a.ofKind(Room) || b.ofKind(Room)) return issues;
+        //if (a.ofKind(Room) && b.ofKind(Room)) return issues;
 
         local aReach = a;
         local aItem = nil;
-        //local aItemReach = nil;
         local aLoc = nil;
         local aLocReach = nil;
         local doNotFactorJumpForA = nil;
 
         local bReach = b;
         local bItem = nil;
-        //local bItemReach = nil;
         local bLoc = nil;
         local bLocReach = nil;
         local doNotFactorJumpForB = nil;
@@ -778,11 +776,9 @@ QParkour: Special {
             aLoc = a.location;
             if (remapA != nil) {
                 aReach = remapA;
-                //aItemReach = remapA;
                 aLocReach = remapA.location;
             }
             else {
-                //aItemReach = aItem;
                 aLocReach = aLoc;
             }
             #if __PARKOUR_REACH_DEBUG
@@ -811,11 +807,9 @@ QParkour: Special {
             bLoc = b.location;
             if (remapB != nil) {
                 bReach = remapB;
-                //bItemReach = remapB;
                 bLocReach = remapB.location;
             }
             else {
-                //bItemReach = bItem;
                 bLocReach = bLoc;
             }
             #if __PARKOUR_REACH_DEBUG
@@ -2453,7 +2447,8 @@ modify Actor {
         verify() { \
             parkourCore.cacheParkourRunner(gActor); \
             local myOn = getStandardOn(); \
-            if(!gParkourRunner.isIn(myOn) || myOn.contType != On) { \
+            if(!gParkourRunner.isIn(myOn) || \
+                (myOn.contType != On && !myOn.ofKind(Room))) { \
                 illogicalNow(actorNotOnMsg); \
             } \
             handleFloorCheck(myOn) \

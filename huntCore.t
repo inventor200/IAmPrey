@@ -23,6 +23,8 @@ class DifficultySetting: object {
     skipPrologue = nil
     startingFreeTurnAlerts = 2
     turnsSkipsForFalling = 1
+    startingSkashekState = skashekIntroState
+    turnsBeforeSkashekDeploys = 10
 
     getBlurb() {
         local strBfr = new StringBuffer(12);
@@ -76,6 +78,7 @@ basicTutorialSetting: DifficultySetting {
         movement mechanics!</b>'
     isCatMode = true
     turnsSkipsForFalling = 0
+    startingSkashekState = skashekCatModeState
 }
 
 preyTutorialSetting: DifficultySetting {
@@ -84,6 +87,7 @@ preyTutorialSetting: DifficultySetting {
         'You are new to <i>I Am Prey</i>, and have not used the
         stealth or chase mechanics before.'
     hasSneak = true
+    turnsBeforeSkashekDeploys = 16
 }
 
 easyModeSetting: DifficultySetting {
@@ -94,6 +98,7 @@ easyModeSetting: DifficultySetting {
     trickCount = 2
     turnsBeforeSkashekChecks = 3
     startingFreeTurnAlerts = 1
+    turnsBeforeSkashekDeploys = 12
 }
 
 mediumModeSetting: DifficultySetting {
@@ -104,6 +109,7 @@ mediumModeSetting: DifficultySetting {
     trickCount = 1
     turnsBeforeSkashekChecks = 3
     startingFreeTurnAlerts = 0
+    turnsBeforeSkashekDeploys = 8
 }
 
 hardModeSetting: DifficultySetting {
@@ -116,6 +122,7 @@ hardModeSetting: DifficultySetting {
     turnsBeforeSkashekChecks = 2
     skipPrologue = true
     startingFreeTurnAlerts = 0
+    turnsBeforeSkashekDeploys = 4
 }
 
 nightmareModeSetting: DifficultySetting {
@@ -128,10 +135,13 @@ nightmareModeSetting: DifficultySetting {
     skipPrologue = true
     startingFreeTurnAlerts = 0
     turnsSkipsForFalling = 2
+    startingSkashekState = skashekReacquireState
+    turnsBeforeSkashekDeploys = 0
 }
 
 huntCore: InitObject {
     revokedFreeTurn = nil
+    playerWasSeenEntering = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
@@ -193,7 +203,12 @@ huntCore: InitObject {
         sneakyCore.allowSneak = difficultySettingObj.hasSneak;
         sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
         if (!midGame) {
-            freeTurnAlertsRemaining = difficultySettingObj.startingFreeTurnAlerts;
+            freeTurnAlertsRemaining =
+                difficultySettingObj.startingFreeTurnAlerts;
+            skashekAIControls.currentState =
+                difficultySettingObj.startingSkashekState;
+            skashekAIControls.currentState.needsGameStartSetup = true;
+            skashekAIControls.currentState.activate();
         }
     }
 
@@ -322,6 +337,8 @@ huntCore: InitObject {
         /*if (gTurns == 6) {
             doSkashekAction(Open, hallwayDoor);
         }*/
+        skashekAIControls.currentState.doTurn();
+        playerWasSeenEntering = nil;
     }
 
     // Perform any considerations for sound propagation
@@ -575,3 +592,22 @@ modify Door {
         "\^<<gSkashekName>> opens <<theName>>! ";
     }
 }
+
+modify Room {
+    travelerEntering(traveler, origin) {
+        inherited(traveler, origin);
+        if (gPlayerChar.isOrIsIn(traveler)) {
+            new Fuse(self, &checkAfterAttemptedTravel, 0);
+        }
+    }
+
+    checkAfterAttemptedTravel() {
+        if (gPlayerChar.getOutermostRoom() == self) {
+            if (skashek.canSee(gPlayerChar)) {
+                huntCore.playerWasSeenEntering = true;
+            }
+        }
+    }
+}
+
+#include "skashekAI/skashekAI.t"

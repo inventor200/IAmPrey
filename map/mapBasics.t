@@ -143,6 +143,8 @@ modify Room {
 
     observedRemotely = nil
 
+    lastPeekTurn = -1
+
     dobjFor(LookIn) asDobjFor(Search)
     dobjFor(LookThrough) asDobjFor(Search)
     dobjFor(Search) {
@@ -227,6 +229,14 @@ modify Room {
             // haven't looked in from outside before or haven't
             // visited before.
             botherToGiveDescription = !self.(obProp) || !visited;
+
+            // If we have looked in before, and it was last turn,
+            // then don't bother.
+            if (self.(obProp) && (
+                (gTurns == lastPeekTurn) || ((gTurns - 1) == lastPeekTurn)
+                )) {
+                botherToGiveDescription = nil;
+            }
         }
         else {
             // In brief mode, only give the description if we both
@@ -243,19 +253,20 @@ modify Room {
             lookedThru = true;
         }
 
-        if (lst.length == 0) {
-            "{I} {see} nothing<<if lookedThru>> else<<end>> <<locPhrase>>. ";
-            peekInto();
-            endObserveFrom(pov);
-            return;
-        }
-        "{I}<<if lookedThru>> also<<end>>{aac} {see} <<makeListStr(lst, &aName, 'and')>> <<locPhrase>>. ";
-        peekInto();
-        endObserveFrom(pov);
-    }
+        lastPeekTurn = gTurns;
 
-    endObserveFrom(pov) {
-        "<.p><i>(returning your attention to <<pov.getOutermostRoom().roomTitle>>...)</i><.p>";
+        if (lst.length == 0) {
+            if (!skashek.showsDuringPeek()) {
+                "{I} {see} nothing<<if lookedThru>> else<<end>> <<locPhrase>>. ";
+            }
+        }
+        else {
+            "{I}<<if lookedThru>> also<<end>>{aac} {see}
+            <<makeListStr(lst, &aName, 'and')>> <<locPhrase>>. ";
+        }
+        peekInto();
+        "<.p><i>(returning your attention to
+        <<pov.getOutermostRoom().roomTitle>>...)</i><.p>";
     }
 }
 
@@ -350,10 +361,7 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
 // If the player tries to refer to their surroundings by "room",
 // then this will ensure the outermost room always matches, even
 // if it does not contain the vocab for "room".
-roomRemapObject: MultiLoc, Thing { 'room;surrounding my[weak];surroundings space'
-    isDecoration = true
-    decorationActions = []
-
+roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings space'
     initialLocationClass = Room
 
     filterResolveList(np, cmd, mode) {

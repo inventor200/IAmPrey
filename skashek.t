@@ -67,6 +67,7 @@ skashek: Actor {
     outfit = skashekUniform
 
     hasSeenPreyStrip = nil
+    hasSeenPreyOutsideOfDeliveryRoom = nil
 
     witnessPreyStripping() {
         if (hasSeenPreyStrip) return;
@@ -179,5 +180,3 @@ skashek: Actor {
 
     owner = [skashek]
 }
-
-#include "skashekAI.t"

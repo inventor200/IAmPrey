@@ -42,6 +42,7 @@ skashekAIControls: object {
     bonusTurns = 0
     availableTurns = 0
     isFrozen = nil
+    currentState = skashekIntroState
 
     startTurn() {
         currentTurn += 1 + bonusTurns;
@@ -54,24 +55,80 @@ skashekAIControls: object {
     }
 }
 
+class SkashekAIState: object {
+    stateName = 'Unnamed State'
+    needsGameStartSetup = nil
+
+    activate() {
+        local prevState = skashekAIControls.currentState;
+        if (prevState != nil) prevState.end(self);
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>Skashek is entering a new state: <<stateName>> ";
+        #endif
+        skashekAIControls.currentState = self;
+        if (needsGameStartSetup) {
+            needsGameStartSetup = nil;
+            startGameFrom();
+        }
+        start(prevState);
+    }
+
+    startGameFrom() { }
+    start(prevState) { }
+    end(nextState) { }
+
+    // Run per-turn logic
+    doTurn() { }
+    // Process sounds
+    doPerception() { }
+    // Process player peeking at him
+    doPlayerPeek() { }
+    // Process player getting caught peeking
+    doPlayerCaughtLooking() { }
+    // Print desc from peek
+    describePeekedAction() { }
+    // Shows up during peek?
+    showsDuringPeek() {
+        return true;
+    }
+    // Will the player get caught peeking?
+    playerWillGetCaughtPeeking() {
+        return nil;
+    }
+}
+
 modify skashek {
     doPerception() {
-        //TODO: Handle Skashek sound perception
+        skashekAIControls.currentState.doPerception();
     }
 
     doPlayerPeek() {
-        //TODO: Player peeks in while he is in the room
+        skashekAIControls.currentState.doPlayerPeek();
+        if (playerWillGetCaughtPeeking()) {
+            huntCore.revokeFreeTurn();
+            doPlayerCaughtLooking();
+        }
     }
 
     doPlayerCaughtLooking() {
-        //TODO: The player sees Skashek through a grate or cat flap,
-        // but Skashek was ready!
-        //TODO: Do not accept this if it happened last turn
+        skashekAIControls.currentState.doPlayerCaughtLooking();
     }
 
     describePeekedAction() {
-        //TODO: Allow for him to be described according to his current action
-        "<.p><i>\^<<gSkashekName>> is in there!</i> ";
+        "<.p>";
+        skashekAIControls.currentState.describePeekedAction();
+    }
+
+    showsDuringPeek() {
+        return skashekAIControls.currentState.showsDuringPeek();
+    }
+
+    playerWillGetCaughtPeeking() {
+        return skashekAIControls.currentState.playerWillGetCaughtPeeking();
+    }
+
+    playerWasSeenEntering() {
+        return huntCore.playerWasSeenEntering;
     }
 
     getRoomFromGoalObject(goalObj) {
@@ -181,3 +238,10 @@ modify skashek {
         }
     }
 }
+
+#include "introState.t"
+#include "catModeState.t"
+#include "lurkState.t"
+#include "ambushState.t"
+#include "chaseState.t"
+#include "reacquireState.t"

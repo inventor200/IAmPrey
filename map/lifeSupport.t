@@ -183,7 +183,7 @@ lifeSupportSound: SoundProfile
     standardString =
         '<<one of>>noise<<or>>racket<<or>>din<<or>>activity<<at random>>
         of <<one of>>air moving through ducts<<or>>industrial fans<<or
-        >>industrious life support<<or>>the turbine pumps<<at random>>'
+        >>industrious life support<<at random>>'
 ;
 
 ambientLifeSupportNoiseRunner: InitObject {

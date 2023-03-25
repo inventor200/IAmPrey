@@ -1394,15 +1394,15 @@ DefineDistComponentFor(ProximityScanner, MaintenanceDoor)
 modify Room {
     hasDanger() {
         if (skashek.getOutermostRoom() == self) {
-            return canSee(skashek);
+            return skashek.showsDuringPeek();
         }
         return nil;
     }
 
     peekInto() {
         if (hasDanger()) {
-            skashek.describePeekedAction();
             skashek.doPlayerPeek();
+            skashek.describePeekedAction();
         }
         else {
             "<.p><i>Seems safe!</i> ";
