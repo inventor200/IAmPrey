@@ -206,7 +206,7 @@ commonRoom: Room { 'The Common Room'
 ++JumpUpLink ->displayShelf;
 
 commonRoomToAdministrationVentGrate: VentGrateDoor {
-    vocab = 'Administration ' + defaultVentVocab + ' west' + defaultVentVocabSuffix
+    vocab = 'Administration ' + defaultVentVocab + ' admin west' + defaultVentVocabSuffix
     location = displayShelf
     otherSide = administrationToCommonRoomVentGrate
 }
@@ -230,40 +230,3 @@ administrationToCommonRoomVentGrate: VentGrateDoor {
         You grip the sides of the vent, and carefully find your footing
         on a convenient display shelf.<<end>> "
 }
-
-#ifdef __DEBUG
-// Only reproduces in Cat Mode
-Test
-    testName = 'LPKE1'
-    testList = [
-        'cl table', 'jm fridge', 'jm shelf',
-        'enter vent', 'enter vent',
-        'jump beam',
-        'jump east wall',
-        'jump beam', 'jump east wall',
-        'enter vent', 'n', 'd',
-        'cl cnc machine', 'd'
-    ]
-;
-Test
-    testName = 'LPKE2'
-    testList = [
-        'cl table', 'jm fridge', 'jm shelf',
-        'enter vent', 'enter vent',
-        'jump fridge',
-        'jump shelf'
-    ]
-;
-Test
-    testName = 'LPKE3'
-    testList = [
-        'cl table', 'jm fridge', 'jm shelf',
-        'enter vent', 'enter vent',
-        'jump fridge',
-        'jump shelf',
-        'enter vent', 'enter vent',
-        'jump beam',
-        'jump shelf'
-    ]
-;
-#endif

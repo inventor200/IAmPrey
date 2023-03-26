@@ -450,9 +450,19 @@ modify Thing {
             doNested(SearchDistant, remapTarg);
         }
         else {
-            doNested(LookIn, remapTarg);
+            if (gActor.canReach(remapIn)) {
+                doNested(LookIn, remapTarg);
+            }
+            else {
+                reportLookTooFar();
+            }
             doubleCheckGenericSearch(remapTarg);
         }
+    }
+
+    reportLookTooFar() {
+        extraReport('\n(<<theName>> is too far away for a detailed look...)\n');
+        searchCore.reportedFailure = true;
     }
 
     dobjFor(SearchClose) {

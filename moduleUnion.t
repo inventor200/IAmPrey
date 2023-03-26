@@ -427,6 +427,8 @@ modify Thing {
 }
 
 modify Actor {
+    remappingSearch = true
+    remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(Search)
     dobjFor(PeekThrough) asDobjFor(Search)
     dobjFor(LookIn) asDobjFor(Search)
@@ -949,7 +951,16 @@ DefineDistSubComponentFor(FridgeRemapIn, Fridge, remapIn)
     matchPhrases = ['handle', 'bar', 'latch'] \
     addParentVocab(_lexParent) { \
         if (_lexParent != nil) { \
-            addVocab(';' + _lexParent.name + ';'); \
+            local lexParentWords = _lexParent.name.split(' '); \
+            local startIndex = 1; \
+            if (lexParentWords[1] == 'the' || lexParentWords[1] == 'a') { \
+                startIndex = 2; \
+            } \
+            local weakLexParentWords = lexParentWords[startIndex] + '[weak]'; \
+            for (local i = startIndex + 1; i <= lexParentWords.length; i++) { \
+                weakLexParentWords += ' ' + lexParentWords[i] + '[weak]'; \
+            } \
+            addVocab(';' + weakLexParentWords + ';'); \
         } \
     } \
     dobjFor(Taste) { \

@@ -48,7 +48,8 @@ DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the Server Access door')
 serverRoomTop: Room { 'The Chilled Server Room'
     "The room here would normally be engulfed in total darkness, if it weren't
     for light spilling in from the ladder, in addition to all the running lights
-    of the surrounding server banks. "
+    of the surrounding server banks. <<dataCableAlcove.desc>>\b
+    On the north wall, there is a cooling vent, filling the room with frigid air. "
 
     down = serverLadderTop
     out asExit(down)
@@ -58,15 +59,18 @@ serverRoomTop: Room { 'The Chilled Server Room'
 
     mapModeDirections = [&down]
     familiar = roomsFamiliarByDefault
+
+    RoomHasLadderDown(serverLadderTop)
 }
 
 //TODO: Refuse to break these
-+serverBanks: Decoration { 'server banks;;computers servers'
++serverBanks: Decoration { 'server bank;;computer server'
     "Large, black cabinets full of running computers, wired together in
     complex ways. Thick cables run from their tops, and feed into an alcove
     to the southeast.\b
     To the north, there is a large vent grate, which pumps freezing air into
     the room. "
+    ambiguouslyPlural = true
 }
 
 +serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening[weak] hatch[weak] hole[weak]'
@@ -86,9 +90,28 @@ serverRoomTop: Room { 'The Chilled Server Room'
 
 +dataCableAlcove: FixedPlatform { 'floor[n] of[prep] the alcove;data cable to[prep] delivery[n] room[weak] raised'
     "Part of the room is built atop the northwest corner of the Delivery Room,
-    which creates the shape of the raised alcove to the southeast. "
+    which creates the shape of a raised alcove to the southeast.<<
+    if gPlayerChar.isIn(dataCableAlcove)>>\b<<descFromAbove>><<end>> "
 
     simplyRerouteClimbInto = true
+
+    seenHoleFromHere = nil
+
+    descFromAbove =
+        'You can see an opening in the floor of the alcove,
+        where the cables feed into. '
+
+    showDescFromAbove() {
+        if (!gPlayerChar.isIn(dataCableAlcove)) return '';
+        return '\b' + descFromAbove;
+    }
+
+    doAccident(actor, traveler, path) {
+        inherited(actor, traveler, path);
+        if (seenHoleFromHere && !gameMain.verbose) return;
+        seenHoleFromHere = true;
+        say('<.p>' + descFromAbove + '<.p>');
+    }
 }
 ++AwkwardFloorHeight;
 ++dataCableServerExit: ClimbDownEnterPlatform { 'opening;extra[weak] in[prep] the floor[n] alcove[weak] cable[weak];hole hatch gap space[weak] exit'

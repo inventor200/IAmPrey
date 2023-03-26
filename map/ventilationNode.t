@@ -34,11 +34,16 @@ ventilationNode: Room { 'The Central Ventilation Node'
     west = commonRoomExitVentGrate
 }
 
-+Decoration { 'dried blood;favorite eating;spot place evidence meal food bones remains corpse'
++Decoration { 'dried blood;favorite eating;spot place evidence meal food'
     "<<if gCatMode
     >>The remains of my last meal!<<else
     >>Something probably ate a previous prey clone here...<<end>> "
     specialDesc = "A patch of dried blood and bones can be seen in the corner."
+}
+
++Decoration { 'bones;human clone;remains corpse hand bone'
+    "The bones of what could be a human hand, if the fingers were not so long. "
+    ambiguouslyPlural = true
 }
 
 +assemblyShopExitVentGrate: VentGrateDoor {

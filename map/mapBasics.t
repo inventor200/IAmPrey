@@ -144,6 +144,9 @@ modify Room {
     observedRemotely = nil
 
     lastPeekTurn = -1
+    
+    remappingSearch = true
+    remappingLookIn = true
 
     dobjFor(LookIn) asDobjFor(Search)
     dobjFor(LookThrough) asDobjFor(Search)
@@ -478,7 +481,7 @@ roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings spa
         otherSide = windowIn##localRoom \
         windowLookBlock(localRoom, otherSide.remoteHeader) \
         dobjFor(Break) { \
-            validate() { \
+            verify() { \
                 illogical(otherSide.breakMsg); \
             } \
         } \
@@ -497,7 +500,7 @@ roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings spa
         destination = outerRoom \
         windowLookBlock(outerRoom, remoteHeader) \
         dobjFor(Break) { \
-            validate() { \
+            verify() { \
                 illogical(breakMsg); \
             } \
         } \
@@ -512,7 +515,7 @@ roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings spa
         otherSide = windowIn##localRoom \
         windowLookBlock(localRoom, otherSide.remoteHeader) \
         dobjFor(Break) { \
-            validate() { \
+            verify() { \
                 illogical(otherSide.breakMsg); \
             } \
         } \
@@ -523,7 +526,7 @@ roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings spa
         otherSide = windowIn##outerRoom \
         windowLookBlock(outerRoom, remoteHeader) \
         dobjFor(Break) { \
-            validate() { \
+            verify() { \
                 illogical(breakMsg); \
             } \
         } \

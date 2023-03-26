@@ -19,7 +19,7 @@ utilityPassage: Room { 'The Utility Corridor'
     familiar = roomsFamiliarByDefault
 }
 
-+southUtilityPassageExit: MaintenanceDoor { 'the south-end exit door'
++southUtilityPassageExit: MaintenanceDoor { 'the south end exit door'
     desc = lockedDoorDescription
     otherSide = southUtilityPassageEntry
     soundSourceRepresentative = southUtilityPassageEntry
@@ -86,7 +86,7 @@ utilityPassage: Room { 'The Utility Corridor'
     }
 }
 
-southUtilityPassageEntry: MaintenanceDoor { 'the south-end access door' @southHall
+southUtilityPassageEntry: MaintenanceDoor { 'the Utility Corridor access door' @southHall
     desc = lockedDoorDescription
     otherSide = southUtilityPassageExit
     pullHandleSide = true

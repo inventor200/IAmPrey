@@ -1,3 +1,5 @@
+//#include "reflect.t"
+
 class ArtificialWomb: Fixture {
     desc = "A half-pipe of metal frame is suspended above a catch net.
     The inner surface of this frame must be coated in some kind of substrate,
@@ -11,6 +13,8 @@ class ArtificialWomb: Fixture {
     catchNet = nil
 
     filterResolveList(np, cmd, mode) {
+        //"<.p><<reflectionServices.valToSymbol(mode)>><.p>";
+
         if (np.matches.length <= 1) return;
 
         local shouldTruncate = nil;
@@ -26,6 +30,8 @@ class ArtificialWomb: Fixture {
         if (pluralWasMatched) {
             shouldTruncate = gActionIs(RunAcross);
         }
+
+        if (!shouldTruncate && mode == Indefinite) return;
 
         if (!shouldTruncate) {
             if (gActor.isDirectlyIn(deliveryRoomTowelRack)) {
@@ -53,6 +59,26 @@ class ArtificialWomb: Fixture {
 
     canBonusReachDuring(obj, action) {
         return obj == artificialWombs;
+    }
+
+    doParkourSearch() {
+        local doRunAcrossSearch = nil;
+        local extraReconTarget = nil;
+        if (gActor.isIn(northwestWomb.remapOn)) {
+            extraReconTarget = deliveryRoomTowelRack;
+            doRunAcrossSearch = self == southwestWomb;
+        }
+        else if (gActor.isIn(deliveryRoomTowelRack)) {
+            extraReconTarget = northwestWomb;
+            doRunAcrossSearch = self == northwestWomb || self == westWomb;
+        }
+
+        if (doRunAcrossSearch) {
+            artificialWombs.doRecon();
+            extraReconTarget.doRecon();
+        }
+
+        inherited();
     }
 }
 
@@ -303,6 +329,7 @@ deliveryRoom: Room { 'The Delivery Room'
 
     remapIn: SubComponent {
         isOpenable = nil
+        isEnterable = true
     }
     remapOn: SubComponent {
         isBoardable = true
@@ -339,6 +366,13 @@ deliveryRoom: Room { 'The Delivery Room'
             return obj == deliveryRoom || obj == makeupVanity;
         }
         return nil;
+    }
+
+    doParkourSearch() {
+        if (gActor.isIn(northwestWomb.remapOn)) {
+            artificialWombs.doRecon();
+        }
+        inherited();
     }
 }
 ++AwkwardFloorHeight;
@@ -501,6 +535,10 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
     desc = "Closer to the metal of the frame, the substrate is a solid, pink mass.
     As you look closer to the womb (in the heart of the frame), the pink deepens to red,
     as it transitions to bubbly, and then to stringy and veiny. "
+
+    isLikelyContainer() {
+        return true;
+    }
 }
 
 +Decoration {
@@ -509,6 +547,10 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
     curve, with the nanomaterial on the inside, which the biological part of the womb
     fuses to.\b
     The whole sheet is suspended from the ground by a complex system of springs and joints. "
+
+    isLikelyContainer() {
+        return true;
+    }
 }
 
 +genericTroughDrain: Decoration {

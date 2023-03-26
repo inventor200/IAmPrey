@@ -110,8 +110,6 @@ class AbstractDistributedComponent: object {
     }
 }
 
-//#include "reflect.t"
-
 class PrefabObject: object {
     // Filter matches
     filterResolveList(np, cmd, mode) {

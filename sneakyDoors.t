@@ -178,6 +178,7 @@ modify TravelAction {
         local loc = gActor.getOutermostRoom();
         local conn;
         local illum = loc.allowDarkTravel || loc.isIlluminated;
+        parkourCore.cacheParkourRunner(gActor);
         local traveler = parkourCore.currentParkourRunner;
         if (loc.propType(direction.dirProp) == TypeObject) {
             conn = loc.(direction.dirProp);
@@ -1254,6 +1255,7 @@ modify Door {
 
     allowPeek = (isOpen || hasDistCompCatFlap || isTransparent)
 
+    remappingSearch = true
     remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)
@@ -1356,6 +1358,7 @@ DefineDistComponentFor(CatFlap, Door)
         remap = lexicalParent
     }
 
+    remappingSearch = true
     remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(LookThrough)
     dobjFor(LookIn) asDobjFor(LookThrough)

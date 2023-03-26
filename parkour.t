@@ -471,6 +471,7 @@ DefineSystemAction(ShowAllParkourRoutes)
 
     execAction(cmd) {
         parkourCore.printParkourRoutes();
+        "\b";
         parkourCore.printLocalPlatforms();
     }
 ;
@@ -1083,6 +1084,10 @@ modify actorInStagingLocation {
             say('{I} need{s/ed} to be in a better spot to do that. ');
         }
         else {
+            local locRoom = realStagingLocation.getOutermostRoom();
+            if (locRoom != gActor.getOutermostRoom()) {
+                realStagingLocation = locRoom;
+            }
             say('{I} need{s/ed} to be
                 <<realStagingLocation.objInPrep>> <<realStagingLocation.theName>>
                 to do that. ');
@@ -1771,6 +1776,12 @@ modify Thing {
         return canReachResult;
     }
 
+    // Objects to inject into the list of locals
+    // This is used on the platform itself
+    getBonusLocalPlatforms() {
+        return nil;
+    }
+
     getLocalPlatforms() { // Used for actors and non-containers only
         local masterPlatform = location;
         if (masterPlatform == nil) return [];
@@ -1783,7 +1794,7 @@ modify Thing {
 
         if (masterPlatform == nil) return [];
 
-        local platList = [];
+        local platList = valToList(masterPlatform.getBonusLocalPlatforms());
         local contentList = valToList(masterPlatform.contents);
 
         // A local platform will be in the location's contents,
@@ -2273,6 +2284,11 @@ modify SubComponent {
         return playerClimbed;
     }
 
+    getBonusLocalPlatforms() {
+        if (lexicalParent != nil) return lexicalParent.getBonusLocalPlatforms();
+        return nil;
+    }
+
     #ifdef __DEBUG
     dobjFor(DebugCheckForContainer) {
         preCond = nil
@@ -2597,6 +2613,7 @@ class ParkourModule: SubComponent {
     }
 
     doParkourCheck(actor, path) {
+        parkourCore.cacheParkourRunner(actor);
         local source = gParkourRunnerModule;
 
         if (parkourCore.doParkourRunnerCheck(actor)) {
@@ -3034,8 +3051,13 @@ class ParkourModule: SubComponent {
             plat = plat.remapOn;
         }
 
+        local oldPlat = actor.location;
+
         actor.actionMoveInto(plat);
         markAsClimbed();
+
+        // Make sure the way back is known, too
+        oldPlat.doRecon();
     }
 
     getPathFrom(source, canBeUnknown?, allowProviders?) {
@@ -4092,3 +4114,16 @@ modify Door {
 
     TravelConnectorUsesParkour
 }
+
+#define RoomHasLadderDown(ladderObj) \
+    roomBeforeAction() { \
+        inherited(); \
+        local actionMatches = nil; \
+        if (gActionIs(ClimbDown)) actionMatches = true; \
+        else if (gActionIs(ParkourClimbOffIntransitive)) actionMatches = true; \
+        else if (gActionIs(ParkourJumpOffIntransitive)) actionMatches = true; \
+        if (actionMatches && gActor.location == self) { \
+            doInstead(ParkourClimbGeneric, ladderObj); \
+            exit; \
+        } \
+    }

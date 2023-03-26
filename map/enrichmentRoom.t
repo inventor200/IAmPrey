@@ -11,7 +11,7 @@ enrichmentRoom: Room { 'The Enrichment Room'
     familiar = roomsFamiliarByDefault
 }
 
-+southEnrichmentRoomDoorInterior: PrefabDoor { 'the south Enrichment Room door'
++southEnrichmentRoomDoorInterior: PrefabDoor { 'the Clone Sleeping Quarters door'
     desc = standardDoorDescription
     otherSide = southEnrichmentRoomDoorExterior
     pullHandleSide = true

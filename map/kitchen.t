@@ -69,6 +69,11 @@ kitchen: Room { 'The Kitchen'
             illogical(cannotCookMsg);
         }
     }
+
+    getBonusLocalPlatforms() {
+        if (kitchenVentGrate.isIn(kitchenStoveHood.remapIn)) return [kitchenVentGrate];
+        return nil;
+    }
 }
 ++LowFloorHeight;
 
@@ -200,6 +205,8 @@ kitchenVentGrate: StoveVentDoor {
     travelDesc = "It's awkward, but you climb up into the stove hood,
     and pull yourself through the small metal hatch you find inside.\b
     You land on a crate, on the other side of the wall. "
+
+    rerouteBasicJumpIntoForPlatform(ParkourJumpGeneric, GoThrough)
 }
 
 reservoirVentGrate: StoveVentDoor {

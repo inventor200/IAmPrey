@@ -154,7 +154,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
 }
 ++LowFloorHeight;
 
-+northReservoirCorridorExit: MaintenanceDoor { 'the exit door'
++northReservoirCorridorExit: MaintenanceDoor { 'the freezer door;exit'
     desc = lockedDoorDescription
     otherSide = northReservoirCorridorEntry
     soundSourceRepresentative = northReservoirCorridorEntry

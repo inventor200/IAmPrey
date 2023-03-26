@@ -11,7 +11,7 @@ labA: Room { 'Lab A'
     familiar = roomsFamiliarByDefault
 }
 
-+labAShelves: FixedPlatform { 'storage shelves;cargo;rack'
++labAShelves: FixedPlatform { 'storage shelf{shelves};cargo;rack'
     "Rough, metal shelves for storing boxes and equipment.
     They are arranged into an L-shape, to conform to the corner of
     the room. "

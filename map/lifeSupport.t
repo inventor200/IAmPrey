@@ -268,6 +268,8 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     mapModeDirections = [&down]
     mapModeLockedDoors = [northUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
+
+    RoomHasLadderDown(lifeSupportLadderTop)
 }
 
 +lifeSupportLadderTop: ClimbDownIntoPlatform { 'ladder'
@@ -296,6 +298,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     noDoorHereMsg = 'This segment of the duct has no access door. '
 
     remappingLookIn = true
+    remappingSearch = true
 
     decorationActions = [
         Examine, Open, Close, Enter, GoThrough,
@@ -306,10 +309,14 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     dobjFor(Enter) asDobjFor(Open)
     dobjFor(GoThrough) asDobjFor(Open)
     dobjFor(LookIn) asDobjFor(Open)
+    dobjFor(Search) asDobjFor(Open)
+    dobjFor(SearchClose) asDobjFor(Open)
+    dobjFor(SearchDistant) asDobjFor(Open)
     dobjFor(PeekThrough) asDobjFor(Open)
     dobjFor(PeekInto) asDobjFor(Open)
     dobjFor(Open) {
-        validate() {
+        preCond = [touchObj]
+        verify() {
             illogical(noDoorHereMsg);
         }
     }
@@ -435,7 +442,9 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
     passActionStr = 'exit'
 }
 
-coolingDuctUpperOuterGrate: CoolingDuctGrate { 'cooling outlet grate;access duct' @serverRoomTop
+coolingDuctUpperOuterGrate: CoolingDuctGrate {
+    vocab = 'cooling outlet ' + defaultVentVocab + ' access duct' + defaultVentVocabSuffix
+    location = serverRoomTop
     otherSide = coolingDuctUpperInnerGrate
 }
 
@@ -443,15 +452,25 @@ class CoolingDuctGrate: VentGrateDoor {
     airlockDoor = true
     isTransparent = true
 
+    catFailMsg = 
+        'As with other grates and vents, you are able to paw this one
+        open, but the breeze is colder than your old, kingly joints can
+        withstand.\bYou allow the grate to close, and you return to
+        the floor. '
+
     dobjFor(Open) {
         verify() {
             if (gActorIsCat) {
-                inaccessible(
-                    'As with other grates and vents, you are able to paw this one
-                    open, but the breeze is colder than your old, kingly joints can
-                    withstand.\bYou allow the grate to close, and you return to
-                    the floor. '
-                );
+                inaccessible(catFailMsg);
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(GoThrough) {
+        verify() {
+            if (gActorIsCat) {
+                inaccessible(catFailMsg);
             }
             inherited();
         }
