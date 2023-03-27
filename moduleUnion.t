@@ -88,15 +88,15 @@ modify Thing {
 
     canAttackWithMe = (isTakeable && gDobj == skashek)
     cannotAttackMsg = (gCatMode ?
-        'You like to think that you are a <i>merciful</i> ruler. '
+        '{I} like to think that {i} {am} a <i>merciful</i> ruler. '
         :
         'Maybe a human would do that,
-        but {i} {do} not see the tactical benefit. '
+        but {i} do not see the tactical benefit. '
     )
 
     cannotEnterMsg = (gCatMode ?
-        'You were once able to squeeze into remarkable places,
-        but you suppose you won\'t try it here. '
+        '{I} {was} once able to squeeze into remarkable places,
+        but {i} suppose {i} won\'t try it here. '
         :
         '{The subj dobj} {is} not something {i} {can} enter. '
     )
@@ -106,7 +106,7 @@ modify Thing {
     }
 
     doJumpPunishment(actor, traveler, path) {
-        actor.addExhaustion(2);
+        actor.addExhaustion(1);
 
         if (gActorIsCat) return; // Cats are silent!
         if (path.direction == parkourDownDir) {
@@ -128,7 +128,7 @@ modify Thing {
     }
 
     doHarmfulPunishment(actor, traveler, path) {
-        actor.addExhaustion(3);
+        actor.addExhaustion(1);
 
         if (gCatMode && actor == gPlayerChar) return; // Cats are silent!
         soundBleedCore.createSound(
@@ -138,7 +138,7 @@ modify Thing {
             actor == gPlayerChar
         );
 
-        extraReport('\n<i>(That will cost you a moment to recover...)</i>\n');
+        extraReport('\n<i>(That{dummy} will cost {me} a moment to recover...)</i>\n');
         huntCore.addBonusSkashekTurn(
             huntCore.difficultySettingObj.turnsSkipsForFalling
         );
@@ -148,9 +148,9 @@ modify Thing {
 
     verifyAttackBasically() {
         if (gActor == gDobj) {
-            illogical('You deserve better treatment than that.
-            <<if gCatMode>>You are a wonderful king, after all!<<else
-            >>You are already surviving longer than the vast majority
+            illogical('{I} deserve better treatment than that.
+            <<if gCatMode>>{I} {am} a wonderful king, after all!<<else
+            >>{I} {am} already surviving longer than the vast majority
             of previous prey clones!<<end>> &lt;3 ');
         } 
         else if (gActorIsPrey) {
@@ -182,7 +182,7 @@ modify Thing {
 
     selfPropulsionMsg = 'There{plural} {is} better ways{dummy} to move {myself} around. '
     catCannotMoveMsg = '{That dobj} {is} too heavy for an old king to move. '
-    pawsCannotPullMsg = 'Your paws will not let you pull anything. '
+    pawsCannotPullMsg = '{My} paws{dummy} will not let {me} pull anything. '
 
     verifyPushBasically() {
         if (gActor.isOrIsIn(self)) {
@@ -263,7 +263,7 @@ modify Thing {
         }
     }
 
-    noBounceRouteMsg = 'You do not think {that dobj} will bounce all the way down there. '
+    noBounceRouteMsg = '{I} do not think {that dobj} will bounce all the way down there. '
 
     dobjFor(Move) asDobjFor(Push)
     dobjFor(MoveTo) asDobjFor(Push)
@@ -284,9 +284,9 @@ modify Thing {
         check() { }
         action() {
             if (location.exitLocation == nil) {
-                "You push {the dobj} around
+                "{I} push {the dobj} around
                 <<location.objInPrep>> <<location.theName>>.
-                It seems to satisfy some urge in your mind. ";
+                It seems to satisfy some urge in {my} mind. ";
             }
             else {
                 local currentContainer = location;
@@ -313,7 +313,7 @@ modify Thing {
                             currentContainer = currentContainer.exitLocation;
                             if (!firstPush) {
                                 firstPush = true;
-                                "You push {the dobj}, and it falls to
+                                "{I} push {the dobj}, and it falls to
                                 <<currentContainer.theName>>. ";
                             }
                             else {
@@ -337,11 +337,11 @@ modify Thing {
                         }
                     }
                 }
-                "\bYou glare at {the dobj}. <<one of>>
-                You work so hard to make this house a home!<<or>>
-                You <i>know</i> that wasn't where you left {that dobj} yesterday...<<or>>
-                You decide {that dobj} <i>definitely</i> looks better there!<<or>>
-                You hate it when <<gSkashekName>> picks stuff up...
+                "\b{I} glare at {the dobj}. <<one of>>
+                {I} work so hard to make this house a home!<<or>>
+                {I} <i>know</i> that wasn't where {i} left {that dobj} yesterday...<<or>>
+                {I} decide {that dobj} <i>definitely</i> looks better there!<<or>>
+                {I} hate it when <<gSkashekName>> picks stuff up...
                 <<at random>> ";
             }
         }
@@ -351,7 +351,7 @@ modify Thing {
 
     catCannotPushOutMsg(currentContainer) {
         return '{That dobj} {is} being contained by
-            <<currentContainer.theName>>, and you cannot push it out! ';
+            <<currentContainer.theName>>, and {i} cannot push it out! ';
     }
 
     catPushFailure(currentContainer, isVerify?) {
@@ -366,8 +366,8 @@ modify Thing {
 
     cannotPushTravelMsg() {
         if (gActorIsCat) {
-            return 'You have no wish to push things anywhere,
-                but to the <i>floor</i>. ';
+            return '{I} have no wish to push things anywhere,
+                but to the <i>floor!</i> ';
         }
         return cannotPushMsg;
     }
@@ -435,7 +435,7 @@ modify Actor {
     dobjFor(Search) {
         verify() {
             if (gPlayerChar != self) {
-                inaccessible('{The dobj} will not let you search {him dobj}. ');
+                inaccessible('{The dobj}{dummy} will not let {me} search {him dobj}. ');
             }
             else {
                 logical;
@@ -613,9 +613,9 @@ class Mirror: Decoration {
         verify() {
             if (isSmashed) illogical('It\'s already broken. ');
             if (gActorIsCat) {
-                illogical('Your great wisdom advises against breaking the
-                    mirror. It\'s best to maintain the illusion of power in
-                    your old age. ');
+                illogical('{My} great wisdom advises against breaking the
+                    mirror. It\'s best to maintain the <i>illusion</i> of power in
+                    {my} old age, and save {my} energy for more urgent matters. ');
             }
             inherited();
         }
@@ -655,16 +655,16 @@ mirrorShards: MultiLoc, Decoration {
     isTakeable = true
     decorationActions = [Examine, Take, TakeFrom]
 
-    takeWarning = 'Your manufactured (but enhanced) instincts kick in.\b
+    takeWarning = '{My} manufactured (but enhanced) instincts kick in.\b
         There are missing chunks already, many of which look like they could have
-        been viable knives. From this, you conclude that you are not the first clone
+        been viable knives. From this, {i} conclude that {i} {am} not the first clone
         to think of this idea.\b
         However, <i>he</i> is still alive, which means the previous knife-wielders
-        died in their attempts. From this, you conclude that <<gSkashekName>> is
+        died in their attempts. From this, {i} deduce that <<gSkashekName>> is
         combat-trained, and/or has prepared defenses against this sort of attack.
-        If he sees you with a weapon, then any <q>rules of the game</q> he might
-        follow will surely be discarded quickly, and multiple instincts
-        refuse to let you walk so blatantly into this deathtrap.\b
+        If he{dummy} sees {me} with a weapon, then all <q>rules of the game</q>
+        will be quickly discarded. <i>Many</i> of {my} instincts{dummy}
+        refuse to let {me} walk so blatantly into this deathtrap.\b
         It\'s more tactical to take advantage of his <q>rules</q>. '
 
     dobjFor(TakeFrom) asDobjFor(Take)
@@ -672,7 +672,7 @@ mirrorShards: MultiLoc, Decoration {
         verify() {
             if (gActorIsPlayer) {
                 if (gCatMode) {
-                    illogical('You\'ll cut your mouth! ');
+                    illogical('{I}\'ll cut {my} mouth! ');
                 }
                 else if (!mirrorShard.gaveWarning && huntCore.difficulty != nightmareMode) {
                     mirrorShard.armWarning = true;
@@ -699,7 +699,7 @@ mirrorShards: MultiLoc, Decoration {
                     "Might as well. He can't get any <i>more</i> angry.\b";
                 }
                 else {
-                    "<i>Better not get caught,</i> you think to yourself.\b";
+                    "<i>Better not get caught,</i> {i} think to {myself}.\b";
                 }
             }
             inherited();
@@ -973,11 +973,11 @@ DefineDistSubComponentFor(FridgeRemapIn, Fridge, remapIn)
             } \
             else { \
                 gameMain.lickedHandle = true; \
-                "As your tongue leaves its surface, subtle flashbacks of someone \
-                else's memories pass through your mind, like muffled echoes.\b \
-                You think you remember a name, reaching out from the whispers:\b \
+                "As {my} tongue leaves its surface, subtle flashbacks of someone \
+                else's memories pass through {my} mind, like muffled echoes.\b \
+                {I} think {i} remember a name, reaching out from the whispers:\b \
                 <center><i><q>Rovarsson...</q></i></center>\b \
-                You're not really sure what to make of that. Probably should not \
+                {I}{'m} not really sure what to make of that. Probably should not \
                 lick random handles anymore, though. "; \
             } \
         } \

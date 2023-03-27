@@ -268,7 +268,7 @@ modify Room {
             <<makeListStr(lst, &aName, 'and')>> <<locPhrase>>. ";
         }
         peekInto();
-        "<.p><i>(returning your attention to
+        "<.p><i>(returning {my} attention to
         <<pov.getOutermostRoom().roomTitle>>...)</i><.p>";
     }
 }
@@ -309,7 +309,7 @@ class Ceiling: MultiLoc, Thing {
 defaultCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles frame[weak] lights'
     "Industrial panels of expanded polystyrene foam create the ceiling here. "
     ambiguouslyPlural = true
-    notImportantMsg = '{That dobj} {is} too far above you. '
+    notImportantMsg = '{That dobj} {is} too far{dummy} above {me}. '
 }
 
 industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[weak];sections[weak]'
@@ -347,17 +347,17 @@ freezingAtmosphere: Atmosphere { 'air;;atmosphere breeze wind fog mist breath fr
 }
 
 dreamWorldPrey: Room { 'The Artificial Dream'
-    "You begin to wake up... "
+    "{I} begin to wake up... "
     isFamiliar = nil
 }
 
 dreamWorldCat: Room { 'The Dream of Memories'
-    "You begin to wake up... "
+    "{I} begin to wake up... "
     isFamiliar = nil
 }
 
 dreamWorldSkashek: Room { 'The Dream of Starvation'
-    "You begin to wake up... "
+    "{I} begin to wake up... "
     isFamiliar = nil
 }
 

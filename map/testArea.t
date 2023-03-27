@@ -165,7 +165,7 @@ TEST_centralRoom: Room { 'Central Room'
     dobjFor(PeekThrough) asDobjFor(LookThrough)
     dobjFor(LookThrough) {
         action() {
-            "You peek through the porthole. ";
+            "{I} peek through the porthole. ";
         }
         report() { }
     }

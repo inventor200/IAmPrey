@@ -4,7 +4,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     north = southEnrichmentRoomDoorExterior
 
     muffleEast = utilityPassage
-    southMuffle = southHall
+    //southeastMuffle = southwestishHall
 
     ceilingObj = industrialCeiling
     floorObj = carpetedFloor
@@ -137,9 +137,9 @@ underBedWallPipes: PassablePipes { cloneQuartersPipesVocab
     matchPhrases = pipesMatchList
 
     travelDesc = "<<if gCatMode
-        >>You easily slip between the pipes in the wall<<else
-        >>It's a tight squeeze, but you manage to fit between the pipes
-        in the wall<<end>>, and find yourself standing in the utility
+        >>{I} easily slip between the pipes in the wall<<else
+        >>It's a tight squeeze, but {i} manage to fit between the pipes
+        in the wall<<end>>, and find {myself} standing in the utility
         corridor, on the other side. "
 
     spotFromOtherSide() {

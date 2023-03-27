@@ -208,18 +208,19 @@ deliveryRoom: Room { 'The Delivery Room'
         if (gCatMode) return '';
         local openingLine =
             '<.p><b>Happy birthday!</b>
-            <i>You are drenched in a mix of embryonic slime and water!</i>';
+            <i>{I} {am} drenched in a mix of embryonic slime and water!</i>';
         if (huntCore.difficulty == hardMode || huntCore.difficulty == nightmareMode) {
             return openingLine;
         }
         return '<<openingLine>>\b
-            You cough, but it transforms into vomiting, and most of it lands on
-            your own body. You seem to be cradled in some kind of large,
-            rubbery fishnet mesh, likely designed to catch newborns like you.\b
+            {I} cough, but it transforms into vomiting, and most of it lands on
+            {my} own body. {I} seem to be cradled in some kind of large,
+            rubbery fishnet mesh,
+            likely{dummy} designed to catch newborns like {me}.\b
             Human newborns are tiny, and cry when entering the world.
             Clone newborns seem to arrive fully-grown&mdash;if
-            your factory-standard memories are
-            reliable in that regard&mdash;and so far you have been a bit too
+            {my} factory-standard memories are
+            reliable in that regard&mdash;and so far {i} have been a bit too
             delirious to do much of anything.';
     }
 
@@ -395,8 +396,8 @@ deliveryRoom: Room { 'The Delivery Room'
     iobjFor(DryOffWith) {
         report() {
             if (gActorIsCat) {
-                "You try to get a hold, but your claw get stuck.
-                After a moment of panic, you are free again. ";
+                "{I} try to get a hold, but {my} claw get stuck.
+                After a moment of panic, {i} {am} free again. ";
             }
             else {
                 inherited();
@@ -410,14 +411,14 @@ deliveryRoom: Room { 'The Delivery Room'
     +objectName: ArtificialWomb { vocab \
         doAccident(actor, traveler, path) { \
             if (gCatMode) { \
-                "<.p>You run across the wombs, careful to not stay on each one \
-                for too long. Upon reaching the northwest one, you dig your claws \
-                into the thick insulation of the cables, and put half of your \
-                bodyweight on them for support. The womb frame below your \
+                "<.p>{I} run across the wombs, careful to not stay on each one \
+                for too long. Upon reaching the northwest one, {i} dig {my} claws \
+                into the thick insulation of the cables, and put half of {my} \
+                bodyweight on them for support. The womb frame below {my} \
                 back legs gradually halts its infuriating jostling. "; \
             } \
             else { \
-                "<.p>You arrive on the northwest womb, and hold onto the \
+                "<.p>{I} arrive on the northwest womb, and hold onto the \
                 nearby cables for stability, as they're the closest thing \
                 in reach. "; \
             } \
@@ -434,19 +435,19 @@ deliveryRoom: Room { 'The Delivery Room'
         doAccident(actor, traveler, path) { \
             traveler.moveInto(deliveryRoom); \
             if (gCatMode) { \
-                "<.p>You tentatively step onto the frame of <<theName>>, \
+                "<.p>{I} tentatively step onto the frame of <<theName>>, \
                 but its springy design causes it to bounce slightly in \
-                response. The instability hurts your joints too much to \
-                remain, so you elect to hop down to the safety of the \
+                response. The instability hurts {my} joints too much to \
+                remain, so {i} elect to hop down to the safety of the \
                 floor below."; \
             } \
             else { \
                 traveler.addExhaustion(1); \
-                "<.p>You take a step onto the frame of <<theName>>, and its \
-                springy design causes you to lose your balance, and \
-                you land hard on the floor."; \
+                "<.p>{I} take a step onto the frame of <<theName>>, and its \
+                springy design{dummy} causes {me} to lose {my} balance. \
+                {I} land hard on the floor."; \
             } \
-            "\b<i>You might need to cross the wombs with more speed. \
+            "\b<i>{I} might need to cross the wombs with more speed. \
             The cables above the northwest womb looks like a source of \
             stability...</i> "; \
         } \
@@ -489,7 +490,7 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
         report() {
             inherited();
             if (gActorIsPrey && prey.wetness > 0) {
-                "\bYour soaked form rains strings and droplets of fluid
+                "\b{My} soaked form rains strings and droplets of fluid
                 across the floor. ";
             }
         }
@@ -502,11 +503,11 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
             if (gActorIsPrey) {
                 if (prey.hasLeftTheNet) {
                     illogical('It\'s too late;
-                        you have already chosen adulthood! ');
+                        {i} have already chosen adulthood! ');
                 }
             }
             else if (gActorIsCat) {
-                illogical('You might slip through, and land in the
+                illogical('{I} might slip through, and land in the
                     trough of goo underneath. ');
             }
             inherited();
@@ -533,7 +534,7 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
 +Decoration {
     vocab = expandComponentVocab('substrate', 'womb fleshy', 'parts[weak]')
     desc = "Closer to the metal of the frame, the substrate is a solid, pink mass.
-    As you look closer to the womb (in the heart of the frame), the pink deepens to red,
+    As {i} look closer to the womb (in the heart of the frame), the pink deepens to red,
     as it transitions to bubbly, and then to stringy and veiny. "
 
     isLikelyContainer() {
@@ -563,7 +564,7 @@ createArtificialWomb(Simple, southwestWomb, 'southwest artificial[weak] womb;sw 
 deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n];hole hatch gap space[weak]'
     "There is a wide opening or hatch in the ceiling, above the northwest artificial womb.
     From it, data cables spill out.\b
-    You notice some extra space around the cables, as if there
+    {I} notice some extra space around the cables, as if there
     are too few of them being threaded through. This also explains the cold air
     spilling out from the room beyond. "
     location = northwestWomb
@@ -588,8 +589,8 @@ deliveryRoomCables: ClimbUpPlatform { 'cables;server black dark insulated data t
 }
 
 wombFluidTraces: Decoration { 'puddle;wet water;droplet string fluid'
-    "You seem to have left a wet trace of yourself here.<<if gPlayerChar.wetness > 0
-    >> You might want to dry off, before attempting to run or hide.<<end>> "
+    "{I} seem to have left a wet trace of {myself} here.<<if gPlayerChar.wetness > 0
+    >> {I} might want to dry off, before attempting to run or hide.<<end>> "
     ambiguouslyPlural = true
     isListed = true
     canDryMe = true

@@ -15,12 +15,12 @@ ventDuctFloor: Floor {
 }
 
 ventilationNode: Room { 'The Central Ventilation Node'
-    "<<if !gCatMode>>You find that you have to crawl here, confined to a
+    "<<if !gCatMode>>{I} find that {i} have to crawl here, confined to a
     claustrophobic duct of metal panels.<<end>>
     The Central Ventilation Node is the heart of air circulation systems
-    for the core facility rooms. <<if gCatMode>>It also serves as your
-    favorite eating spot!<<end>> There is hardly any light here, which forces
-    you to rely entirely on your natural night vision.\b
+    for the core facility rooms. <<if gCatMode>>It also serves as {my}
+    favorite eating spot!<<end>> There is hardly any light here,
+    which{dummy} forces {me} to rely entirely on {my} natural night vision.\b
     The ducts contort into four directions: <<hyperDir('north')>> to
     the Assembly Shop, <<hyperDir('east')>> to Lab A, <<hyperDir('south')>>
     to Life Support, and <<hyperDir('west')>> to the Common Room. "
@@ -51,14 +51,14 @@ ventilationNode: Room { 'The Central Ventilation Node'
     otherSide = assemblyShopNodeGrate
     isConnectorListed = true
 
-    travelDesc = "You climb through, and land on a CNC machine in the Assembly Shop. "
+    travelDesc = "{I} climb through, and land on a CNC machine in the Assembly Shop. "
 }
 +lifeSupportTopExitVentGrate: VentGrateDoor {
     vocab = 'Life Support ' + defaultVentVocab + defaultVentVocabSuffix
     otherSide = lifeSupportTopNodeGrate
     isConnectorListed = true
 
-    travelDesc = "You climb through, and find yourself on the structure of the
+    travelDesc = "{I} climb through, and find {myself} on the structure of the
     primary fan unit. "
 }
 +labAExitVentGrate: VentGrateDoor {
@@ -75,17 +75,17 @@ ventilationNode: Room { 'The Central Ventilation Node'
 
     travelDesc = "<<if gCatMode
         >><<if commonRoom.getVentSurprise()
-        >>You know the route well.\b
-        <<end>>You smoothly exit the Ventilation Node,
-        and skillfully find your footing on the ledge.\b
+        >>{I} know the route well.\b
+        <<end>>{I} smoothly exit the Ventilation Node,
+        and skillfully find {my} footing on the ledge.\b
         <<else>><<if commonRoom.getVentSurprise()
-        >>You damn-near have a heart attack.\b
+        >>{I} damn-near have a heart attack.\b
         <<end>>
         The path abruptly ends with a sharp drop to the floor, far below.
-        You grip the sides of the vent, and carefully find your footing
+        {I} grip the sides of the vent, and carefully find {my} footing
         on the ledge.\b
         <<end>>
-        You are now atop the east wall; the only wall in the
+        {I} {am} now atop the east wall; the only wall in the
         room where the upper and lower sections aren't flush with each other. "
 }
 
@@ -114,11 +114,11 @@ commonRoomNodeGrate: VentGrateDoor {
     soundSourceRepresentative = (otherSide)
 
     travelDesc = "<<if gCatMode
-        >>You gracefully slip<<else
-        >>You carefully (and awkwardly) shuffle atop
+        >>{I} gracefully slip<<else
+        >>{I} carefully (and awkwardly) shuffle atop
         the narrow ledge of the east wall, and climb<<end>>
-        through the vent grate. It's only another meter before you reach
-        <<if gCatMode>>your favorite eating spot:
+        through the vent grate. It's only another meter before {i} reach
+        <<if gCatMode>>{my} favorite eating spot:
         The Central Ventilation Node.<<else>>
         the Central Ventilation Node.<<end>> "
 }
@@ -139,7 +139,7 @@ class VentGrateDoor: PrefabDoor {
     dobjFor(Open) {
         report() {
             if (gActorIsCat) {
-                "You open <<theName>> with your paws. ";
+                "{I} open <<theName>> with {my} paws. ";
             }
             else {
                 inherited();

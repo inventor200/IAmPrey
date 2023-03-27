@@ -315,7 +315,7 @@ modify Thing {
     alsoDistantSearchDesc = "However, {he subj dobj} seem{s/ed} safe from here. "
 
     noSearchResultsAtAllMsg =
-        'You find nothing of interest about {the dobj}. ';
+        '{I} find nothing of interest about {the dobj}. ';
     
     remappingSearch = nil
     remappingLookIn = nil
@@ -714,7 +714,7 @@ DefineDistComponent(ContainerGrate)
     distComponentOwnerNamed = nil
 
     desc = "A small metal frame with horizontal slits machined into it.
-        You might be able to look through it."
+        {I} might be able to look through it."
 
     decorationActions = [Examine, PeekThrough, LookThrough, PeekInto, Search, LookIn]
 

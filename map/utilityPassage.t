@@ -44,8 +44,8 @@ utilityPassage: Room { 'The Utility Corridor'
     specialDesc = "Some pipes are exposed through a hole in the west wall. "
 
     travelDesc = "<<if gCatMode
-        >>You easily slip between the pipes in the wall<<else
-        >>It's a tight squeeze, but you manage to fit between the pipes
+        >>{I} easily slip between the pipes in the wall<<else
+        >>It's a tight squeeze, but {i} manage to fit between the pipes
         in the wall<<end>>, and crawl under a bed on the other side. "
 
     observedHistory = nil
@@ -53,10 +53,10 @@ utilityPassage: Room { 'The Utility Corridor'
     observeHistory() {
         if (observedHistory) return '';
         observedHistory = true;
-        if (gCatMode) return 'You remember watching the original citizens doing
+        if (gCatMode) return '{I} remember watching the original citizens doing
             this, just before the killing started.
-            You were not sure of the <i>reason</i>, but it\'s safe to assume that it was
-            important to your kingdom, somehow. They tried to hide this, originally,
+            {I} {was} not sure of the <i>reason</i>, but it\'s safe to assume that it was
+            important to {my} kingdom, somehow. They tried to hide this, originally,
             but <<gSkashekName>> eventually left it exposed.';
         return '';
     }
@@ -86,7 +86,7 @@ utilityPassage: Room { 'The Utility Corridor'
     }
 }
 
-southUtilityPassageEntry: MaintenanceDoor { 'the Utility Corridor access door' @southHall
+southUtilityPassageEntry: MaintenanceDoor { 'the Utility Corridor access door' @southwestishHall
     desc = lockedDoorDescription
     otherSide = southUtilityPassageExit
     pullHandleSide = true

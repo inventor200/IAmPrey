@@ -9,7 +9,7 @@ commonRoomCeiling: industrialCeiling {
     notImportantMsg = (gActor.isIn(exposedSupportBeam) ?
         '{The dobj} {is} not important. '
         :
-        '{That dobj} {is} too far above you. '
+        '{That dobj} {is} too far{dummy} above {me}. '
     )
     
     contType = On
@@ -24,9 +24,9 @@ commonRoomCeiling: industrialCeiling {
     <<if gCatMode
     >>It used to be hidden behind the ceiling tiles, but <<gSkashekName>> tore them
     all out&mdash;along with a ventilation duct&mdash;long ago.
-    You used to be able to run through
-    that duct to go between administration and your secret eating spot.\b
-    You still have a route, though, but it's trickier for your old bones.<<else
+    {I} used to be able to run through
+    that duct to go between administration and {my} secret eating spot.\b
+    {I} still have a route, though, but it's trickier for {my} old bones.<<else
     >>It could have once secured a length of east-west ventilation duct,
     connecting the west vent to the east vent of this room.
     It was likely hidden behind ceiling tiles (which are also missing).<<end>> "
@@ -41,7 +41,8 @@ commonRoomCeiling: industrialCeiling {
         preCond = [touchObj]
         verify() {
             inaccessible('The beam runs orthogonal to the line between the west
-            vent and east vent. Running across the beam will just move you between
+            vent and east vent.
+            Running across the beam{dummy} will just move {me} between
             the north and south walls. ');
         }
     }
@@ -49,11 +50,11 @@ commonRoomCeiling: industrialCeiling {
     doAccident(actor, traveler, path) {
         "<.p>It's<<if gCatMode>>
         <<one of>>rough<<or>>hard<<or>>awkward<<or>>painful<<at random>>,
-        but you leap across the divide, and come to a careful landing on the beam.
-        You do a quick stretch before continuing.
+        but {i} leap across the divide, and come to a careful landing on the beam.
+        {I} do a quick stretch before continuing.
         <<else>>
-        terrifying, but you jump across the divide, and catch yourself on the
-        beam. You manage to pull yourself up, and find your balance.
+        terrifying, but {i} jump across the divide, and catch {myself} on the
+        beam. {I} manage to pull {myself} up, and find {my} balance.
         <<end>>";
     }
 }
@@ -61,11 +62,11 @@ commonRoomCeiling: industrialCeiling {
 
 commonRoom: Room { 'The Common Room'
     "<<if gCatMode
-    >>You remember when <<gSkashekName>> went absolutely <i>wild</i> in here
+    >>{I} remember when <<gSkashekName>> went absolutely <i>wild</i> in here
     for a few days. He tore out all the ceiling tiles, and ripped out a length
     of ventilation duct, leaving a support beam and two vents exposed.
-    That duct was your route from Administration to your favorite eating spot,
-    and you're still grumpy about it.
+    That duct was {my} route from Administration to {my} favorite eating spot,
+    and {i}{'m} still grumpy about it.
     <<else
     >>This room looks like it's being renovated, except all the tools and
     scraps of trash are nowhere to be found. Someone seems to have torn out
@@ -142,7 +143,7 @@ commonRoom: Room { 'The Common Room'
 }
 
 +missingVentilationDuct: Unthing { 'missing ventilation duct;east-west east west length;shaft'
-    '<<if gCatMode>>You remember<<else>>Evidence indicates<<end>>
+    '<<if gCatMode>>{I} remember<<else>>Evidence indicates<<end>>
     that a length of ventilation duct used to connect
     what are now the west and east vent grates.
     It\'s gone now, though.<<if gCatMode>> <<gSkashekName>> tore it all down
@@ -220,13 +221,13 @@ administrationToCommonRoomVentGrate: VentGrateDoor {
 
     travelDesc = "<<if gCatMode
         >><<if commonRoom.getVentSurprise()
-        >>You know the route well.\b
+        >>{I} know the route well.\b
         <<end>>Passing from Administration, in one practiced motion,
-        you find yourself on a display shelf, high above the floor.<<
+        {i} find {myself} on a display shelf, high above the floor.<<
         else>><<if commonRoom.getVentSurprise()
-        >>Your heart lurches.\b
+        >>{My} heart lurches.\b
         <<end>>
         The path abruptly ends with a sharp drop to the floor, far below.
-        You grip the sides of the vent, and carefully find your footing
+        {I} grip the sides of the vent, and carefully find {my} footing
         on a convenient display shelf.<<end>> "
 }

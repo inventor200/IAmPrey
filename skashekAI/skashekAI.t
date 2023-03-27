@@ -98,6 +98,10 @@ class SkashekAIState: object {
 }
 
 modify skashek {
+    doTurn() {
+        skashekAIControls.currentState.doTurn();
+    }
+
     doPerception() {
         skashekAIControls.currentState.doPerception();
     }

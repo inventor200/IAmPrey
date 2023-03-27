@@ -44,10 +44,10 @@ skashekIntroState: SkashekAIState {
             else {
                 "<<gSkashekName>> is...gone?\b
                 <i>Then, his face is centimeters
-                away from your own.</i>\b
+                away from {my} own.</i>\b
                 <q>Fucking <i>run</i>, Prey!</q> he commands.
                 He's close enough to smell the kelp on his breath.\b
-                Your head-start has ended, and the chase has begun. ";
+                {My} head-start has ended, and the chase has begun. ";
                 startWithChase = true;
                 countdownBeforeStart = 0;
             }
@@ -59,16 +59,16 @@ skashekIntroState: SkashekAIState {
                 skashek.hasSeenPreyOutsideOfDeliveryRoom = true;
                 "<<gSkashekName>> is sitting at the breakroom table,
                 munching on strange, ghostly-white kelp.\b
-                He's probably getting ready to hunt you...\b
-                He doesn't notice you at first, and looks deep in thought.
-                Then, his eyes locked onto your own, and the reddish glow
+                He's probably getting ready to hunt{dummy} {me}...\b
+                He{dummy} doesn't notice {me} at first, and looks deep in thought.
+                Then, his eyes locked onto {my} own, and the reddish glow
                 of his night vision look like activation lights.
                 He swallows his mouthful of kelp,
                 visibly <i>hating</i> the taste.\b";
             }
             else {
-                "<<gSkashekName>> was ready for you to peek again,
-                eyes already trained on you.\b";
+                "<<gSkashekName>> was ready{dummy} for {me} to peek again,
+                eyes{dummy} already trained on {me}.\b";
             }
         }
 
@@ -79,7 +79,7 @@ skashekIntroState: SkashekAIState {
                 <i>really</i> start running away from me...</q>";
                 return;
             }
-            "<q>Prey,</q> he says, eyes locked on yours,
+            "<q>Prey,</q> he says, eyes locked on {mine},
             <q>I am giving you a golden opportunity here.
             I suggest you take full advantage of it, if you know
             what's good for you.</q>";

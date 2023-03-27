@@ -535,7 +535,7 @@ parkourCore: object {
         local strBfr = new StringBuffer(5);
         strBfr.append('\t<i><b>Bullet Symbol Key:</b></i>\n');
         strBfr.append('\t<b><tt>[!*]</tt></b> = dangerous jump\n');
-        strBfr.append('\t<b><tt>[!!]</tt></b> = dangerous climb\n');
+        strBfr.append('\t<b><tt>[!&gt;]</tt></b> = dangerous climb\n');
         strBfr.append('\t<b><tt>[**]</tt></b> = jump\n');
         strBfr.append('\t<b><tt>[&gt;&gt;]</tt></b> = simple climb<.p>');
         return toString(strBfr);

@@ -35,7 +35,7 @@ modify Thing {
                 illogical('How un-regal! ');
             }
             else {
-                illogical('Maybe your affection should be applied elsewhere. ');
+                illogical('Maybe {my} affection should be applied elsewhere. ');
             }
         }
     }
@@ -80,66 +80,67 @@ skashek: Actor {
     //Reckless actions lol
     getCombatPreface() {
         return '<i>It all happened so fast.</i>\b
-            Every tactical instinct in you said it was a bad idea. You were made
-            for <i>killing</i>, sure, but this felt like running headfirst into
-            death. Maybe a <i>human</i> would be so reckless, but you were
+            Every tactical instinct{dummy} in {me} said it was a bad idea.
+            {I} {was} made for <i>killing</i>, sure, but this felt like
+            running headfirst into death.
+            Maybe a <i>human</i> would be so reckless, but {i} {was}
             programmed to weigh the costs and benefits before deploying
             violence.\b
-            However, despite your instincts, your conscious mind had decided
+            However, despite {my} instincts, {my} conscious mind had decided
             that <i>this</i> was the <i>sensible</i> course of action.\b';
     }
 
     getMisunderstoodAffectionBeginning(bodyPart, actionStr) {
-        return 'You decide to push the limits of what is thought to be
+        return '{I} decide to push the limits of what is thought to be
             possible.\b
-            You approach, <<bodyPart>> at the ready, and...\b
-            <i>...he thought you were attempting to <<actionStr>> him.</i>\b';
+            {I} approach, <<bodyPart>> at the ready, and...\b
+            <i>...he thought {i} {was} attempting to <<actionStr>> him.</i>\b';
     }
 
     getMisunderstoodAffectionEnding() {
-        return '\bYou collapse to <<getOutermostRoom().floorObj.theName>>,
+        return '\b{I} collapse to <<getOutermostRoom().floorObj.theName>>,
         overwhelmed by pain, shock, and <i>rejection</i>.\b
         <q>What the <i>fuck</i>, Prey?</q> he demands, now realizing what
-        you were trying to do. With a deep sigh, he looks over your crumpled
+        {i} {was} trying to do. With a deep sigh, he looks over {my} crumpled
         form, deciding what to do next.\b
-        He rolls his eyes in disappointment, raises his boot over your skull,
-        and swiftly ends your existence.';
+        He rolls his eyes in disappointment, raises his boot over {my} skull,
+        and swiftly ends {my} existence.';
     }
 
     handleRecklessAction(Kiss,
         "<<getMisunderstoodAffectionBeginning('lips', 'bite')>>
-        In the blink of an eye, most of your teeth are shattered, and his
-        bleeding fist pulls away from you. You think your lower jaw has
-        suffered multiple fractures, but you're too dazed to be sure.
+        In the blink of an eye, most of {my} teeth are shattered, and his
+        bleeding fist{dummy} pulls away from {me}. {I} think {my} lower jaw has
+        suffered multiple fractures, but {i}{'m} too dazed to be sure.
         <<getMisunderstoodAffectionEnding()>>"
     )
 
     handleRecklessAction(Hug,
         "<<getMisunderstoodAffectionBeginning('arms', 'grapple with')>>
-        Faster than comprehension, he grabs both of your wrists, and uses
-        the longer reach of a clone to find room for a swift kick to your
+        Faster than comprehension, he grabs both of {my} wrists, and uses
+        the longer reach of a clone to find room for a swift kick to {my}
         lower jaw.
         <<getMisunderstoodAffectionEnding()>>"
     )
 
     handleRecklessAction(Eat,
         "<<getCombatPreface()>>
-        You lunge at him, arms forward to pin him. However, his combat
-        training is still superior to your newborn abilities. He grabs your
-        arms in each hand, digging his claws into your flesh.\b
-        No matter, you pull your arms outward, seeing at opening. Something
+        {I} lunge at him, arms forward to pin him. However, his combat
+        training is still superior to {my} newborn abilities. He grabs {my}
+        arms in each hand, digging his claws into {my} flesh.\b
+        No matter, {i} pull {my} arms outward, seeing at opening. Something
         is wrong, though: He is <i>allowing</i> this, without resistance.\b
-        You're almost in bite range, and he shifts his weight, relative to
-        yours. It's almost like the ground shifts beneath you; unstoppable.
+        {I}{'m} almost in bite range, and he shifts his weight, relative to
+        {mine}. It's almost like the ground{dummy} shifts beneath {me}; unstoppable.
         With the force of a warhammer, <<gSkashekName>> whips his skull into
-        the side of your own, near the temple.\b
-        The <i>crack</i> is deafening, and your sense of balance is suddenly
-        non-existent. You realize too late that your legs had stopped moving.
-        In the haze, you think he throws you to the
+        the side of {my} own, near the temple.\b
+        The <i>crack</i> is deafening, and {my} sense of balance is suddenly
+        non-existent. {I} realize too late that {my} legs had stopped moving.
+        In the haze, {i} think he{dummy} throws {me} to the
         <<getOutermostRoom().floorObj.theName>>.\b
         <q>Fuck you, Prey,</q> he shouts. <q>I really thought you would be
         the one to escape! But you have failed me, too!</q>\b
-        A boot slams down on your skull, and your existence comes to an
+        A boot slams down on {my} skull, and {my} existence comes to an
         abrupt end."
     )
 
@@ -147,12 +148,12 @@ skashek: Actor {
         local msg = '';
         if (gActionIs(AttackWith)) {
             if (gIobj.bulk <= 1) {
-                msg += '<<gSkashekName>> kicks <<gIobj.theName>> out of your
-                hand&mdash;hard enough to shatter your fingers&mdash;';
+                msg += '<<gSkashekName>> kicks <<gIobj.theName>> out of {my}
+                hand&mdash;hard enough to shatter {my} fingers&mdash;';
             }
             else {
-                msg += '<<gSkashekName>> kicks <<gIobj.theName>> out of your
-                hands&mdash;hard enough to nearly dislocate your wrists&mdash;';
+                msg += '<<gSkashekName>> kicks <<gIobj.theName>> out of {my}
+                hands&mdash;hard enough to nearly dislocate {my} wrists&mdash;';
             }
             msg += 'and it soars across <<getOutermostRoom().theName>>.\b';
         }
@@ -164,12 +165,12 @@ skashek: Actor {
     handleRecklessAction(Attack,
         "<<getCombatPreface()>>
         <<getCounterAttack()>>
-        In one moment, you were attempting to recover, and the next moment
-        revealed your neck vacated of flesh, which now dribbles from his mouth.
-        You collapse in a pool of your own blood, rushing out of
+        In one moment, {i} {was} attempting to recover, and the next moment
+        revealed {my} neck vacated of flesh, which now dribbles from his mouth.
+        {I} collapse in a pool of {my} own blood, rushing out of
         fresh, gaping wounds.\b
-        The last thing you see is his expression, just as shocked and
-        surprised as your own."
+        The last thing {i} see is his expression, just as shocked and
+        surprised as {my} own."
     )
 }
 

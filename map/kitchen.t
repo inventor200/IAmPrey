@@ -132,14 +132,14 @@ kitchen: Room { 'The Kitchen'
 
     attemptJump() {
         if (kitchenVentGrate.isIn(remapIn)) {
-            "You can't find a way of staying in or on the stove hood.
+            "{I} can't find a way of staying in or on the stove hood.
             <<if gActor.isIn(kitchenVentGrate.stagingLocation)
-            >>However, you <i>probably</i> could enter the little hatch
+            >>However, {i} <i>probably</i> could enter the little hatch
             inside...<<end>> ";
         }
         else {
-            "You scope out the surfaces of the stove hood,
-            but then you think you see something inside... ";
+            "{I} scope out the surfaces of the stove hood,
+            but then {i} think {i} see something inside... ";
         }
     }
 
@@ -202,9 +202,9 @@ kitchenVentGrate: StoveVentDoor {
     stagingLocation = kitchenOven.remapOn
     exitLocation = kitchenOven.remapOn
 
-    travelDesc = "It's awkward, but you climb up into the stove hood,
-    and pull yourself through the small metal hatch you find inside.\b
-    You land on a crate, on the other side of the wall. "
+    travelDesc = "It's awkward, but {i} climb up into the stove hood,
+    and pull {myself} through the small metal hatch {i} find inside.\b
+    {I} land on a crate, on the other side of the wall. "
 
     rerouteBasicJumpIntoForPlatform(ParkourJumpGeneric, GoThrough)
 }
@@ -221,7 +221,7 @@ reservoirVentGrate: StoveVentDoor {
         }
     }
 
-    travelDesc = "Using the crate to reach, you climb into the small,
-    metal hatch. You find yourself in the stove hood, and drop down
+    travelDesc = "Using the crate to reach, {i} climb into the small,
+    metal hatch. {I} find {myself} in the stove hood, and drop down
     atop the oven. "
 }

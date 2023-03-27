@@ -3,6 +3,7 @@
 #include "advlite.h"
 
 #define gFormatForScreenReader gameMain.formatForScreenReader
+#define gDefaultPOV 1
 
 #define gDirectCmdStr(command) \
     (gFormatForScreenReader ? \
@@ -21,8 +22,8 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 1
-/*-*/  #define __TEST_ROOM commonRoom
+/*--*/  #define __FAST_DIFFICULTY 4
+/*-*/  #define __TEST_ROOM deliveryRoom
 ///////////////////////////////////////*||*\
 
 // End compile modes

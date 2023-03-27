@@ -42,12 +42,12 @@ DefineIAction(Purr)
 
 #define meowPrompt "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> "
 
-cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coat paws'
-    "You are a beautiful, regal, and <i>graceful</i> cat!
+cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me you self myself yourself fur coat'
+    "{I} {am} a beautiful, regal, and <i>graceful</i> cat!
     And a <i>grand</i> ruler, too!\b
-    Your black coat is speckled  with streaks of silvery tips.
-    White highlights your chest and paws, like a tuxedo. "
-    person = (gCatMode ? 2 : 3)
+    {My} black coat is speckled  with streaks of silvery tips.
+    White highlights {my} chest and paws, like a tuxedo. "
+    person = (gCatMode ? gDefaultPOV : 3)
     isHim = true
 
     location = dreamWorldCat
@@ -63,7 +63,7 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coa
     seeReflection(mirror) {
         mirror.confirmSmashed();
         if (mirror.isSmashed) {
-            return 'It\'s difficult to see yourself in the broken mirror,
+            return 'It\'s difficult to see {myself} in the broken mirror,
                 but the reflection patterns show black fluff,
                 with streaks of silver. ';
         }
@@ -77,29 +77,29 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me self myself fur coa
             exit;
         }
         if (gActionIs(Purr)) {
-            "You vocalize a soft, purring sound. ";
+            "{I} vocalize a soft, purring sound. ";
             exit;
         }
     }
 }
 
 +catNameTag: Fixture { 'nametag;name;tag collar pendant plate badge card'
-    "<<if gCatMode>>A tiny bit of shiny metal, dangling from your collar.
+    "<<if gCatMode>>A tiny bit of shiny metal, dangling from {my} collar.
     It used to make an infuriating jingling sound, but ever since the lone
-    citizen became your only neighbor, he had wrapped some yarn around it,
-    allowing you to move more silently. You're not sure why he never just
+    citizen became {my} only neighbor, he had wrapped some yarn around it{dummy},
+    allowing {me} to move more silently. {I}{'m} not sure why he never just
     <i>removed the fucking collar entirely</i>, but it's only a minor infraction.
-    His services to you outweigh this...<i>mostly</i>.
-    <<else>>It a little round name tag for the cat. Someone seems to have
+    His services{dummy} to {me} outweigh this...<i>mostly</i>.
+    <<else>>It\'s a little round name tag for the cat. Someone seems to have
     wrapped some yarn around it, though it's not clear <i>why</i>. Maybe it's
     to make this cat more silent? Wouldn't this warrant removing the collar
     <i>entirely</i>, though...?<<end>>"
 
-    readDesc = "<<if gCatMode>>You struggle to read the strange scrawlings
-    of your hairless subjects, but you know these shapes mean something to
-    them. You've lived long enough to know that the weird etchings in your
+    readDesc = "<<if gCatMode>>{I} struggle to read the strange scrawlings
+    of {my} hairless subjects, but {i} know these shapes mean something to
+    them. {I}'ve lived long enough to know that the weird etchings in {my}
     tag are pronounced <q><<gCatName>></q>, which also seems to be the sound
-    these creatures make when they desire audience with you.
+    these creatures make when they desire audience{dummy} with {me}.
     <<else>>The etched name on the small metal tag is written in cursive,
     which is a little difficult to read, still. However, it seems to
     indicate the cat's name is <q><<gCatName>></q>.<<end>>"

@@ -1,7 +1,7 @@
 assemblyShop: Room { 'The Assembly Shop'
     "TODO: Add description.\b
     A CNC machine sits in the southeast corner of the room.
-    Far above it, on the east wall, you see a vent.\b
+    Far above it, on the east wall, {i} see a vent.\b
     A doorway to the Common Room is to the <<hyperDir('south')>>,
     while the exit door is to the <<hyperDir('north')>>. "
 

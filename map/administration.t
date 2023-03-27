@@ -24,7 +24,7 @@ class Cubicle: Room {
         all the way to the ceiling.\b
         A wide office desk rests in the corner, with a metal filing cabinet
         beside it.\b
-        From here, you can go <<hyperDir('out')>> to where the other cubicles
+        From here, {i} can go <<hyperDir('out')>> to where the other cubicles
         connect. ";
     }
 
@@ -38,7 +38,7 @@ class Cubicle: Room {
 
 class FakeCubicle: Passage {
     desc = "The cubicles take up most of the space here, and their walls form the
-    L-shaped hall you find yourself in. "
+    L-shaped hall {i} find {myself} in. "
     ambiguouslyPlural = true
     otherSide = destination
     remappingSearch = true
@@ -50,11 +50,11 @@ administration: Room {
     vocab = 'Administration;;admin'
     roomTitle = 'Administration'
     desc = "The lights here are in low-power mode, with only a few still on.
-    You are in a narrow, L-shaped hallway of cubicle walls, directing your attention
+    {I} {am} in a narrow, L-shaped hallway of cubicle walls, directing {my} attention
     to the door of the Director's Office, to the <<hyperDir('north')>>.
     To the <<hyperDir('west')>>, the cubicles shape a sharp turn to the
     exit.\b
-    From this hallway, you can enter the <<hyperDir('northwest')>>,
+    From this hallway, {i} can enter the <<hyperDir('northwest')>>,
     <<hyperDir('northeast')>>, <<hyperDir('southeast')>>, or
     <<hyperDir('southwest')>> cubicle. "
 
@@ -87,7 +87,7 @@ administration: Room {
 northeastCubicle: Cubicle { 'The Northeast Cubicle'
     desc() {
         inherited();
-        "\bAbove the filing cabinet, you can see a vent grate. ";
+        "\bAbove the filing cabinet, {i} can see a vent grate. ";
     }
 }
 populateCubicle(northeastCubicle)

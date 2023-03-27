@@ -1,6 +1,6 @@
 prey: PlayerActor { 'The Prey;;me self myself'
     "<<getClothingDescription()>> "
-    person = (gCatMode ? 3 : 2)
+    person = (gCatMode ? 3 : gDefaultPOV)
 
     location = dreamWorldPrey
 
@@ -15,54 +15,54 @@ prey: PlayerActor { 'The Prey;;me self myself'
         local seenSkashek = gPlayerChar.hasSeen(skashek);
         if (seenSkashek && !scaredByOwnReflection) {
             scaredByOwnReflection = true;
-            return 'Your heart lurches. You think you spot <i><b>him</b></i>
-                in your visual field. Once your reflexes give way to your conscious
-                mind, you remember that you\'re both clones. You decide if
-                you want to take another look... ';
+            return '{My} heart lurches. {I} think {i} see <i><b>him</b></i>
+                in {my} visual field. Once {my} reflexes give way to {my} conscious
+                mind, {i} remember that he and {i} are <i>both</i> clones.
+                {I} decide to take another look... ';
         }
         if (mirror.isSmashed) {
             onlySeenShatteredReflectionBefore = true;
-            return 'Attempts to look into it reveal rather whimsical
-                patterns of reflection, and the only features you can see
-                are your pale skin and white hair.<<ponderVanity()>>';
+            return 'Attempts to look into it reveal whimsical
+                patterns of reflection, and the only features {i} can see
+                are {my} pale skin and white hair.<<ponderVanity()>>';
         }
         local seenSelfIntro = '';
         if (!hasSeenSelfBefore) {
             hasSeenSelfBefore = true;
             seenSelfIntro = onlySeenShatteredReflectionBefore ?
-                'You realize that this is the first time you are
-                clearly seeing your own reflection.<<
-                if seenSkashek>> <i>Your</i> reflection.<<end>>
-                You wonder if you should savor this moment...<.p>'
+                '{I} realize that this is the first time {i} {am}
+                clearly seeing {my} own reflection.<<
+                if seenSkashek>> <i>{My}</i> reflection.<<end>>
+                {I} wonder if {i} should savor this moment...<.p>'
                 :
-                'This is the first time you are seeing your own face.<<
-                if seenSkashek>> <i>Your</i> face.<<end>>
-                You wonder if you should savor this moment...<.p>';
+                'This is the first time {i} {am} seeing {my} own face.<<
+                if seenSkashek>> <i>{My}</i> face.<<end>>
+                {I} wonder if {i} should savor this moment...<.p>';
         }
 
         local commentOnIndiduality = hasSeenCloneIndividualism ?
-            'a bold expression of your individuality.'
+            'a bold expression of {my} individuality.'
             :
-            'perhaps your first method of establishing your individuality.';
+            'perhaps {my} first method of establishing {my} individuality.';
 
         local appearanceIntro = seenSkashek ?
-            'You have an <i>uncanny</i> resemblance to
+            '{I} have an <i>uncanny</i> resemblance to
             <<gSkashekName>>: White hair, deathly-pale skin, and two rows of
-            sharp teeth. Your faces are indistinguishable; more than simple
-            twin siblings could <i>ever</i> be.
+            sharp teeth. His face is indistinguishable from {mine};
+            more than simple twin siblings could <i>ever</i> be.
             However, there <i>are</i> important differences.
-            For one, you have a unique hairstyle, <<commentOnIndiduality>>
-            You stare into the reddish eyeshine of your pupils, and see only
-            yourself in there.'
+            For one, {i} have a unique hairstyle, <<commentOnIndiduality>>
+            {I} stare into the reddish eyeshine of {my} pupils, and see only
+            {myself} inside.'
             :
-            'Your skin is as pale as death herself, and your lips conceal two
-            rows of sharp teeth. Your deadpan face is framed by your white hair,
+            '{My} skin is as pale as death herself, and {my} lips conceal two
+            rows of sharp teeth. {My} deadpan face is framed by {my} white hair,
             <<commentOnIndiduality>>
-            Your nose is upturned slightly, with a thin bridge, and
-            your jawline is angular, with an extended chin.
-            You stare into your own eyes&mdash;pupils red with the shine of
+            {My} nose is upturned slightly, with a thin bridge, and
+            {my} jawline is angular, with an extended chin.
+            {I} stare into {my} own eyes&mdash;pupils red with the shine of
             night vision&mdash;and ponder the designs of human engineering
-            within your form. ';
+            within {my} form. ';
 
         return '<<seenSelfIntro>><<appearanceIntro>>
             <.p><<getClothingDescription()>>
@@ -74,12 +74,11 @@ prey: PlayerActor { 'The Prey;;me self myself'
     ponderVanity() {
         if (hasPonderedVanity) return '';
         hasPonderedVanity = true;
-        return '<.p>You weigh the idea in your mind. Do you value your appearance?
-            Does looking <q>presentable</q> give you a tactical advantage
-            during a chase?
-            Are you neutral to it, while humans are often concerned?
-            Is any vestige of vanity merely a programmed facet of your mind, so you
-            would make yourself look nice during auction? ';
+        return '<.p>{I} weigh the idea in {my} mind. Do {i} value {my} appearance?
+            Does looking{dummy} <q>presentable</q> give {me} a tactical advantage?
+            {Am} {i} neutral to it, while humans are often concerned?
+            Is any vestige of vanity merely a programmed facet of {my} mind, so {i}
+            would make {myself} look nice during auction? ';
     }
 
     shatteredVanityMsg =
@@ -96,7 +95,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
 
     getClothingDescription() {
         if (outfit == nil) {
-            "You are currently stark-naked. ";
+            "{I} {am} currently stark-naked. ";
         }
         else {
             outfit.wornDesc();
@@ -109,20 +108,20 @@ prey: PlayerActor { 'The Prey;;me self myself'
     actorAction() {
         if (gActionIs(Yell) || gActionIs(SayMeow)) {
             if (hasLeftTheNet) {
-                "You find that making any kind of loud vocalization is a
+                "{I} find that making any kind of loud vocalization is a
                 deeply-uncomfortable action to take. ";
             }
             else if (gActionIs(SayMeow)) {
                 meowPrompt;
-                "\b<i>(Hm. Maybe you were a cat in a past life!)</i> ";
+                "\b<i>(Hm. Maybe {i} {was} a cat in a past life!)</i> ";
             }
             else if (gActionIs(Sing)) {
-                "Your voice is rough, but you make pitched vocalizations.
-                There is no way to determine if you were any good at it, though. ";
+                "{My} voice is rough, but {i} make pitched vocalizations.
+                There is no way to determine if {i} {am} any good at it, though. ";
             }
             else if (gActionIs(Purr)) {
-                "You make a quiet, purring sound in the back of your throat.
-                You're not sure why, but it feels natural. Maybe it's something
+                "{I} make a quiet, purring sound in the back of {my} throat.
+                {I}{'m} not sure why, but it feels natural. Maybe it's something
                 clones normally do? ";
             }
             else if (hasCriedLikeABaby) {
@@ -133,12 +132,12 @@ prey: PlayerActor { 'The Prey;;me self myself'
                 hasCriedLikeABaby = true;
                 "Actually, it turns out that newborn clones <i>do</i> cry after
                 entering the world!\b
-                You nod to yourself, satisfied, and happy to cross that off
-                of your metaphorical list. ";
+                {I} nod to {myself}, satisfied, and content to cross that off
+                of {my} metaphorical to-do list. ";
                 //TODO: Check to see if Skashek's arrival was announced
                 //      yet, and handle that if not.
                 if (skashek.canSee(self)) { // Skashek walks in to check on you
-                    "<<gSkashekName>> blinks and stares at you.
+                    "<<gSkashekName>> blinks{dummy} and stares at {me}.
                     <q>Ugh... I <i>knew</i> something about this grow cycle
                     seemed wrong. I gotta save the log files, and make
                     sure I don't get another brain-death next time...</q> ";
@@ -188,72 +187,72 @@ prey: PlayerActor { 'The Prey;;me self myself'
 
     preinitThing() {
         wetnessPosScale.addReport(1 * physicalFactorScale,
-            'Regions under your eyes and nose both feel a growing
-            layer of humidity, before you realize its
-            on your neck and under your arms, too. ',
-            'Regions under your eyes and nose both feel a growing
-            layer of sweat, before you realize its
-            on your neck and under your arms, too. '
+            'Regions under {my} eyes and nose both feel a growing
+            layer of humidity, before {i} realize its
+            on {my} neck and under {my} arms, too. ',
+            'Regions under {my} eyes and nose both feel a growing
+            layer of sweat, before {i} realize its
+            on {my} neck and under {my} arms, too. '
         );
         wetnessPosScale.addReport(3 * physicalFactorScale,
-            'Beads of humidity form on your forehead, and run
-            down your temples and chest. ',
-            'Beads of sweat form on your forehead, and run
-            down your temples and chest. '
+            'Beads of humidity form on {my} forehead, and run
+            down {my} temples and chest. ',
+            'Beads of sweat form on {my} forehead, and run
+            down {my} temples and chest. '
         );
         wetnessPosScale.addReport(5 * physicalFactorScale,
-            'You are as soaked as you would be in the rain. '
+            '{I} {am} as soaked as {i} would be in the rain. '
         );
 
         wetnessNegScale.addReport(0 * physicalFactorScale,
-            'You are dry, at last. '
+            '{I} {am} dry, at last. '
         );
         wetnessNegScale.addReport(3 * physicalFactorScale,
-            'You have reached a state of all-around damp,
-            but it no longer drips from you. '
+            '{I} have reached a state of all-around damp,
+            but it{dummy} no longer drips from {me}. '
         );
         wetnessNegScale.addReport((5 * physicalFactorScale) - 1,
-            'Your are absolutely dripping-wet. '
+            '{I} {am} absolutely dripping-wet. '
         );
 
         exhaustionPosScale.addReport(2 * physicalFactorScale,
-            'You start panting from exertion. '
+            '{I} start panting from exertion. '
         );
         exhaustionPosScale.addReport(4 * physicalFactorScale,
-            'You can feel your heart pounding under the skin
-                of your neck, now coated in perspiration. '
+            '{I} can feel {my} heart pounding under the skin
+                of {my} neck, now coated in perspiration. '
         );
 
         exhaustionNegScale.addReport(0 * physicalFactorScale,
-            'You finally feel like you\'ve caught your breath. '
+            '{I} finally feel like {i}\'ve caught {my} breath. '
         );
         exhaustionNegScale.addReport(2 * physicalFactorScale,
-            'Your breathing is still ragged, but you\'re calming down. '
+            '{My} breathing is still ragged, but {i}{\'m} calming down. '
         );
 
         chillFactorPosScale.addReport(2 * physicalFactorScale,
-            'Your nose feels the bite of the surrounding chill. '
+            '{My} nose feels the bite of the surrounding chill. '
         );
         chillFactorPosScale.addReport(3 * physicalFactorScale,
-            'Your face begins to feel numb in the cold. '
+            '{My} face begins to feel numb in the cold. '
         );
         chillFactorPosScale.addReport(5 * physicalFactorScale,
-            'Your violent shivering and chaotic breathing makes
-                it much more difficult to control your own limbs. ',
-            'You can feel frost building up on your damp skin. '
+            '{My} violent shivering and chaotic breathing makes
+                it much more difficult to control {my} own limbs. ',
+            '{I} can feel frost building up on {my} damp skin. '
         );
 
         chillFactorNegScale.addReport(2 * physicalFactorScale,
-            'You feel your blood returning to your limbs. '
+            '{I} feel {my} blood returning to {my} limbs. '
         );
         chillFactorNegScale.addReport(3 * physicalFactorScale,
-            'You notice how dry your eyes had become in the cold,
+            '{I} notice how dry {my} eyes had become in the cold,
                 and blink moisture back into them. '
         );
         chillFactorNegScale.addReport((5 * physicalFactorScale) - 1,
-            'You could kiss the sun, if it would help express
-                your gratitude for warmth. ',
-            'You can feel yourself slowly defrosting. '
+            '{I} could kiss the sun, if it would help express
+                {my} gratitude for warmth. ',
+            '{I} can feel {myself} slowly defrosting. '
         );
     }
 
@@ -316,7 +315,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
                     if (chillFactor >= 1 * physicalFactorScale &&
                         chillFactor <= 2 * physicalFactorScale) {
                         "The chilled air feels like a beautiful breeze
-                        against your sweating skin. ";
+                        against {my} sweating skin. ";
                     }
                     sweatIsNovel = nil;
                 }

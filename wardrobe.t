@@ -3,8 +3,10 @@ class Outfit: Wearable {
     externalDesc() { }
     desc() {
         if (gCatMode) {
-            "Strange garments, which <<gSkashekName>> spent a lot of time crafting.
-            He should have spent that time giving you scritches and head pats, but
+            "Strange garments, which <<gSkashekName>>
+            spent a lot of time crafting.
+            He{dummy} <i>should</i> have spent that time
+            giving {me} scritches and head pats, but
             he provided a throne on his lap, instead. ";
         }
         else {
@@ -23,7 +25,7 @@ class Outfit: Wearable {
 
     headerDesc(wornPerspective) {
         if (wornBy == gPlayerChar) {
-            return (wornPerspective ? 'You wear a ' : 'Your ') +
+            return (wornPerspective ? '{I} wear a ' : '{My} ') +
                 headerName + headerPunctuation + ' ';
         }
         if (wornBy == skashek) {
@@ -46,11 +48,11 @@ class Outfit: Wearable {
     dobjFor(Wear) {
         verify() {
             if (gCatMode) {
-                illogical('Your royal clothes are the beautiful patterns of your
-                    own fur coat. ');
+                illogical('{My} royal clothes are the beautiful
+                    patterns of {my} own fur coat. ');
             }
             else if (gActor.wetness > 1) {
-                illogical('You should probably dry off, first. ');
+                illogical('{I} should probably dry off, first. ');
             }
             else {
                 inherited();

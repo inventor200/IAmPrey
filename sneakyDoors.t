@@ -993,12 +993,12 @@ modify Door {
         'the <<one of>>one who<<or>>cause of<<or>>cause for<<or>>reason for<<at random
         >><<one of>>opened<<or>>caused<<at random>>'
     
-    suspicionMsgQuestionGrp1 = 'were you
+    suspicionMsgQuestionGrp1 = '{was} {i}
         <<one of>><<suspicionMsgAlt1>><<or>><<suspicionMsgAlt2>>
         that<<at random>>'
     
     suspicionMsgQuestionGrp2 = 'was that
-        <<one of>><i>your</i> door<<or>>one of <i>your</i>
+        <<one of>><i>{my}</i> door<<or>>one of <i>{my}</i>
         doors<<one of>> from before<<or>> from earlier<<or>><<at random>><<at random>>'
     
     suspicionMsg =
@@ -1532,7 +1532,7 @@ modify Room {
                 "<<if firstListing>>, and <<else>>\^<<end>><<
                 makeListStr(openExpectedDoors, &getScanName, 'and')>>
                 <<if openExpectedDoors.length > 1>>are<<else>>is<<end>>
-                currently open, but you
+                currently open, but {i}
                 <<one of>>probably knew<<or>>already knew<<or>>were expecting<<at random>>
                 that. ";
             }
@@ -1565,7 +1565,7 @@ modify Room {
                 <<if firstListing>>closed<<else>><i>open</i><<end>>, ";
             }
 
-            "and you don't remember leaving
+            "and {i} don't remember leaving
             <<if suspicionCount > 1>>them<<else>>it<<end>>
             <<one of>>like that<<or>>in that state<<or>>that way<<at random>>!";
         }

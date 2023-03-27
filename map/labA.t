@@ -17,7 +17,7 @@ labA: Room { 'Lab A'
     the room. "
     ambiguouslyPlural = true
 
-    travelPreface = 'You find yourself on a tall set of storage shelves,
+    travelPreface = '{I} find {myself} on a tall set of storage shelves,
         placed in the corner of the room, and in reach of'
 }
 ++AwkwardFloorHeight;
@@ -27,8 +27,8 @@ labAToLibraryVentGrate: VentGrateDoor {
     location = labAShelves
     otherSide = LibraryTolabAVentGrate
 
-    travelDesc = "You carefully find your balance on a stepladder, once you're on
-    the other side of the vent grate. "
+    travelDesc = "{I} carefully find {my} balance on a stepladder,
+    once {i}{'m} on the other side of the vent grate. "
 }
 
 LibraryTolabAVentGrate: VentGrateDoor {

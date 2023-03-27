@@ -139,7 +139,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     roomDaemon() {
         checkRoomDaemonTurns;
         ambientReactorNoiseRunner.hearWaterfall(
-            'From the east, you hear the distant, '
+            'From the east, {i} hear the distant, '
         );
         inherited();
     }
@@ -206,7 +206,7 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     roomDaemon() {
         checkRoomDaemonTurns;
         ambientReactorNoiseRunner.hearWaterfall(
-            'From the east, you hear the '
+            'From the east, {i} hear the '
         );
         inherited();
     }
@@ -223,7 +223,8 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
 DefineWindowPair(reservoirControlRoom, reservoir)
     vocab = 'observation window;reinforced monitoring control room[weak] reactor[weak] reservoir glass;glass pane'
     desc = "TODO: Add description. "
-    breakMsg = 'The window is reinforced, and designed to resist creatures like you. '
+    breakMsg = 'The window is reinforced,
+        and designed to resist creatures{dummy} like {me}. '
     remoteHeader = 'through the window'
 ;
 
@@ -286,7 +287,7 @@ reservoir: Room { 'The Reactor Reservoir'
 
     roomDaemon() {
         checkRoomDaemonTurns;
-        "From all around, you hear the
+        "From all around, {i} hear the
         <<ambientReactorNoiseRunner.fullWaterfallString>>. ";
         inherited();
     }
@@ -302,34 +303,35 @@ reservoir: Room { 'The Reactor Reservoir'
     travelDesc() {
         gActor.soak();
         if (gCatMode) {
-            "Your regal confidence might have been a little <i>too</i> high this time,
-            but you only wonder this for a few moments before you are
+            "{My} regal confidence might have been a little <i>too</i> high this time,
+            but {i} only wonder this for a few moments before {i} {am}
             swallowed by the hot reactor water.<<
             if !skashekFishing.skashekRevealedFishing>>
-            In a split second, you think  you see
+            In a split second, {i} think {i} see
             <<gSkashekName>>, searching the water for something.<<end>>\b
             <i><q><<gCatName>>?!</q></i>
             <<if skashekFishing.skashekRevealedFishing>><<gSkashekName>><<else
             >>he<<end>>
-            screams, already sputtering
-            through the water after you, and ditching an armful of harvested kelp.\b
-            You thrash and reach the steamy surface, as the channel
-            carries you and your echoing, panicked meows. Everything in you
+            screams, already sputtering through the water{dummy} after {me},
+            and ditching an armful of harvested kelp.\b
+            {I} thrash and reach the steamy surface, as the channel{dummy}
+            carries {me} and {my} echoing, panicked meows. Everything{dummy} in {me}
             is devoted to a singular purpose: <i>Stay above water!</i>\b
-            You hit the grate wall of the strainer stage, where the water
-            becomes colder. You wrap your limbs around the its metal structure,
+            {I} hit the grate wall of the strainer stage, where the water
+            becomes colder. {I} wrap {my} limbs around the its metal structure,
             desperate to not be swept away further.\b
             Running along the wall of the channel&mdash;like a
             <i>giant spider</i>&mdash;is
-            <<gSkashekName>>. He sweeps you up in his arms and holds you close.\b
+            <<gSkashekName>>. He{dummy} sweeps {me} up in his arms and
+            holds{dummy} {me} close.\b
             <q>Bloody <i>hell</i>, <<gCatNickname>>, there are <i>other</i> ways to
             get my attention! </q>\b
-            <i><q>I demand cancellation of Bath Time, peasant!!</q></i> you shout,
+            <i><q>I demand cancellation of Bath Time, peasant!!</q></i> {i} shout,
             but all that seems to come out is: <i><q>Mraow!!</q></i> ";
             finishGameMsg(ftVictory, gEndingOptionsWin);
         }
         else { //TODO: Write this better
-            "You dive into the water, and the channel carries you. ";
+            "{I} dive into the water, and the channel{dummy} carries {me}. ";
         }
         inherited();
     }
@@ -426,9 +428,9 @@ skashekFishing: Decoration {
     skashekRevealedFishing = nil
 
     strikeSuggestionMsg = 
-        '\bYou could probably strike him from up here.
+        '\b{I} could probably strike him from up here.
         Sure, it\'s a long way down, but there\'s plenty of warm water
-        to break your fall. Element of surprise, and all that. ';
+        to break {my} fall. Element of surprise, and all that. ';
 
     revealFishing() {
         if (skashekRevealedFishing) return;
@@ -440,14 +442,14 @@ skashekFishing: Decoration {
         if (suggestedAttack) return
             'He seems to be collecting some kind of leafy plant, growing
             in the reservoir water. He already has a collection, and seems
-            distracted. He has no idea you\'re up here. ';
+            distracted. He has no idea {i}{\'m} up here. ';
         suggestedAttack = true;
         local extraMsg = skashekRevealedFishing ?
             '\b<i>There he is, the scoundrel!</i>
             <<gSkashekName>> is in the reservoir water,
-            just as you <i>brilliantly</i> suspected!'
+            just as {i} <i>brilliantly</i> suspected!'
             :
-            '\bIn the water below, you see <<gSkashekName>>.
+            '\bIn the water below, {i} see <<gSkashekName>>.
             It looks like he\'s collecting plants of some kind.';
         extraMsg += strikeSuggestionMsg;
         revealFishing();
@@ -489,7 +491,8 @@ reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
 reservoirStrainer: Room { 'The Strainer Stage'
     "TODO: Add description. "
 
-    north = "Swimming against the current would only dead-end you in the reservoir. "
+    north = "Swimming against the current would only dead-end{dummy}
+        {me} in the reservoir. "
     south = "The grate won't budge. "
 
     mapModeDirections = [&west]

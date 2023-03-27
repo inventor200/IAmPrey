@@ -388,7 +388,7 @@ soundBleedCore: object {
             routeSetup = throughDoor ? 'Through a closed door to ' : 'Through a wall to ';
         }
         
-        return routeSetup + dirTitle + ', you hear ';
+        return routeSetup + dirTitle + ', {i} hear ';
     }
 }
 
@@ -706,11 +706,11 @@ class SoundProfile: object {
         if (form == wallMuffle) {
             routeSetup = throughDoor ? 'Through a closed door to ' : 'Through a wall to ';
             return routeSetup + dirTitle +
-                ', you hear ' + muffledStr + (isSuspicious ? ' ' : '. ');
+                ', {i} hear ' + muffledStr + (isSuspicious ? ' ' : '. ');
         }
         
         return routeSetup + dirTitle +
-            ', you hear ' + (form == closeEcho ? closeEchoStr : distantEchoStr) + (isSuspicious ? ' ' : '. ');
+            ', {i} hear ' + (form == closeEcho ? closeEchoStr : distantEchoStr) + (isSuspicious ? ' ' : '. ');
     }
 
     getDescString(form) {

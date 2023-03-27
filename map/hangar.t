@@ -3,7 +3,7 @@ hangarSightLine: HallRegion;
 storageBay: Room { 'The Storage Bay'
     "TODO: Add description. "
 
-    northwest = loadingArea
+    west = loadingArea
     north = wasteProcessingEntry
     south = freezerNorthEntry
 
@@ -20,7 +20,7 @@ storageBay: Room { 'The Storage Bay'
         inherited();
     }
 
-    mapModeDirections = [&northwest, &south, &east]
+    mapModeDirections = [&west, &south, &east]
     mapModeLockedDoors = [wasteProcessingEntry]
     familiar = roomsFamiliarByDefault
 }
@@ -39,13 +39,13 @@ wasteProcessingBarrier: TravelBarrier {
     
     explainTravelBarrier(actor, connector) {
         "<<gSkashekName>> has apparently modified the facility
-        into a game arena. Though he is hunting you, he has also
+        into a game arena. Though he{dummy} is hunting {me}, he has also
         crafted a <q>fair</q> environment, as it includes a means
         of escape.\b
         Whatever waits on the other side of <i>that door</i>,
         however, would be the <i>purest</i> expression of desperate
         evasion, <i>with zero chances of survival</i>.\b
-        Maybe you should take your chances with the plausible exit
+        Maybe {i} should take {my} chances with the plausible exit
         that <<gSkashekName>> has permitted, and remain on <i>this</i>
         side of the door... ";
     }
@@ -144,8 +144,9 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
 fakeOutside: Room { 'Outside the Facility'
     "Ominous toxic fumes fill the air; a measure taken by
-    those who wanted to control you. Luckily, the suit allows
-    you to walk through it all. "
+    those{dummy} who wanted to control {me}.
+    Luckily, the suit{dummy} allows
+    {me} to walk through it all. "
 
     west = airlockOutsideEntry
 

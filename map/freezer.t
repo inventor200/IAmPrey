@@ -11,11 +11,11 @@ freezer: Room { 'The Freezer'
     isFreezing = true
 
     playerSurface =
-        '<<if gCatMode>>your <<one of>><<or>>black<<or>>regal<<or>>royal<<or
+        '<<if gCatMode>>{my} <<one of>><<or>>black<<or>>regal<<or>>royal<<or
         >>beautiful<<or>>gray-speckled<<or>>dark<<or>>long<<at random>>
-        fur<<else>>you<<end>>'
+        fur<<else>>{me}<<end>>'
     catJoints =
-        'your <<one of>><<or>>old<<or>>aging<<at random>> joints'
+        '{my} <<one of>><<or>>old<<or>>aging<<at random>> joints'
 
     coldSynonyms =
         '<<one of>>cold<<or>>freezing<<or>>frozen<<or
@@ -30,11 +30,11 @@ freezer: Room { 'The Freezer'
     coldBreezeVerbs = '<<one of>>washes<<or>>passes<<at random>> over'
     coldBreezeWashesOver =
         '<<one of>>a <<coldBreeze>> <<coldBreezeVerbs>><<or
-        >>the <<coldAir>> <<coldAirVerbs>><<at random>> <<playerSurface>>'
+        >>the <<coldAir>> <<coldAirVerbs>><<at random>>{dummy} <<playerSurface>>'
     shiverRollsThrough =
         '<<if gCatMode
         >>an ache <<one of>>seeps<<or>>returns<<at random>> to <<catJoints>><<else
-        >>a shiver <<one of>>passes over<<or>>rolls through<<at random>> you<<end>>'
+        >>a shiver <<one of>>passes over<<or>>rolls through<<at random>>{dummy} {me}<<end>>'
     breathAmbienceSingular =
         'breath
         <<one of>>becomes<<or>>turns to<<or>>condenses into<<at random>>'
@@ -42,18 +42,18 @@ freezer: Room { 'The Freezer'
         '<<one of>>breaths<<or>>exhales<<at random>>
         <<one of>>become<<or>>turn to<<or>>condense into<<at random>>'
     breathAmbience =
-        'your <<one of>><<breathAmbienceSingular>><<or>><<breathAmbiencePlural
+        '{my} <<one of>><<breathAmbienceSingular>><<or>><<breathAmbiencePlural
         >><<at random>><<one of>> visible<<or>><<at random>> fog
-        <<one of>>before you<<or>>before your eyes<<or>>before your very eyes<<or
-        >>from your mouth<<at random>>'
+        <<one of>>before{dummy} {me}<<or>>before {my} eyes<<or>>before {my} very eyes<<or
+        >>from {my} mouth<<at random>>'
     expressAmbience =
         '<<one of>><<shiverRollsThrough>><<or>><<coldBreezeWashesOver>><<or
         >><<breathAmbience>><<at random>>'
     
     entryVerbs =
-        '<<one of>>welcomes you<<or>>greets you<<or>>meets you<<or
-        >>replies<<or>>responds<<or>>awaits<<or>>awaits you<<or
-        >>waits for you<<at random>>'
+        '<<one of>>welcomes{dummy} {me}<<or>>greets{dummy} {me}<<or>>meets{dummy} {me}<<or
+        >>replies<<or>>responds<<or>>awaits<<or>>awaits{dummy} {me}<<or
+        >>waits for{dummy} {me}<<at random>>'
     entrySuffixVerbs =
         '<<one of>>in greeting<<or>>in reply<<or>>in response<<at random>>'
 
@@ -78,14 +78,14 @@ freezer: Room { 'The Freezer'
         <<one of>>welcomes<<or>>greets<<or>>meets<<at random>>
         and
         <<one of>>revitalizes<<or>>comforts<<or>>warms<<or
-        >>embraces<<or>>restores<<at random>> you'
+        >>embraces<<or>>restores<<at random>>{dummy} {me}'
     subclauseAmbienceOnExit =
         '<<one of>>while<<or>>where<<at random>> <<freezer.expressAmbienceOnExit>>'
 
     travelerEntering(traveler, origin) {
         inherited(traveler, origin);
         if (gPlayerChar.isOrIsIn(traveler)) {
-            "<.p>You enter, <<subclauseAmbienceOnEntry>>.<.p> ";
+            "<.p>{I} enter, <<subclauseAmbienceOnEntry>>.<.p> ";
         }
     }
 

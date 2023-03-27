@@ -25,7 +25,8 @@ labB: Room { 'Lab B'
 DefineWindowPair(evaluationRoom, labB)
     vocab = 'observation window;reinforced evaluation eval evaluator\'s viewing lab glass;glass pane'
     desc = "TODO: Add description. "
-    breakMsg = 'The window is reinforced, and designed to resist creatures like you. '
+    breakMsg = 'The window is reinforced,
+        and designed to resist{dummy} creatures like {me}. '
     remoteHeader = 'through the window'
 ;
 

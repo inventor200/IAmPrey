@@ -1,5 +1,7 @@
-loadingArea: Room { 'The Loading Area'
-    "TODO: Add description. "
+loadingArea: Room {
+    vocab = 'loading area;;hall[weak] hallway[weak]'
+    roomTitle = '<<HallwaySegment.nameHeader>> (Loading Area)'
+    desc = "TODO: Add description. "
 
     regions = [loadingAreaSightLine, eastHallRegion]
 
@@ -25,7 +27,7 @@ loadingArea: Room { 'The Loading Area'
 }
 
 class HallwaySegment: Room {
-    desc = "You are <<inRoomName(gPlayerChar)>>.
+    desc = "{I} {am} <<inRoomName(gPlayerChar)>>.
         <<if lookAroundArmed>>TODO: Add description. <<end>><<additionalDesc()>>"
     nameHeader = 'The Main Hallway Ring'
 
@@ -40,19 +42,22 @@ loadingAreaSightLine: HallRegion;
 directorsOfficeSightLine: HallRegion;
 eastHallRegion: HallRegion;
 westHallRegion: HallRegion;
+southHallRegion: HallRegion;
 
-northHall: HallwaySegment { '<<nameHeader>> (North)'
+northHall: HallwaySegment {
+    vocab = 'B hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (B)'
+    theName = 'the middle end of the hall'
     additionalDesc = "\b
     The hall continues <<hyperDir('east')>> and <<hyperDir('west')>>.
     To the <<hyperDir('north')>> is a bathroom. To the <<hyperDir('south')>>
-    is the door to the Assembly Shop, and beside it (to the <<hyperDir('southwest')>>)
-    is a broken window. "
+    is the door to the Assembly Shop. "
 
-    regions = [loadingAreaSightLine, directorsOfficeSightLine]
+    regions = [loadingAreaSightLine]
 
     north = northBathroom
     east = loadingArea
-    west = northwestHall
+    west = northwestishHall
 
     southeastMuffle = labA
 
@@ -60,6 +65,39 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
         local omr = pov.getOutermostRoom();
         if (omr == loadingArea) {
             return 'near the middle of the hall (to the <<hyperDir('west')>>)';
+        }
+        if (omr == northwestishHall) {
+            return 'near the middle of the hall (to the <<hyperDir('east')>>)';
+        }
+        return inherited(pov);
+    }
+
+    descFrom(pov) {
+        "TODO: Add remote description. ";
+    }
+
+    mapModeDirections = [&north, &east, &west, &south]
+    familiar = roomsFamiliarByDefault
+}
+
+northwestishHall: HallwaySegment {
+    vocab = 'C hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (C)'
+    theName = 'the west end of the hall'
+    additionalDesc = "\b
+    The hall extends to the <<hyperDir('east')>>, with a nearby
+    corner to the <<hyperDir('southwest')>>.
+    To the <<hyperDir('south')>> is a broken window. "
+
+    regions = [loadingAreaSightLine, directorsOfficeSightLine]
+
+    east = northHall
+    southwest = northwestHall
+
+    inRoomName(pov) {
+        local omr = pov.getOutermostRoom();
+        if (omr == northHall) {
+            return 'near the <<hyperDir('west')>> end of the hall';
         }
         if (omr == directorsOffice) {
             return 'in the hall (through the window)';
@@ -71,11 +109,13 @@ northHall: HallwaySegment { '<<nameHeader>> (North)'
         "TODO: Add remote description. ";
     }
 
-    mapModeDirections = [&north, &east, &west, &south, &southwest]
+    mapModeDirections = [&east, &southwest, &south]
     familiar = roomsFamiliarByDefault
 }
 
-northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
+northeastHall: HallwaySegment {
+    vocab = 'K hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (K)'
     theName = 'the north end of the hall'
 
     north = loadingArea
@@ -95,7 +135,9 @@ northeastHall: HallwaySegment { '<<nameHeader>> (Northeast)'
     familiar = roomsFamiliarByDefault
 }
 
-eastHall: HallwaySegment { '<<nameHeader>> (East)'
+eastHall: HallwaySegment {
+    vocab = 'J hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (J)'
     theName = 'the middle of the hall'
 
     north = northeastHall
@@ -110,12 +152,14 @@ eastHall: HallwaySegment { '<<nameHeader>> (East)'
     familiar = roomsFamiliarByDefault
 }
 
-southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
+southeastHall: HallwaySegment {
+    vocab = 'I hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (I)'
     theName = 'the south end of the hall'
 
     north = eastHall
     east = freezerWestEntry
-    south = southHall
+    southwest = southHall
 
     regions = [eastHallRegion]
     lookAroundRegion = eastHallRegion
@@ -128,38 +172,68 @@ southeastHall: HallwaySegment { '<<nameHeader>> (Southeast)'
         inherited();
     }
 
-    mapModeDirections = [&north, &south, &east, &west]
+    mapModeDirections = [&north, &southwest, &east, &west]
     familiar = roomsFamiliarByDefault
 }
 
-southHall: HallwaySegment { '<<nameHeader>> (South)'
-    //
+southHall: HallwaySegment {
+    vocab = 'H hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (H)'
+    theName = 'the middle of the hall'
+
+    regions = [southHallRegion]
 
     northeast = southeastHall
-    west = southwestHall
+    west = southwestishHall
     south = southBathroom
 
     northeastMuffle = deliveryRoom
-    northwestMuffle = cloneQuarters
     southeastMuffle = reactorNoiseRoom
 
+    inRoomName(pov) {
+        local omr = pov.getOutermostRoom();
+        if (omr == southwestishHall) {
+            return 'near the middle of the hall (to the <<hyperDir('east')>>)';
+        }
+        return inherited(pov);
+    }
+
     mapModeDirections = [&north, &south, &east, &west, &northeast]
+    familiar = roomsFamiliarByDefault
+}
+
+southwestishHall: HallwaySegment {
+    vocab = 'G hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (G)'
+    theName = 'the west end of the hall'
+
+    regions = [southHallRegion]
+
+    north = southUtilityPassageEntry
+    east = southHall
+    northwest = southwestHall
+
+    //northwestMuffle = cloneQuarters
+
+    mapModeDirections = [&east, &northwest]
     mapModeLockedDoors = [southUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
 
-    filterResolveList(np, cmd, mode) {
-        if (np.matches.length > 1) {
-            if (gActor.getOutermostRoom() != self) {
-                np.matches = np.matches.subset({m: m.obj != self});
-            }
+    inRoomName(pov) {
+        local omr = pov.getOutermostRoom();
+        if (omr == southHall) {
+            return 'near the <<hyperDir('west')>> end of the hall';
         }
+        return inherited(pov);
     }
 }
 
-northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
+northwestHall: HallwaySegment {
+    vocab = 'D hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (D)'
     theName = 'the north end of the hall'
 
-    north = northHall
+    northeast = northwestishHall
     south = westHall
 
     eastMuffle = directorsOffice
@@ -169,11 +243,13 @@ northwestHall: HallwaySegment { '<<nameHeader>> (Northwest)'
 
     inRoomName(pov) { return 'in the north end of the hall'; }
 
-    mapModeDirections = [&north, &south, &east, &west]
+    mapModeDirections = [&northeast, &south, &east, &west]
     familiar = roomsFamiliarByDefault
 }
 
-westHall: HallwaySegment { '<<nameHeader>> (West)'
+westHall: HallwaySegment {
+    vocab = 'E hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (E)'
     theName = 'the middle of the hall'
 
     north = northwestHall
@@ -190,17 +266,19 @@ westHall: HallwaySegment { '<<nameHeader>> (West)'
     familiar = roomsFamiliarByDefault
 }
 
-southwestHall: HallwaySegment { '<<nameHeader>> (Southwest)'
+southwestHall: HallwaySegment {
+    vocab = 'F hallway[weak];;hall[weak]'
+    roomTitle = '<<nameHeader>> (F)'
     theName = 'the south end of the hall'
 
     north = westHall
-    south = southHall
+    southeast = southwestishHall
 
     regions = [westHallRegion]
     lookAroundRegion = westHallRegion
 
     inRoomName(pov) { return 'in the south end of the hall'; }
 
-    mapModeDirections = [&north, &south, &east, &west]
+    mapModeDirections = [&north, &southeast, &east, &west]
     familiar = roomsFamiliarByDefault
 }

@@ -77,8 +77,8 @@ serverRoomTop: Room { 'The Chilled Server Room'
     "A ladder allows travel to the floor below. "
 
     travelDesc =
-        "<<if gActorIsCat>>It's a little painful for your old
-        joints, but you manage to land on one of the rungs before
+        "<<if gActorIsCat>>It's a little painful for {my} old
+        joints, but {i} manage to land on one of the rungs before
         getting on the floor.<<else
         >>{I} quickly<<one of>>{aac}
         climb{s/ed} down<<or>>{aac}
@@ -98,7 +98,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     seenHoleFromHere = nil
 
     descFromAbove =
-        'You can see an opening in the floor of the alcove,
+        '{I} can see an opening in the floor of the alcove,
         where the cables feed into. '
 
     showDescFromAbove() {
@@ -117,7 +117,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
 ++dataCableServerExit: ClimbDownEnterPlatform { 'opening;extra[weak] in[prep] the floor[n] alcove[weak] cable[weak];hole hatch gap space[weak] exit'
     "There is a wide opening or hatch in the floor of the alcove.
     Through it, data cables feed into the Delivery Room.\b
-    You notice some extra space around the cables, as if there
+    {I} notice some extra space around the cables, as if there
     are too few of them being threaded through. "
 
     oppositeLocalPlatform = deliveryRoomCables
@@ -125,7 +125,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
 
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
 
-    travelDesc = "You squeeze through the opening, climb down the data cables,
+    travelDesc = "{I} squeeze through the opening, climb down the data cables,
         and come to an uneasy landing on the northwest artificial womb. "
 }
 ++serverRoomCables: ClimbDownPlatform { 'cables;server black dark insulated data hanging[weak] on[prep] ceiling[n];bundles[weak] wires cords connections'

@@ -26,7 +26,7 @@ directorsOffice: Room { 'The Director\'s Office'
 
 //TODO: Add cat bed
 
-DefineBrokenWindowPairLookingAway(north, southwest, northHall, directorsOffice)
+DefineBrokenWindowPairLookingAway(north, south, northwestishHall, directorsOffice)
     vocab = 'broken director\'s office window;directors[weak] shattered'
     desc = "TODO: Add description. "
     travelDesc = "{I} carefully climb{s/ed} through the broken window,

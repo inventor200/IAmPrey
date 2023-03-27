@@ -51,13 +51,13 @@ fakeDuctFloor: Floor { 'space[n] below;bottom;ground bottom[weak] end drop curve
 
 class CoolingDuctSegment: HallwaySegment {
     desc = "<<if lookAroundArmed
-        >>You <<one of>><<one of>>hold onto<<or>>grip<<at random>><<or
+        >>{I} <<one of>><<one of>>hold onto<<or>>grip<<at random>><<or
         >><<one of>>hold<<or>>press<<or>>push<<at random>>
-        yourself against<<at random>> <<insidesDesc>>.
+        {myself} against<<at random>> <<insidesDesc>>.
         <<if coolingDuctLowerOuterDoor.isOpen
         >>Light spills in from the open access door at the bottom,<<else
         >>Minimal hints of light bounce from the server room above,<<end>>
-        giving your night vision enough to see.<<end>> "
+        giving {my} night vision enough to see.<<end>> "
     nameHeader = 'Inside Cooling Duct'
 
     wallsDesc =
@@ -78,7 +78,7 @@ class CoolingDuctSegment: HallwaySegment {
 
     roomBeforeAction() {
         if (gActionIs(Drop) || gActionIs(Throw) || gActionIs(ThrowDir) || gActionIs(ThrowTo)) {
-            "If you let go of {that dobj} in here, you may never get it back. ";
+            "If {i} let go of {that dobj} in here, {i} may never get it back. ";
             exit;
         }
 
@@ -144,10 +144,10 @@ class CoolingDuctSegment: HallwaySegment {
             }
             else if (matchOrigin(outDir, origin)) {
                 setClimbStreak(climbStreak + 1);
-                "<.p>You climb into the cooling duct<<if origin.isFreezing == nil
+                "<.p>{I} climb into the cooling duct<<if origin.isFreezing == nil
                 >>, <<freezer.subclauseAmbienceOnEntry>><<end>>.
-                You press your limbs against the <<freezer.coldAluminum>> walls.
-                Now pinned in place, you are ready to climb
+                {I} press {my} limbs against the <<freezer.coldAluminum>> walls.
+                Now pinned in place, {i} {am} ready to climb
                 <<gDirectCmdStr('up')>> or <<gDirectCmdStr('down')>><.p> ";
             }
         }
@@ -236,7 +236,7 @@ catDownALadderBarrier: TravelBarrier {
     
     explainTravelBarrier(actor, connector) {
         "Unlike the other ladder (found by Server Access), this one
-        is completely vertical, which you cannot climb safely. ";
+        is completely vertical, which {i} cannot climb safely. ";
     }
 }
 
@@ -247,7 +247,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     The exit door is to the southwest, but it seems to be locked.
     <<if gCatMode>>A ladder is here, but it's not accessible
     to cats.<<else
-    >>A ladder is available to take you <<hyperDir('down')>>
+    >>A ladder{dummy} is available to take {me} <<hyperDir('down')>>
     to the lower floor of Life Support.<<end>> "
 
     southwest = northUtilityPassageEntry
@@ -274,7 +274,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 
 +lifeSupportLadderTop: ClimbDownIntoPlatform { 'ladder'
     "<<if gCatMode>>A ladder for citizens, but it's far too vertical
-    for your old bones to climb.<<
+    for {my} old bones to climb.<<
     else>>A ladder allows travel to the floor below.<<end>> "
 
     travelDesc =
@@ -453,9 +453,9 @@ class CoolingDuctGrate: VentGrateDoor {
     isTransparent = true
 
     catFailMsg = 
-        'As with other grates and vents, you are able to paw this one
-        open, but the breeze is colder than your old, kingly joints can
-        withstand.\bYou allow the grate to close, and you return to
+        'As with other grates and vents, {i} {am} able to paw this one
+        open, but the breeze is colder than {my} old, kingly joints can
+        withstand.\b{I} allow the grate to close, and {i} return to
         the floor. '
 
     dobjFor(Open) {
@@ -479,7 +479,7 @@ class CoolingDuctGrate: VentGrateDoor {
 
 insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
     up = insideCoolingDuctUpper
-    down = "If you go any lower, you might freeze to death;
+    down = "If {i} go any lower, {i} might freeze to death;
         the industrial-grade heat exchanger is probably that way. "
     out = coolingDuctLowerInnerDoor
 

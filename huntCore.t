@@ -251,11 +251,11 @@ huntCore: InitObject {
 
     startBathTime() {
         wasBathTimeAnnounced = true;
-        "<.p>The voice of your Royal Subject is heard over the facility's
+        "<.p>The voice of {my} Royal Subject is heard over the facility's
         intercom:\n
         <q><<gCatNickname>>...!
         It's Bath Time! I can smell you from the other side of the facility!</q>\b
-        Oh no. You fucking <i>hate</i> Bath Time...!! Time to make
+        Oh no. {I} fucking <i>hate</i> Bath Time...!! Time to make
         the Royal Subject <i>regret</i> that!<<
         skashekFishing.suggestAttackInSuspicion()>> ";
         bathTimeFuse = nil;
@@ -337,7 +337,7 @@ huntCore: InitObject {
         /*if (gTurns == 6) {
             doSkashekAction(Open, hallwayDoor);
         }*/
-        skashekAIControls.currentState.doTurn();
+        skashek.doTurn();
         playerWasSeenEntering = nil;
     }
 

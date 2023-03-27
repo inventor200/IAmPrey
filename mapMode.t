@@ -52,7 +52,7 @@ VerbRule(SetMapModeOn)
 DefineSystemAction(SetMapModeOn)
     execAction(cmd) {
         if (mapModeDatabase.inMapMode) {
-            "You are already in map mode. ";
+            "<<mapModeDatabase.alreadyInMapModeMsg>>";
             exit;
         }
         else {
@@ -76,7 +76,7 @@ DefineSystemAction(SetMapModeOff)
             mapModeDatabase.mapModeOff();
         }
         else {
-            "You are not in map mode. ";
+            "<<mapModeDatabase.notInMapModeMsg>>";
             exit;
         }
     }
@@ -98,7 +98,7 @@ DefineSystemAction(RecenterMap)
             mapModeStart.lookAroundWithin();
         }
         else {
-            "You are not in map mode. ";
+            "<<mapModeDatabase.notInMapModeMsg>>";
             exit;
         }
     }
@@ -195,7 +195,7 @@ modify Wait {
     isAllowedInMapMode = true
     exec(cmd) {
         if (mapModeDatabase.inMapMode) {
-            "Time does not pass in map mode. ";
+            "<<mapModeDatabase.noTimeInMapModeMsg>>";
             exit;
         }
         else {
@@ -246,7 +246,7 @@ DefineSystemAction(DumpRouteTable)
 class CarryMap: Decoration {
     vocab = 'mental map'
     notImportantMsg =
-        'Your mental map is simply a memory in your mind.
+        '{My} mental map is simply a memory in {my} mind.
         Its practical uses are limited. '
     bulk = 0
     dobjFor(Search) asDobjFor(Examine)
@@ -263,8 +263,8 @@ class CarryMap: Decoration {
 class CarryCompass: Decoration {
     vocab = 'mental compass'
     notImportantMsg =
-        'Your mental compass is simply an
-        imaginary tool of your mind.
+        '{My} mental compass is simply an
+        imaginary tool of {my} mind.
         Its practical uses are limited. '
     bulk = 0
     dobjFor(Search) asDobjFor(Examine)
@@ -332,27 +332,33 @@ mapModeDatabase: object {
 
     allRooms = static new Vector()
 
-    notOnMapMsg = 'You cannot see that on your map.
+    notOnMapMsg = '{I} cannot see that on {my} map.
         It might exist, omitted from the map, or it might
         not be in the facility at all. '
-    noRouteOnMapMsg = 'You cannot see a way there on your map.
+    noRouteOnMapMsg = '{I} cannot see a way there on {my} map.
         A hidden route might be omitted from the map, or it might
         not exist in the facility at all. '
+    alreadyInMapModeMsg =
+        '{I} {am} already imagining the facility in {my} mental map. '
+    notInMapModeMsg =
+        '{My} focus{dummy} {is} on {my} surroundings; not on {my} mental map. '
+    noTimeInMapModeMsg =
+        'Time does not pass in {my} mental map. '
 
     doTravelAnnouncement() {
         if (travelAnnouncementsRemaining <= 0) return;
         if (travelAnnouncementsRemaining >= 2) {
-            "<.p>You imagine yourself going that way,
-            through your mental map...<.p>";
+            "<.p>{I} imagine {myself} going that way,
+            through {my} mental map...<.p>";
         }
         else {
-            "<.p>(traveling through your mental map...)<.p>";
+            "<.p>(traveling through {my} mental map...)<.p>";
         }
         travelAnnouncementsRemaining--;
     }
 
     cancelNonMapAction() {
-        "You cannot do that in map mode.\n
+        "{I} cannot do that in map mode.\n
         The available actions in map mode are:\n";
         if (gFormatForScreenReader) {
             "<b>GO</b> <i>(direction)</i>, <b>GO TO</b> <i>(location)</i>,
@@ -394,7 +400,7 @@ mapModeDatabase: object {
 
     checkCompass() {
         if (compassTarget == nil) {
-            "You have not set your compass yet.\n
+            "{I} have not set {my} compass yet.\n
             Use the <b>GO TO</b> command.\n
             \tExample: <b>GO TO HANGAR</b>";
             exit;
@@ -418,7 +424,7 @@ mapModeDatabase: object {
     checkMapEntry() {
         if (inMapMode) return;
         if (gPlayerChar.getOutermostRoom().mapModeVersion == nil) {
-            "Your current location is not visible on the map. ";
+            "{My} current location is not visible on the map. ";
             exit;
         }
     }
@@ -436,9 +442,8 @@ mapModeDatabase: object {
             "<.p><tt>MAP MODE IS NOW ON.</tt><.p>";
             if (!firstTimeMapMode) {
                 firstTimeMapMode = true;
-                "In map mode, you explore a simplified version of the world.
-                Your available actions will be limited, but you will also not
-                spend turns.<.p>";
+                "In {my} mental map, {i} can explore a simplified version of the world.
+                {My} available actions will be limited, but time does not pass here.<.p>";
             }
             setPlayer(mapModePlayer);
             actualPlayerChar = gPlayerChar;
@@ -467,7 +472,7 @@ mapModeDatabase: object {
 
     reportBestDirectionTo(direction) {
         if (direction == compassAlreadyHereSignal) {
-            "You have arrived at your destination. ";
+            "{I} have arrived at {my} destination. ";
             exit;
         }
         if (direction == nil) {
@@ -477,13 +482,13 @@ mapModeDatabase: object {
         direction.sayDir(
             'NEXT STEP: ',
             'To reach <<mapModeDatabase.compassTarget.roomTitle>>,
-            you must '
+            {i} must '
         );
     }
 }
 
 mapModePlayer: Actor { 'avatar;;me self myself'
-    "You are as you appear in your own imagination. "
+    "{I} {am} as {i} appear in {my} own imagination. "
 }
 
 +CarryMap;
@@ -590,7 +595,7 @@ class RouteTable: object {
         }
         "The map shows the following exits:";
         for (local i = 1; i <= knownDirections.length; i++) {
-            knownDirections[i].sayDir('\n', '\nYou can ');
+            knownDirections[i].sayDir('\n', '\n{I} can ');
         }
     }
 
@@ -753,7 +758,7 @@ compassAlreadyHereSignal: object;
 
 #define standardMapModeSurfaceDesc \
     "A black surface, outlined in white marker, but only \
-    a metaphor for your sense of direction. "
+    a metaphor for {my} sense of direction. "
 
 mapModeCeiling: Ceiling { 'ceiling'
     standardMapModeSurfaceDesc
