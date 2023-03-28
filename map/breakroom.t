@@ -7,6 +7,7 @@ breakroom: Room { 'The Breakroom'
 
     mapModeDirections = [&south]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = killRoom
 }
 
 DefineDoorSouthTo(southHall, breakroom, 'the Breakroom door')

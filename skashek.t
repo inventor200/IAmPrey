@@ -67,11 +67,13 @@ skashek: Actor {
     outfit = skashekUniform
 
     hasSeenPreyStrip = nil
-    hasSeenPreyOutsideOfDeliveryRoom = nil
+    hasSeenPlayerAttemptToHide = nil
 
     witnessPreyStripping() {
+        if (!canMockPlayer()) return;
         if (hasSeenPreyStrip) return;
         hasSeenPreyStrip = true;
+        prepareSpeech();
         reportAfter('<.p><q>Hah!</q> <<gSkashekName>> exclaims.
             <q>You\'ll need to do more than <i>that</i> to distract me,
             Prey!</q><.p>');

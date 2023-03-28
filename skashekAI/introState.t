@@ -2,12 +2,35 @@
 skashekIntroState: SkashekAIState {
     stateName = 'Intro State'
 
+    #ifdef __DEBUG
+    setupForTesting() {
+        inherited();
+        // Set starting variables for testing
+    }
+    #endif
+
     countdownBeforeStart = 0
     peeksAllowed = 2
     startWithChase = nil
     
-    doPerception() {
-        //TODO: Handle Skashek sound perception
+    doPerception(impact) {
+        // Hearing the player is proof of activity
+        skashek.hasSeenPreyOutsideOfDeliveryRoom = true;
+        if ((impact.sourceOrigin == breakroomEntryDoor ||
+            impact.sourceOrigin == breakroomExitDoor) &&
+            impact.soundProfile == doorSlamCloseNoiseProfile) {
+            countdownBeforeStart = 0;
+            startWithChase = true;
+            skashek.doAction(Open, breakroomExitDoor);
+            prepareSpeech();
+            if (!breakroomExitDoor.canEitherBeSeenBy(gPlayerChar)) {
+                "\b{I} hear the Breakroom door being
+                forcefully thrown back open. ";
+            }
+            "\b<q>I'm gonna <i>rip you in half</i>, Prey!!</q>
+            he declares.\b
+            <i>Maybe slamming the door on him was a tactical misstep...</i>";
+        }
     }
 
     doPlayerPeek() {
@@ -18,7 +41,7 @@ skashekIntroState: SkashekAIState {
         //
     }
 
-    describePeekedAction() {
+    describePeekedAction(approachType) {
         local peekCount = peeksAllowed;
         peeksAllowed--;
         #if __DEBUG_SKASHEK_ACTIONS
@@ -28,8 +51,6 @@ skashekIntroState: SkashekAIState {
         countdownBeforeStart: <<countdownBeforeStart>>
         <.p>";*/
         #endif
-
-        //TODO: Make it possible to catch him monologing
 
         if (countdownBeforeStart == 1 || peekCount <= 0) {
             if (!skashek.hasSeenPreyOutsideOfDeliveryRoom) {
@@ -101,15 +122,15 @@ skashekIntroState: SkashekAIState {
     }
 
     startGameFrom() {
+        skashek.reciteAnnouncement(introMessage1);
+        skashek.reciteAnnouncement(introMessage2);
+        skashek.reciteAnnouncement(introMessage3);
         countdownBeforeStart =
             huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
     }
 
     doTurn() {
-        //TODO: If the player walks in on Skashek, death occurs
-        // We can check this with skashek.playerWasSeenEntering()
-        //TODO: If the player slams the door, Skashek is pissed
-        // and starts chasing
+        local hitZeroLegit = countdownBeforeStart == 1;
         countdownBeforeStart--;
 
         #if __DEBUG_SKASHEK_ACTIONS
@@ -119,7 +140,32 @@ skashekIntroState: SkashekAIState {
         <.p>";*/
         #endif
 
+        local playerSeenEntering = skashek.playerWasSeenEntering();
+
+        if (playerSeenEntering) {
+            hitZeroLegit = nil;
+            if (countdownBeforeStart <= 1) {
+                "<<gSkashekName>> is standing by the table, adjusting
+                his uniform. He{dummy} slowly turns to look at {me}.\b";
+            }
+            else {
+                "<<gSkashekName>> pauses, a piece of pale kelp moments
+                from his mouth. His eyes are locked on {mine}, and he
+                slowly stands up.\b";
+            }
+            "<q>Prey,</q> he growls, <q>you are being quite <i>bold</i>.
+            I suggest you start running. <i>Now.</i></q> ";
+            countdownBeforeStart = 0;
+            startWithChase = true;
+        }
+
         if (countdownBeforeStart > 0) return;
+
+        if (hitZeroLegit) {
+            // Prey has not disturbed Skashek so far.
+            skashek.reciteAnnouncement(readyOrNotMessage);
+            skashek.performNextAnnouncement();
+        }
 
         if (skashek.hasSeenPreyOutsideOfDeliveryRoom) {
             if (startWithChase) {

@@ -87,6 +87,7 @@ class WombRemapUnder: SubComponent {
 }
 
 class WombRemapOn: SubComponent {
+    isSafeParkourPlatform = true
     canBonusReachDuring(obj, action) {
         return obj == artificialWombs;
     }
@@ -246,6 +247,7 @@ deliveryRoom: Room { 'The Delivery Room'
 
     mapModeDirections = [&east]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +deliveryRoomFog: ColdFog;
@@ -331,6 +333,7 @@ deliveryRoom: Room { 'The Delivery Room'
     remapIn: SubComponent {
         isOpenable = nil
         isEnterable = true
+        isHidingSpot = true
     }
     remapOn: SubComponent {
         isBoardable = true

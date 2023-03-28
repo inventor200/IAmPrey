@@ -106,6 +106,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
     hasCriedLikeABaby = nil
 
     actorAction() {
+        inherited();
         if (gActionIs(Yell) || gActionIs(SayMeow)) {
             if (hasLeftTheNet) {
                 "{I} find that making any kind of loud vocalization is a

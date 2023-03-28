@@ -86,6 +86,9 @@ modify Thing {
     soundSize = large
     smellSize = small
 
+    isSafeParkourPlatform = nil
+    isHidingSpot = nil
+
     canAttackWithMe = (isTakeable && gDobj == skashek)
     cannotAttackMsg = (gCatMode ?
         '{I} like to think that {i} {am} a <i>merciful</i> ruler. '
@@ -458,10 +461,17 @@ modify Actor {
     }
 }
 
+// killRoom = 1 exit
+// escapeRoom = 1 travel exit, 1+ parkour exits
+// chaseRoom = 2+ travel exits
+// bigRoom = resets the long-streak and allows reuse of exit
+enum killRoom, escapeRoom, chaseRoom, bigRoom;
+
 #define roomCapacity 100000
 modify Room {
     bulkCapacity = roomCapacity
     maxSingleBulk = roomCapacity
+    roomNavigationType = chaseRoom
 }
 
 modify Floor {

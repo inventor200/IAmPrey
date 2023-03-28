@@ -268,6 +268,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     mapModeDirections = [&down]
     mapModeLockedDoors = [northUtilityPassageEntry]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 
     RoomHasLadderDown(lifeSupportLadderTop)
 }
@@ -339,6 +340,7 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
 
     mapModeDirections = [&up, &east]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +Decoration { 'puddle;residual;water'

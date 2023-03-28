@@ -63,6 +63,7 @@ hangar: Room { 'The Hangar'
 
     mapModeDirections = [&west, &east]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = bigRoom
 }
 
 +airlockInsideEntry: PrefabDoor { 'the Emergency Airlock door'

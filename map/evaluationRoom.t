@@ -17,6 +17,7 @@ evaluationRoom: Room { 'The Evaluation Room'
 
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = killRoom
 }
 
 DefineDoorWestTo(eastHall, evaluationRoom, 'the Evaluation Room door')

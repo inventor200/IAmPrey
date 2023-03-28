@@ -17,6 +17,7 @@ utilityPassage: Room { 'The Utility Corridor'
     mapModeDirections = [&east]
     mapModeLockedDoors = [southUtilityPassageExit, northUtilityPassageExit]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +southUtilityPassageExit: MaintenanceDoor { 'the south end exit door'

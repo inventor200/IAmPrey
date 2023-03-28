@@ -18,8 +18,8 @@
 #include "cloneQuarters.t"    // Stage: Parkour
 #include "enrichmentRoom.t"   // Stage: Parkour
 #include "directorsOffice.t"  // Stage: Parkour
-#include "assemblyShop.t"     // Stage: Muffle
-#include "commonRoom.t"       // Stage: Muffle
+#include "assemblyShop.t"     // Stage: Parkour
+#include "commonRoom.t"       // Stage: Described decorations
 #include "armory.t"           // Stage: Parkour
 #include "labA.t"             // Stage: Muffle
 #include "labB.t"             // Stage: Parkour
@@ -28,9 +28,9 @@
 #include "utilityPassage.t"   // Stage: Described decorations
 #include "lifeSupport.t"      // Stage: Described decorations
 #include "serverRoom.t"       // Stage: Described decorations
-#include "library.t"         // Stage: Parkour
+#include "library.t"          // Stage: Parkour
 #include "hangar.t"           // Stage: Parkour
-#include "kitchen.t"          // Stage: Muffle
+#include "kitchen.t"          // Stage: Parkour
 #include "freezer.t"          // Stage: Parkour
 #include "reservoir.t"        // Stage: Parkour
 #include "ventilationNode.t"  // Stage: Described decorations

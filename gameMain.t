@@ -24,6 +24,11 @@
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
 /*-*/  #define __TEST_ROOM deliveryRoom
+      #define __SKASHEK_START breakroom
+     #define __SKASHEK_STATE nil
+    #define __SKASHEK_FROZEN nil
+   #define __SKASHEK_TOOTHLESS nil
+  #define __SKASHEK_IMMOBILE nil
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -36,6 +41,9 @@
 #else
 #define __FAST_DIFFICULTY 4
 #endif
+#define __SKASHEK_FROZEN nil
+#define __SKASHEK_TOOTHLESS nil
+#define __SKASHEK_IMMOBILE nil
 // ^- This is the non-debug behavior!!!
 #endif
 
@@ -137,6 +145,7 @@ versionInfo: GameID {
         Mathbrush (<a href='https://ifdb.org/showuser?id=nufzrftl37o9rw5t'>Link to IFDB</a>)\n
         Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)\n
         Piergiorgio d'errico\n
+        Pinkunz (<a href='https://ifdb.org/showuser?id=dqr2mj29irbx1qv4'>Link to IFDB</a>)\n
         Rovarsson";
     }
 }

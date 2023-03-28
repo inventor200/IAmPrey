@@ -72,6 +72,7 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me you self myself you
     }
 
     actorAction() {
+        inherited();
         if (gActionIs(Yell) || gActionIs(SayMeow) || gActionIs(Sing)) {
             meowPrompt;
             exit;

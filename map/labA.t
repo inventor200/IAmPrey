@@ -9,6 +9,7 @@ labA: Room { 'Lab A'
 
     mapModeDirections = [&east]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +labAShelves: FixedPlatform { 'storage shelf{shelves};cargo;rack'
@@ -16,6 +17,8 @@ labA: Room { 'Lab A'
     They are arranged into an L-shape, to conform to the corner of
     the room. "
     ambiguouslyPlural = true
+
+    isSafeParkourPlatform = true
 
     travelPreface = '{I} find {myself} on a tall set of storage shelves,
         placed in the corner of the room, and in reach of'

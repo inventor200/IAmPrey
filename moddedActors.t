@@ -9,6 +9,7 @@ modify Actor {
     maxSingleBulk = 2
 
     outfit = nil
+    lastLocation = nil
 
     seeReflection(mirror) {
         mirror.confirmSmashed();
@@ -36,6 +37,25 @@ modify Actor {
     addExhaustion(amount) { }
     updatePhysicalState() { }
     applySweat(exhaustionLevel, wetnessLevel) { }
+
+    moveInto(dest) {
+        handleBeforeMove(dest);
+        local cachedLastLoc = location;
+        inherited(dest);
+        if (location != cachedLastLoc) {
+            // If we moved, then update our last location
+            lastLocation = cachedLastLoc;
+            handleMoveInto(lastLocation, dest);
+        }
+    }
+
+    handleBeforeMove(dest) {
+        //
+    }
+
+    handleMoveInto(from, to) {
+        //
+    }
 }
 
 class PlayerActor: Actor {
@@ -118,6 +138,31 @@ class PlayerActor: Actor {
         if (wetness < wetnessLevel * physicalFactorScale &&
             exhaustion >= exhaustionLevel * physicalFactorScale) {
             wetness = wetnessLevel * physicalFactorScale;
+        }
+    }
+
+    // Player can be seen attempting to hide
+    // This value is used to compare against old visibility
+    couldSkashekSeeBefore = nil
+
+    handleBeforeMove(dest) {
+        // Was player being stealthy before?
+        local hadStealthLastTime =
+            location.isHidingSpot && !huntCore.playerWasSeenHiding;
+        // Don't bias
+        huntCore.playerWasSeenHiding = nil;
+        // Rearm Skashek's callout
+        skashek.hasSeenPlayerAttemptToHide = nil;
+        // Poll visibility before move
+        // Account for stealth from before move as well
+        couldSkashekSeeBefore = skashek.canSee(self) && !hadStealthLastTime;
+    }
+
+    handleMoveInto(from, to) {
+        // If player intends to hide
+        if (to.isHidingSpot || !skashek.canSee(self)) {
+            // They thwart themselves by being caught hiding
+            huntCore.playerWasSeenHiding = couldSkashekSeeBefore;
         }
     }
 }

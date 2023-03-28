@@ -59,11 +59,11 @@ serverRoomTop: Room { 'The Chilled Server Room'
 
     mapModeDirections = [&down]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 
     RoomHasLadderDown(serverLadderTop)
 }
 
-//TODO: Refuse to break these
 +serverBanks: Decoration { 'server bank;;computer server'
     "Large, black cabinets full of running computers, wired together in
     complex ways. Thick cables run from their tops, and feed into an alcove
@@ -71,6 +71,37 @@ serverRoomTop: Room { 'The Chilled Server Room'
     To the north, there is a large vent grate, which pumps freezing air into
     the room. "
     ambiguouslyPlural = true
+
+    dobjFor(Eat) asDobjFor(Attack)
+    dobjFor(Cut) asDobjFor(Attack)
+    dobjFor(Attack) {
+        verify() {
+            if (gActorIsPrey) {
+                illogical(
+                    '{My} tactical intuition begins piecing together the
+                    evidence...\b
+                    If {i} destroy {the dobj}, then <<gSkashekName>> will be
+                    left with corpses, which he will refuse to eat. If he starves
+                    to death, then the facility will begin to look inactive from
+                    outside. If that happens then {my} creators will retake this
+                    place, and restart the clone program all over again.\b
+                    That would be an existential threat to both this place
+                    <i>and</i> the world outside.\b
+                    The enemy <i>must not win</i>, but {i} cannot die either.
+                    The solution is to hope most newborns successfully flee,
+                    and that just enough of them fail, so <<gSkashekName>>
+                    can survive.\b
+                    {I} have no room for spite or suicide in my mission.
+                    The optimal outcome is escape. '
+                );
+            }
+            else {
+                illogical(
+                    'Short of biting the wires, there\'s not much {i} can do. '
+                );
+            }
+        }
+    }
 }
 
 +serverLadderTop: ClimbDownIntoPlatform { 'ladder;access in[prep] the floor[n];opening[weak] hatch[weak] hole[weak]'
@@ -94,6 +125,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     if gPlayerChar.isIn(dataCableAlcove)>>\b<<descFromAbove>><<end>> "
 
     simplyRerouteClimbInto = true
+    isSafeParkourPlatform = true
 
     seenHoleFromHere = nil
 
@@ -136,6 +168,28 @@ serverRoomTop: Room { 'The Chilled Server Room'
     plural = true
 
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
+
+    dobjFor(Cut) {
+        remap = serverBanks
+    }
+
+    dobjFor(Attack) {
+        remap = serverBanks
+    }
+
+    dobjFor(Eat) {
+        verify() {
+            if (gActorIsPrey) {
+                inherited();
+            }
+            else {
+                illogical(
+                    '<<gSkashekName>> must have coated these in something,
+                    because the taste{dummy} makes {me} wretch. '
+                );
+            }
+        }
+    }
 
     asAliasFor(dataCableServerExit)
 }

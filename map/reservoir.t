@@ -147,6 +147,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     mapModeDirections = [&east]
     mapModeLockedDoors = [northReservoirCorridorExit, southReservoirCorridorExit]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +reservoirCorridorCrate: FixedPlatform { 'rusty crate;metal;box'
@@ -294,6 +295,7 @@ reservoir: Room { 'The Reactor Reservoir'
 
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = escapeRoom
 }
 
 +diveIntoWaterConnector: TravelConnector {

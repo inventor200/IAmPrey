@@ -88,7 +88,8 @@ prologueCore: InitObject {
         \b\b\b";
         #endif
         "<center><small>WELCOME TO...</small>\b
-        <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\b
+        <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\n
+        <small>version <<versionInfo.version>></small>\b
         A game of evasion, by Joey Cramsey<<if gPreyMode>>\b
         <i><q>This is based on a recurring nightmare of mine,
         so now it's your problem, too!</q></i><<end>>";

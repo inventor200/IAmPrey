@@ -1230,6 +1230,12 @@ modify Door {
         }
         action() {
             if (canSlamMe) {
+                if (gActorIsPrey) {
+                    wasPlayerExpectingAClose = true;
+                }
+                else {
+                    wasSkashekExpectingAClose = true;
+                }
                 slam();
             }
             else {
@@ -1396,16 +1402,27 @@ DefineDistComponentFor(ProximityScanner, MaintenanceDoor)
 
 modify Room {
     hasDanger() {
-        if (skashek.getOutermostRoom() == self) {
-            return skashek.showsDuringPeek();
+        local res = nil;
+        reachGhostTest_.moveInto(self);
+        if (skashek.getOutermostRoom() == self || reachGhostTest_.canSee(skashek)) {
+            res = skashek.showsDuringPeek();
         }
-        return nil;
+        reachGhostTest_.moveInto(nil);
+        return res;
     }
 
     peekInto() {
         if (hasDanger()) {
-            skashek.doPlayerPeek();
-            skashek.describePeekedAction();
+            local distantRoom = nil;
+            local skashekRoom = skashek.getOutermostRoom();
+            if (skashekRoom != self) {
+                distantRoom = skashekRoom;
+            }
+            else {
+                // Player cannot be caught peeking from a distance
+                skashek.doPlayerPeek();
+            }
+            skashek.describePeekedAction(distantRoom);
         }
         else {
             "<.p><i>Seems safe!</i> ";

@@ -36,6 +36,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     remapUnder: SubComponent {
         betterStorageHeader
         canSlideUnderMe = true
+        isHidingSpot = true
 
         hiddenUnder = [holeUnderBedDiscovery]
 

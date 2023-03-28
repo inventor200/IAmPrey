@@ -20,6 +20,7 @@ labB: Room { 'Lab B'
 
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = killRoom
 }
 
 DefineWindowPair(evaluationRoom, labB)

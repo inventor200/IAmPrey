@@ -1,8 +1,15 @@
 // Skashek lost visual and is trying to reach the most likely player position
 skashekReacquireState: SkashekAIState {
     stateName = 'Reacquire State'
+
+    #ifdef __DEBUG
+    setupForTesting() {
+        inherited();
+        // Set starting variables for testing
+    }
+    #endif
     
-    doPerception() {
+    doPerception(impact) {
         //TODO: Handle Skashek sound perception
     }
 
@@ -16,7 +23,7 @@ skashekReacquireState: SkashekAIState {
         //TODO: Do not accept this if it happened last turn
     }
 
-    describePeekedAction() {
+    describePeekedAction(approachType) {
         //TODO: Allow for him to be described according to his current action
         "<.p><i>\^<<gSkashekName>> is in there!</i> ";
     }

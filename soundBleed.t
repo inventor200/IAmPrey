@@ -3,9 +3,11 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
 #ifdef __DEBUG
 #define __DEBUG_SOUND_PLAYER_SIDE nil
+#define __DEBUG_SOUND_SKASHEK_SIDE nil
 #define __SHOW_EMISSION_STARTS nil
 #else
 #define __DEBUG_SOUND_PLAYER_SIDE nil
+#define __DEBUG_SOUND_SKASHEK_SIDE nil
 #define __SHOW_EMISSION_STARTS nil
 #endif
 

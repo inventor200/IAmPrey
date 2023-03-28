@@ -33,6 +33,8 @@ commonRoomCeiling: industrialCeiling {
 
     cannotSwingOnMsg = 'The beam is a little too thick to swing on. '
 
+    isSafeParkourPlatform = true
+
     omitFromStagingError() {
         return nil;
     }
@@ -153,6 +155,8 @@ commonRoom: Room { 'The Common Room'
 //TODO: Put a plant on this
 +displayShelf: FixedPlatform { 'display shelf;simple metal decorative'
     "A simple metal shelf for displaying decorative items. "
+
+    isSafeParkourPlatform = true
 }
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
@@ -163,6 +167,8 @@ commonRoom: Room { 'The Common Room'
     There seems to be enough of a ledge there to stand on. "
 
     matchPhrases = ['east wall', 'e wall', 'wall']
+
+    isSafeParkourPlatform = true
 
     isLikelyContainer() {
         return true;

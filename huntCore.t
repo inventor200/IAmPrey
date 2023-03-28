@@ -142,6 +142,7 @@ nightmareModeSetting: DifficultySetting {
 huntCore: InitObject {
     revokedFreeTurn = nil
     playerWasSeenEntering = nil
+    playerWasSeenHiding = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
@@ -205,9 +206,11 @@ huntCore: InitObject {
         if (!midGame) {
             freeTurnAlertsRemaining =
                 difficultySettingObj.startingFreeTurnAlerts;
-            skashekAIControls.currentState =
-                difficultySettingObj.startingSkashekState;
+            skashekAIControls.currentState = getStartingAIState();
             skashekAIControls.currentState.needsGameStartSetup = true;
+            #ifdef __DEBUG
+            skashekAIControls.currentState.setupForTesting();
+            #endif
             skashekAIControls.currentState.activate();
         }
     }
@@ -243,9 +246,25 @@ huntCore: InitObject {
         //      and slowly make his way down to the reservoir after checking
         //      the director's office for the cat.
         #ifdef __DEBUG
-        skashek.moveInto(breakroom);
+        skashek.moveInto(__SKASHEK_START);
         #else
         skashek.moveInto(breakroom);
+        #endif
+    }
+
+    getStartingAIState() {
+        #ifdef __DEBUG
+        local testState = __SKASHEK_STATE;
+        if (testState != nil) {
+            return testState;
+        }
+        local testStart = __SKASHEK_START;
+        if (testStart == breakroom) {
+            return difficultySettingObj.startingSkashekState;
+        }
+        return skashekLurkState;
+        #else
+        return difficultySettingObj.startingSkashekState;
         #endif
     }
 
@@ -334,9 +353,6 @@ huntCore: InitObject {
     }
 
     doSkashekTurn() {
-        /*if (gTurns == 6) {
-            doSkashekAction(Open, hallwayDoor);
-        }*/
         skashek.doTurn();
         playerWasSeenEntering = nil;
     }
@@ -450,16 +466,23 @@ huntCore: InitObject {
 //TODO: When Skashek follows you into a room, you get one turn to act, and he will be
 //      reaching out for you by the next turn, and you will die if you are still in the
 //      same room by the third turn. (the "short-streak")
-//      If you spend that first turn going into a different room, he will immediately
+//    > If you spend that first turn going into a different room, he will immediately
 //      follow you. If he can either follow you for 5(?) turns in a row
 //      (the "long-streak"), he catches you.
-//      Every time he moves into another room, the short-streak resets.
-//      Each turn spent climbing on a non-floor object contributes to the long-streak
-//      AND short-streak, BUT it will not FINISH the short-steak, as long as you do not
-//      touch the floor! (He is waiting to snatch you!)
-//      If he fails to follow you into a room, he tries to re-acquire, but every turn
+//    > Every time he moves into another room, the short-streak resets.
+//    > Each turn spent climbing on a non-floor object contributes to the short-streak
+//      BUT it will not FINISH the short-steak, as long as you do not touch the floor!
+//      (He is waiting to snatch you!)
+//    > If the room immediately on the other side of a parkour connection is 3 turns
+//      (or fewer) away from the current room (via normal travel), then he can
+//      intercept you in the next room (tho he spends 1 turn opening the door, or
+//      waits outside for 1 turn).
+//      Doing this will decrement the long-streak by 2.
+//    > If he fails to follow you into a room, he tries to re-acquire, but every turn
 //      without you decrements the long-streak.
-//TODO: Passing through a door while being chased asks the player for an evasion action.
+//    > If you are in a room with 2+ normal-travel exits, then you are not saved from
+//      the short-streak, UNLESS you are on a platform specifically marked as "safe".
+//TODO: Passing through a door while being chased asks the player for an evasion trick.
 
 #define gHadRevokedFreeAction (turnsTaken == 0 && huntCore.revokedFreeTurn)
 #define gActionWasCostly ((turnsTaken > 0 || gHadRevokedFreeAction) \
