@@ -41,7 +41,7 @@ skashekIntroState: SkashekAIState {
         //
     }
 
-    describePeekedAction(approachType) {
+    describePeekedAction() {
         local peekCount = peeksAllowed;
         peeksAllowed--;
         #if __DEBUG_SKASHEK_ACTIONS

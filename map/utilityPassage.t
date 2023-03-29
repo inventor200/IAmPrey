@@ -105,7 +105,11 @@ class PassablePipes: LocalClimbPlatform {
     plural = true
     preferredBoardingAction = SqueezeThrough
 
+    matchPhrases = 'pipes'
+    matchPhrasesExclude = nil
+
     dobjFor(SlideUnder) asDobjFor(TravelVia)
+    dobjFor(GoThrough) asDobjFor(TravelVia)
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
 
     dobjFor(PeekBetween) asDobjFor(LookThrough)

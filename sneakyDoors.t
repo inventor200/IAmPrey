@@ -69,6 +69,17 @@ doorSuspiciousSilenceProfile: SoundProfile {
     }
 }
 
+doorUnlockBuzzProfile: SoundProfile {
+    'the muffled, electronic buzz of <<theSourceName>> being unlocked'
+    'the echoing, electronic buzz of <<theSourceName>> being unlocked'
+    'the reverberating, electronic buzz of a door being unlocked'
+    strength = 2
+
+    afterEmission(room) {
+        say('\b(Emitted unlock door buzz in <<room.roomTitle>>.)');
+    }
+}
+
 #define peekExpansion 'peek'|'peer'|'spy'|'check'|'watch'|'p'
 #define peekVerb(tail) \
     (peekExpansion) tail | \
@@ -570,7 +581,7 @@ sneakyCore: object {
             if (conn.ofKind(Door)) {
                 peekComm = conn.name;
                 allowPeek = conn.allowPeek;
-                if (!allowPeek && !conn.isLocked) {
+                if (!allowPeek && (conn.lockability == notLockable)) {
                     "<.p>(first opening <<conn.theName>>)<.p>";
                     nestedAction(Open, conn);
                     allowPeek = conn.allowPeek;
@@ -816,7 +827,7 @@ modify Door {
         local observerRoom = gPlayerChar.getOutermostRoom();
         local inRoom = omr == observerRoom;
 
-        if (!isLocked) {
+        if (lockability == notLockable) {
             local direction = omr.getDirection(self);
             
             if (direction != nil) {
@@ -1137,6 +1148,11 @@ modify Door {
                 witnessClosing();
             }
         }
+
+        if (!stat && lockability == lockableWithKey) {
+            // Doors re-lock when closing
+            makeLocked(true);
+        }
     }
 
     canEitherBeSeenBy(witness) {
@@ -1168,7 +1184,7 @@ modify Door {
 
     dobjFor(SneakThrough) {
         verify() {
-            if (isLocked && !isOpen) {
+            if ((lockability == lockableWithKey) && !isOpen) {
                 illogical('That door is locked. ');
             }
         }
@@ -1342,7 +1358,7 @@ DefineDistComponentFor(CatFlap, Door)
     vocab = 'cat flap;pet kitty;door[weak] catflap petflap catdoor kittydoor'
 
     getMiscInclusionCheck(obj, normalInclusionCheck) {
-        return normalInclusionCheck && !obj.isLocked && !obj.airlockDoor;
+        return normalInclusionCheck && (obj.lockability == notLockable) && !obj.airlockDoor;
     }
 
     subReferenceProp = &catFlap
@@ -1404,7 +1420,21 @@ modify Room {
     hasDanger() {
         local res = nil;
         reachGhostTest_.moveInto(self);
-        if (skashek.getOutermostRoom() == self || reachGhostTest_.canSee(skashek)) {
+
+        // Are we peeking him where he is now?
+        local canSeeCurrentPosition =
+            (skashek.getOutermostRoom() == self) ||
+                reachGhostTest_.canSee(skashek);
+        
+        // Are we peeking him entering?
+        local canSeeNextPosition = nil;
+        local nextStop = skashek.getWalkInRoom();
+        if (nextStop != nil) {
+            canSeeNextPosition = 
+                (nextStop == self) || reachGhostTest_.canSee(nextStop);
+        }
+
+        if (canSeeCurrentPosition || canSeeNextPosition) {
             res = skashek.showsDuringPeek();
         }
         reachGhostTest_.moveInto(nil);
@@ -1422,7 +1452,20 @@ modify Room {
                 // Player cannot be caught peeking from a distance
                 skashek.doPlayerPeek();
             }
+            // Move our peek POV into place, and mark it
+            _peekSkashekPOV.moveInto(self);
+            skashek.peekPOV = _peekSkashekPOV;
+            if (distantRoom != nil) {
+                // Make sure we can actually see the room...
+                if (!_peekSkashekPOV.canSee(distantRoom)) {
+                    distantRoom = nil;
+                }
+            }
+            // Do peek
             skashek.describePeekedAction(distantRoom);
+            // Pack up our peek POV
+            _peekSkashekPOV.moveInto(nil);
+            skashek.peekPOV = nil;
         }
         else {
             "<.p><i>Seems safe!</i> ";

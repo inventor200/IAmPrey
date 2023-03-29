@@ -524,8 +524,6 @@ class MapModeDirection: object {
     }
 
     getDirNameFromProp() {
-        if (isLockedDoor) return 'through a door';
-        
         if (dirProp == &north) return 'north';
         if (dirProp == &northeast) return 'northeast';
         if (dirProp == &east) return 'east';
@@ -537,7 +535,10 @@ class MapModeDirection: object {
         if (dirProp == &up) return 'up';
         if (dirProp == &down) return 'down';
         if (dirProp == &in) return 'in';
-        return 'out';
+        if (dirProp == &out) return 'out';
+
+        // Must be a door
+        return 'through <<connector.theName>>';
     }
 
     isDirHorizontal() {

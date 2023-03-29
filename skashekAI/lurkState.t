@@ -10,7 +10,7 @@ skashekLurkState: SkashekAIState {
     #endif
 
     nextStopInRoute() {
-        return eastHall;
+        return utilityPassage;
     }
     
     doPerception(impact) {
@@ -27,16 +27,13 @@ skashekLurkState: SkashekAIState {
         //TODO: Do not accept this if it happened last turn
     }
 
-    describePeekedAction(approachType) {
+    describePeekedAction() {
         //TODO: Allow for him to be described according to his current action
         //"<.p><i>\^<<gSkashekName>> is in there!</i> ";
-        describeApproach(approachType);
+        describeApproach(skashek.getApproach());
     }
 
     doTurn() {
-        if (gTurns == 3) {
-            "<<gSkashekName>> appears in the room! ";
-            skashek.moveInto(deliveryRoom);
-        }
+        skashek.travelThroughComplex();
     }
 }

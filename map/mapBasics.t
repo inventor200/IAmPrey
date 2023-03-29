@@ -44,7 +44,7 @@ class PrefabDoor: PrefabObject, Door {
         if (!obj.ofKind(Door)) return nil;
         if (isFreezerDoor != obj.isFreezerDoor) return nil;
         if (airlockDoor != obj.airlockDoor) return nil;
-        if (isLocked != obj.isLocked) return nil;
+        if (lockability != obj.lockability) return nil;
         if (isVentGrateDoor != obj.isVentGrateDoor) return nil;
         return true;
     }

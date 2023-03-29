@@ -39,17 +39,16 @@ introMessage3: IntercomMessage {
     <q>It's your birthday, so...you can forget whatever fucking ID number they
     would have given you. I hereby name you...<i><q>Prey</q></i>.</q>\b
     <i>That</i> word is one {i} recognize.\b
-    <q>I cannot die. This facility cannot be allowed to return to the enemy.
-    I am... I'm <i>starving</i>, Prey. So run. Run away from me, and avoid
-    becoming my next meal.
+    <q>This facility cannot be allowed to return to the enemy, and
+    I'm <i>starving</i>, Prey. So run. Avoid becoming my next meal.
     I've scattered pieces of an environment suit around the place.
     If you collect <b>all seven pieces</b>, you will be able to
     survive the poison gas, and escape.</q>\b
-    So, {my} name is <q>Prey</q>? Very well. {I} aim to be the <i>most elusive</i>
-    kind ever known. {I} was created to take pride in my work, so {i} will
-    take pride in <i>this</i>, too.\b
+    So, {i} {am} <q>Prey</q>? Very well. {I} may not be the first,
+    but {i} will be the <i>most elusive</i>.
+    {I} will bring pride and honor to {my} name.\b
     {I} will not let the enemy win, {i} will not die,
-    and {i} will not let <<gSkashekName>> catch me. ";
+    and {i} will not let <<gSkashekName>> catch me...! ";
 }
 
 readyOrNotMessage: IntercomMessage {

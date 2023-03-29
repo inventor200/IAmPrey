@@ -571,6 +571,9 @@ modify Read {
     }
 
 reinventForSkashek(Open)
+reinventForSkashek(Close)
+reinventForSkashek(Unlock)
+reinventForSkashek(Lock)
 
 modify Thing {
     dobjForVisibilitySkashekDefault() {
@@ -586,7 +589,7 @@ modify Thing {
     }
 
     dobjForReportSkashekOpen() {
-        "\^<<gSkashekName>> opens <<theName>>. ";
+        "<<gSkashekName>> opens <<theName>>. ";
     }
 
     dobjForDoSkashekClose() {
@@ -594,7 +597,23 @@ modify Thing {
     }
 
     dobjForReportSkashekClose() {
-        "\^<<gSkashekName>> closes <<theName>>. ";
+        "<<gSkashekName>> closes <<theName>>. ";
+    }
+
+    dobjForDoSkashekUnlock() {
+        makeLocked(nil);
+    }
+
+    dobjForReportSkashekUnlock() {
+        "<<gSkashekName>> unlocks <<theName>>. ";
+    }
+
+    dobjForDoSkashekLock() {
+        makeLocked(true);
+    }
+
+    dobjForReportSkashekLock() {
+        "\^<<gSkashekName>> locks <<theName>>. ";
     }
 }
 
@@ -612,7 +631,30 @@ modify Door {
     }
 
     dobjForReportSkashekOpen() {
-        "\^<<gSkashekName>> opens <<theName>>! ";
+        "<<gSkashekName>> opens <<theName>>! ";
+    }
+
+    dobjForReportSkashekUnlock() {
+        "There is an electronic buzzing sound,
+        as <<gSkashekName>> unlocks <<theName>>! ";
+    }
+
+    dobjForDoSkashekUnlock() {
+        if (!canEitherBeSeenBy(gPlayerChar)) {
+            soundBleedCore.createSound(
+                doorUnlockBuzzProfile,
+                getSoundSource(),
+                getOutermostRoom(),
+                nil
+            );
+            soundBleedCore.createSound(
+                doorUnlockBuzzProfile,
+                getSoundSource(),
+                otherSide.getOutermostRoom(),
+                nil
+            );
+        }
+        makeLocked(nil);
     }
 }
 

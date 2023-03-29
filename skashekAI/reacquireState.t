@@ -23,7 +23,7 @@ skashekReacquireState: SkashekAIState {
         //TODO: Do not accept this if it happened last turn
     }
 
-    describePeekedAction(approachType) {
+    describePeekedAction() {
         //TODO: Allow for him to be described according to his current action
         "<.p><i>\^<<gSkashekName>> is in there!</i> ";
     }

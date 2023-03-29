@@ -128,7 +128,17 @@ class SkashekAIState: object {
     // Process player getting caught peeking
     doPlayerCaughtLooking() { }
     // Print desc from peek
-    describePeekedAction(approachType) { }
+    describePeekedAction() {
+        describeNonTravelAction();
+    }
+    // What to print when not traveling
+    describeNonTravelAction() {
+        "<<getPeekHe(true)>> seems to be just...<i>standing</i> there... ";
+    }
+    // Print peek after turn?
+    showPeekAfterTurn(canSeePlayer) {
+        return showsDuringPeek() && canSeePlayer;
+    }
     // Shows up during peek?
     showsDuringPeek() {
         return true;
@@ -150,7 +160,7 @@ class SkashekAIState: object {
         >>hiding<<or
         >>trying to hide<<at random
         >>, Prey!</q>
-        <<gSkashekName>> shouts{dummy} at {me},<<one of>>
+        <<getPeekHe()>> shouts{dummy} at {me},<<one of>>
         cackling<<or>>
         laughing<<or>>
         chuckling<<at random>>.
@@ -180,21 +190,24 @@ class SkashekAIState: object {
         return skashek.getOutermostRoom();
     }
 
-    describeApproach(approachType) {
-        switch (approachType) {
-            default: 
-                "<<gSkashekName>> is seen just...<i>standing there!</i> ";
-                return;
-            case approachingRoom:
-                "<<gSkashekName>> seems to be <i>coming this way!</i> ";
-                return;
-            case approachingDoor:
-                "<<gSkashekName>> is <i>about to open this door!</i> ";
-                return;
-            case approachingOther:
-                "<<gSkashekName>> seems to be on the move... ";
-                return;
-        }
+    describeApproach(approachArray) {
+        skashek.describeTravel(approachArray);
+    }
+
+    getPeekHe(caps?) {
+        return skashek.getPeekHe(caps);
+    }
+
+    getPeekHim(caps?) {
+        return skashek.getPeekHim(caps);
+    }
+
+    getPeekHis(caps?) {
+        return skashek.getPeekHis(caps);
+    }
+
+    getPeekHeIs(caps?) {
+        return skashek.getPeekHeIs(caps);
     }
 }
 
@@ -212,10 +225,15 @@ class IntercomMessage: object {
 #include "skashekAnnouncements.t"
 
 skashekTalkingProfile: SoundProfile {
-    'the muffled sound of <<gSkashekName>>\'s voice'
-    'the nearby sound of <<gSkashekName>>\'s voice'
-    'the distant sound of <<gSkashekName>>\'s voice'
+    'the muffled sound of <<getPeekHis()>> voice'
+    'the nearby sound of <<getPeekHis()>> voice'
+    'the distant sound of <<getPeekHis()>> voice'
     strength = 3
+}
+
+_peekSkashekPOV: Thing {
+    isListed = nil
+    skipInRemoteList = true
 }
 
 enum notApproaching, approachingRoom, approachingDoor, approachingOther;
@@ -224,6 +242,40 @@ modify skashek {
     hasSeenPreyOutsideOfDeliveryRoom = nil
     preparedAnnouncements = static new Vector(4);
     didAnnouncementDuringTurn = nil
+    peekPOV = nil
+    peekedNameAlready = nil
+
+    getPeekHe(caps?) {
+        if (peekedNameAlready) {
+            return caps == nil ? 'he' : 'He';
+        }
+        peekedNameAlready = true;
+        return gSkashekName;
+    }
+
+    getPeekHim(caps?) {
+        if (peekedNameAlready) {
+            return caps == nil ? 'him' : 'Him';
+        }
+        peekedNameAlready = true;
+        return gSkashekName;
+    }
+
+    getPeekHis(caps?) {
+        if (peekedNameAlready) {
+            return caps == nil ? 'his' : 'His';
+        }
+        peekedNameAlready = true;
+        return gSkashekName + '\'s';
+    }
+
+    getPeekHeIs(caps?) {
+        if (peekedNameAlready) {
+            return caps == nil ? 'he\'s' : 'He\'s';
+        }
+        peekedNameAlready = true;
+        return gSkashekName + '\'s';
+    }
 
     prepareSpeech() {
         // Don't go on a monologue if we have something else to say!
@@ -300,11 +352,20 @@ modify skashek {
         return nextStop;
     }
 
+    // [next room, direction, approach]
     getApproach() {
         local nextStop = getNextStopOffMap();
 
         if (nextStop == nil || nextStop == getOutermostRoom()) {
-            return notApproaching;
+            return [nextStop, nil, notApproaching];
+        }
+
+        local approachDirection = getBestWayTowardGoalRoom(
+            nextStop
+        );
+
+        if (approachDirection == nil) {
+            return [nextStop, nil, notApproaching];
         }
 
         local dangerDirection = getBestWayTowardGoalObject(
@@ -312,25 +373,17 @@ modify skashek {
         );
 
         if (dangerDirection == nil) {
-            return approachingOther;
-        }
-
-        local approachDirection = getBestWayTowardGoalRoom(
-            nextStop
-        );
-
-        if (dangerDirection == nil) {
-            return notApproaching;
+            return [nextStop, nil, approachingOther];
         }
 
         if (dangerDirection == approachDirection) {
             if (approachDirection.connector.ofKind(Door)) {
-                return approachingDoor;
+                return [nextStop, approachDirection, approachingDoor];
             }
-            return approachingRoom;
+            return [nextStop, approachDirection, approachingRoom];
         }
 
-        return approachingOther;
+        return [nextStop, approachDirection, approachingOther];
     }
 
     isPlayerVulnerableToShortStreak() {
@@ -354,6 +407,176 @@ modify skashek {
 
         // In other rooms, Skashek waits for you to surrender or leave
         return nil;
+    }
+
+    travelThroughComplex() {
+        local approachArray = getApproach();
+
+        local approachDirection = approachArray[2];
+
+        if (approachDirection == nil) return nil;
+        local door = nil;
+        if (approachDirection.connector.ofKind(Door)) {
+            door = getOpenableSideOfDoor(approachDirection.connector);
+        }
+        if (door == nil) {
+            travelThroughSimple(approachArray);
+            return true;
+        }
+        else if (door.isOpen) {
+            travelThroughSimple(approachArray);
+            return true;
+        }
+        else if (door.isLocked) {
+            unlockDoor(door);
+            return true;
+        }
+        else if (!door.isOpen) {
+            openDoor(door);
+            return true;
+        }
+        return nil;
+    }
+
+    // If going somewhere, return next room, unless blocked,
+    // in which case return nil. If going nowhere, return nil.
+    getWalkInRoom(approachArray?) {
+        if (approachArray == nil) approachArray = getApproach();
+        local nextRoom = approachArray[1];
+        if (nextRoom == nil || nextRoom == getOutermostRoom()) return nil;
+
+        local connector = approachArray[2];
+        if (!connector.ofKind(Door)) return nextRoom;
+
+        if (connector.isOpen) return nextRoom;
+
+        return nil;
+    }
+
+    forcePeekDesc(approachArray?) {
+        if (approachArray == nil) approachArray = getApproach();
+        // Force peeking mode
+        local setPeekMode = nil;
+        if (peekPOV == nil) {
+            setPeekMode = true;
+            peekPOV = getPracticalPlayer();
+        }
+        // Look
+        describeTravel(approachArray);
+        // Unset peeking mode
+        if (setPeekMode) peekPOV = nil;
+    }
+
+    describeTravel(approachArray) {
+        // Get pov
+        local fromPeeking = true;
+        local pov = peekPOV;
+        local player = getPracticalPlayer();
+        if (pov == nil) {
+            pov = player;
+            fromPeeking = nil;
+        }
+
+        // Unpack array input
+        //local nextStop = approachArray[1];
+        local approachDirection = approachArray[2];
+        local approachType = approachArray[3];
+
+        if (approachType == notApproaching) {
+            if (fromPeeking) {
+                skashekAIControls.currentState.describeNonTravelAction();
+            }
+            return;
+        }
+
+        local door = approachDirection.connector;
+        if (!door.ofKind(Door)) door = nil;
+        local lastRoom = getOutermostRoom();
+        local canSeeLastRoom = pov.canSee(lastRoom);
+        local canPlayerSeeLastRoom = player.canSee(lastRoom);
+        local nextRoom = approachDirection.destination.actualRoom;
+        local canSeeNextRoom = pov.canSee(nextRoom);
+        local canPlayerSeeNextRoom = player.canSee(nextRoom);
+        local announceTravel =
+            canSeeLastRoom || canSeeNextRoom || canPlayerSeeLastRoom || canPlayerSeeNextRoom;
+        if (!announceTravel) return;
+        local isLeaving = canSeeLastRoom && !canSeeNextRoom;
+        if (canPlayerSeeNextRoom) {
+            // The player might be peeking outside, but Skashek could still
+            // be coming into the player's current room.
+            isLeaving = nil;
+        }
+
+        local enterVerbForm = fromPeeking ? 'is about to enter' : 'enters';
+        local exitVerbForm = fromPeeking ? 'is about to exit' : 'exits';
+        local unlockVerbForm = fromPeeking ? 'is about to unlock' : 'unlocks';
+        local openVerbForm = fromPeeking ? 'is about to open' : 'opens';
+        local goVerbForm = fromPeeking ? 'is heading' : 'goes';
+        local perceivedVerb = isLeaving ? exitVerbForm : enterVerbForm;
+        local subjRoom = isLeaving ? lastRoom : nextRoom;
+        local punct = fromPeeking ? '. ' : '! ';
+        
+        if (door != nil) {
+            local visibleSide = door;
+            if (!pov.canSee(visibleSide)) {
+                visibleSide = door.otherSide;
+            }
+            local entryPlan =
+                '(getPeekHe(true) must be planning to enter <<nextRoom.roomTitle>>...) ';
+            if (door.isLocked) {
+                "<<getPeekHe(true)>> <<unlockVerbForm>> <<visibleSide.theName>><<punct>>\n
+                <<entryPlan>> ";
+            }
+            else if (!door.isOpen) {
+                "<<getPeekHe(true)>> <<openVerbForm>> <<visibleSide.theName>><<punct>>\n
+                <<entryPlan>> ";
+            }
+            else {
+                "<<getPeekHe(true)>> <<perceivedVerb>> <<subjRoom.roomTitle>>
+                through <<visibleSide.theName>><<punct>>";
+            }
+        }
+        else if (approachType == approachingRoom && fromPeeking) {
+            "<<getPeekHe(true)>> seems to be approaching! ";
+        }
+        else {
+            "<<getPeekHe(true)>> <<goVerbForm>> <<approachDirection.getDirNameFromProp()>>,
+            and <<perceivedVerb>> <<subjRoom.roomTitle>><<punct>>";
+        }
+    }
+
+    travelThroughSimple(approachArray) {
+        local nextRoom = approachArray[2].destination.actualRoom;
+        moveInto(nextRoom);
+        "<.p>";
+        describeTravel(approachArray);
+    }
+
+    getOpenableSideOfDoor(door) {
+        if (door == nil) return nil;
+        if (!door.ofKind(Door)) return nil;
+        local mySide = door;
+        if (mySide.getOutermostRoom() != getOutermostRoom()) {
+            // Simply process of elimination
+            mySide = mySide.otherSide;
+        }
+        if (mySide == nil) return nil;
+        if (canReach(mySide)) {
+            return mySide;
+        }
+        return nil;
+    }
+
+    openDoor(openableSide) {
+        huntCore.doSkashekAction(Open, openableSide);
+    }
+
+    unlockDoor(openableSide) {
+        huntCore.doSkashekAction(Unlock, openableSide);
+    }
+
+    closeDoor(openableSide) {
+        huntCore.doSkashekAction(Close, openableSide);
     }
 
     doAction(action, dobj?, iobj?) {
@@ -395,8 +618,15 @@ modify skashek {
         }
 
         skashekAIControls.playerWasVisibleLastTurn = canSee(getPracticalPlayer());
+        
+        if (skashekAIControls.currentState.showPeekAfterTurn(
+            skashekAIControls.playerWasVisibleLastTurn
+        )) {
+            forcePeekDesc();
+        }
 
         didAnnouncementDuringTurn = nil;
+        peekedNameAlready = nil;
 
         if (!skashekAIControls.currentState.allowStreaks()) return;
         skashekAIControls.currentState.doStreaksAfterTurn();
@@ -451,11 +681,13 @@ modify skashek {
     describePeekedAction(distantRoom) {
         "<.p>";
         if (distantRoom != nil) {
-            "<i>{I} see someone in <<distantRoom.roomTitle>>...</i>\n";
+            "<i>{I} can see <<getPeekHim()>> in <<distantRoom.roomTitle>>...</i>\n";
         }
         local getsCaught = playerWillGetCaughtPeeking();
+        //performNextAnnouncement(getsCaught, getsCaught);
+        skashekAIControls.currentState.describePeekedAction();
+        // Probably better to announce afterward
         performNextAnnouncement(getsCaught, getsCaught);
-        skashekAIControls.currentState.describePeekedAction(getApproach());
     }
 
     showsDuringPeek() {

@@ -29,7 +29,10 @@ class Outfit: Wearable {
                 headerName + headerPunctuation + ' ';
         }
         if (wornBy == skashek) {
-            return (wornPerspective ? '<<gSkashekName>> wears a ' : '<<gSkashekName>>\'s ') +
+            return (wornPerspective ?
+                '<<skashek.getPeekHe(true)>> wears a '
+                :
+                '<<skashek.getPeekHis(true)>> ') +
                 headerName + headerPunctuation + ' ';
         }
         return 'A ' + headerName + headerPunctuation + ' ';

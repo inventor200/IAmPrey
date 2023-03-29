@@ -44,7 +44,7 @@ modify Thing {
 skashek: Actor {
     vocab = 'Skashek;royal[weak];predator hunter subject sheki shek'
     desc() {
-        "<<gSkashekName>>'s skin is as pale as death herself,
+        "<<getPeekHis(true)>> skin is as pale as death herself,
         and his grin reveals two rows of sharp teeth.
         His long, bone-white hair is combed over, but the sides and back
         of his head are shaved.
@@ -54,6 +54,8 @@ skashek: Actor {
         His long arms end in clawed hands, engineered to grab
         humanoid prey by the throat.\b";
         outfit.wornDesc();
+        "\b";
+        forcePeekDesc();
     }
     isHim = true
     theName = (globalParamName)

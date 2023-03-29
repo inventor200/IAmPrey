@@ -23,11 +23,11 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM deliveryRoom
-      #define __SKASHEK_START breakroom
-     #define __SKASHEK_STATE nil
+/*-*/  #define __TEST_ROOM utilityPassage
+      #define __SKASHEK_START southwestishHall
+     #define __SKASHEK_STATE skashekLurkState
     #define __SKASHEK_FROZEN nil
-   #define __SKASHEK_TOOTHLESS nil
+   #define __SKASHEK_TOOTHLESS true
   #define __SKASHEK_IMMOBILE nil
 ///////////////////////////////////////*||*\
 
