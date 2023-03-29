@@ -23,9 +23,8 @@ skashekChaseState: SkashekAIState {
         //TODO: Do not accept this if it happened last turn
     }
 
-    describePeekedAction() {
-        //TODO: Allow for him to be described according to his current action
-        "<.p><i>\^<<gSkashekName>> is in there!</i> ";
+    describeNonTravelAction() {
+        "<<getPeekHe(true)>> chases you!! ";
     }
 
     doTurn() {

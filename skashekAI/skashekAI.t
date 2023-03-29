@@ -189,6 +189,10 @@ class SkashekAIState: object {
     nextStopInRoute() {
         return skashek.getOutermostRoom();
     }
+    // After turn actions
+    doAfterTurn() { }
+    // Notice ominous clicking during creeping actions
+    noticeOminousClicking() { }
 
     describeApproach(approachArray) {
         skashek.describeTravel(approachArray);
@@ -209,17 +213,10 @@ class SkashekAIState: object {
     getPeekHeIs(caps?) {
         return skashek.getPeekHeIs(caps);
     }
-}
 
-class IntercomMessage: object {
-    // The version when visible, but player is hiding
-    inPersonStealthyMsg() { overCommsMsg(); }
-    // The version when not visible
-    overCommsMsg = "Message over intercom. "
-    // The version when visible, and player is visible
-    inPersonFullMsg() { overCommsMsg(); }
-    // The version when the player is seen upon triggering
-    interruptedMsg() { overCommsMsg(); }
+    getRandomResult(min, max?) {
+        return skashek.getRandomResult(min, max);
+    }
 }
 
 #include "skashekAnnouncements.t"
@@ -231,19 +228,101 @@ skashekTalkingProfile: SoundProfile {
     strength = 3
 }
 
+ominousClickingProfile: SoundProfile {
+    'the muffled sound of <b>ominous clicking</b>'
+    'the nearby sound of <b>ominous clicking</b>'
+    'the distant sound of <b>ominous clicking</b>'
+    strength = 3
+}
++SubtleSound 'ominous clicking'
+    doAfterPerception() {
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>
+        Player noticed clicking!
+        <.p>";
+        #endif
+        skashekAIControls.currentState.noticeOminousClicking();
+    }
+;
+
+iKnowYoureInThereProfile: SoundProfile {
+    '<<gSkashekName>>\'s muffled voice:\n<<messageStr>>'
+    '<<gSkashekName>>\'s nearby voice:\n<<messageStr>>'
+    '<<gSkashekName>>\'s distant voice:\n<<messageStr>>'
+    strength = 3
+    isSuspicious = true
+
+    messageStr = '<q>I know you\'re in there, Prey...</q>'
+}
+
 _peekSkashekPOV: Thing {
     isListed = nil
     skipInRemoteList = true
+}
+
+_skashekProbe: Thing {
+    isListed = nil
+    skipInRemoteList = true
+
+    canSee(target) {
+        local normalResult = inherited(target);
+        local player = skashek.getPracticalPlayer();
+        if (target == player) {
+            local playerLoc = player.location;
+            return (normalResult && !playerLoc.isHidingSpot) ||
+                huntCore.playerWasSeenHiding;
+        }
+        return normalResult;
+    }
 }
 
 enum notApproaching, approachingRoom, approachingDoor, approachingOther;
 
 modify skashek {
     hasSeenPreyOutsideOfDeliveryRoom = nil
+    hasCheckedDeliveryRoom = nil
+    playerLeewayTurns = 0
     preparedAnnouncements = static new Vector(4);
     didAnnouncementDuringTurn = nil
     peekPOV = nil
     peekedNameAlready = nil
+    _suppressIdleDescription = 0
+
+    lastTrappedConnector = nil
+
+    lastSeed = 1
+    seedMax = 128
+    randPool = static new Vector(128)
+
+    // We are relying on a pool so that undo states have consistent behavior
+    // Replugging seeds has weird results and lag with the algorithms available
+    initSeed() {
+        randomize();
+        if (randPool.length > 0) randPool.removeRange(1, -1);
+        for (local i = 1; i <= seedMax; i++) {
+            local frontOrBack = (rand(4096) >= 2048);
+            if (frontOrBack && randPool.length > 0) {
+                randPool.insertAt(1, i);
+            }
+            else {
+                randPool.append(i);
+            }
+        }
+        lastSeed = 1;
+    }
+
+    getRandomResult(min, max?) {
+        local root = randPool[lastSeed];
+        lastSeed++;
+        if (lastSeed >= seedMax) lastSeed -= seedMax;
+
+        if (max == nil) {
+            return (root % min) + 1;
+        }
+
+        local span = max - min;
+        return (root % span) + min;
+    }
 
     getPeekHe(caps?) {
         if (peekedNameAlready) {
@@ -277,6 +356,38 @@ modify skashek {
         return gSkashekName + '\'s';
     }
 
+    checkDeliveryRoom() {
+        if (hasSeenPreyOutsideOfDeliveryRoom) return;
+        suppressIdleDescription();
+        if (!canSee(getPracticalPlayer())) {
+            hasSeenPreyOutsideOfDeliveryRoom = true;
+            hasCheckedDeliveryRoom = true;
+            #if __DEBUG_SKASHEK_ACTIONS
+            "\nLoaded message.";
+            #endif
+            reciteAnnouncement(inspectingDeliveryRoomMessage);
+        }
+        if (hasCheckedDeliveryRoom) return;
+        if (huntCore.difficulty == nightmareMode) return;
+        playerLeewayTurns = huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
+        prepareSpeech();
+        "<.p><q>Um, Prey,</q> <<getPeekHe()>> stammers, <q>I'm not sure if you
+        dropped out of the womb correctly, but... Well, you <i>do</i> understand
+        that you must run, yeah? I'm <i>planning to eat you</i>, if you do not
+        escape the facility first!</q>\b
+        He puts his hands on his hips, exasperated.\b
+        <q>Okay, let me strike you a deal: I will give you a bit more time
+        to get the fuck away from me, and <i>then</i> I will hunt you!
+        <b>Remember:</b> You need to collect all seven pieces of the environment suit
+        to escape! I've hidden them around the place! The timer starts <i>now</i>,
+        Prey!</q> ";
+    }
+
+    suppressIdleDescription(turns?) {
+        if (turns == nil) turns = 1;
+        _suppressIdleDescription = turns;
+    }
+
     prepareSpeech() {
         // Don't go on a monologue if we have something else to say!
         didAnnouncementDuringTurn = true;
@@ -304,13 +415,15 @@ modify skashek {
         if (nextAnnouncement == nil) return;
         "<.p>";
         if (isInterrupted) {
-            interruptedMsg.inPersonFullMsg();
+            nextAnnouncement.interruptedMsg();
         }
         else if (canSee(getPracticalPlayer())) {
             nextAnnouncement.inPersonFullMsg();
         }
-        else if (isVisible) {
+        else if (getPracticalPlayer().canSee(self)) {
             nextAnnouncement.inPersonStealthyMsg();
+            // Actions are usually described in these
+            suppressIdleDescription();
         }
         else {
             nextAnnouncement.overCommsMsg();
@@ -336,16 +449,31 @@ modify skashek {
         return normalResult;
     }
 
+    peekInto(room) {
+        _skashekProbe.moveInto(room);
+        local spotted = _skashekProbe.canSee(getPracticalPlayer());
+        _skashekProbe.moveInto(nil);
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>
+        (Skashek spies into <<room.roomTitle>>...)\n
+        <<if spotted>>He sees you!!<<else>>You are hidden!<<end>>
+        <.p>";
+        #endif
+        return spotted;
+    }
+
     nextStopInRoute() {
         return skashekAIControls.currentState.nextStopInRoute();
     }
 
+    // WARNING: MIGHT NOT BE ADJACENT ROOM!
     getNextStopOnMap() {
         local nextStop = nextStopInRoute();
         if (!nextStop.isMapModeRoom) return nextStop.mapModeVersion;
         return nextStop;
     }
 
+    // WARNING: MIGHT NOT BE ADJACENT ROOM!
     getNextStopOffMap() {
         local nextStop = nextStopInRoute();
         if (nextStop.isMapModeRoom) return nextStop.actualRoom;
@@ -357,15 +485,20 @@ modify skashek {
         local nextStop = getNextStopOffMap();
 
         if (nextStop == nil || nextStop == getOutermostRoom()) {
-            return [nextStop, nil, notApproaching];
+            return [nil, nil, notApproaching];
         }
 
         local approachDirection = getBestWayTowardGoalRoom(
             nextStop
         );
 
+        local actualNextStop = nil;
+
         if (approachDirection == nil) {
-            return [nextStop, nil, notApproaching];
+            return [nil, nil, notApproaching];
+        }
+        else {
+            actualNextStop = approachDirection.destination.actualRoom;
         }
 
         local dangerDirection = getBestWayTowardGoalObject(
@@ -373,17 +506,17 @@ modify skashek {
         );
 
         if (dangerDirection == nil) {
-            return [nextStop, nil, approachingOther];
+            return [actualNextStop, approachDirection, approachingOther];
         }
 
         if (dangerDirection == approachDirection) {
             if (approachDirection.connector.ofKind(Door)) {
-                return [nextStop, approachDirection, approachingDoor];
+                return [actualNextStop, approachDirection, approachingDoor];
             }
-            return [nextStop, approachDirection, approachingRoom];
+            return [actualNextStop, approachDirection, approachingRoom];
         }
 
-        return [nextStop, approachDirection, approachingOther];
+        return [actualNextStop, approachDirection, approachingOther];
     }
 
     isPlayerVulnerableToShortStreak() {
@@ -409,6 +542,7 @@ modify skashek {
         return nil;
     }
 
+    //TODO: Close lockable and airlock doors behind him (TEST?)
     travelThroughComplex() {
         local approachArray = getApproach();
 
@@ -417,25 +551,146 @@ modify skashek {
         if (approachDirection == nil) return nil;
         local door = nil;
         if (approachDirection.connector.ofKind(Door)) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            NAV: Door found.
+            <.p>";
+            #endif
             door = getOpenableSideOfDoor(approachDirection.connector);
         }
         if (door == nil) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            NAV: Clear way found; passing...
+            <.p>";
+            #endif
             travelThroughSimple(approachArray);
             return true;
         }
         else if (door.isOpen) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            NAV: Door is open; passing...
+            <.p>";
+            #endif
             travelThroughSimple(approachArray);
+            if (door.lockability == lockableWithKey || door.airlockDoor) {
+                #if __DEBUG_SKASHEK_ACTIONS
+                "<.p>
+                NAV: Closing door behind self...
+                <.p>";
+                #endif
+                closeDoor(door);
+                if (door.lockability == lockableWithKey && door.isLocked) {
+                    #if __DEBUG_SKASHEK_ACTIONS
+                    "<.p>
+                    NAV: Re-locking door behind self...
+                    <.p>";
+                    #endif
+                    door.makeLocked(true);
+                }
+            }
             return true;
         }
         else if (door.isLocked) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            NAV: Unlocking door...
+            <.p>";
+            #endif
             unlockDoor(door);
             return true;
         }
         else if (!door.isOpen) {
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            NAV: Opening door...
+            <.p>";
+            #endif
             openDoor(door);
             return true;
         }
         return nil;
+    }
+
+    travelThroughSimple(approachArray) {
+        local lastRoom = getOutermostRoom();
+        local nextRoom = approachArray[2].destination.actualRoom;
+        local hasDescribedTravel = nil;
+        if (getPracticalPlayer().canSee(self)) {
+            "<.p>";
+            describeTravel(approachArray);
+            hasDescribedTravel = true;
+        }
+        moveInto(nextRoom);
+
+        local possibleDoor = approachArray[2].connector;
+        if (possibleDoor.ofKind(Door)) {
+            // If a door was trapped, then set the next one as trapped.
+            trapConnector(possibleDoor);
+        }
+        else if (nextRoom.roomNavigationType == bigRoom) {
+            // If the next room is really big, then a trap is not possible.
+            abandonTraps();
+        }
+        else if (getPracticalPlayer().getOutermostRoom() == nextRoom) {
+            // When coming from a room, travel to that room is trapped,
+            // but only if the player is in the next room.
+            trapConnector(lastRoom);
+        }
+        else {
+            abandonTraps();
+        }
+        
+        if (!hasDescribedTravel && getPracticalPlayer().canSee(self)) {
+            "<.p>";
+            describeTravel(approachArray);
+        }
+    }
+
+    abandonTraps() {
+        if (lastTrappedConnector != nil) {
+            lastTrappedConnector.setTrap(nil);
+            lastTrappedConnector = nil;
+        }
+    }
+
+    trapConnector(connector) {
+        abandonTraps();
+        lastTrappedConnector = connector;
+        connector.setTrap(true);
+    }
+
+    getOpenableSideOfDoor(door) {
+        if (door == nil) return nil;
+        if (!door.ofKind(Door)) return nil;
+        local mySide = door;
+        if (mySide.getOutermostRoom() != getOutermostRoom()) {
+            // Simply process of elimination
+            mySide = mySide.otherSide;
+        }
+        if (mySide == nil) return nil;
+        if (canReach(mySide)) {
+            return mySide;
+        }
+        return nil;
+    }
+
+    openDoor(openableSide) {
+        // If Skashek can open the door, then he controls it.
+        trapConnector(openableSide);
+        if (openableSide.isOpen) return;
+        huntCore.doSkashekAction(Open, openableSide);
+    }
+
+    unlockDoor(openableSide) {
+        if (!openableSide.isLocked) return;
+        huntCore.doSkashekAction(Unlock, openableSide);
+    }
+
+    closeDoor(openableSide) {
+        if (!openableSide.isOpen) return;
+        huntCore.doSkashekAction(Close, openableSide);
     }
 
     // If going somewhere, return next room, unless blocked,
@@ -521,19 +776,21 @@ modify skashek {
             if (!pov.canSee(visibleSide)) {
                 visibleSide = door.otherSide;
             }
-            local entryPlan =
-                '(getPeekHe(true) must be planning to enter <<nextRoom.roomTitle>>...) ';
+            local entryPlan = nil;
             if (door.isLocked) {
-                "<<getPeekHe(true)>> <<unlockVerbForm>> <<visibleSide.theName>><<punct>>\n
-                <<entryPlan>> ";
+                "<<getPeekHe(true)>> <<unlockVerbForm>> <<visibleSide.theName>><<punct>> ";
+                entryPlan = true;
             }
             else if (!door.isOpen) {
-                "<<getPeekHe(true)>> <<openVerbForm>> <<visibleSide.theName>><<punct>>\n
-                <<entryPlan>> ";
+                "<<getPeekHe(true)>> <<openVerbForm>> <<visibleSide.theName>><<punct>> ";
+                entryPlan = true;
             }
             else {
                 "<<getPeekHe(true)>> <<perceivedVerb>> <<subjRoom.roomTitle>>
                 through <<visibleSide.theName>><<punct>>";
+            }
+            if (entryPlan) {
+                "\n(<<getPeekHe(true)>> must be planning to enter <<nextRoom.roomTitle>>...) ";
             }
         }
         else if (approachType == approachingRoom && fromPeeking) {
@@ -543,40 +800,6 @@ modify skashek {
             "<<getPeekHe(true)>> <<goVerbForm>> <<approachDirection.getDirNameFromProp()>>,
             and <<perceivedVerb>> <<subjRoom.roomTitle>><<punct>>";
         }
-    }
-
-    travelThroughSimple(approachArray) {
-        local nextRoom = approachArray[2].destination.actualRoom;
-        moveInto(nextRoom);
-        "<.p>";
-        describeTravel(approachArray);
-    }
-
-    getOpenableSideOfDoor(door) {
-        if (door == nil) return nil;
-        if (!door.ofKind(Door)) return nil;
-        local mySide = door;
-        if (mySide.getOutermostRoom() != getOutermostRoom()) {
-            // Simply process of elimination
-            mySide = mySide.otherSide;
-        }
-        if (mySide == nil) return nil;
-        if (canReach(mySide)) {
-            return mySide;
-        }
-        return nil;
-    }
-
-    openDoor(openableSide) {
-        huntCore.doSkashekAction(Open, openableSide);
-    }
-
-    unlockDoor(openableSide) {
-        huntCore.doSkashekAction(Unlock, openableSide);
-    }
-
-    closeDoor(openableSide) {
-        huntCore.doSkashekAction(Close, openableSide);
     }
 
     doAction(action, dobj?, iobj?) {
@@ -609,6 +832,10 @@ modify skashek {
         }
 
         skashekAIControls.currentState.doTurn();
+
+        playerVisibleNow = canSee(getPracticalPlayer());
+        hasSightChange =
+            (skashekAIControls.playerWasVisibleLastTurn != playerVisibleNow);
         
         if (playerVisibleNow) {
             skashekAIControls.currentState.onSightAfter(hasSightChange);
@@ -616,22 +843,28 @@ modify skashek {
         else {
             skashekAIControls.currentState.offSightAfter(hasSightChange);
         }
-
-        skashekAIControls.playerWasVisibleLastTurn = canSee(getPracticalPlayer());
         
-        if (skashekAIControls.currentState.showPeekAfterTurn(
-            skashekAIControls.playerWasVisibleLastTurn
-        )) {
-            forcePeekDesc();
+        if (skashekAIControls.currentState.showPeekAfterTurn(playerVisibleNow)) {
+            if (_suppressIdleDescription > 0) {
+                _suppressIdleDescription--;
+            }
+            else if (getPracticalPlayer().canSee(self)) {
+                "<.p>";
+                forcePeekDesc();
+            }
         }
 
-        didAnnouncementDuringTurn = nil;
-        peekedNameAlready = nil;
+        skashekAIControls.playerWasVisibleLastTurn = playerVisibleNow;
 
-        if (!skashekAIControls.currentState.allowStreaks()) return;
+        if (!skashekAIControls.currentState.allowStreaks()) {
+            doAfterTurn();
+            return;
+        }
+
         skashekAIControls.currentState.doStreaksAfterTurn();
         if (skashekAIControls.shortStreak < 0) skashekAIControls.shortStreak = 0;
         if (skashekAIControls.longStreak < 0) skashekAIControls.longStreak = 0;
+        doAfterTurn();
         if (skashekAIControls.isToothless) return;
         if (skashekAIControls.shortStreak >= skashekAIControls.maxShortStreak && 
             isPlayerVulnerableToShortStreak()) {
@@ -640,6 +873,12 @@ modify skashek {
         else if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak) {
             //TODO: Skashek catches up to player
         }
+    }
+
+    doAfterTurn() {
+        skashekAIControls.currentState.doAfterTurn();
+        didAnnouncementDuringTurn = nil;
+        peekedNameAlready = nil;
     }
 
     doPerception() {

@@ -1,3 +1,14 @@
+class IntercomMessage: object {
+    // The version when visible, but player is hiding
+    inPersonStealthyMsg() { overCommsMsg(); }
+    // The version when not visible
+    overCommsMsg = "Message over intercom. "
+    // The version when visible, and player is visible
+    inPersonFullMsg() { overCommsMsg(); }
+    // The version when the player is seen upon triggering
+    interruptedMsg() { overCommsMsg(); }
+}
+
 // Intro speech
 // It takes 3 turns to reach the breakroom door, so we can guarantee audience for
 // that amount of time.
@@ -55,4 +66,19 @@ readyOrNotMessage: IntercomMessage {
     overCommsMsg =
     "<q>Ready or not, Prey,</q> says the ominous voice over the intercom.
     <q><i>Here I come!</i></q> ";
+}
+
+// Skashek confirms the player is not in the delivery room
+inspectingDeliveryRoomMessage: IntercomMessage {
+    overCommsMsg() { } // Do not broadcast
+    inPersonFullMsg() { inPersonStealthyMsg(); }
+    inPersonStealthyMsg =
+    "<<skashek.getPeekHe(true)>> does a quick once-over of the room,
+    and nods to himself.\b
+    <q>Good, good, this one knows to run,</q> he mutters to himself. "
+    interruptedMsg =
+    "<<skashek.getPeekHe(true)>> is looking around the room, but
+    does a double-take when he{dummy} sees {me}.\b
+    <q>Oh! Didn't see you there!</q> he exclaims, chuckling to himself.
+    <q>Now, you'd best <i>fucking run</i>, Prey!</q> "
 }

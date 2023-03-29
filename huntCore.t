@@ -204,6 +204,7 @@ huntCore: InitObject {
         sneakyCore.allowSneak = difficultySettingObj.hasSneak;
         sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
         if (!midGame) {
+            skashek.initSeed();
             freeTurnAlertsRemaining =
                 difficultySettingObj.startingFreeTurnAlerts;
             skashekAIControls.currentState = getStartingAIState();
@@ -589,7 +590,7 @@ modify Thing {
     }
 
     dobjForReportSkashekOpen() {
-        "<<gSkashekName>> opens <<theName>>. ";
+        "<<skashek.getPeekHe(true)>> opens <<theName>>. ";
     }
 
     dobjForDoSkashekClose() {
@@ -597,7 +598,7 @@ modify Thing {
     }
 
     dobjForReportSkashekClose() {
-        "<<gSkashekName>> closes <<theName>>. ";
+        "<<skashek.getPeekHe(true)>> closes <<theName>>. ";
     }
 
     dobjForDoSkashekUnlock() {
@@ -605,7 +606,7 @@ modify Thing {
     }
 
     dobjForReportSkashekUnlock() {
-        "<<gSkashekName>> unlocks <<theName>>. ";
+        "<<skashek.getPeekHe(true)>> unlocks <<theName>>. ";
     }
 
     dobjForDoSkashekLock() {
@@ -613,8 +614,15 @@ modify Thing {
     }
 
     dobjForReportSkashekLock() {
-        "\^<<gSkashekName>> locks <<theName>>. ";
+        "<<skashek.getPeekHe(true)>> locks <<theName>>. ";
     }
+}
+
+modify TravelConnector {
+    // If the player attempts travel through a trapped connector, they die.
+    isTrapped = nil
+
+    setTrap(stat) { }
 }
 
 modify Door {
@@ -631,12 +639,12 @@ modify Door {
     }
 
     dobjForReportSkashekOpen() {
-        "<<gSkashekName>> opens <<theName>>! ";
+        "<<skashek.getPeekHe(true)>> opens <<theName>>! ";
     }
 
     dobjForReportSkashekUnlock() {
         "There is an electronic buzzing sound,
-        as <<gSkashekName>> unlocks <<theName>>! ";
+        as <<skashek.getPeekHe()>> unlocks <<theName>>! ";
     }
 
     dobjForDoSkashekUnlock() {
@@ -656,6 +664,30 @@ modify Door {
         }
         makeLocked(nil);
     }
+
+    setTrap(stat) {
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>
+        <<if stat>>TRAP SET:<<else
+        >>TRAP CLEARED:<<end>> <<theName>>
+        <.p>";
+        #endif
+        isTrapped = stat;
+        if (otherSide != nil) otherSide.isTrapped = stat;
+    }
+
+    execTravel(actor, traveler, conn) {
+        if (actor == gPlayerChar && isTrapped) {
+            if (actor.getOutermostRoom() == skashek.getOutermostRoom()) {
+                actor.springInteriorTrap();
+            }
+            else {
+                actor.springExteriorTrap();
+            }
+            return;
+        }
+        inherited(actor, traveler, conn);
+    }
 }
 
 modify Room {
@@ -672,6 +704,29 @@ modify Room {
                 huntCore.playerWasSeenEntering = true;
             }
         }
+    }
+
+    setTrap(stat) {
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>
+        <<if stat>>TRAP SET:<<else
+        >>TRAP CLEARED:<<end>> <<roomTitle>>
+        <.p>";
+        #endif
+        isTrapped = stat;
+    }
+
+    execTravel(actor, traveler, conn) {
+        if (actor == gPlayerChar && isTrapped) {
+            if (actor.getOutermostRoom() == skashek.getOutermostRoom()) {
+                actor.springInteriorTrap();
+            }
+            else {
+                actor.springExteriorTrap();
+            }
+            return;
+        }
+        inherited(actor, traveler, conn);
     }
 }
 

@@ -135,10 +135,8 @@ prey: PlayerActor { 'The Prey;;me self myself'
                 entering the world!\b
                 {I} nod to {myself}, satisfied, and content to cross that off
                 of {my} metaphorical to-do list. ";
-                //TODO: Check to see if Skashek's arrival was announced
-                //      yet, and handle that if not.
                 if (skashek.canSee(self)) { // Skashek walks in to check on you
-                    "<<gSkashekName>> blinks{dummy} and stares at {me}.
+                    "<.p><<gSkashekName>> blinks{dummy} and stares at {me}.
                     <q>Ugh... I <i>knew</i> something about this grow cycle
                     seemed wrong. I gotta save the log files, and make
                     sure I don't get another brain-death next time...</q> ";
@@ -151,6 +149,40 @@ prey: PlayerActor { 'The Prey;;me self myself'
             "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> ";
             exit;
         }
+    }
+
+    springInteriorTrap() {
+        "<q>Where do you think <i>you're</i> going??</q> he growls, slashing{dummy}
+        {me} as {i} try to run past.\b
+        My blood sprays <<getOutermostRoom().floorObj.theName>>, and
+        {i} collapse. He must have torn a section of {my} leg, but {i} don't get
+        a moment to inspect, as he's already on top{dummy} of {me}.";
+        springTrapDeath();
+    }
+
+    springExteriorTrap() {
+        "{I} do not get very far, until I run right into <<gSkashekName>>.\b";
+        springInteriorTrap();
+    }
+
+    springTrapDeath() {
+        "\b
+        {I} try to reach for his eyes, but he swats {my} arm, and clamps it to
+        <<getOutermostRoom().floorObj.theName>> with his boot.
+        {My} other arm is already pinned under one of his hands, and his claws
+        dig into {my} flesh. I try to kick, but that damned arm is in the way,
+        and {my} other leg is pinned under his weight.\b
+        {I} try to headbutt him, and fail.\b
+        <b><q>Prey, I <i>always</i> control the last exit I pass through!</q>
+        he sneers. <q>You should have found another way out!</q></b>\b
+        {I}{'m} moments from spitting in his face, until he rips something
+        out of {my} arm, and claws out {my} throat. {My} arm is free, but
+        cannot seem to move.\b
+        He stands, and {i} try to follow suit, refusing to die like this.
+        However, the floor is coated by the streams of crimson pouring from
+        {my} neck.\b
+        Dizziness soon takes hold, and {i} collapse.";
+        finishGameMsg(ftDeath, gEndingOptionsLoss);
     }
 
     // Everything below this is one unit

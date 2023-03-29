@@ -45,11 +45,11 @@ skashekIntroState: SkashekAIState {
         local peekCount = peeksAllowed;
         peeksAllowed--;
         #if __DEBUG_SKASHEK_ACTIONS
-        /*"<.p>
+        "<.p>
         peekCount: <<peekCount>>\n
         peeksAllowed: <<peeksAllowed>>\n
         countdownBeforeStart: <<countdownBeforeStart>>
-        <.p>";*/
+        <.p>";
         #endif
 
         if (countdownBeforeStart == 1 || peekCount <= 0) {
@@ -122,9 +122,11 @@ skashekIntroState: SkashekAIState {
     }
 
     startGameFrom() {
-        skashek.reciteAnnouncement(introMessage1);
-        skashek.reciteAnnouncement(introMessage2);
-        skashek.reciteAnnouncement(introMessage3);
+        if (!huntCore.difficultySettingObj.skipPrologue) {
+            skashek.reciteAnnouncement(introMessage1);
+            skashek.reciteAnnouncement(introMessage2);
+            skashek.reciteAnnouncement(introMessage3);
+        }
         countdownBeforeStart =
             huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
     }
@@ -134,10 +136,10 @@ skashekIntroState: SkashekAIState {
         countdownBeforeStart--;
 
         #if __DEBUG_SKASHEK_ACTIONS
-        /*"<.p>
+        "<.p>
         Doing turn...\n
         countdownBeforeStart: <<countdownBeforeStart>>
-        <.p>";*/
+        <.p>";
         #endif
 
         local playerSeenEntering = skashek.playerWasSeenEntering();
@@ -174,13 +176,13 @@ skashekIntroState: SkashekAIState {
             }
             else {
                 // Skashek knows the player is active
+                skashekLurkState.startRandom = true;
                 skashekLurkState.activate();
             }
         }
         else {
-            // Make the reacquire state check the Delivery Room first
-            skashekReacquireState.needsGameStartSetup = true;
-            skashekReacquireState.activate();
+            // Make the lurk state check the Delivery Room first
+            skashekLurkState.activate();
         }
     }
 }

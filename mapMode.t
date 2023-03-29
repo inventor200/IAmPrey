@@ -607,14 +607,25 @@ class RouteTable: object {
         for (local i = 1; i <= directionList.length; i++) {
             local dirProp = directionList[i];
             local actualDestination = parentRoom.actualRoom.(dirProp);
+            local cachedDoor = nil;
             if (!actualDestination.ofKind(Room)) {
+                if (actualDestination.ofKind(Door)) {
+                    cachedDoor = actualDestination;
+                }
                 actualDestination = actualDestination.destination.getOutermostRoom();
             }
             if (actualDestination.mapModeVersion == nil) continue;
+            local connector = actualDestination.mapModeVersion;
+            if (isForSkashek) {
+                // Skashek gets more detail, with doors included.
+                if (cachedDoor != nil) {
+                    connector = cachedDoor;
+                }
+            }
             knownDirections.append(new MapModeDirection(
                 dirProp,
                 actualDestination.mapModeVersion,
-                actualDestination.mapModeVersion
+                connector
             ));
 
             // Only build the connectors once.

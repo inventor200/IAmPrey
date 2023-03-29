@@ -1001,8 +1001,8 @@ modify Door {
         that<<one of>> happen<<or>> just now<<or>> just then<<or>><<at random>>'
 
     suspicionMsgAlt2 =
-        'the <<one of>>one who<<or>>cause of<<or>>cause for<<or>>reason for<<at random
-        >><<one of>>opened<<or>>caused<<at random>>'
+        'the <<one of>>one who<<or>>cause of<<or>>cause for<<or>>reason for<<or
+        >>one who <<one of>>opened<<or>>caused<<at random>><<at random>>'
     
     suspicionMsgQuestionGrp1 = '{was} {i}
         <<one of>><<suspicionMsgAlt1>><<or>><<suspicionMsgAlt2>>
