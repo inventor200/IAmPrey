@@ -193,6 +193,8 @@ class SkashekAIState: object {
     doAfterTurn() { }
     // Notice ominous clicking during creeping actions
     noticeOminousClicking() { }
+    // Do door slam
+    receiveDoorSlam() { }
 
     describeApproach(approachArray) {
         skashek.describeTravel(approachArray);
@@ -280,7 +282,6 @@ enum notApproaching, approachingRoom, approachingDoor, approachingOther;
 
 modify skashek {
     hasSeenPreyOutsideOfDeliveryRoom = nil
-    hasCheckedDeliveryRoom = nil
     playerLeewayTurns = 0
     preparedAnnouncements = static new Vector(4);
     didAnnouncementDuringTurn = nil
@@ -358,16 +359,15 @@ modify skashek {
 
     checkDeliveryRoom() {
         if (hasSeenPreyOutsideOfDeliveryRoom) return;
+        hasSeenPreyOutsideOfDeliveryRoom = true;
         suppressIdleDescription();
         if (!canSee(getPracticalPlayer())) {
-            hasSeenPreyOutsideOfDeliveryRoom = true;
-            hasCheckedDeliveryRoom = true;
             #if __DEBUG_SKASHEK_ACTIONS
             "\nLoaded message.";
             #endif
             reciteAnnouncement(inspectingDeliveryRoomMessage);
+            return;
         }
-        if (hasCheckedDeliveryRoom) return;
         if (huntCore.difficulty == nightmareMode) return;
         playerLeewayTurns = huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
         prepareSpeech();
@@ -459,6 +459,9 @@ modify skashek {
         <<if spotted>>He sees you!!<<else>>You are hidden!<<end>>
         <.p>";
         #endif
+        if (spotted && room != deliveryRoom) {
+            hasSeenPreyOutsideOfDeliveryRoom = true;
+        }
         return spotted;
     }
 
@@ -625,20 +628,28 @@ modify skashek {
         moveInto(nextRoom);
 
         local possibleDoor = approachArray[2].connector;
-        if (possibleDoor.ofKind(Door)) {
+        local playerInNextRoom =
+            (getPracticalPlayer().getOutermostRoom() == nextRoom);
+        if (possibleDoor.ofKind(Door) && playerInNextRoom) {
             // If a door was trapped, then set the next one as trapped.
             trapConnector(possibleDoor);
         }
-        else if (nextRoom.roomNavigationType == bigRoom) {
-            // If the next room is really big, then a trap is not possible.
+        // If the next room is really big, then a trap is not possible.
+        else if (nextRoom.roomNavigationType != bigRoom) {
             abandonTraps();
-        }
-        else if (getPracticalPlayer().getOutermostRoom() == nextRoom) {
-            // When coming from a room, travel to that room is trapped,
-            // but only if the player is in the next room.
-            trapConnector(lastRoom);
+            if (playerInNextRoom) {
+                // If the player is in the next room, trap the one
+                // Skashek came from.
+                trapConnector(lastRoom);
+            }
+            else {
+                // Otherwise, Skashek now controls the room he's in.
+                trapConnector(nextRoom);
+            }
         }
         else {
+            // This case gets called when the room Skashek walks into
+            // is MASSIVE, so he cannot control any exits.
             abandonTraps();
         }
         
@@ -659,6 +670,11 @@ modify skashek {
         abandonTraps();
         lastTrappedConnector = connector;
         connector.setTrap(true);
+    }
+
+    receiveDoorSlam() {
+        skashekAIControls.currentState.receiveDoorSlam();
+        abandonTraps();
     }
 
     getOpenableSideOfDoor(door) {

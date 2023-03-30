@@ -23,6 +23,7 @@ storageBay: Room { 'The Storage Bay'
     mapModeDirections = [&west, &south, &east]
     mapModeLockedDoors = [wasteProcessingEntry]
     familiar = roomsFamiliarByDefault
+    roomNavigationType = bigRoom
 }
 
 +wasteProcessingEntry: MaintenanceDoor { 'the waste processing door'

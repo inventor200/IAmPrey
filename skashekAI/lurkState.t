@@ -39,6 +39,7 @@ skashekLurkState: SkashekAIState {
     creepTurns = 0
     creepingWithClicking = nil
     suspendCreeping = nil
+    doorSlammedInFace = nil
 
     resetRoomList() {
         #if __DEBUG_SKASHEK_ACTIONS
@@ -90,6 +91,9 @@ skashekLurkState: SkashekAIState {
         setupForTesting();
         #endif
         inspectionTurns = 0;
+        creepTurns = 0;
+        suspendCreeping = nil;
+        doorSlammedInFace = nil;
         currentStep = 1;
         if (startRandom) {
             resetRoomList();
@@ -127,15 +131,22 @@ skashekLurkState: SkashekAIState {
         return creepTurns > 0;
     }
 
-    doPlayerPeek() {
-        //TODO: Player peeks in while he is in the room
-    }
+    //doPlayerPeek() { }
 
     doPlayerCaughtLooking() {
+        if (doorSlammedInFace) {
+            "<<getPeekHeIs()>> rubbing his forehead in pain.
+            {I} seem to have gotten him good with that door slam!
+            <i>{I} should really take this opportunity to escape, though!</i> ";
+            return;
+        }
         if (creepTurns <= 0) return;
-        "<q>Why, hello there, Prey...!</q> he cackles.
+        "<q>Why, hello there, Prey...!</q> <<getPeekHe()>> cackles.
         <q>If you ever needed a reason to run, then I'm
         <i>coming in!</i></q> ";
+        // Punish the player for peeking
+        creepTurns = 0;
+        suspendCreeping = true;
     }
 
     describePeekedAction() {
@@ -143,7 +154,7 @@ skashekLurkState: SkashekAIState {
             "<<getPeekHeIs(true)>> right there,
             and he knows {i}{'m} in here...! ";
         }
-        if (inspectionTurns > 0) {
+        else if (inspectionTurns > 0) {
             describeNonTravelAction();
         }
         else {
@@ -160,6 +171,13 @@ skashekLurkState: SkashekAIState {
         currentStep = stepsInStride + (turns - 1);
     }
 
+    receiveDoorSlam() {
+        suspendCreeping = nil;
+        creepTurns = 2;
+        creepingWithClicking = nil;
+        doorSlammedInFace = true;
+    }
+
     startCreeping() {
         if (suspendCreeping) return nil;
         local approachArray = skashek.getApproach();
@@ -168,6 +186,10 @@ skashekLurkState: SkashekAIState {
         if (!skashek.peekInto(nextRoom)) return nil;
         if (!connector.ofKind(Door)) return nil;
         if (connector.lockability == lockableWithKey) return nil;
+        if (!hasSeenPreyOutsideOfDeliveryRoom && nextRoom == deliveryRoom) {
+            // Don't creep if Skashek is on the way to check on the player
+            return nil;
+        }
         #if __DEBUG_SKASHEK_ACTIONS
         "<.p>
         LURK: Starting creep...
@@ -175,6 +197,7 @@ skashekLurkState: SkashekAIState {
         #endif
 
         local decisionSelector = getRandomResult(6);
+        //local decisionSelector = 5; // Test case
         if (decisionSelector <= 3) {
             suspendCreeping = true;
             return nil;
@@ -218,6 +241,7 @@ skashekLurkState: SkashekAIState {
             }
             if (newRoom == goalRoom) {
                 suspendCreeping = nil;
+                doorSlammedInFace = nil;
                 if (goalRoom == deliveryRoom &&
                     !skashek.hasSeenPreyOutsideOfDeliveryRoom
                 ) {
@@ -285,6 +309,7 @@ skashekLurkState: SkashekAIState {
             creepTurns--;
             if (creepTurns <= 0) {
                 suspendCreeping = true;
+                doorSlammedInFace = nil;
             }
             #if __DEBUG_SKASHEK_ACTIONS
             else {

@@ -173,14 +173,18 @@ prey: PlayerActor { 'The Prey;;me self myself'
         dig into {my} flesh. I try to kick, but that damned arm is in the way,
         and {my} other leg is pinned under his weight.\b
         {I} try to headbutt him, and fail.\b
-        <b><q>Prey, I <i>always</i> control the last exit I pass through!</q>
-        he sneers. <q>You should have found another way out!</q></b>\b
+        <q><b>Prey, I <i>always</i> control the last exit I pass through!</q>
+        he sneers. <q>You should have found another way out!</b></q>\b
         {I}{'m} moments from spitting in his face, until he rips something
         out of {my} arm, and claws out {my} throat. {My} arm is free, but
         cannot seem to move.\b
         He stands, and {i} try to follow suit, refusing to die like this.
         However, the floor is coated by the streams of crimson pouring from
         {my} neck.\b
+        <b><q>Only the Hanger and Storage Bay are big enough for a stunt
+        like that. Too much area to control,</q></b>
+        he mutters, waiting{dummy} for {me} to bleed out.
+        <q>Ah well...maybe the <i>next</i> Prey will figure that out...</q>\b
         Dizziness soon takes hold, and {i} collapse.";
         finishGameMsg(ftDeath, gEndingOptionsLoss);
     }

@@ -1212,6 +1212,13 @@ modify Door {
     catCloseMsg =
         '{That subj dobj} {is} too heavy for an old cat to close.
         It\'s fortunate that these close on their own, instead. '
+    
+    closeDoorDeniedMsg =
+        '<<gSkashekName>> won\'t let{dummy} {me} do that again,
+        at least while he controls {the dobj}. '
+    
+    cannotSlamClosedDoorMsg =
+        '{I} cannot slam a closed door. '
 
     dobjFor(Close) {
         verify() {
@@ -1219,9 +1226,24 @@ modify Door {
                 illogical(catCloseMsg);
                 return;
             }
+            if (qualifiesForCloseTrick()) {
+                if (!isOpen) {
+                    illogical(cannotSlamClosedDoorMsg);
+                    return;
+                }
+                if (huntCore.pollTrick(&closeDoorCount) == noTricksRemaining) {
+                    illogical(closeDoorDeniedMsg);
+                    return;
+                }
+            }
             inherited();
         }
         action() {
+            if (qualifiesForCloseTrick()) {
+                extraReport('<.p>(with a bit more urgency)\n');
+                doInstead(SlamClosed, self);
+                return;
+            }
             primedPlayerAudio = nil;
             inherited();
         }
@@ -1242,10 +1264,20 @@ modify Door {
                 illogical(catCloseMsg);
                 return;
             }
+            if (!isOpen) {
+                illogicalNow(cannotSlamClosedDoorMsg);
+            }
+            if (qualifiesForCloseTrick()) {
+                if (huntCore.pollTrick(&closeDoorCount) == noTricksRemaining) {
+                    illogical(closeDoorDeniedMsg);
+                    return;
+                }
+            }
             inherited();
         }
         action() {
-            if (canSlamMe) {
+            local qualifies = qualifiesForCloseTrick();
+            if (canSlamMe || qualifies) {
                 if (gActorIsPrey) {
                     wasPlayerExpectingAClose = true;
                 }
@@ -1253,11 +1285,48 @@ modify Door {
                     wasSkashekExpectingAClose = true;
                 }
                 slam();
+                if (qualifies) {
+                    //huntCore.spendTrick(&closeDoorCount);
+                    spendCloseTrick();
+                }
             }
             else {
                 extraReport('<.p>(simply closing, as {that dobj} cannot be slammed)\n');
                 doInstead(Close, self);
             }
+        }
+    }
+
+    qualifiesForCloseTrick() {
+        if (!gActorIsPrey) return nil;
+        if (!isTrapped) return nil;
+        local skashekOnOtherSide =
+            (otherSide.getOutermostRoom() == skashek.getOutermostRoom());
+        if (!skashekOnOtherSide) return nil;
+        return true;
+    }
+
+    spendCloseTrick() {
+        "<.p>";
+        local poll = huntCore.spendTrick(&closeDoorCount);
+        skashek.receiveDoorSlam();
+        local shoutVerb =
+            '<<one of>>bellows<<or>>yells<<or>>screams<<or>>shouts<<at random>>
+            from behind the door';
+        switch (poll) {
+            default:
+                "<q>Ach! Fuck you, Prey!!</q>
+                <<gSkashekName>> <<shoutVerb>>. ";
+                return;
+            case oneTrickRemaining:
+                "<q>Fuck! I'm getting tired of your shit, Prey!!</q>
+                <<gSkashekName>> <<shoutVerb>>. ";
+                return;
+            case noTricksRemaining:
+                "<q>That's <i>it!</i>
+                That's the <i>last</i> time that will work, Prey!!</q>
+                <<gSkashekName>> <<shoutVerb>>. ";
+                return;
         }
     }
 

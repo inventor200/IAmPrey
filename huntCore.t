@@ -139,12 +139,20 @@ nightmareModeSetting: DifficultySetting {
     turnsBeforeSkashekDeploys = 0
 }
 
+enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;
+
 huntCore: InitObject {
     revokedFreeTurn = nil
     playerWasSeenEntering = nil
     playerWasSeenHiding = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
+
+    //Tricks
+    tricksInPool = nil
+    closeDoorCount = nil
+    diveOffReservoirCount = nil
+    distractingSinkCount = nil
 
     difficultySettings = static [
         basicTutorialSetting,
@@ -214,6 +222,52 @@ huntCore: InitObject {
             #endif
             skashekAIControls.currentState.activate();
         }
+
+        updateTrickCount(&tricksInPool, difficultySettingObj.trickCount);
+
+        if (!difficultySettingObj.tricksFromPool) {
+            updateTrickCount(&closeDoorCount, tricksInPool);
+            updateTrickCount(&diveOffReservoirCount, tricksInPool);
+            updateTrickCount(&distractingSinkCount, tricksInPool);
+        }
+    }
+
+    updateTrickCount(currentAmountProp, nextAmount) {
+        local currentAmount = self.(currentAmountProp);
+        if (currentAmount == nil) {
+            self.(currentAmountProp) = nextAmount;
+        }
+        else if (currentAmount < nextAmount) {
+            self.(currentAmountProp) = currentAmount;
+        }
+        else {
+            self.(currentAmountProp) = nextAmount;
+        }
+    }
+
+    getActualTrickProp(trickCountProp) {
+        if (difficultySettingObj.tricksFromPool) {
+            return &tricksInPool;
+        }
+        return trickCountProp;
+    }
+
+    pollTrick(trickCountProp) {
+        local actualTrickProp = getActualTrickProp(trickCountProp);
+        if (self.(actualTrickProp) <= 0) return noTricksRemaining;
+        else if (self.(actualTrickProp) == 1) return oneTrickRemaining;
+        return plentyOfTricksRemaining;
+    }
+
+    spendTrick(trickCountProp) {
+        local actualTrickProp = getActualTrickProp(trickCountProp);
+        self.(actualTrickProp)--;
+        if (self.(actualTrickProp) <= 0) {
+            self.(actualTrickProp) = 0;
+            return noTricksRemaining;
+        }
+        if (self.(actualTrickProp) == 1) return oneTrickRemaining;
+        return plentyOfTricksRemaining;
     }
 
     freeTurnAlertsRemaining = 2
