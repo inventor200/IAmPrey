@@ -12,11 +12,11 @@ labA: Room { 'Lab A'
     roomNavigationType = escapeRoom
 }
 
-+labAShelves: FixedPlatform { 'storage shelf{shelves};cargo;rack'
++labAShelves: FixedPlatform { 'storage shelves;cargo;rack shelf'
     "Rough, metal shelves for storing boxes and equipment.
     They are arranged into an L-shape, to conform to the corner of
     the room. "
-    ambiguouslyPlural = true
+    plural = true
 
     isSafeParkourPlatform = true
 

@@ -1,4 +1,7 @@
-breakroom: Room { 'The Breakroom'
+breakroom: Room {
+    vocab = 'The Breakroom;break[weak];room[weak]'
+    roomTitle = 'The Breakroom'
+    desc =
     "TODO: Add description. "
 
     northMuffle = serverRoomBottom

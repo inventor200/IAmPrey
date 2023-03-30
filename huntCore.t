@@ -145,6 +145,7 @@ huntCore: InitObject {
     revokedFreeTurn = nil
     playerWasSeenEntering = nil
     playerWasSeenHiding = nil
+    doorThatMovedOnItsOwn = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
@@ -692,13 +693,25 @@ modify Door {
         return gPlayerChar.canSee(self) || otherVis;
     }
 
+    getTheVisibleName() {
+        if (otherSide != nil) {
+            if (gPlayerChar.canSee(otherSide)) return otherSide.theName;
+        }
+        return theName;
+    }
+
     dobjForReportSkashekOpen() {
-        "<<skashek.getPeekHe(true)>> opens <<theName>>! ";
+        "<<skashek.getPeekHe(true)>> opens <<getTheVisibleName()>>! ";
+    }
+
+    dobjForReportSkashekClose() {
+        "<<skashek.getPeekHe(true)>> closes <<getTheVisibleName()>>
+        behind himself. ";
     }
 
     dobjForReportSkashekUnlock() {
         "There is an electronic buzzing sound,
-        as <<skashek.getPeekHe()>> unlocks <<theName>>! ";
+        as <<skashek.getPeekHe()>> unlocks <<getTheVisibleName()>>! ";
     }
 
     dobjForDoSkashekUnlock() {

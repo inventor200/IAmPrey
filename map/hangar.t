@@ -77,7 +77,7 @@ hangar: Room { 'The Hangar'
 }
 
 DefineBrokenWindowPairLookingAway(east, west, hangar, storageBay)
-    vocab = 'pressure membrane;plastic rubber;veil curtain sheet'
+    vocab = 'pressure membrane;plastic rubber greasy marked[weak];veil curtain sheet slit'
     desc = "TODO: Add description. "
     breakMsg = 'The membrane absolutely refuses to be torn, cut, or sliced in any way. '
     remoteHeader = 'through the membrane'

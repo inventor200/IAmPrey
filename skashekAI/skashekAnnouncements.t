@@ -82,3 +82,132 @@ inspectingDeliveryRoomMessage: IntercomMessage {
     <q>Oh! Didn't see you there!</q> he exclaims, chuckling to himself.
     <q>Now, you'd best <i>fucking run</i>, Prey!</q> "
 }
+
+// Mock player for letting a door close
+mockForDoorCloseMessage: IntercomMessage {
+    cachedLastDoor = nil
+    cachedLastRoom = nil
+
+    showStandardMessage1() {
+        "<<one of
+        >>Sloppy<<or
+        >>Bad form<<or
+        >>Noisy<<or
+        >>Clumsy<<at random>>, Prey! You let <b><<cachedLastDoor.theName>></b> slam shut!";
+    }
+    showStandardMessage2() {
+        "That means you're near <b><<cachedLastRoom.roomTitle>></b>,
+        <<one of>>yeah<<or>>right<<or>>correct<<at random>>...?";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage1()>> <<showStandardMessage2()>></q> "
+
+    inPersonFullMsg() { }
+    
+    inPersonStealthyMsg =
+    "<<skashek.getPeekHis(true)>> head tilts in response to a new sound,
+    and a smile slowly creeps onto his face. He raises his wrist mic to his
+    lips.\b
+    <q><<showStandardMessage1()>></q> he teases, voice echoing over the intercom.
+    <q><<showStandardMessage2()>></q> "
+
+    interruptedMsg =
+    "<<skashek.getPeekHe(true)>> is about{dummy} to mock {me} over the intercom,
+    until he{dummy} sees {me}.\b
+    <q>Oh! Hello, Prey!</q> he chuckles. <q>I was just about to critique you for
+    letting <b><<cachedLastDoor.theName>></b> slam shut, but here you are!</q> "
+}
+
+// Mock player for letting a door close
+mockForDoorAlterationMessage: IntercomMessage {
+    cachedLastDoor = nil
+
+    showStandardMessage1() {
+        "Prey, <b><<cachedLastDoor.theName>></b> should have audibly
+        closed by now";
+    }
+    showStandardMessage2() {
+        "I <i>opened</i> it, after all. You wouldn't know anything about that, would you...?";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage1()>>. <<showStandardMessage2()>></q> "
+
+    inPersonFullMsg() { }
+    
+    inPersonStealthyMsg =
+    "<<skashek.getPeekHe(true)>> blinks, and he looks deep in thought for a moment.\b
+    <q>Hey,</q> he mutters to himself, <q>Shouldn't <b><<cachedLastDoor.theName>></b>
+    have closed by now...? I haven't heard anything, yet...</q>\b
+    He chuckles as he raises his wrist mic to his lips.\b
+    <q><<showStandardMessage1()>>,</q> he teases over the intercom.
+    <q><<showStandardMessage2()>></q> "
+
+    interruptedMsg =
+    "<<skashek.getPeekHe(true)>> seemed quite puzzled about something,
+    until he{dummy} sees {me}.\b
+    <q>Oh! Hello, Prey!</q> he chuckles. <q>I was just about to ask you why
+    <b><<cachedLastDoor.theName>></b> didn't slam shut, but here you are!
+    I suppose that was you?</q> "
+}
+
+// Mock player for leaving a door open
+mockForDoorSuspicionMessage: IntercomMessage {
+    cachedLastDoor = nil
+
+    showStandardMessage1() {
+        "Prey, I <i>might</i> like to cause alarm,";
+    }
+    showStandardMessage2() {
+        "but <b><<cachedLastDoor.theName>></b> is evidence of your presence!";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage1()>> <<showStandardMessage2()>></q> "
+
+    inPersonFullMsg() { }
+    
+    inPersonStealthyMsg =
+    "<<skashek.getPeekHe(true)>> considers <b><<cachedLastDoor.theName>></b>
+    for a moment, and chuckles.\b
+    <q>Prey tracks!</q> he mutters, grinning. <q>I wonder how recent this is...</q>\b
+    He looks around and raises his wrist mic to his lips.\b
+    <q><<showStandardMessage1()>></q> he teases over the intercom.
+    <q><<showStandardMessage2()>></q> "
+
+    interruptedMsg =
+    "<<skashek.getPeekHe(true)>> seems to be examining <b><<cachedLastDoor.theName>></b>,
+    and smiles{dummy} when he sees {me}.\b
+    <q>Prey,</q> he says, cackling, <q>You're not supposed to return to the scene of
+    a crime! Now I gotta <i>catch</i> you!</q> "
+}
+
+// Mock player for leaving a door open
+mockForDoorMovementMessage: IntercomMessage {
+    cachedLastDoor = nil
+
+    showStandardMessage1() {
+        "<<one of>>Oops!<<or>>Ha!<<or>>Whoops!<<at random>>";
+    }
+    showStandardMessage2() {
+        "Prey, I <i>saw</i> you <<if cachedLastDoor.isOpen>>open<<else>>close<<end>>
+        <b><<cachedLastDoor.theName>></b>!
+        You'd better start running now...!";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage1()>> <<showStandardMessage2()>></q> "
+
+    inPersonFullMsg =
+    "<q><<showStandardMessage1()>></q> <<skashek.getPeekHe()>> exclaims,
+    <q><<showStandardMessage2()>></q> "
+    
+    inPersonStealthyMsg() { inPersonFullMsg(); }
+
+    interruptedMsg() { inPersonFullMsg(); }
+}

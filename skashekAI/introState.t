@@ -33,13 +33,9 @@ skashekIntroState: SkashekAIState {
         }
     }
 
-    doPlayerPeek() {
-        //
-    }
+    doPlayerPeek() { }
 
-    doPlayerCaughtLooking() {
-        //
-    }
+    doPlayerCaughtLooking() { }
 
     describePeekedAction() {
         local peekCount = peeksAllowed;

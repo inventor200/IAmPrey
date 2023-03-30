@@ -40,7 +40,7 @@ doorSlamCloseNoiseProfile: SoundProfile {
     strength = 5
 
     afterEmission(room) {
-        say('\b(Emitted door slam in <<room.roomTitle>>.)');
+        say('<.p>(Emitted door slam in <<room.roomTitle>>.)<.p>');
     }
 }
 
@@ -52,7 +52,7 @@ doorSuspiciousCloseNoiseProfile: SoundProfile {
     isSuspicious = true
 
     afterEmission(room) {
-        say('\b(Emitted suspicious door slam in <<room.roomTitle>>.)');
+        say('<.p>(Emitted suspicious door slam in <<room.roomTitle>>.)<.p>');
     }
 }
 
@@ -65,7 +65,7 @@ doorSuspiciousSilenceProfile: SoundProfile {
     absoluteDesc = true
 
     afterEmission(room) {
-        say('\b(Emitted suspicious door silence in <<room.roomTitle>>.)');
+        say('<.p>(Emitted suspicious door silence in <<room.roomTitle>>.)<.p>');
     }
 }
 
@@ -76,7 +76,7 @@ doorUnlockBuzzProfile: SoundProfile {
     strength = 2
 
     afterEmission(room) {
-        say('\b(Emitted unlock door buzz in <<room.roomTitle>>.)');
+        say('<.p>(Emitted unlock door buzz in <<room.roomTitle>>.)<.p>');
     }
 }
 
@@ -822,6 +822,16 @@ modify Door {
     playerExpectsAirlockOpen = nil
     skashekExpectsAirlockOpen = nil
 
+    getSuspicionScore() {
+        // Airlock doors can be suspicious, but there's no way to tell
+        // how long ago it was visited.
+        if (airlockDoor) return 1;
+        if (closingFuse == nil) return 1;
+
+        // Otherwise, rank by how much time is left to close.
+        return (closingFuse.nextRunTime - gTurns) + 2;
+    }
+
     getScanName() {
         local omr = getOutermostRoom();
         local observerRoom = gPlayerChar.getOutermostRoom();
@@ -1107,15 +1117,47 @@ modify Door {
     }
 
     makeSkashekSuspicious() {
+        if (primedPlayerAudio == normalClosingSound || primedPlayerAudio == slamClosingSound) {
+            // Noisy door close
+            soundBleedCore.createSound(
+                doorSlamCloseNoiseProfile,
+                getSoundSource(),
+                getOutermostRoom(),
+                true
+            );
+            if (otherSide != nil) {
+                soundBleedCore.createSound(
+                    doorSlamCloseNoiseProfile,
+                    getSoundSource(),
+                    otherSide.getOutermostRoom(),
+                    true
+                );
+            }
+        }
+        else {
+            // Silent door close
+            if (silentDoorRealizationFuse != nil) return;
+            silentDoorRealizationFuse = new Fuse(
+                self,
+                &causeSilenceSuspicionForSkashek,
+                skashek.getRandomResult(3)
+            );
+        }
+    }
+
+    silentDoorRealizationFuse = nil
+
+    causeSilenceSuspicionForSkashek() {
+        silentDoorRealizationFuse = nil;
         soundBleedCore.createSound(
-            doorSlamCloseNoiseProfile,
+            doorSuspiciousSilenceProfile,
             getSoundSource(),
             getOutermostRoom(),
             true
         );
         if (otherSide != nil) {
             soundBleedCore.createSound(
-                doorSlamCloseNoiseProfile,
+                doorSuspiciousSilenceProfile,
                 getSoundSource(),
                 otherSide.getOutermostRoom(),
                 true
@@ -1207,6 +1249,10 @@ modify Door {
             }
             inherited();
         }
+        action() {
+            if (gActorIsPrey) skashek.highlightDoorChange(self);
+            inherited();
+        }
     }
 
     catCloseMsg =
@@ -1244,6 +1290,7 @@ modify Door {
                 doInstead(SlamClosed, self);
                 return;
             }
+            if (gActorIsPrey) skashek.highlightDoorChange(self);
             primedPlayerAudio = nil;
             inherited();
         }
@@ -1276,6 +1323,7 @@ modify Door {
             inherited();
         }
         action() {
+            if (gActorIsPrey) skashek.highlightDoorChange(self);
             local qualifies = qualifiesForCloseTrick();
             if (canSlamMe || qualifies) {
                 if (gActorIsPrey) {
@@ -1570,19 +1618,53 @@ modify Room {
         }
     }
 
+    getMainDoorsInSight(actor, scopeVector) {
+        local om = actor.getOutermostRoom();
+        local omRegions = valToList(om.allRegions);
+        for (local i = 1; i <= omRegions.length; i++) {
+            local reg = omRegions[i];
+            if (!reg.canSeeAcross) continue;
+            local regRooms = valToList(reg.roomList);
+            for (local j = 1; j <= regRooms.length; j++) {
+                local room = regRooms[j];
+                if (!om.canSeeOutTo(room)) continue;
+                getMainDoorsInRoom(actor, room, scopeVector);
+            }
+        }
+        if (omRegions.length == 0) {
+            getMainDoorsInRoom(actor, om, scopeVector);
+        }
+    }
+
+    getMainDoorsInRoom(actor, room, scopeVector) {
+        local roomScope = valToList(room.contents);
+        for (local i = 1; i <= roomScope.length; i++) {
+            local obj = roomScope[i];
+            if (!actor.canSee(obj)) continue;
+            if (!obj.ofKind(Door)) continue;
+            scopeVector.appendUnique(obj);
+        }
+    }
+
     getSuspiciousDoorsForSkashek() {
-        local scopeList = Q.scopeList(skashek);
+        local scopeList = new Vector(16);
+        getMainDoorsInSight(skashek, scopeList);
+
         local suspiciousDoors = new Vector(8);
 
         for (local i = 1; i <= scopeList.length; i++) {
             local obj = scopeList[i];
-            if (!gPlayerChar.canSee(obj)) continue;
-            if (!obj.isConnectorListed) continue;
-            if (!obj.ofKind(Door)) continue;
+            if (!skashek.doesDoorGoToValidDest(obj)) continue;
             if (obj.isStatusSuspiciousTo(skashek, &skashekCloseExpectationFuse)) {
                 suspiciousDoors.appendUnique(obj);
             }
         }
+
+        if (suspiciousDoors.length == 0) return [];
+
+        suspiciousDoors.sort(true,
+            { a, b: a.getSuspicionScore() - b.getSuspicionScore() }
+        );
 
         return suspiciousDoors.toList();
     }
@@ -1592,7 +1674,7 @@ modify Room {
         local beVerbose = fromCommand || gameMain.verbose;
 
         local totalRoomList = new Vector(8);
-        local totalRegions = valToList(regions);
+        local totalRegions = valToList(allRegions);
         for (local i = 1; i <= totalRegions.length; i++) {
             local currentRoomList = valToList(totalRegions[i].roomList);
             for (local j = 1; j <= currentRoomList.length; j++) {

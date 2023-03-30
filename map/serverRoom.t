@@ -64,13 +64,13 @@ serverRoomTop: Room { 'The Chilled Server Room'
     RoomHasLadderDown(serverLadderTop)
 }
 
-+serverBanks: Decoration { 'server bank;;computer server'
++serverBanks: Decoration { 'server banks;;computer server bank'
     "Large, black cabinets full of running computers, wired together in
     complex ways. Thick cables run from their tops, and feed into an alcove
     to the southeast.\b
     To the north, there is a large vent grate, which pumps freezing air into
     the room. "
-    ambiguouslyPlural = true
+    plural = true
 
     dobjFor(Eat) asDobjFor(Attack)
     dobjFor(Cut) asDobjFor(Attack)

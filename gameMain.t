@@ -23,7 +23,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM deliveryRoom
+/*-*/  #define __TEST_ROOM labB
       #define __SKASHEK_START breakroom
      #define __SKASHEK_STATE skashekLurkState
     #define __SKASHEK_FROZEN nil
@@ -50,7 +50,7 @@
 #define gActorIsPlayer (gActor == gPlayerChar)
 #define gActorIsPrey (gActor == prey)
 #define gActorIsCat (gActor == cat)
-#define gEndingOptionsWin [finishOptionCredits, finishOptionAmusing]
+#define gEndingOptionsWin [finishOptionCredits, finishOptionUndo, finishOptionAmusing]
 #define gEndingOptionsLoss [finishOptionCredits, finishOptionUndo]
 #define actorCapacity 10
 #define actorBulk 25

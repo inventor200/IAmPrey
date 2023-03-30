@@ -43,7 +43,7 @@ ventilationNode: Room { 'The Central Ventilation Node'
 
 +Decoration { 'bones;human clone;remains corpse hand bone'
     "The bones of what could be a human hand, if the fingers were not so long. "
-    ambiguouslyPlural = true
+    plural = true
 }
 
 +assemblyShopExitVentGrate: VentGrateDoor {

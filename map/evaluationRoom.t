@@ -1,4 +1,7 @@
-evaluationRoom: Room { 'The Evaluation Room'
+evaluationRoom: Room {
+    vocab = 'The Evaluation Room;eval'
+    roomTitle = 'The Evaluation Room'
+    desc =
     "TODO: Add description. "
 
     northMuffle = labB
@@ -20,4 +23,4 @@ evaluationRoom: Room { 'The Evaluation Room'
     roomNavigationType = killRoom
 }
 
-DefineDoorWestTo(eastHall, evaluationRoom, 'the Evaluation Room door')
+DefineDoorWestTo(eastHall, evaluationRoom, 'the Evaluation Room door;eval')
