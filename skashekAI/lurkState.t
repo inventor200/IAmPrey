@@ -26,7 +26,8 @@ skashekLurkState: SkashekAIState {
         lifeSupportTop,
         reservoir,
         securityOffice,
-        serverRoomTop
+        serverRoomTop,
+        reservoirStrainer
     ]
 
     roomsLeftToCheck = static new Vector(checkableRooms.length)
@@ -39,11 +40,12 @@ skashekLurkState: SkashekAIState {
     creepTurns = 0
     creepingWithClicking = nil
     suspendCreeping = nil
-    doorSlammedInFace = nil
+    stunTurns = 0
     leewayExpired = nil
     temporaryGoal = nil // For when he saw something wrong
     soundGoal = nil // For when he heard something weird
     lastSoundDistance = 1000 // How far away was the last soundGoal?
+    excitementBonusTurns = 2
 
     resetRoomList() {
         #if __DEBUG_SKASHEK_ACTIONS
@@ -92,12 +94,12 @@ skashekLurkState: SkashekAIState {
 
     start(prevState) {
         #ifdef __DEBUG
-        setupForTesting();
+        //setupForTesting();
         #endif
         inspectionTurns = 0;
         creepTurns = 0;
         suspendCreeping = nil;
-        doorSlammedInFace = nil;
+        stunTurns = 0;
         leewayExpired = nil;
         temporaryGoal = nil;
         soundGoal = nil;
@@ -153,10 +155,7 @@ skashekLurkState: SkashekAIState {
     //doPlayerPeek() { }
 
     doPlayerCaughtLooking() {
-        if (doorSlammedInFace) {
-            "<<getPeekHeIs()>> rubbing his forehead in pain.
-            {I} seem to have gotten him good with that door slam!
-            <i>{I} should really take this opportunity to escape, though!</i> ";
+        if (stunTurns > 0) {
             return;
         }
         if (creepTurns <= 0) return;
@@ -169,7 +168,10 @@ skashekLurkState: SkashekAIState {
     }
 
     describePeekedAction() {
-        if (creepTurns > 0) {
+        if (stunTurns > 0) {
+            skashek.showSlamPainDesc();
+        }
+        else if (creepTurns > 0) {
             "<<getPeekHeIs(true)>> right there,
             and he knows {i}{'m} in here...! ";
         }
@@ -192,18 +194,22 @@ skashekLurkState: SkashekAIState {
 
     receiveDoorSlam() {
         suspendCreeping = nil;
-        creepTurns = 2;
+        creepTurns = 0;
         creepingWithClicking = nil;
-        doorSlammedInFace = true;
+        stunTurns = skashekAIControls.doorSlamStunTurns;
     }
 
     startCreeping() {
         if (temporaryGoal != nil) return nil;
         if (soundGoal != nil) return nil;
         if (suspendCreeping) return nil;
+        if (skashek.getOutermostRoom() ==
+            skashek.getPracticalPlayer().getOutermostRoom()) return nil;
         local approachArray = skashek.getApproach();
         local nextRoom = approachArray[1];
-        local connector = approachArray[2].connector;
+        local connector = approachArray[2];
+        if (connector == nil) return nil;
+        connector = approachArray[2].connector;
         if (!skashek.peekInto(nextRoom)) return nil;
         if (!connector.ofKind(Door)) return nil;
         if (connector.lockability == lockableWithKey) return nil;
@@ -264,7 +270,6 @@ skashekLurkState: SkashekAIState {
             // Check temp goal first
             if (temporaryGoal != nil && newRoom == temporaryGoal) {
                 suspendCreeping = nil;
-                doorSlammedInFace = nil;
                 temporaryGoal = nil;
                 #if __DEBUG_SKASHEK_ACTIONS
                 "\nTemporary goal reached!
@@ -276,7 +281,6 @@ skashekLurkState: SkashekAIState {
             else if (soundGoal != nil && newRoom == soundGoal) {
                 //TODO: If it's a sink, turn it off
                 suspendCreeping = nil;
-                doorSlammedInFace = nil;
                 soundGoal = nil;
                 lastSoundDistance = 1000;
                 #if __DEBUG_SKASHEK_ACTIONS
@@ -297,7 +301,6 @@ skashekLurkState: SkashekAIState {
             // Check main goal
             else if (newRoom == goalRoom) {
                 suspendCreeping = nil;
-                doorSlammedInFace = nil;
                 if (goalRoom == deliveryRoom &&
                     !skashek.hasSeenPreyOutsideOfDeliveryRoom
                 ) {
@@ -353,6 +356,10 @@ skashekLurkState: SkashekAIState {
     }
 
     doTurn() {
+        if (stunTurns > 0) {
+            stunTurns--;
+            return;
+        }
         checkForDoorMovingOnItsOwn();
         if (creepTurns > 0) {
             if (creepingWithClicking) {
@@ -366,7 +373,6 @@ skashekLurkState: SkashekAIState {
             creepTurns--;
             if (creepTurns <= 0) {
                 suspendCreeping = true;
-                doorSlammedInFace = nil;
             }
             #if __DEBUG_SKASHEK_ACTIONS
             else {
@@ -388,6 +394,11 @@ skashekLurkState: SkashekAIState {
             checkForSuspiciousDoors();
             doSteps();
         }
+    }
+
+    doStreaksAfterTurn() {
+        skashekAIControls.shortStreak = 0;
+        skashekAIControls.longStreak = 0;
     }
 
     checkForDoorMovingOnItsOwn() {
@@ -463,6 +474,8 @@ skashekLurkState: SkashekAIState {
     }
 
     changeCourseFor(alternativeRoom) {
+        if (skashek.canSee(skashek.getPracticalPlayer())) return;
+
         skashek.hasSeenPreyOutsideOfDeliveryRoom = true;
         if (alternativeRoom == goalRoom) return;
 
@@ -474,28 +487,33 @@ skashekLurkState: SkashekAIState {
         #endif
 
         temporaryGoal = alternativeRoom;
-        addSpeedBoost(3);
+        addSpeedBoost(excitementBonusTurns);
     }
 
     followSound(impact) {
         skashek.hasSeenPreyOutsideOfDeliveryRoom = true;
 
         local source = impact.sourceOrigin;
-        local alternativeRoom = source.getOutermostRoom();
         local soundWasDoor = nil;
         if (source.ofKind(Door)) {
             soundWasDoor = true;
-            if (alternativeRoom.ofKind(HallwaySegment)) {
+            if (source.getOutermostRoom().ofKind(HallwaySegment)) {
                 source = source.otherSide;
-                alternativeRoom = source.getOutermostRoom();
             }
         }
+
+        if (skashek.canSee(source.getOutermostRoom()) && soundWasDoor) {
+            // We already have visual of this side of the door.
+            // Probably want the other side.
+            source = source.otherSide;
+        }
+        local alternativeRoom = source.getOutermostRoom();
 
         // If we were already heading there, then nevermind
         if (alternativeRoom == goalRoom) return;
         if (
             soundWasDoor && 
-            (source.getOutermostRoom() == goalRoom ||
+            (alternativeRoom == goalRoom ||
             source.otherSide.getOutermostRoom() == goalRoom)
         ) return;
 
@@ -503,7 +521,7 @@ skashekLurkState: SkashekAIState {
         if (alternativeRoom == temporaryGoal) return;
         if (
             soundWasDoor && 
-            (source.getOutermostRoom() == temporaryGoal ||
+            (alternativeRoom == temporaryGoal ||
             source.otherSide.getOutermostRoom() == temporaryGoal)
         ) return;
 
@@ -567,14 +585,34 @@ skashekLurkState: SkashekAIState {
         else {
             if (!begins) return;
             if (!skashek.didAnnouncementDuringTurn) {
-                "<.p><q>Aha!</q> <<getPeekHe()>> shouts.
-                <q><i>There</i> you are!</q><.p>";
+                "<.p><q><<one of
+                >>Aha!<<or
+                >>Oh, hello!<<or
+                >>Prey...!<<or
+                >>Hello, Prey...!<<or
+                >>Oh!<<or>>Ah!<<at random>></q>
+                <<getPeekHe()>> <<one of
+                >>shouts<<or
+                >>exclaims<<or
+                >>says<<at random>>.
+                <q><<one of
+                >><i>There</i> you are!<<or
+                >>Did you miss me?<<or
+                >>Did you miss me?? I missed <i>you!</i><<or
+                >>I was <i>wondering</i> where you were!<<at random>><<one of
+                >><<or>>
+                Time to <<one of>>run<<or>>eat you<<or>>die<<at random
+                >>!<<at random>></q><.p>";
             }
         }
         skashekChaseState.activate();
     }
 
     describeNonTravelAction() {
+        if (stunTurns > 0) {
+            skashek.showSlamPainDesc();
+            return;
+        }
         "<<getPeekHeIs(true)>> looking around
         <<skashek.getOutermostRoom.roomTitle>>{dummy} for {me}! ";
     }

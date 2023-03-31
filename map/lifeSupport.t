@@ -385,6 +385,10 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
     secretLocalPlatform = true
     otherSide = coolingDuctLowerInnerDoor
 
+    mostLikelyDestination() {
+        return serverRoomTop;
+    }
+
     airlockDoor = true
     skipHandle = true
 
@@ -448,6 +452,10 @@ coolingDuctUpperOuterGrate: CoolingDuctGrate {
     vocab = 'cooling outlet ' + defaultVentVocab + ' access duct' + defaultVentVocabSuffix
     location = serverRoomTop
     otherSide = coolingDuctUpperInnerGrate
+
+    mostLikelyDestination() {
+        return lifeSupportBottom;
+    }
 }
 
 class CoolingDuctGrate: VentGrateDoor {
@@ -494,6 +502,8 @@ insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
     vocab = 'access door;cooling[weak] duct;hatch'
     desc = "An access door, probably for maintenance and repairs. "
     otherSide = coolingDuctLowerOuterDoor
+    destination = lifeSupportBottom
+    destinationPlatform = lifeSupportBottom
 
     airlockDoor = true
     passActionStr = 'exit'

@@ -81,6 +81,41 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me you self myself you
             "{I} vocalize a soft, purring sound. ";
             exit;
         }
+        if (gActionIs(Sleep)) {
+            "There will be plenty more time for that, soon! ";
+            exit;
+        }
+
+        if (gActionIs(GiveTo) || gActionIs(GiveToImplicit)) {
+            "All of {my} kingly possessions are {my} own!. ";
+            exit;
+        }
+        else if (gActionIs(ShowTo) || gActionIs(ShowToImplicit)) {
+            "The only thing {i} must show is my regal stride! ";
+            exit;
+        }
+        else if (
+            gActionIs(SayAction) ||
+            gActionIs(SayTo) ||
+            gActionIs(AskAbout) ||
+            gActionIs(AskFor) ||
+            gActionIs(TellAbout) ||
+            gActionIs(TellTo) ||
+            gActionIs(TalkAbout) ||
+            gActionIs(TalkTo) ||
+            gActionIs(ImplicitConversationAction) ||
+            gActionIs(QueryAbout) ||
+            gActionIs(MiscConvAction) ||
+            gActionIs(Hello) ||
+            gActionIs(Goodbye)
+        ) {
+            meowPrompt;
+            exit;
+        }
+        else if (gActionIs(Follow)) {
+            "{I} follow <i>nobody!</i> The kingdom{dummy} follows <i>{me}!</i> ";
+            exit;
+        }
     }
 }
 

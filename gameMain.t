@@ -23,12 +23,13 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM labB
+/*-*/  #define __TEST_ROOM deliveryRoom
       #define __SKASHEK_START breakroom
-     #define __SKASHEK_STATE skashekLurkState
+     #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
-   #define __SKASHEK_TOOTHLESS true
+   #define __SKASHEK_TOOTHLESS nil
   #define __SKASHEK_IMMOBILE nil
+ #define __SKASHEK_NO_TARGET nil
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -44,6 +45,7 @@
 #define __SKASHEK_FROZEN nil
 #define __SKASHEK_TOOTHLESS nil
 #define __SKASHEK_IMMOBILE nil
+#define __SKASHEK_NO_TARGET nil
 // ^- This is the non-debug behavior!!!
 #endif
 
@@ -73,6 +75,7 @@
 #include "sneakyDoors.t"
 #include "huntCore.t"
 #include "parkour.t"
+#include "trapsAndTracks.t"
 #include "trinkets.t"
 #include "moduleUnion.t"
 #include "prologue.t"

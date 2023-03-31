@@ -52,6 +52,25 @@ DefineSystemAction(CheckVisibilityToSkashekAI)
         }
     }
 ;
+
+VerbRule(ToggleSkashekAINoTarget)
+    'notarget'
+    : VerbProduction
+    action = ToggleSkashekAINoTarget
+    verbPhrase = 'toggle/toggling Skashek\'s notarget mode'
+;
+
+DefineSystemAction(ToggleSkashekAINoTarget)
+    execAction(cmd) {
+        skashekAIControls.isNoTargetMode = !skashekAIControls.isNoTargetMode;
+        if (skashekAIControls.isNoTargetMode) {
+            "notarget ON. ";
+        }
+        else {
+            "notarget OFF. ";
+        }
+    }
+;
 #endif
 
 skashekAIControls: object {
@@ -64,15 +83,19 @@ skashekAIControls: object {
 
     // Number of turns spend in a specific room with the player
     shortStreak = 0
-    maxShortStreak = 3
+    maxShortStreak = 2
 
     // Number of rooms spent on the same floor as the player
     longStreak = 0
     maxLongStreak = 5
 
+    // Other stuff
+    doorSlamStunTurns = 2
+
     isFrozen = __SKASHEK_FROZEN
     isToothless = __SKASHEK_TOOTHLESS
     isImmobile = __SKASHEK_IMMOBILE
+    isNoTargetMode = __SKASHEK_NO_TARGET
 
     currentState = skashekIntroState
 
@@ -195,6 +218,12 @@ class SkashekAIState: object {
     noticeOminousClicking() { }
     // Do door slam
     receiveDoorSlam() { }
+    // Get info of where player could go next
+    informLikelyDestination(room) { }
+
+    isChasing() {
+        return nil;
+    }
 
     describeApproach(approachArray) {
         skashek.describeTravel(approachArray);
@@ -270,6 +299,7 @@ _skashekProbe: Thing {
         local normalResult = inherited(target);
         local player = skashek.getPracticalPlayer();
         if (target == player) {
+            if (skashekAIControls.isNoTargetMode) return nil;
             local playerLoc = player.location;
             return (normalResult && !playerLoc.isHidingSpot) ||
                 huntCore.playerWasSeenHiding;
@@ -444,6 +474,7 @@ modify skashek {
         local normalResult = inherited(target);
         local player = getPracticalPlayer();
         if (target == player) {
+            if (skashekAIControls.isNoTargetMode) return nil;
             local playerLoc = player.location;
             return (normalResult && !playerLoc.isHidingSpot) ||
                 huntCore.playerWasSeenHiding;
@@ -532,11 +563,11 @@ modify skashek {
         // Player is in another room
         if (om != getOutermostRoom()) return nil;
 
-        // Player is on the floor
-        if (playerLoc == om) return true;
-
         // Player is hidden
         if (!canSee(player)) return nil;
+
+        // Player is on the floor
+        if (isPlayerOnFloor()) return true;
 
         // In chase rooms, you are only safe on specific platforms
         if (om.roomNavigationType == chaseRoom) {
@@ -544,6 +575,28 @@ modify skashek {
         }
 
         // In other rooms, Skashek waits for you to surrender or leave
+        return nil;
+    }
+
+    isPlayerOnFloor() {
+        local player = getPracticalPlayer();
+        local playerLoc = player.location;
+        local om = player.getOutermostRoom();
+
+        // Player is on the floor
+        if (playerLoc == om) return true;
+
+        local onParkourPlat = nil;
+        if (playerLoc.parkourModule != nil) {
+            onParkourPlat = true;
+        }
+        else if (playerLoc.contType == On) {
+            onParkourPlat = true;
+        }
+
+        // No safety hiding in or under things
+        if (!onParkourPlat) return true;
+
         return nil;
     }
 
@@ -621,6 +674,7 @@ modify skashek {
     }
 
     travelThroughSimple(approachArray) {
+        if (skashekAIControls.isImmobile) return;
         local lastRoom = getOutermostRoom();
         local nextRoom = approachArray[2].destination.actualRoom;
         local hasDescribedTravel = nil;
@@ -681,6 +735,12 @@ modify skashek {
         hasSeenPreyOutsideOfDeliveryRoom = true;
         skashekAIControls.currentState.receiveDoorSlam();
         abandonTraps();
+    }
+
+    showSlamPainDesc() {
+        "<<getPeekHeIs()>> rubbing his forehead in pain.
+        {I} seem to have gotten him good with that door slam!
+        <i>{I} should really take this opportunity to escape, though!</i> ";
     }
 
     getOpenableSideOfDoor(door) {
@@ -816,7 +876,7 @@ modify skashek {
             }
         }
         else if (approachType == approachingRoom && fromPeeking) {
-            "<<getPeekHe(true)>> seems to be approaching! ";
+            "<<getPeekHeIs(true)>> approaching from <<lastRoom.roomTitle>>! ";
         }
         else {
             "<<getPeekHe(true)>> <<goVerbForm>> <<approachDirection.getDirNameFromProp()>>,
@@ -891,9 +951,11 @@ modify skashek {
         if (skashekAIControls.shortStreak >= skashekAIControls.maxShortStreak && 
             isPlayerVulnerableToShortStreak()) {
             //TODO: Skashek snatches player
+            "<.p>(You would be dead from short streak right now.)<.p>";
         }
-        else if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak) {
+        else if (skashekAIControls.longStreak >= (skashekAIControls.maxLongStreak + 1)) {
             //TODO: Skashek catches up to player
+            "<.p>(You would be dead from long streak right now.)<.p>";
         }
     }
 
@@ -961,16 +1023,19 @@ modify skashek {
     }
 
     playerWillGetCaughtPeeking() {
+        if (skashekAIControls.isNoTargetMode) return nil;
         return skashekAIControls.currentState.playerWillGetCaughtPeeking();
     }
 
     // Player was seen entering room
     playerWasSeenEntering() {
+        if (skashekAIControls.isNoTargetMode) return nil;
         return huntCore.playerWasSeenEntering;
     }
 
     // Check to see if Skashek notices a door being mysteriously opened
     highlightDoorChange(door) {
+        if (skashekAIControls.isNoTargetMode) return;
         if (canSee(door)) {
             setDoorMovingOnItsOwn(door);
         }
@@ -1010,59 +1075,64 @@ modify skashek {
 
     // Player let a door fall closed
     mockPreyForDoorClosing(door, room) {
-        // Don't mock too often
-        if (turnsBeforeNextMocking > 0) return;
-        if (!skashekAIControls.currentState.canMockPlayer()) return;
-        // Don't be obnoxious lmao
-        if (canSee(getPracticalPlayer())) return;
+        if (!checkMockingOpportunity()) return;
 
         mockForDoorCloseMessage.cachedLastDoor = door;
         mockForDoorCloseMessage.cachedLastRoom = room;
         reciteAnnouncement(mockForDoorCloseMessage);
 
-        turnsBeforeNextMocking = getMockingInterval();
+        concludeMockingOpportunity();
     }
 
     // Player closed one of Skashek's doors
     mockPreyForDoorAlteration(door) {
-        // Don't mock too often
-        if (turnsBeforeNextMocking > 0) return;
-        if (!skashekAIControls.currentState.canMockPlayer()) return;
-        // Don't be obnoxious lmao
-        if (canSee(getPracticalPlayer())) return;
+        if (!checkMockingOpportunity()) return;
 
         mockForDoorAlterationMessage.cachedLastDoor = door;
         reciteAnnouncement(mockForDoorAlterationMessage);
 
-        turnsBeforeNextMocking = getMockingInterval();
+        concludeMockingOpportunity();
     }
 
     // Player left a door looking suspicious
     mockPreyForDoorSuspicion(door) {
-        // Don't mock too often
-        if (turnsBeforeNextMocking > 0) return;
-        if (!skashekAIControls.currentState.canMockPlayer()) return;
-        // Don't be obnoxious lmao
-        if (canSee(getPracticalPlayer())) return;
+        if (!checkMockingOpportunity()) return;
 
         mockForDoorSuspicionMessage.cachedLastDoor = door;
         reciteAnnouncement(mockForDoorSuspicionMessage);
 
-        turnsBeforeNextMocking = getMockingInterval();
+        concludeMockingOpportunity();
     }
 
     // Player moving a door in view of Skashek
     mockPreyForDoorMovement(door) {
-        // Don't mock too often
-        if (turnsBeforeNextMocking > 0) return;
-        if (!skashekAIControls.currentState.canMockPlayer()) return;
-        // Don't be obnoxious lmao
-        if (canSee(getPracticalPlayer())) return;
+        if (!checkMockingOpportunity()) return;
 
         mockForDoorMovementMessage.cachedLastDoor = door;
         reciteAnnouncement(mockForDoorMovementMessage);
 
+        concludeMockingOpportunity();
+    }
+
+    checkMockingOpportunity() {
+        // Don't mock too often
+        if (turnsBeforeNextMocking > 0) return nil;
+        if (!skashekAIControls.currentState.canMockPlayer()) return nil;
+        // Don't be obnoxious lmao
+        if (canSee(getPracticalPlayer())) return nil;
+        return true;
+    }
+
+    concludeMockingOpportunity() {
         turnsBeforeNextMocking = getMockingInterval();
+    }
+
+    informLikelyDestination(room) {
+        skashekAIControls.currentState.informLikelyDestination(room);
+    }
+
+    isChasing() {
+        return skashekAIControls.currentState.isChasing();
     }
 
     getRoomFromGoalObject(goalObj) {
@@ -1176,6 +1246,5 @@ modify skashek {
 #include "introState.t"
 #include "catModeState.t"
 #include "lurkState.t"
-#include "ambushState.t"
+//#include "ambushState.t"
 #include "chaseState.t"
-#include "reacquireState.t"

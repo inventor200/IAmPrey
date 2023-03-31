@@ -89,29 +89,48 @@ ventilationNode: Room { 'The Central Ventilation Node'
         room where the upper and lower sections aren't flush with each other. "
 }
 
-assemblyShopNodeGrate: VentGrateDoor {
+class ScrambledVentGrateDoor: VentGrateDoor {
+    destinationChoices = nil
+    mostLikelyDestination() {
+        local choices = valToList(destinationChoices);
+        if (choices.length == 0) return lifeSupportTop;
+        if (choices.length == 1) return choices[1];
+        local choiceIndex = skashek.getRandomResult(choices.length);
+        return choices[choiceIndex];
+    }
+}
+
+assemblyShopNodeGrate: ScrambledVentGrateDoor {
     vocab = defaultVentVocab + ' east' + defaultVentVocabSuffix
     location = cncMachine
     otherSide = assemblyShopExitVentGrate
     soundSourceRepresentative = (otherSide)
+
+    destinationChoices = [lifeSupportTop, labA, commonRoom]
 }
-lifeSupportTopNodeGrate: VentGrateDoor {
+lifeSupportTopNodeGrate: ScrambledVentGrateDoor {
     vocab = 'primary[weak] fan[weak] unit[weak] ' + defaultVentVocab + ' north' + defaultVentVocabSuffix
     location = primaryFanUnit
     otherSide = lifeSupportTopExitVentGrate
     soundSourceRepresentative = (otherSide)
+
+    destinationChoices = [assemblyShop, labA, commonRoom]
 }
-labANodeGrate: VentGrateDoor {
+labANodeGrate: ScrambledVentGrateDoor {
     vocab = 'west ' + defaultVentVocab + defaultVentVocabSuffix
     location = labAShelves
     otherSide = labAExitVentGrate
     soundSourceRepresentative = (otherSide)
+
+    destinationChoices = [lifeSupportTop, assemblyShop, commonRoom]
 }
-commonRoomNodeGrate: VentGrateDoor {
+commonRoomNodeGrate: ScrambledVentGrateDoor {
     vocab = 'east ' + defaultVentVocab + ' top[weak] wall' + defaultVentVocabSuffix
     location = topOfEastWall
     otherSide = commonRoomExitVentGrate
     soundSourceRepresentative = (otherSide)
+
+    destinationChoices = [lifeSupportTop, labA, assemblyShop]
 
     travelDesc = "<<if gCatMode
         >>{I} gracefully slip<<else

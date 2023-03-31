@@ -332,10 +332,82 @@ reservoir: Room { 'The Reactor Reservoir'
             but all that seems to come out is: <i><q>Mraow!!</q></i> ";
             finishGameMsg(ftVictory, gEndingOptionsWin);
         }
-        else { //TODO: Write this better
-            "{I} dive into the water, and the channel{dummy} carries {me}. ";
+        else if (checkNoDivesLeft()) {
+            "{I} leap from the catwalk,
+            but I feel a powerful hand{dummy} grab {me} from behind.
+            <<skashek.getPeekHe(true)>> uses his furious
+            strength{dummy} to violently throw {me} back into the Control Room.\b
+            He's shouting something, but {I} don't catch enough before
+            {my} head slams into the hard floor.\b
+            {I} don't wake back up. ";
+            finishGameMsg(ftDeath, gEndingOptionsLoss);
+        }
+        else if (checkBeingChased()) {
+            "{I} dive from the catwalk, and plummet into the hot reservoir
+            water below. The last thing {I} see before the water takes me
+            is the silhouette of <<gSkashekName>>, watching me fall.\b";
+            if (huntCore.spendTrick(&diveOffReservoirCount) == oneTrickRemaining) {
+                "<b>He seems <i>very</i> angry{dummy} with {me}.
+                {I} don't expect him{dummy} to allow {me} to try this again.</b>\b";
+            }
+            printTunnelExperience();
+            "{I} can expect <<gSkashekName>> to be heading for Life Support
+            to intercept me, though. {I} should waste no time getting finding
+            a way out of this killzone. ";
+        }
+        else {
+            "{I} dive from the catwalk, and plummet into the hot reservoir
+            water below.\b";
+            printTunnelExperience();
+            "{I} need to be careful in the nearby Life Support area,
+            as it can be a bit of a narrow killzone, if <i>he</i> is
+            patrolling the area. ";
         }
         inherited();
+    }
+
+    tunnelExperience = 1
+
+    printTunnelExperience() {
+        if (tunnelExperience == 1) {
+            "The hot, steaming water{dummy} carries {me} like rapids.
+            The walls of the tunnel are smooth enough to not
+            pose much of a danger, however.\b
+            {I} slam into the metal grate of the Strainer Stage,
+            but&mdash;other than mild bruising&mdash;{i} seem to be okay.\b";
+        }
+        else if (tunnelExperience == 2) {
+            "{I} {am}, once again, carried by the hot,
+            steaming waters of the reservoir tunnel.
+            This time, {i} make sure to push {myself} off of the tunnel
+            walls.\b
+            Once {i} see the imminent Strainer Stage grate, {i} hold {my}
+            arms forward to catch {myself}, and {my} hands protest with impact
+            pains. {I}{'m} less injured this time around, though.\b";
+        }
+        else {
+            "{I} {am}, once again, carried by the hot,
+            steaming waters of the reservoir tunnel.
+            At this point, {i}{'m} able to almost remain feet-forward for
+            the entire trip, using {my} hands to maintain orientation.\b
+            Once {i} see the imminent Strainer Stage grate, {i} cushion
+            the impact with my legs, as if {i} had landed on a sideways floor.\b";
+        }
+        if (tunnelExperience < 3) tunnelExperience++;
+    }
+
+    checkBeingChased() {
+        // Is Skashek chasing?
+        if (!skashek.isChasing()) return nil;
+        local om = skashek.getOutermostRoom();
+        // Is he right behind the player?
+        if (om != reservoirControlRoom && om != reservoir) return nil;
+        return true;
+    }
+
+    checkNoDivesLeft() {
+        if (!checkBeingChased()) return nil;
+        return huntCore.pollTrick(&diveOffReservoirCount) == noTricksRemaining;
     }
 }
 

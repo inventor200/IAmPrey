@@ -764,6 +764,10 @@ class MapModeRoom: Room {
         mapModeDatabase.doTravelAnnouncement();
         inherited(traveler, origin);
     }
+
+    evaluateTrapsAndTracks(actor) {
+        // Do not handle traps and tracks for map mode
+    }
 }
 
 compassAlreadyHereSignal: object;

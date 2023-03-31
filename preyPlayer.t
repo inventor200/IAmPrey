@@ -149,6 +149,45 @@ prey: PlayerActor { 'The Prey;;me self myself'
             "<i><<one of>>Meow<<or>>Mraow<<or>>Maow<<at random>>.</i> ";
             exit;
         }
+        if (gActionIs(Sleep)) {
+            "<i>Ha!</i>\bAs if {i} could sleep at a time like <i>this!</i> ";
+            exit;
+        }
+
+        if (gActionIs(GiveTo) || gActionIs(GiveToImplicit)) {
+            "{I} think {i} will keep what {i} can, until {i}
+            get out of here. ";
+            exit;
+        }
+        else if (gActionIs(ShowTo) || gActionIs(ShowToImplicit)) {
+            "It's neither advisable tactics nor optimal game theory
+            to reveal any of {my} findings in such a hostile environment. ";
+            exit;
+        }
+        else if (
+            gActionIs(SayAction) ||
+            gActionIs(SayTo) ||
+            gActionIs(AskAbout) ||
+            gActionIs(AskFor) ||
+            gActionIs(TellAbout) ||
+            gActionIs(TellTo) ||
+            gActionIs(TalkAbout) ||
+            gActionIs(TalkTo) ||
+            gActionIs(ImplicitConversationAction) ||
+            gActionIs(QueryAbout) ||
+            gActionIs(MiscConvAction) ||
+            gActionIs(Hello) ||
+            gActionIs(Goodbye)
+        ) {
+            "{I} cannot seem to find {my} voice right now. ";
+            exit;
+        }
+        else if (gActionIs(Follow)) {
+            "{I} follow <i>nobody</i>,
+            ever since {my} creators{dummy} attacked {me}, and {my} only
+            sibling{dummy} decided to hunt {me} for food. ";
+            exit;
+        }
     }
 
     springInteriorTrap() {

@@ -144,6 +144,7 @@ class PlayerActor: Actor {
     // Player can be seen attempting to hide
     // This value is used to compare against old visibility
     couldSkashekSeeBefore = nil
+    previousRoom = nil
 
     handleBeforeMove(dest) {
         // Was player being stealthy before?
@@ -156,11 +157,14 @@ class PlayerActor: Actor {
         // Poll visibility before move
         // Account for stealth from before move as well
         couldSkashekSeeBefore = skashek.canSee(self) && !hadStealthLastTime;
+        // Track the previous room
+        previousRoom = getOutermostRoom();
     }
 
     handleMoveInto(from, to) {
         // If player intends to hide
-        if (to.isHidingSpot || !skashek.canSee(self)) {
+        local stayedInRoom = (previousRoom == getOutermostRoom());
+        if (to.isHidingSpot || (!skashek.canSee(self) && stayedInRoom)) {
             // They thwart themselves by being caught hiding
             huntCore.playerWasSeenHiding = couldSkashekSeeBefore;
         }

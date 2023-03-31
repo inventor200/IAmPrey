@@ -135,7 +135,6 @@ nightmareModeSetting: DifficultySetting {
     skipPrologue = true
     startingFreeTurnAlerts = 0
     turnsSkipsForFalling = 2
-    startingSkashekState = skashekReacquireState
     turnsBeforeSkashekDeploys = 0
 }
 
@@ -673,13 +672,6 @@ modify Thing {
     }
 }
 
-modify TravelConnector {
-    // If the player attempts travel through a trapped connector, they die.
-    isTrapped = nil
-
-    setTrap(stat) { }
-}
-
 modify Door {
     dobjForVisibilitySkashekDefault() {
         local otherVis = nil;
@@ -731,30 +723,6 @@ modify Door {
         }
         makeLocked(nil);
     }
-
-    setTrap(stat) {
-        #if __DEBUG_SKASHEK_ACTIONS
-        "<.p>
-        <<if stat>>TRAP SET:<<else
-        >>TRAP CLEARED:<<end>> <<theName>>
-        <.p>";
-        #endif
-        isTrapped = stat;
-        if (otherSide != nil) otherSide.isTrapped = stat;
-    }
-
-    execTravel(actor, traveler, conn) {
-        if (actor == gPlayerChar && isTrapped) {
-            if (actor.getOutermostRoom() == skashek.getOutermostRoom()) {
-                actor.springInteriorTrap();
-            }
-            else {
-                actor.springExteriorTrap();
-            }
-            return;
-        }
-        inherited(actor, traveler, conn);
-    }
 }
 
 modify Room {
@@ -771,29 +739,6 @@ modify Room {
                 huntCore.playerWasSeenEntering = true;
             }
         }
-    }
-
-    setTrap(stat) {
-        #if __DEBUG_SKASHEK_ACTIONS
-        "<.p>
-        <<if stat>>TRAP SET:<<else
-        >>TRAP CLEARED:<<end>> <<roomTitle>>
-        <.p>";
-        #endif
-        isTrapped = stat;
-    }
-
-    execTravel(actor, traveler, conn) {
-        if (actor == gPlayerChar && isTrapped) {
-            if (actor.getOutermostRoom() == skashek.getOutermostRoom()) {
-                actor.springInteriorTrap();
-            }
-            else {
-                actor.springExteriorTrap();
-            }
-            return;
-        }
-        inherited(actor, traveler, conn);
     }
 }
 

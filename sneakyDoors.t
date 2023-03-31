@@ -1345,9 +1345,13 @@ modify Door {
         }
     }
 
+    getTrappedStatus() {
+        return nil; // Implemented in trapsAndTracks.t
+    }
+
     qualifiesForCloseTrick() {
         if (!gActorIsPrey) return nil;
-        if (!isTrapped) return nil;
+        if (!getTrappedStatus()) return nil;
         local skashekOnOtherSide =
             (otherSide.getOutermostRoom() == skashek.getOutermostRoom());
         if (!skashekOnOtherSide) return nil;
@@ -1357,6 +1361,7 @@ modify Door {
     spendCloseTrick() {
         "<.p>";
         local poll = huntCore.spendTrick(&closeDoorCount);
+        setPlayerTrap(nil);
         skashek.receiveDoorSlam();
         local shoutVerb =
             '<<one of>>bellows<<or>>yells<<or>>screams<<or>>shouts<<at random>>
