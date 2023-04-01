@@ -178,6 +178,7 @@ skashekIntroState: SkashekAIState {
         }
         else {
             // Make the lurk state check the Delivery Room first
+            skashekLurkState.startRandom = nil;
             skashekLurkState.activate();
         }
     }

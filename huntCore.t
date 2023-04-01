@@ -252,6 +252,13 @@ huntCore: InitObject {
         return trickCountProp;
     }
 
+    pollTrickNumber(trickCountProp) {
+        local actualTrickProp = getActualTrickProp(trickCountProp);
+        local count = self.(actualTrickProp);
+        if (count <= 0) return 0;
+        return count;
+    }
+
     pollTrick(trickCountProp) {
         local actualTrickProp = getActualTrickProp(trickCountProp);
         if (self.(actualTrickProp) <= 0) return noTricksRemaining;

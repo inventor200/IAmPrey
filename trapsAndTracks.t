@@ -60,7 +60,7 @@ modify Door {
         evaluateTrapsAndTracks(actor);
         setPlayerTrap(nil);
         local oldRoom = actor.getOutermostRoom();
-        local slamsLeft = huntCore.pollTrick(&closeDoorCount);
+        local slamsLeft = huntCore.pollTrickNumber(&closeDoorCount);
         local startedInSameRoom =
             oldRoom == skashek.getOutermostRoom();
 
@@ -71,21 +71,20 @@ modify Door {
             oldRoom != newRoom &&
             actor == gPlayerChar &&
             skashek.isChasing() &&
-            slamsLeft != noTricksRemaining &&
+            slamsLeft > 0 &&
             location.ofKind(Room) &&
             otherSide.getOutermostRoom().mapModeVersion != nil
         ) {
             setPlayerTrap(true);
             if (startedInSameRoom) {
-                local trickCount = (slamsLeft == oneTrickRemaining) ?
-                    'one final trick' : 'a few tricks';
+                local trickCount = (slamsLeft == 1) ?
+                    'one final trick' : spellNumber(slamsLeft) + ' tricks';
                 local slamChoice = new ChoiceGiver(
                     'Slam ' + theName + '?',
-                    'You have <b>' + trickCount + ' left</b> to
-                    slam a door in his face 
-                    (as a <i>BONUS</i> action)!
+                    'You have <b>' + trickCount + ' remaining</b>, which you
+                    can spend on slamming the door in his face!
                     This will delay his chase, but
-                    will also cost you one of your tricks!'
+                    will cost <b>one</b> of your tricks!'
                 );
                 slamChoice.add('Y', 'Slam the door!');
                 slamChoice.add('L', 'Leave door open');

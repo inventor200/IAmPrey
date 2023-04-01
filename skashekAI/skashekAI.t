@@ -400,6 +400,10 @@ modify skashek {
             reciteAnnouncement(inspectingDeliveryRoomMessage);
             return;
         }
+        if (getPlayerWeapon() != nil) {
+            // Do not give leeway to an armed player
+            return;
+        }
         if (huntCore.difficulty == nightmareMode) return;
         playerLeewayTurns = huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
         prepareSpeech();
@@ -950,12 +954,10 @@ modify skashek {
         if (skashekAIControls.isToothless) return;
         if (skashekAIControls.shortStreak >= skashekAIControls.maxShortStreak && 
             isPlayerVulnerableToShortStreak()) {
-            //TODO: Skashek snatches player
-            "<.p>(You would be dead from short streak right now.)<.p>";
+            getPracticalPlayer().dieToShortStreak();
         }
         else if (skashekAIControls.longStreak >= (skashekAIControls.maxLongStreak + 1)) {
-            //TODO: Skashek catches up to player
-            "<.p>(You would be dead from long streak right now.)<.p>";
+            getPracticalPlayer().dieToLongStreak();
         }
     }
 
@@ -1133,6 +1135,26 @@ modify skashek {
 
     isChasing() {
         return skashekAIControls.currentState.isChasing();
+    }
+
+    getPlayerWeapon() {
+        if (huntCore.difficulty == nightmareMode) return nil;
+        local player = getPracticalPlayer();
+        if (!canSee(player)) return nil;
+        if (mirrorShard.isIn(getPracticalPlayer())) return mirrorShard;
+        return nil;
+    }
+
+    checkPlayerForWeapon() {
+        if (!skashekAIControls.currentState.canMockPlayer()) return;
+        local weapon = getPlayerWeapon();
+        if (weapon == nil) return;
+
+        punishForWeaponMessage.causeForConcern = weapon;
+        hasSeenPreyOutsideOfDeliveryRoom = true;
+        reciteAnnouncement(punishForWeaponMessage);
+
+        concludeMockingOpportunity();
     }
 
     getRoomFromGoalObject(goalObj) {

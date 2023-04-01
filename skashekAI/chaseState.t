@@ -85,7 +85,7 @@ skashekChaseState: SkashekAIState {
         local player = skashek.getPracticalPlayer();
         if (skashek.isPlayerVulnerableToShortStreak()) {
             if (skashek.isPlayerOnFloor()) {
-                if (skashekAIControls.shortStreak < skashekAIControls.maxShortStreak - 1) {
+                if (skashekAIControls.shortStreak + 1 < skashekAIControls.maxShortStreak - 1) {
                     if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak) {
                         "<<getPeekHe(true)>> is <<sprintingVerbs>>{dummy}
                         {me}! {I} get the sinking feeling that
@@ -107,7 +107,7 @@ skashekChaseState: SkashekAIState {
                 on {me}! {I} need to make a decisive move <i>now!</i> ";
                 return;
             }
-            if (skashekAIControls.shortStreak < skashekAIControls.maxShortStreak - 1) {
+            if (skashekAIControls.shortStreak + 1 < skashekAIControls.maxShortStreak - 1) {
                 "<<getPeekHe(true)>> watches{dummy} {me} from
                 <<player.getOutermostRoom().floorObj.theName>>, with
                 a grin that says {i} {am} not safe here! ";
@@ -322,6 +322,7 @@ skashekChaseState: SkashekAIState {
                     (newRoom.roomNavigationType != bigRoom)
                 ) {
                     incrementLongStreak = true;
+                    player.addExhaustion(2);
                 }
             }
             else {
@@ -378,7 +379,13 @@ skashekChaseState: SkashekAIState {
         if (!ends) return;
         if (stunTurns > 0) return;
         skashek.prepareSpeech();
-        "<q>You won't get away <i>that</i> easy!</q>
+        "<q><<one of
+        >>You won't get away <i>that</i> easy!<<or
+        >>It's a matter of time, Prey!<<or
+        >>You're a <i>difficult</i> one, huh?<<or
+        >>Don't think you've <i>escaped</i>, Prey!<<or
+        >>You don't make this easy, Prey!<<
+        at random>></q>
         <<getPeekHe>> <<one of>>shouts<<or>>barks<<or>>yells<<at random>>. ";
     }
 }

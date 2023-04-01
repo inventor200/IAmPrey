@@ -22,7 +22,7 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 4
+/*--*/  #define __FAST_DIFFICULTY 6
 /*-*/  #define __TEST_ROOM deliveryRoom
       #define __SKASHEK_START breakroom
      #define __SKASHEK_STATE nil

@@ -211,3 +211,48 @@ mockForDoorMovementMessage: IntercomMessage {
 
     interruptedMsg() { inPersonFullMsg(); }
 }
+
+// Punish player for having a weapon
+punishForWeaponMessage: IntercomMessage {
+    causeForConcern = nil
+
+    switchToNightmareMode() {
+        huntCore.setDifficulty(6, true);
+        "<.p>
+        \t<b>ALERT:</b>\n
+        <i>The game difficulty has been switch to <b>Nightmare Mode</b>!\n
+        Best of luck to you!</i>
+        <.p>";
+    }
+
+    pity1() {
+        "Oh, Prey...";
+    }
+
+    pity2() {
+        "You <i>really</i> shouldn't have. Now I need to <i>destroy</i> you.
+        Until the moment of your death, you will be <i>begging</i> to turn back time.";
+    }
+
+    overCommsMsg() {
+        "From some unseen vantage point, <<skashek.getPeekHe()>> sees that {i}
+        carry <<causeForConcern.theName>>.\b";
+        "<q><<pity1()>> <<pity2()>></q>";
+        switchToNightmareMode();
+    }
+
+    inPersonFullMsg() {
+        "<<skashek.getPeekHis(true)>> eyes fixate on <<causeForConcern.theName>>
+        on {my} person.\b";
+        "<q><<pity1()>></q> he says, with ice-cold disappointment. <q><<pity2()>></q>";
+        switchToNightmareMode();
+    }
+    
+    inPersonStealthyMsg() { inPersonFullMsg(); }
+
+    interruptedMsg() {
+        "<q>Oh,</q> <<skashek.getPeekHe()>> says, turning{dummy} to look at {me}.
+        <q><i>There</i> you are, Prey! I was&mdash;</q>\b";
+        inPersonFullMsg();
+    }
+}

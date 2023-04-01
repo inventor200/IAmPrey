@@ -627,13 +627,10 @@ class Mirror: Decoration {
                     mirror. It\'s best to maintain the <i>illusion</i> of power in
                     {my} old age, and save {my} energy for more urgent matters. ');
             }
-            inherited();
-        }
-        action() {
-            //TODO: Smash mirror
-        }
-        report() {
-            //TODO: Smash mirror
+            illogical('{I} would not gain anything from that. A shard could be
+                a knife, but attacking <<gSkashekName>> with a knife has
+                not worked out for previous Prey clones. He must have some
+                kind of reliable defense. The less-costly option is to escape. ');
         }
     }
 }
@@ -717,7 +714,6 @@ mirrorShards: MultiLoc, Decoration {
     }
 }
 
-//TODO: If you are seen with the shard, the game switches to nightmare mode
 mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[weak];shard chunk'
     "A jagged, reflective piece of a smashed mirror. Mind the sharp edges. "
 

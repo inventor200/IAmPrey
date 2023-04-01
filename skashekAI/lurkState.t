@@ -563,6 +563,13 @@ skashekLurkState: SkashekAIState {
     }
 
     onSightAfter(begins) {
+        if (skashek.getPlayerWeapon() != nil) {
+            // Take this moment to spot the weapon.
+            skashek.checkPlayerForWeapon();
+            skashek.performNextAnnouncement(true, begins);
+            skashekChaseState.activate();
+            return;
+        }
         if (skashek.playerLeewayTurns > 0) {
             if (begins && skashek.playerLeewayTurns <
                 huntCore.difficultySettingObj.turnsBeforeSkashekDeploys

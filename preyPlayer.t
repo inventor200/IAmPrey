@@ -200,12 +200,12 @@ prey: PlayerActor { 'The Prey;;me self myself'
     }
 
     springExteriorTrap() {
-        "{I} do not get very far, until I run right into <<gSkashekName>>.\b";
+        "{I} do not get very far, until I run right into <<gSkashekName>>.<.p>";
         springInteriorTrap();
     }
 
     springTrapDeath() {
-        "\b
+        "<.p>
         {I} try to reach for his eyes, but he swats {my} arm, and clamps it to
         <<getOutermostRoom().floorObj.theName>> with his boot.
         {My} other arm is already pinned under one of his hands, and his claws
@@ -226,6 +226,25 @@ prey: PlayerActor { 'The Prey;;me self myself'
         <q>Ah well...maybe the <i>next</i> Prey will figure that out...</q>\b
         Dizziness soon takes hold, and {i} collapse.";
         finishGameMsg(ftDeath, gEndingOptionsLoss);
+    }
+
+    dieToShortStreak() {
+        "<.p>
+        {I}{'m} not sure if it was a lack of options, slow reaction time,
+        or an unexpected consequence, but the full force of
+        <<skashek.getPeekHis()>> body mass{dummy} slams into {me}, and {i}
+        feel his claws dig into {my} neck, fleeting moments before {my}
+        skull impacts <<getOutermostRoom().floorObj.theName>>.\b
+        {I} {am} horribly dazed and stunned, and {i} think {i} feel something
+        being ripped free from {my} body; something which should have remained
+        attached. Cold rushes into the void, and {i} sink into searing pain.\b
+        {My} head is too dizzy to pinpoint exactly <i>when</i>, but {my} life
+        comes to an end. ";
+        finishGameMsg(ftDeath, gEndingOptionsLoss);
+    }
+
+    dieToLongStreak() {
+        //TODO: Write
     }
 
     // Everything below this is one unit
