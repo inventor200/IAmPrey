@@ -18,11 +18,12 @@ prologueCore: InitObject {
         #if __SHOW_PROLOGUE
         "<b>Content warning:</b>\n";
         if (gFormatForScreenReader) {
-            "For violence and crude language.";
+            "For violence, frequent crude language, and rare mentions of suicide.";
         }
         else {
             "\t<tt>[&gt;&gt;]</tt> Violence\n
-            \t<tt>[&gt;&gt;]</tt> Crude Language";
+            \t<tt>[&gt;&gt;]</tt> Frequent crude language\n
+            \t<tt>[&gt;&gt;]</tt> Rare mentions of suicide";
         }
         "\b<b>Anxiety warning:</b>\n
         This game features an active antagonist,

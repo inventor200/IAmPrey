@@ -1,5 +1,5 @@
 epilogueCore: InitObject {
-    positiveRelationshipEnding = true
+    positiveRelationshipEnding = nil
     leaveFacilityEnding = nil
 
     leaveFacility() {

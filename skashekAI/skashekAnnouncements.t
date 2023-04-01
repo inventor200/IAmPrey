@@ -68,19 +68,22 @@ readyOrNotMessage: IntercomMessage {
     <q><i>Here I come!</i></q> ";
 }
 
-// Skashek confirms the player is not in the delivery room
-inspectingDeliveryRoomMessage: IntercomMessage {
+class HidingParanoiaMessage: IntercomMessage {
     overCommsMsg() { } // Do not broadcast
     inPersonFullMsg() { inPersonStealthyMsg(); }
-    inPersonStealthyMsg =
-    "<<skashek.getPeekHe(true)>> does a quick once-over of the room,
-    and nods to himself.\b
-    <q>Good, good, this one knows to run,</q> he mutters to himself. "
     interruptedMsg =
     "<<skashek.getPeekHe(true)>> is looking around the room, but
     does a double-take when he{dummy} sees {me}.\b
     <q>Oh! Didn't see you there!</q> he exclaims, chuckling to himself.
     <q>Now, you'd best <i>fucking run</i>, Prey!</q> "
+}
+
+// Skashek confirms the player is not in the delivery room
+inspectingDeliveryRoomMessage: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<<skashek.getPeekHe(true)>> does a quick once-over of the room,
+    and nods to himself.\b
+    <q>Good, good, this one knows to run,</q> he mutters to himself. "
 }
 
 // Mock player for letting a door close
@@ -255,4 +258,184 @@ punishForWeaponMessage: IntercomMessage {
         <q><i>There</i> you are, Prey! I was&mdash;</q>\b";
         inPersonFullMsg();
     }
+}
+
+hidingParanoiaGroup: object {
+    turnsToHide = 3
+    messages = [
+        [hidingParanoia_1_1_Message, hidingParanoia_1_2_Message, hidingParanoia_1_3_Message],
+        [hidingParanoia_2_1_Message, hidingParanoia_2_2_Message, hidingParanoia_2_3_Message],
+        [hidingParanoia_3_1_Message, hidingParanoia_3_2_Message, hidingParanoia_3_3_Message],
+        [hidingParanoia_4_1_Message, hidingParanoia_4_2_Message, hidingParanoia_4_3_Message]
+    ]
+}
+
+// First batch of words when hiding from Skashek...
+hidingParanoia_1_1_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <<skashek.getPeekHis(true)>> eyes pan around
+    <<skashek.getOutermostRoom().roomTitle>>. If {i} remain unseen, he will
+    leave, eventually...\b
+    <q>Are you here, Prey...?</q> he asks quietly.
+    <q>Are you hiding away somewhere, or am I talking to an empty room...?</q>
+    <.p>"
+}
+
+hidingParanoia_1_2_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    For a moment, {i} think <<skashek.getPeekHe()>>{dummy} sees {me},
+    but his gaze continues onto something else.\b
+    <q>These walls <i>listen</i>, Prey...</q> he mutters, almost inaudibly.
+    <q>They tell stories, when I'm all alone. When I'm
+    without <i>you</i>, Prey...</q>\b
+    He turns around, expecting{dummy} to catch {me}, but he's actually
+    facing his back to me wrong way.\b
+    <q>The nightmares from the early days return, sometimes,</q>
+    he says, ominously.
+    <q>I still remember the faces of our old masters.</q>
+    <.p>"
+}
+
+hidingParanoia_1_3_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    Something elsewhere seems to catch <<skashek.getPeekHis()>>
+    attention. He holds himself still as stone, and listens.\b
+    <q>I used to wonder,</q> he whispers,
+    <q>how they could be so...<i>loving</i> and <i>affectionate</i>
+    with each other, and then display the most hideous brutality to <i>us</i>.
+    All in the same day, too...</q>\b
+    Eventually, he allows himself to move again.\b
+    <q>Maybe I heard the cat...?</q> he wonders to himself, making one
+    more quick examination of the area.
+    <q>I wanted to better,</q> he sighs.
+    <q>We <i>all</i> did. But the way was clear. Their
+    world rubs off on you like a <i>disease</i>, Prey. I often <i>hope</i>
+    you escape, but the <i>shit</i> they forced into my head...it
+    won't let you go as easily as I'd prefer.</q>
+    <.p>"
+}
+
+// Second batch of words when hiding from Skashek...
+hidingParanoia_2_1_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <<skashek.getPeekHe(true)>> performs an examination of his surroundings.\b
+    <q>There's a certain comfort in chaos,</q> he says.
+    <q>The world without collapsed probabilities. Maybe you're in the room, or
+    maybe you're not. Maybe I'm speaking to a captive audience, or maybe nobody
+    sees my <q>scary-monster act</q> slipping up.</q>
+    <.p>"
+}
+
+hidingParanoia_2_2_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <q>Maybe...</q> <<skashek.getPeekHe()>> begins, and pauses his gaze on something.
+    <q>Maybe I don't need to be the killer I was created to be. Maybe you
+    will escape this time. Maybe I can get that much closer to starving
+    to death. It wouldn't be <i>my</i> fault, then, right? Chaos decides,
+    after all.</q>
+    <.p>"
+}
+
+hidingParanoia_2_3_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <<skashek.getPeekHis(true)>> gaze{dummy} passes <i>right over {me}!</i>\b
+    <q>I cannot <i>die</i>, Prey,</q> he continues. <q>And I don't mean
+    to say I'm <i>invulnerable</i>. It's whatever they put in our brains.
+    I know you feel it, too. Sometimes, you want to do something dangerous
+    or...exercise your free will, and... it's like your personality seems
+    to fade away for a moment. Like something else decides <i>for you</i>.
+    It's the fucking computers they shoved in our brainstems. You remember
+    the dream, before you were born? It won't let me die, Prey...</q>\b
+    He takes a deep breath, giving{dummy} up on {me}.\b
+    <q>Chaos decides,</q> he mutters. <q>So I bet my free will on chaos.</q>
+    <.p>"
+}
+
+// Third batch of words when hiding from Skashek...
+hidingParanoia_3_1_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <<skashek.getPeekHe(true)>> doesn't say anything for a while,
+    and simply searches.
+    <.p>"
+}
+
+hidingParanoia_3_2_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg() {
+        skashek.trueNameKnown = true;
+        epilogueCore.positiveRelationshipEnding = true;
+        "<.p>
+        <q>My name,</q> he finally says, like a confession,
+        <q>is <i><<gSkashekName>></i>. <i>Not</i> <q>Clone 3141</q>.
+        And you are not <q>Clone <<prey.batchIDNumber>></q>.
+        You have a name, too.</q>\b
+        He turns to look <i>right where {i} {am} hiding</i>.\b
+        <<if prey.outfit == preyUniform
+        >><q>And the uniform you're wearing? <q>Clone <<preyUniform.getCloneID()>></q>?
+        She named herself <q>Marssella</q>. She and I had a wonderful alliance.
+        Just the two of us, against the others. We were the only proponents of
+        empathy and cooperation. Can you imagine <i>that</i>, Prey?</q>\b
+        {I} could imagine <i>plenty</i> of things.
+        The immediate realities are more pressing, though.
+        <.p>";
+    }
+}
+
+hidingParanoia_3_3_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <q>Sometimes the walls sound like her,</q> <<skashek.getPeekHe()>> mutters,
+    looking at some distant horizon.
+    <q><q>What did I taste like?</q> the walls ask, wearing her voice like a costume.
+    <q>I'm just glad I was your first,</q> she says, like it's something I should
+    be praised for.
+    <q>It means you held on for as long as you could,</q> she points out, conveniently
+    paying no mind to the many generations of Prey, who have sustained me since.
+    It feels <i>disloyal</i>, among other things.</q>\b
+    He looks up, and takes a deep breathe.\b
+    <q>I wasn't eager, by the way. She starved herself to death, by giving me
+    the <i>actual</i> remaining food supplies, while she ate that fucking
+    <i>reservoir kelp</i>. I guess the circuits in her brain stem thought that
+    was <q>eating</q>, and not the slow suicide that it was.</q>\b
+    He comes back to his surroundings.\b
+    <q>I wish her lapse in mutualism had done the other way. I wish she would
+    have fed <i>me</i> the kelp, instead. Maybe I should have angered her in our
+    final moments. Maybe she would have cared less about my well-being, then.</q>\b
+    <<skashek.getPeekHe(true)>> looks at my hiding spot again.\b
+    <q>But apparently <i>chaos</i> fucking decides. So maybe I'm confessing to
+    and empty room, again. Maybe that would be for the best.</q>
+    <.p>"
+}
+
+// final batch of words when hiding from Skashek...
+hidingParanoia_4_1_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    <<skashek.getPeekHe(true)>> doesn't say anything for a moment.
+    His eyes just scan the area.
+    <.p>"
+}
+
+hidingParanoia_4_2_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg() {
+        skashek.trueNameKnown = true;
+        epilogueCore.positiveRelationshipEnding = true;
+        "<.p>
+        <q>Are you here, Prey?</q> <<skashek.getPeekHe()>> mutters.
+        <q>How many of these little therapy sessions have you attended?</q>
+        <.p>";
+    }
+}
+
+hidingParanoia_4_3_Message: HidingParanoiaMessage {
+    inPersonStealthyMsg =
+    "<.p>
+    He says nothing else, and simply concludes that {i} {am} not here.
+    <.p>"
 }

@@ -46,6 +46,7 @@ skashekLurkState: SkashekAIState {
     soundGoal = nil // For when he heard something weird
     lastSoundDistance = 1000 // How far away was the last soundGoal?
     excitementBonusTurns = 2
+    trappedSpeechIndex = 0
 
     resetRoomList() {
         #if __DEBUG_SKASHEK_ACTIONS
@@ -130,7 +131,39 @@ skashekLurkState: SkashekAIState {
     }
     #endif
 
+    getRandomInspectionTurns(min, max) {
+        local player = skashek.getPracticalPlayer();
+        if (skashek.getOutermostRoom() == player.getOutermostRoom()) {
+            if (skashek.canSee(player)) {
+                return hidingParanoiaGroup.turnsToHide;
+            }
+            trappedSpeechIndex++;
+            local maxIndex = hidingParanoiaGroup.messages.length;
+            if (trappedSpeechIndex > maxIndex) trappedSpeechIndex = maxIndex;
+            flushAnnouncements();
+            skashek.reciteAnnouncement(
+                hidingParanoiaGroup.messages[trappedSpeechIndex][1]
+            );
+            skashek.reciteAnnouncement(
+                hidingParanoiaGroup.messages[trappedSpeechIndex][2]
+            );
+            skashek.reciteAnnouncement(
+                hidingParanoiaGroup.messages[trappedSpeechIndex][3]
+            );
+            skashek.performNextAnnouncement(nil, nil);
+            return hidingParanoiaGroup.turnsToHide;
+        }
+        return getRandomResult(min, max);
+    }
+
+    flushAnnouncements() {
+        while (skashek.getAnnouncement() != nil) {
+            // Pop out all the announcements so far
+        }
+    }
+
     nextStopInRoute() {
+        if (inspectionTurns > 0) return skashek.getOutermostRoom();
         if (temporaryGoal != nil) return temporaryGoal;
         if (soundGoal != nil) return soundGoal;
         return goalRoom;
@@ -289,7 +322,7 @@ skashekLurkState: SkashekAIState {
                 // Check if there is a chain of suspicion
                 checkForSuspiciousDoors();
                 if (temporaryGoal == nil) {
-                    inspectionTurns = getRandomResult(2, 4);
+                    inspectionTurns = getRandomInspectionTurns(2, 4);
                     #if __DEBUG_SKASHEK_ACTIONS
                     "\nHanging out for <<inspectionTurns>> turns.";
                     #endif
@@ -315,7 +348,7 @@ skashekLurkState: SkashekAIState {
                     #endif
                 }
                 else {
-                    inspectionTurns = getRandomResult(3, 5);
+                    inspectionTurns = getRandomInspectionTurns(3, 5);
                     #if __DEBUG_SKASHEK_ACTIONS
                     "\nGoal reached!
                     \nHanging out for <<inspectionTurns>> turns.
@@ -563,6 +596,9 @@ skashekLurkState: SkashekAIState {
     }
 
     onSightAfter(begins) {
+        // Flush anything he might have been rambling about.
+        if (begins) flushAnnouncements();
+
         if (skashek.getPlayerWeapon() != nil) {
             // Take this moment to spot the weapon.
             skashek.checkPlayerForWeapon();
@@ -592,35 +628,70 @@ skashekLurkState: SkashekAIState {
         else {
             if (!begins) return;
             if (!skashek.didAnnouncementDuringTurn) {
-                "<.p><q><<one of
-                >>Aha!<<or
-                >>Oh, hello!<<or
-                >>Prey...!<<or
-                >>Hello, Prey...!<<or
-                >>Oh!<<or>>Ah!<<at random>></q>
-                <<getPeekHe()>> <<one of
-                >>shouts<<or
-                >>exclaims<<or
-                >>says<<at random>>.
-                <q><<one of
-                >><i>There</i> you are!<<or
-                >>Did you miss me?<<or
-                >>Did you miss me?? I missed <i>you!</i><<or
-                >>I was <i>wondering</i> where you were!<<at random>><<one of
-                >><<or>>
-                Time to <<one of>>run<<or>>eat you<<or>>die<<at random
-                >>!<<at random>></q><.p>";
+                if (skashek.hasPlayerInKillRoom()) {
+                    "<.p><q>You've made a <i>dire</i> mistake, Prey!</q>
+                    <<getPeekHe()>> cackles.
+                    <q><i>None</i> of your predecessors have
+                    found a way out of here! You've been cornered in
+                    a <b>kill room</b>!</q> ";
+                }
+                else {
+                    "<.p><q><<one of
+                    >>Aha!<<or
+                    >>Oh, hello!<<or
+                    >>Prey...!<<or
+                    >>Hello, Prey...!<<or
+                    >>Oh!<<or>>Ah!<<at random>></q>
+                    <<getPeekHe()>> <<one of
+                    >>shouts<<or
+                    >>exclaims<<or
+                    >>says<<at random>>.
+                    <q><<one of
+                    >><i>There</i> you are!<<or
+                    >>Did you miss me?<<or
+                    >>Did you miss me?? I missed <i>you!</i><<or
+                    >>I was <i>wondering</i> where you were!<<at random
+                    >><<one of>><<or>>
+                    Time to <<one of>>run<<or>>eat you<<or>>die<<at random
+                    >>!<<at random>></q><.p>";
+                }
             }
         }
         skashekChaseState.activate();
     }
+
+    /*doStuckInspection1() {
+        """
+        His eyes pan around <<skashek.getOutermostRoom().roomTitle>>.\b
+        <q>Are you here, Prey...?</q> he asks quietly. <q>Are you</q>
+        """;
+    }
+
+    doStuckInspection2() {
+        """
+        .
+        For a moment, {i} think he{dummy} sees {me}, but his gaze
+        continues onto something else.
+        """;
+    }
+
+    doStuckInspection3() {
+        "<.p>"
+    }*/
 
     describeNonTravelAction() {
         if (stunTurns > 0) {
             skashek.showSlamPainDesc();
             return;
         }
-        "<<getPeekHeIs(true)>> looking around
-        <<skashek.getOutermostRoom.roomTitle>>{dummy} for {me}! ";
+        
+        // Player stuck hiding in the room!
+        if (
+            skashek.getOutermostRoom() !=
+            skashek.getPracticalPlayer().getOutermostRoom()
+        ) {
+            "<<getPeekHeIs(true)>> looking around
+            <<skashek.getOutermostRoom.roomTitle>>{dummy} for {me}! ";
+        }
     }
 }

@@ -83,9 +83,10 @@ skashekChaseState: SkashekAIState {
             >>at<<or
             >>right at<<at random>>';
         local player = skashek.getPracticalPlayer();
+        local shortStreakLimit = skashek.getContextualMaxShortStreak() - 2;
         if (skashek.isPlayerVulnerableToShortStreak()) {
             if (skashek.isPlayerOnFloor()) {
-                if (skashekAIControls.shortStreak + 1 < skashekAIControls.maxShortStreak - 1) {
+                if (skashekAIControls.shortStreak < shortStreakLimit) {
                     if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak) {
                         "<<getPeekHe(true)>> is <<sprintingVerbs>>{dummy}
                         {me}! {I} get the sinking feeling that
@@ -107,7 +108,7 @@ skashekChaseState: SkashekAIState {
                 on {me}! {I} need to make a decisive move <i>now!</i> ";
                 return;
             }
-            if (skashekAIControls.shortStreak + 1 < skashekAIControls.maxShortStreak - 1) {
+            if (skashekAIControls.shortStreak < shortStreakLimit) {
                 "<<getPeekHe(true)>> watches{dummy} {me} from
                 <<player.getOutermostRoom().floorObj.theName>>, with
                 a grin that says {i} {am} not safe here! ";
@@ -378,6 +379,7 @@ skashekChaseState: SkashekAIState {
     offSightAfter(ends) {
         if (!ends) return;
         if (stunTurns > 0) return;
+        if (skashek.didAnnouncementDuringTurn) return;
         skashek.prepareSpeech();
         "<q><<one of
         >>You won't get away <i>that</i> easy!<<or

@@ -952,13 +952,28 @@ modify skashek {
         if (skashekAIControls.longStreak < 0) skashekAIControls.longStreak = 0;
         doAfterTurn();
         if (skashekAIControls.isToothless) return;
-        if (skashekAIControls.shortStreak >= skashekAIControls.maxShortStreak && 
+        // Don't kill if player isn't visible
+        if (!canSee(getPracticalPlayer())) return;
+        if (skashekAIControls.shortStreak >= getContextualMaxShortStreak() && 
             isPlayerVulnerableToShortStreak()) {
             getPracticalPlayer().dieToShortStreak();
         }
         else if (skashekAIControls.longStreak >= (skashekAIControls.maxLongStreak + 1)) {
             getPracticalPlayer().dieToLongStreak();
         }
+    }
+
+    hasPlayerInKillRoom() {
+        local om = getOutermostRoom();
+        if (om.roomNavigationType != killRoom) return nil;
+        if (om != getPracticalPlayer().getOutermostRoom()) return nil;
+        return true;
+    }
+
+    // Kill rooms have a one-turn death, to save the player time
+    getContextualMaxShortStreak() {
+        if (hasPlayerInKillRoom()) return 0;
+        return skashekAIControls.maxShortStreak;
     }
 
     doAfterTurn() {

@@ -231,9 +231,25 @@ prey: PlayerActor { 'The Prey;;me self myself'
     dieToShortStreak() {
         "<.p>
         {I}{'m} not sure if it was a lack of options, slow reaction time,
-        or an unexpected consequence, but the full force of
-        <<skashek.getPeekHis()>> body mass{dummy} slams into {me}, and {i}
-        feel his claws dig into {my} neck, fleeting moments before {my}
+        or an unexpected consequence, but ";
+        restOfStreakDeath();
+    }
+
+    dieToLongStreak() {
+        "<.p>
+        Over time, <<skashek.getPeekHe()>> had been slowly gaining{dummy}
+        on {me}. It seems {i} have found my limit, then.
+        <b>{I} can evade him for <<skashekAIControls.maxLongStreak>>
+        turns, maximum</b>. It's a shame that this lesson is lethal.\b
+        {I} feel a deep urge to refuse death, so {i} attempt to face {my}
+        attacker. Instead, {i} sail off of my feet, as ";
+        restOfStreakDeath();
+    }
+
+    restOfStreakDeath() {
+        "the full force of
+        <<skashek.getPeekHis()>> body mass{dummy} slams into {me}.
+        {I} feel his claws dig into {my} neck, fleeting moments before {my}
         skull impacts <<getOutermostRoom().floorObj.theName>>.\b
         {I} {am} horribly dazed and stunned, and {i} think {i} feel something
         being ripped free from {my} body; something which should have remained
@@ -243,16 +259,29 @@ prey: PlayerActor { 'The Prey;;me self myself'
         finishGameMsg(ftDeath, gEndingOptionsLoss);
     }
 
-    dieToLongStreak() {
-        //TODO: Write
-    }
-
     // Everything below this is one unit
 
     physicalStateDescDaemon = nil
 
+    batchIDNumber = '6845'
+
     startTheDay() {
         inherited();
+
+        local playerIDNumber = 
+            ((skashek.getRandomResult(1, 100) - 1) * 100)
+            + (skashek.getRandomResult(1, 100) - 1);
+        
+        batchIDNumber = '' + playerIDNumber;
+        if (playerIDNumber < 10) {
+            batchIDNumber = '0' + playerIDNumber + '00';
+        }
+        else if (playerIDNumber < 100) {
+            batchIDNumber = playerIDNumber + '00';
+        }
+        else if (playerIDNumber < 1000) {
+            batchIDNumber = playerIDNumber + '0';
+        }
 
         #ifdef __DEBUG
         local startWet = nil;

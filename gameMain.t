@@ -23,7 +23,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 6
-/*-*/  #define __TEST_ROOM deliveryRoom
+/*-*/  #define __TEST_ROOM labB
       #define __SKASHEK_START breakroom
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
