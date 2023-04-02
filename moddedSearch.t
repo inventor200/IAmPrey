@@ -731,7 +731,13 @@ DefineDistComponent(ContainerGrate)
             }
         }
         action() {
-            doInstead(SearchDistant, hatch);
+            if (gActor.isIn(hatch)) {
+                doInstead(Look);
+                searchCore.reportedSuccess = true;
+            }
+            else {
+                doInstead(SearchDistant, hatch);
+            }
         }
     }
 

@@ -148,6 +148,48 @@ huntCore: InitObject {
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
+    helmetLocations = static [
+        breakroomTable,
+        evaluationRoom,
+        labBTable
+    ]
+
+    gearLocations = static [
+        northeastCubicleFilingCabinet.topDrawer,
+        northeastCubicleFilingCabinet.middleDrawer,
+        northeastCubicleFilingCabinet.bottomDrawer,
+        northwestCubicleFilingCabinet.topDrawer,
+        northwestCubicleFilingCabinet.middleDrawer,
+        northwestCubicleFilingCabinet.bottomDrawer,
+        southeastCubicleFilingCabinet.topDrawer,
+        southeastCubicleFilingCabinet.middleDrawer,
+        southeastCubicleFilingCabinet.bottomDrawer,
+        southwestCubicleFilingCabinet.topDrawer,
+        southwestCubicleFilingCabinet.middleDrawer,
+        southwestCubicleFilingCabinet.bottomDrawer,
+        armoryShelves,
+        armoryCabinet.topDrawer,
+        armoryCabinet.middleDrawer,
+        armoryCabinet.bottomDrawer,
+        breakRoomFridge.remapIn,
+        snackFridge.remapIn,
+        classroomShelves,
+        directorCabinet.topDrawer,
+        directorCabinet.middleDrawer,
+        directorCabinet.bottomDrawer,
+        cloneStorageChest.remapIn,
+        evaluationShelves,
+        walkInFridge,
+        labAShelves,
+        libraryCabinet.topDrawer,
+        libraryCabinet.middleDrawer,
+        libraryCabinet.bottomDrawer,
+        securityCabinet.topDrawer,
+        securityCabinet.middleDrawer,
+        securityCabinet.bottomDrawer,
+        securityCloset.remapIn
+    ]
+
     //Tricks
     tricksInPool = nil
     closeDoorCount = nil
@@ -294,7 +336,7 @@ huntCore: InitObject {
         #ifdef __DEBUG
         cat.moveInto(__TEST_ROOM);
         #else
-        cat.moveInto(directorsOffice);
+        cat.moveInto(catBed);
         #endif
     }
 
@@ -308,7 +350,9 @@ huntCore: InitObject {
         //      and slowly make his way down to the reservoir after checking
         //      the director's office for the cat.
         #ifdef __DEBUG
-        skashek.moveInto(__SKASHEK_START);
+        local startRoom = __SKASHEK_START;
+        if (startRoom == nil) startRoom = breakroom;
+        skashek.moveInto(startRoom);
         #else
         skashek.moveInto(breakroom);
         #endif
@@ -320,11 +364,7 @@ huntCore: InitObject {
         if (testState != nil) {
             return testState;
         }
-        local testStart = __SKASHEK_START;
-        if (testStart == breakroom) {
-            return difficultySettingObj.startingSkashekState;
-        }
-        return skashekLurkState;
+        return difficultySettingObj.startingSkashekState;
         #else
         return difficultySettingObj.startingSkashekState;
         #endif

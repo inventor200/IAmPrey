@@ -262,6 +262,25 @@ DefineTAction(PeekDirection)
             return;
         }
 
+        // Peek out of container
+        local peekerImmediateLoc = parkourCore.currentParkourRunner.location;
+        if (
+            !peekerImmediateLoc.ofKind(Room) &&
+            peekerImmediateLoc.contType == In
+        ) {
+            if (direction == outDir) {
+                if (peekerImmediateLoc.canSeeOut) {
+                    doNested(Look);
+                }
+                else {
+                    "There is no way to peek outside of
+                    <<peekerImmediateLoc.theName>>. ";
+                    exit;
+                }
+                return;
+            }
+        }
+
         // Get destination
         local clear = true;
         if (loc.propType(direction.dirProp) == TypeObject) {
@@ -892,7 +911,7 @@ modify Door {
 
         closingFuse = new Fuse(self, &autoClose, closingDelay);
         closingFuse.eventOrder = 97;
-        if (canEitherBeSeenBy(gPlayerChar)) {
+        if (canPlayerSense()) {
             clearFuse(&playerCloseExpectationFuse);
             playerCloseExpectationFuse = new Fuse(self, &endPlayerExpectation, closingDelay);
             playerCloseExpectationFuse.eventOrder = 95;
@@ -913,7 +932,7 @@ modify Door {
 
     witnessClosing() {
         clearFuse(&closingFuse);
-        if (canEitherBeSeenBy(gPlayerChar)) {
+        if (canPlayerSense()) {
             wasPlayerExpectingAClose = true;
             clearFuse(&playerCloseExpectationFuse);
         }
@@ -1165,11 +1184,27 @@ modify Door {
         }
     }
 
+    canPlayerSense() {
+        return canEitherBeSeenBy(gPlayerChar) || canPlayerHearNearby();
+    }
+
+    canPlayerHearNearby() {
+        if (canEitherBeSeenBy(gPlayerChar)) return nil;
+        local plom = gPlayerChar.getOutermostRoom();
+        local inProximity = plom == getOutermostRoom();
+        if (otherSide != nil) {
+            if (plom == otherSide.getOutermostRoom()) {
+                inProximity = true;
+            }
+        }
+        return canEitherBeHeardBy(gPlayerChar) && inProximity;
+    }
+
     makeOpen(stat) {
         inherited(stat);
 
         if (airlockDoor) {
-            if (canEitherBeSeenBy(gPlayerChar)) {
+            if (canPlayerSense()) {
                 playerExpectsAirlockOpen = stat;
                 if (otherSide != nil) {
                     otherSide.playerExpectsAirlockOpen = stat;
@@ -1185,6 +1220,9 @@ modify Door {
         else {
             if (stat) {
                 startFuse();
+                if (canPlayerHearNearby()) {
+                    say('I can hear <<theName>> opening... ');
+                }
             }
             else {
                 witnessClosing();

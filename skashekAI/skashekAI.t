@@ -158,6 +158,10 @@ class SkashekAIState: object {
     describeNonTravelAction() {
         "<<getPeekHe(true)>> seems to be just...<i>standing</i> there... ";
     }
+    // When the player cannot see him
+    describeRustlingAction() {
+        "{I} can hear <<getPeekHim()>> moving around in the room... ";
+    }
     // Print peek after turn?
     showPeekAfterTurn(canSeePlayer) {
         return showsDuringPeek() && canSeePlayer;
@@ -449,15 +453,22 @@ modify skashek {
     performNextAnnouncement(isVisible?, isInterrupted?) {
         local nextAnnouncement = getAnnouncement();
         if (nextAnnouncement == nil) return;
+        local player = getPracticalPlayer();
+        local om = getOutermostRoom();
         "<.p>";
         if (isInterrupted) {
             nextAnnouncement.interruptedMsg();
         }
-        else if (canSee(getPracticalPlayer())) {
+        else if (canSee(player)) {
             nextAnnouncement.inPersonFullMsg();
         }
-        else if (getPracticalPlayer().canSee(self)) {
+        else if (player.canSee(self)) {
             nextAnnouncement.inPersonStealthyMsg();
+            // Actions are usually described in these
+            suppressIdleDescription();
+        }
+        else if (player.getOutermostRoom() == om) {
+            nextAnnouncement.inPersonAudioMsg();
             // Actions are usually described in these
             suppressIdleDescription();
         }
@@ -467,7 +478,7 @@ modify skashek {
             soundBleedCore.createSound(
                 skashekTalkingProfile,
                 self,
-                getOutermostRoom(),
+                om,
                 nil
             );
         }
@@ -682,17 +693,22 @@ modify skashek {
         local lastRoom = getOutermostRoom();
         local nextRoom = approachArray[2].destination.actualRoom;
         local hasDescribedTravel = nil;
-        if (getPracticalPlayer().canSee(self)) {
+        local player = getPracticalPlayer();
+        if (player.canSee(self)) {
             "<.p>";
             describeTravel(approachArray);
             hasDescribedTravel = true;
         }
+        /*else if (player.canHear(self)) {
+            "<.p>";
+            describeRustlingAction();
+            hasDescribedTravel = true;
+        }*/
         moveInto(nextRoom);
         popDoorMovingOnItsOwn();
 
         local possibleDoor = approachArray[2].connector;
-        local playerInNextRoom =
-            (getPracticalPlayer().getOutermostRoom() == nextRoom);
+        local playerInNextRoom = (player.getOutermostRoom() == nextRoom);
         if (possibleDoor.ofKind(Door) && playerInNextRoom) {
             // If a door was trapped, then set the next one as trapped.
             trapConnector(possibleDoor);
@@ -716,9 +732,16 @@ modify skashek {
             abandonTraps();
         }
         
-        if (!hasDescribedTravel && getPracticalPlayer().canSee(self)) {
-            "<.p>";
-            describeTravel(approachArray);
+        if (!hasDescribedTravel) {
+            if (player.canSee(self)) {
+                "<.p>";
+                describeTravel(approachArray);
+            }
+            /*else if (player.canHear(self)) {
+                "<.p>";
+                describeRustlingAction();
+                hasDescribedTravel = true;
+            }*/
         }
     }
 
@@ -806,6 +829,10 @@ modify skashek {
         describeTravel(approachArray);
         // Unset peeking mode
         if (setPeekMode) peekPOV = nil;
+    }
+
+    describeRustlingAction() {
+        skashekAIControls.currentState.describeRustlingAction();
     }
 
     describeTravel(approachArray) {
@@ -902,7 +929,8 @@ modify skashek {
             skashekAIControls.currentState.doStreaksBeforeTurn();
         }
 
-        local playerVisibleNow = canSee(getPracticalPlayer());
+        local player = getPracticalPlayer();
+        local playerVisibleNow = canSee(player);
         local hasSightChange =
             (skashekAIControls.playerWasVisibleLastTurn != playerVisibleNow);
 
@@ -919,7 +947,7 @@ modify skashek {
 
         skashekAIControls.currentState.doTurn();
 
-        playerVisibleNow = canSee(getPracticalPlayer());
+        playerVisibleNow = canSee(player);
         hasSightChange =
             (skashekAIControls.playerWasVisibleLastTurn != playerVisibleNow);
         
@@ -929,24 +957,32 @@ modify skashek {
         else {
             skashekAIControls.currentState.offSightAfter(hasSightChange);
         }
+
+        if (skashekAIControls.currentState.allowStreaks()) {
+            handleStreakConsequences();
+        }
+        else {
+            doAfterTurn();
+        }
         
         if (skashekAIControls.currentState.showPeekAfterTurn(playerVisibleNow)) {
             if (_suppressIdleDescription > 0) {
                 _suppressIdleDescription--;
             }
-            else if (getPracticalPlayer().canSee(self)) {
+            else if (player.canSee(self)) {
                 "<.p>";
                 forcePeekDesc();
+            }
+            else if (player.canHear(self)) {
+                "<.p>";
+                describeRustlingAction();
             }
         }
 
         skashekAIControls.playerWasVisibleLastTurn = playerVisibleNow;
+    }
 
-        if (!skashekAIControls.currentState.allowStreaks()) {
-            doAfterTurn();
-            return;
-        }
-
+    handleStreakConsequences() {
         skashekAIControls.currentState.doStreaksAfterTurn();
         if (skashekAIControls.shortStreak < 0) skashekAIControls.shortStreak = 0;
         if (skashekAIControls.longStreak < 0) skashekAIControls.longStreak = 0;
@@ -958,7 +994,7 @@ modify skashek {
             isPlayerVulnerableToShortStreak()) {
             getPracticalPlayer().dieToShortStreak();
         }
-        else if (skashekAIControls.longStreak >= (skashekAIControls.maxLongStreak + 1)) {
+        else if (skashekAIControls.longStreak >= (skashekAIControls.maxLongStreak)) {
             getPracticalPlayer().dieToLongStreak();
         }
     }
@@ -1127,6 +1163,15 @@ modify skashek {
 
         mockForDoorMovementMessage.cachedLastDoor = door;
         reciteAnnouncement(mockForDoorMovementMessage);
+
+        concludeMockingOpportunity();
+    }
+
+    // Player turning on the water
+    mockPreyForRunningWaterMovement() {
+        if (!checkMockingOpportunity()) return;
+
+        reciteAnnouncement(mockForRunningWaterMessage);
 
         concludeMockingOpportunity();
     }

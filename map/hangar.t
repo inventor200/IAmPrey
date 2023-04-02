@@ -1,7 +1,11 @@
 hangarSightLine: HallRegion;
 
 storageBay: Room { 'The Storage Bay'
-    "TODO: Add description. "
+    "The Bay connects seamlessly to the Hangar,
+    with only a massive, pressure membrane keeping both areas distinct.
+    The space is mostly littered with empty, plastic pallets.\b
+    To the <<hyperDir('west')>> is the Loading Area, and the <b>Emergency
+    Airlock</b> is visible on the <<hyperDir('east')>> side of the Hangar. "
 
     west = loadingArea
     north = wasteProcessingEntry
@@ -53,7 +57,9 @@ wasteProcessingBarrier: TravelBarrier {
 }
 
 hangar: Room { 'The Hangar'
-    "TODO: Add description. "
+    "The Hangar boasts the highest of ceilings, and is separated from
+    the Storage Bay (<<hyperDir('west')>>) by a pressure membrane.\b
+    To the <<hyperDir('east')>> is the Emergency Airlock. "
 
     regions = [hangarSightLine]
 
@@ -78,7 +84,12 @@ hangar: Room { 'The Hangar'
 
 DefineBrokenWindowPairLookingAway(east, west, hangar, storageBay)
     vocab = 'pressure membrane;plastic rubber greasy marked[weak];veil curtain sheet slit'
-    desc = "TODO: Add description. "
+    desc = "A colossal membrane divides the area into two sections: The Storage Bay, and Hangar.
+    The membrane is organic, and has reflexes to seal off the Hangar, in the event of a poison
+    gas contamination event. It's transparent, and gives everything behind it a blurry, streaky effect.\b
+    There is a single, large slit in the middle, which can be passed through. It jiggles a little, as the
+    surface is still very alive. "
+    feelDesc = "It feels greasy, like a giant, lubricated condom. "
     breakMsg = 'The membrane absolutely refuses to be torn, cut, or sliced in any way. '
     remoteHeader = 'through the membrane'
     travelDesc = "{I} pass{es/ed} through a marked slit
@@ -105,7 +116,8 @@ wasteProcessing: Room { 'Waste Processing'
 }
 
 emergencyAirlock: Room { 'The Emergency Airlock'
-    "TODO: Add description. "
+    "The emergency airlock is cramped tube, full of bright colors,
+    allowing anyone to identify it in a hurry. "
 
     east = airlockOutsideExit
     west = airlockInsideExit

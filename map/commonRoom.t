@@ -78,14 +78,14 @@ commonRoom: Room { 'The Common Room'
     decorative display shelf sits above both of them.
     To the <<hyperDir('north')>> is the Assembly Shop, and a passage
     to the <<hyperDir('south')>> (curving to the west) leads to the
-    Enrichment Room. "
+    Classroom. "
 
     ceilingObj = commonRoomCeiling
     wallsObj = topOfOtherWalls
     floorObj = carpetedFloor
 
     north = assemblyShop
-    south = enrichmentRoomHall
+    south = classroomHall
 
     northwestMuffle = directorsOffice
     eastMuffle = lifeSupportTop
@@ -129,11 +129,11 @@ commonRoom: Room { 'The Common Room'
     matchPhrases = ['two vents', 'both vents']
 }
 
-+enrichmentRoomHall: Passage { 'passage;curving curved;corridor hall'
++classroomHall: Passage { 'passage;curving curved;corridor hall'
     "A short passage to the <<hyperDir('south')>>, curving toward the west. "
 
     otherSide = commonRoomHall
-    destination = enrichmentRoom
+    destination = classroom
 
     dobjFor(PeekAround) asDobjFor(LookThrough)
     attachPeakingAbility('around {the dobj}')
@@ -152,14 +152,17 @@ commonRoom: Room { 'The Common Room'
     during strange renovations.<<end>> '
 }
 
-//TODO: Put a plant on this
 +displayShelf: FixedPlatform { 'display shelf;simple metal decorative'
-    "A simple metal shelf for displaying decorative items. "
+    "A simple metal shelf for displaying a potted plant. "
 
     isSafeParkourPlatform = true
 }
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
+++Trinket { 'potted plant;weird;cactus fern pot soil'
+    "A weird plastic, potted plant, which looks like a hybrid between a cactus and a fern.
+    The soil looks like sculpted plastic, too. "
+}
 
 +topOfEastWall: FixedPlatform { 'east wall;e northern north n half[weak] top[n] of[prep];ledge[weak]'
     "The northern half of the east wall is nearer to the primary vent.

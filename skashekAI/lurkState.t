@@ -14,7 +14,7 @@ skashekLurkState: SkashekAIState {
         commonRoom,
         deliveryRoom,
         directorsOffice,
-        enrichmentRoom,
+        classroom,
         evaluationRoom,
         freezer,
         humanQuarters,
@@ -47,6 +47,7 @@ skashekLurkState: SkashekAIState {
     lastSoundDistance = 1000 // How far away was the last soundGoal?
     excitementBonusTurns = 2
     trappedSpeechIndex = 0
+    annoyingSink = nil
 
     resetRoomList() {
         #if __DEBUG_SKASHEK_ACTIONS
@@ -95,7 +96,9 @@ skashekLurkState: SkashekAIState {
 
     start(prevState) {
         #ifdef __DEBUG
-        //setupForTesting();
+        #if __SKASHEK_ALLOW_TESTING_LURK
+        setupForTesting();
+        #endif
         #endif
         inspectionTurns = 0;
         creepTurns = 0;
@@ -106,6 +109,7 @@ skashekLurkState: SkashekAIState {
         soundGoal = nil;
         lastSoundDistance = 1000;
         currentStep = 1;
+        annoyingSink = nil;
         if (startRandom) {
             resetRoomList();
             chooseNewRoom();
@@ -127,7 +131,7 @@ skashekLurkState: SkashekAIState {
     setupForTesting() {
         inherited();
         startRandom = nil;
-        goalRoom = labA;
+        goalRoom = __SKASHEK_ALLOW_TESTING_LURK_GOAL;
     }
     #endif
 
@@ -163,6 +167,7 @@ skashekLurkState: SkashekAIState {
     }
 
     nextStopInRoute() {
+        if (annoyingSink != nil) return annoyingSink.getOutermostRoom();
         if (inspectionTurns > 0) return skashek.getOutermostRoom();
         if (temporaryGoal != nil) return temporaryGoal;
         if (soundGoal != nil) return soundGoal;
@@ -233,6 +238,7 @@ skashekLurkState: SkashekAIState {
     }
 
     startCreeping() {
+        if (annoyingSink != nil) return nil;
         if (temporaryGoal != nil) return nil;
         if (soundGoal != nil) return nil;
         if (suspendCreeping) return nil;
@@ -301,7 +307,20 @@ skashekLurkState: SkashekAIState {
             }
 
             // Check temp goal first
-            if (temporaryGoal != nil && newRoom == temporaryGoal) {
+            if (annoyingSink != nil && newRoom == annoyingSink.getOutermostRoom()) {
+                #if __DEBUG_SKASHEK_ACTIONS
+                "\nTurning off sink!
+                <.p>";
+                #endif
+                if (skashek.getPracticalPlayer().canSee(skashek)) {
+                    "<.p><<getPeekHe(true)>> turns off the water. ";
+                }
+                // Turn off sink
+                annoyingSink.isRunning = nil;
+                annoyingSink.lexicalParent.endWaterNoise();
+                annoyingSink = nil;
+            }
+            else if (temporaryGoal != nil && newRoom == temporaryGoal) {
                 suspendCreeping = nil;
                 temporaryGoal = nil;
                 #if __DEBUG_SKASHEK_ACTIONS
@@ -312,7 +331,6 @@ skashekLurkState: SkashekAIState {
                 checkForSuspiciousDoors();
             }
             else if (soundGoal != nil && newRoom == soundGoal) {
-                //TODO: If it's a sink, turn it off
                 suspendCreeping = nil;
                 soundGoal = nil;
                 lastSoundDistance = 1000;
@@ -463,6 +481,9 @@ skashekLurkState: SkashekAIState {
         // Stay up-to-date on suspicious moving doors
         if (checkForDoorMovingOnItsOwn()) return;
 
+        // Annoying sinks are too distracting
+        if (annoyingSink != nil) return;
+
         // We already have a suspicious target
         if (temporaryGoal != nil) return;
 
@@ -525,6 +546,14 @@ skashekLurkState: SkashekAIState {
 
     followSound(impact) {
         skashek.hasSeenPreyOutsideOfDeliveryRoom = true;
+
+        // Annoying sinks are too distracting
+        if (annoyingSink != nil) return;
+
+        if (impact.soundProfile == runningWaterNoiseProfile) {
+            annoyingSink = impact.sourceOrigin;
+            skashek.mockPreyForRunningWaterMovement();
+        }
 
         local source = impact.sourceOrigin;
         local soundWasDoor = nil;

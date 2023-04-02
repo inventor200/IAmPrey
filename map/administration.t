@@ -7,7 +7,6 @@
     autoGoTo = nil
 }*/
 
-//TODO: Furnish more
 #define populateCubicle(cubicleName) \
 +cubicleName##Desk: FixedPlatform { \
     vocab = 'desk;office wide cubicle;table' \
@@ -16,7 +15,11 @@
 ++LowFloorHeight; \
 ++JumpUpLink ->cubicleName##FilingCabinet; \
 +cubicleName##FilingCabinet: FilingCabinet; \
-++HighFloorHeight;
+++HighFloorHeight; \
++Chair \
+    homeDesc = "The chair sits <<homePhrase>>. " \
+    homePhrase = 'in front of the cubicle desk' \
+;
 
 class Cubicle: Room {
     desc() {
@@ -50,10 +53,8 @@ administration: Room {
     vocab = 'Administration;;admin'
     roomTitle = 'Administration'
     desc = "The lights here are in low-power mode, with only a few still on.
-    {I} {am} in a narrow, L-shaped hallway of cubicle walls, directing {my} attention
-    to the door of the Director's Office, to the <<hyperDir('north')>>.
-    To the <<hyperDir('west')>>, the cubicles shape a sharp turn to the
-    exit.\b
+    {I} {am} in a narrow, L-shaped hallway of cubicle walls,
+    which connects a route from the west exit to the Director's Office (north).\b
     From this hallway, {i} can enter the <<hyperDir('northwest')>>,
     <<hyperDir('northeast')>>, <<hyperDir('southeast')>>, or
     <<hyperDir('southwest')>> cubicle. "
@@ -64,7 +65,7 @@ administration: Room {
     southwest = fakeSouthwestCubicle
 
     eastMuffle = commonRoom
-    southMuffle = enrichmentRoom
+    southMuffle = classroom
 
     //regions = [administrationAudioRegion]
 

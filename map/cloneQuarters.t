@@ -1,7 +1,9 @@
 cloneQuarters: Room { 'Clone Sleeping Quarters'
-    "TODO: Add description. "
+    "The soft carpet absorbs any echoes that would normally
+    propagate in this nearly-vacant room. All that remains
+    is a single bed, and a large storage chest. "
 
-    north = southEnrichmentRoomDoorExterior
+    north = southClassroomDoorExterior
 
     muffleEast = utilityPassage
     //southeastMuffle = southwestishHall
@@ -13,75 +15,44 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     familiar = roomsFamiliarByDefault
 }
 
-+southEnrichmentRoomDoorExterior: PrefabDoor { 'the Enrichment Room door'
++cloneStorageChest: StorageChest;
+
++southClassroomDoorExterior: PrefabDoor { 'the Classroom door'
     desc = standardDoorDescription
-    otherSide = southEnrichmentRoomDoorInterior
-    soundSourceRepresentative = southEnrichmentRoomDoorInterior
+    otherSide = southClassroomDoorInterior
+    soundSourceRepresentative = southClassroomDoorInterior
     pullHandleSide = nil
 }
 
-+southeastCloneBed: Fixture { 'southeast bed;se bunk;cot'
-    "TODO: Add description. "
++southeastCloneBed: Bunkbed {
+    hiddenUnder = [holeUnderBedDiscovery]
 
-    remapOn: SubComponent {
-        betterStorageHeader
-        canLieOnMe = true
-        isEnterable = true
-        isBoardable = true
-        isClimbable = true
+    crawlUnderMsg = '{I} crawl{s/ed} under {the dobj}. '
 
-        dobjFor(ParkourClimbOverInto) asDobjFor(Board)
-        dobjFor(Climb) asDobjFor(Board)
+    doAfterGoUnder() {
+        if (!underBedWallPipes.revealedUnderBed) {
+            say(crawlUnderMsg + '\b');
+            doNested(LookUnder, southeastCloneBed);
+        }
     }
-    remapUnder: SubComponent {
-        betterStorageHeader
-        canSlideUnderMe = true
-        isHidingSpot = true
 
-        hiddenUnder = [holeUnderBedDiscovery]
+    reportAfterGoUnder() {
+        "<<crawlUnderMsg>>\b
+        <<underBedWallPipes.specialDesc()>> ";
+    }
 
-        dobjFor(SlideUnder) {
-            preCond = [touchObj, actorInStagingLocation]
-            verify() {
-                if (gActor.isIn(self)) {
-                    illogicalNow(actorAlreadyOnMsg);
-                }
-            }
-            check() { checkInsert(gActor); }
-            action() {
-                parkourCore.cacheParkourRunner(gActor);
-                gParkourRunner.actionMoveInto(self);
-                if (!underBedWallPipes.revealedUnderBed) {
-                    doNested(LookUnder, southeastCloneBed);
-                }
-            }
-            report() {
-                "{I} crawl{s/ed} under {the dobj}.<.p>";
-                underBedWallPipes.specialDesc();
-            }
-        }
+    canBonusReachUnderDuring(obj, action) {
+        return obj == underBedWallPipes && underBedWallPipes.revealedUnderBed;
+    }
 
-        dobjFor(GetOutOf) {
-            verify() {
-                if (!gActor.isIn(self)) {
-                    illogicalNow('{I} {am} not under {the dobj}. ');
-                }
+    finalizeSearchUnder(searchAction) {
+        if (searchAction.ofKind(LookUnder)) {
+            // This is here to facilitate the discovery message, but needs
+            // to be removed afterward.
+            if (holeUnderBedDiscovery.isIn(remapUnder)) {
+                holeUnderBedDiscovery.moveInto(nil);
             }
-        }
-
-        canBonusReachDuring(obj, action) {
-            return obj == underBedWallPipes && underBedWallPipes.revealedUnderBed;
-        }
-
-        finalizeSearch(searchAction) {
-            if (searchAction.ofKind(LookUnder)) {
-                // This is here to facilitate the discovery message, but needs
-                // to be removed afterward.
-                if (holeUnderBedDiscovery.isIn(southeastCloneBed.remapUnder)) {
-                    holeUnderBedDiscovery.moveInto(nil);
-                }
-                underBedWallPipes.revealUnderBed();
-            }
+            underBedWallPipes.revealUnderBed();
         }
     }
 
@@ -121,7 +92,8 @@ unreachableUnderBedWallPipes: Unthing { cloneQuartersPipesVocab
 }
 
 underBedWallPipes: PassablePipes { cloneQuartersPipesVocab
-    desc = "TODO: Add description. "
+    desc = "The hole in the wall reveals a twisted mess of pipes,
+    which provide a view of the Utility Corridor beyond. "
     destination = utilityPassage
     oppositeLocalPlatform = utilityWallPipes
     stagingLocation = southeastCloneBed.remapUnder

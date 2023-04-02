@@ -16,7 +16,7 @@
 #include "securityOffice.t"   // Stage: Parkour
 #include "humanQuarters.t"    // Stage: Parkour
 #include "cloneQuarters.t"    // Stage: Parkour
-#include "enrichmentRoom.t"   // Stage: Parkour
+#include "classroom.t"        // Stage: Parkour
 #include "directorsOffice.t"  // Stage: Parkour
 #include "assemblyShop.t"     // Stage: Parkour
 #include "commonRoom.t"       // Stage: Described decorations

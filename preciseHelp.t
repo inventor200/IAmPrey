@@ -5,11 +5,6 @@
  * made for everything covered in this game.
  */
 
-#define testerHelpDisclaimer "Hello, tester!\b \
-        Please refer to the Tester's Guide for any help!\b \
-        The full help menu has yet to be finished. \
-        Thank you for your understanding! "
-
 instructionsCore: InitObject {
     instructionsCutscene = nil
 
@@ -159,7 +154,7 @@ instructionsCore: InitObject {
             <b>UNDO</b>, or limit your use of it in some way. It is assumed that you
             will know what suits your desired challenge and play style."
         });
-        instructionsCutscene.addPage({: //TODO: SEARCH will be used instead of EXAMINE
+        instructionsCutscene.addPage({:
             "<center><b><tt>PARKOUR CRASH COURSE</tt></b></center>\b
             This game makes use of a parkour system, which challenges you to find
             hidden routes between rooms.\b
@@ -193,7 +188,7 @@ instructionsCore: InitObject {
             The <b>ROUTES FULL</b> command combines the previous two commands into a
             single shorthand command."
         });
-        instructionsCutscene.addPage({: //TODO: SEARCH will be used instead of EXAMINE
+        instructionsCutscene.addPage({:
             "<center><b><tt>STEALTH AND CAUTION</tt></b></center>\b
             <i>Unfortunately, you are being hunted!</i>\b
             Your predator has certain expectations for how the environment should
@@ -241,18 +236,26 @@ instructionsCore: InitObject {
     }
 }
 
+VerbRule(ShowVerbs)
+    ('show'|'list'|'all'|) ('verb'|'verbs') ('all'|'list'|)
+    : VerbProduction
+    action = ShowVerbs
+    verbPhrase = 'show/showing verbs'        
+;
 
+DefineSystemAction(ShowVerbs)
+    execAction(cmd) {
+        helpMessage.showVerbs();
+    }
+;
 
 modify Instructions {
     showInstructions() {
-        #if __IS_MAP_TEST
-        testerHelpDisclaimer;
-        #else
-        "\b";
+        emergencyMsg();
+        /*"\b";
         instructionsCore.instructionsCutscene.play();
         "\b\b\b";
-        gPlayerChar.getOutermostRoom().lookAroundWithin();
-        #endif
+        gPlayerChar.getOutermostRoom().lookAroundWithin();*/
     }
 }
 
@@ -286,10 +289,8 @@ modify helpMessage {
     }
 
     printMsg() {
-        #if __IS_MAP_TEST
-        testerHelpDisclaimer;
-        #else
-        showHowToWinAndProgress();
+        emergencyMsg();
+        /*showHowToWinAndProgress();
 
         "\bFor a categorized guide on how to play this game, type in the
         <<gDirectCmdStr('instructions')>> command at the prompt.
@@ -303,11 +304,7 @@ modify helpMessage {
         in <i>map mode!</i>\n
         Use the <<gDirectCmdStr('map')>> command to enter or leave map mode!";
         
-        /*if(defined(extraHintManager))
-           extraHintManager.explainExtraHints();*/
-        
-        showHeader();
-        #endif
+        showHeader();*/
     }
 
     briefIntro() {
@@ -315,11 +312,20 @@ modify helpMessage {
     }
 
     showVerbs() {
-        #if __IS_MAP_TEST
-        testerHelpDisclaimer;
-        #else
         //TODO: Implement VERBS
-        #endif
+        emergencyMsg();
+    }
+
+    emergencyMsg() {
+        showHowToWinAndProgress();
+        "\b\t<b>NOTE FROM THE AUTHOR:</b>\b
+        Hello!\n
+        This is a BETA BUILD of <i>I Am Prey</i>, and I was under a considerable
+        time crunch, I appreciate your understanding and patience!\b
+        Unfortunately, I could not get the in-game tutorial materials added in
+        time! :(\b
+        In the meantime, please refer to the <i>How To Play I Am Prey</i>
+        document, which should have been packaged with this release! ";
     }
 }
 

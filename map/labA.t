@@ -1,7 +1,7 @@
 labA: Room { 'Lab A'
-    "TODO: Add description.\b
-    A tall set of storage shelves can be found in the southwest corner.\b
-    The exit door is to the <<hyperDir('east')>>. "
+    "The Lab is a sizeable room, largely built around a control surface table.\b
+    A tall set of storage shelves can be found in the southwest corner, and the
+    north wall houses a massive screen, across from the whiteboard on the south wall. "
 
     northMuffle = northHall
     westMuffle = lifeSupportTop
@@ -11,12 +11,34 @@ labA: Room { 'Lab A'
     familiar = roomsFamiliarByDefault
     roomNavigationType = escapeRoom
 }
++Whiteboard;
++Decoration { 'massive screen;big giant;display'
+    "The screen is populated by a brilliant array of moving colors. "
+}
++FixedPlatform { 'control surface table'
+    "The table is the biggest one in the facility, and acts as one giant
+    controller. When the humans still lived here, the table was capable of
+    tracking hand movements, and showing diagrams on its surface, allowing
+    for a high level of control between multiple users. "
+    isBoardable = true
+    isLikelyContainer() {
+        return true;
+    }
 
-+labAShelves: FixedPlatform { 'storage shelves;cargo;rack shelf'
-    "Rough, metal shelves for storing boxes and equipment.
+    cannotTurnOnMsg = 'There does not seem to be a way to turn on the control surface. '
+    alreadyTurnedOffMsg = 'The control surface is already off. '
+
+    dobjFor(SwitchVague) { verify() { illogical(cannotTurnOnMsg); } }
+    dobjFor(SwitchOn) { verify() { illogical(cannotTurnOnMsg); } }
+    dobjFor(TurnOn) { verify() { illogical(cannotTurnOnMsg); } }
+    dobjFor(SwitchOff) { verify() { illogical(alreadyTurnedOffMsg); } }
+    dobjFor(TurnOff) { verify() { illogical(alreadyTurnedOffMsg); } }
+}
+
++labAShelves: MetalShelves {
+    desc = "Rough, metal shelves for storing boxes and equipment.
     They are arranged into an L-shape, to conform to the corner of
     the room. "
-    plural = true
 
     isSafeParkourPlatform = true
 

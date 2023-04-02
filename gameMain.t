@@ -15,21 +15,24 @@
 #include "betterChoices.t"
 
 // Begin compile modes
-#define __IS_MAP_TEST true
+#define __IS_MAP_TEST nil
 
 #ifdef __DEBUG
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 6
-/*-*/  #define __TEST_ROOM labB
-      #define __SKASHEK_START breakroom
+/*--*/  #define __FAST_DIFFICULTY 4
+/*-*/  #define __TEST_ROOM securityOffice
+      #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
    #define __SKASHEK_TOOTHLESS nil
   #define __SKASHEK_IMMOBILE nil
- #define __SKASHEK_NO_TARGET nil
+ #define __SKASHEK_NO_TARGET true
+#define __SKASHEK_ALLOW_TESTING_LURK nil
+#define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
+#define __SKASHEK_ALLOW_TESTING_CHASE nil
 ///////////////////////////////////////*||*\
 
 // End compile modes
@@ -107,7 +110,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9'
+    version = '0.9 BETA'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

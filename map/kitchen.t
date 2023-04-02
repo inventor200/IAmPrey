@@ -17,11 +17,12 @@ class StoveVentDoor: VentGrateDoor {
     }
 
 kitchen: Room { 'The Kitchen'
-    "TODO: Add description.\b
+    "There are a lot of empty spaces, probably where extra utilities were
+    once housed. Since only <<gSkashekName>> uses this space, there is
+    no need to redundancy.\b
     An electric oven sits under a stove hood by the east wall,
-    and the kitchen counter can be found beside it.\b
-    An exit door is to the <<hyperDir('west')>>, and the freezer door is
-    to the <<hyperDir('north')>>. "
+    and the kitchen counter can be found beside it. A walk-in fridge
+    takes up a good bit of the south wall. The northeast corner houses a metal sink. "
 
     north = kitchenNorthExit
 
@@ -32,8 +33,33 @@ kitchen: Room { 'The Kitchen'
     familiar = roomsFamiliarByDefault
 }
 
-+kitchenCounter: FixedPlatform { 'counter;kitchen counter[weak];top[weak] countertop'
-    "A granite counter top. Perfect for all of one's kitchen needs. "
++walkInFridge: Fixture {
+    vocab = 'walk-in fridge;walk[weak] in[weak] walkin;refrigerator cooler'
+    desc = "A large, narrow, walk-in fridge. It can open and close, and store a
+    large number of items. A person could probably fit inside, but they
+    would not be unable to see the room outside. "
+
+    contType = In
+    isLikelyContainer() {
+        return true;
+    }
+    isOpenable = true
+    isEnterable = true
+    canHearOut = true
+    //isLit = true
+    litWithin() { return true; }
+    roomTitle = 'Inside of the walk-in fridge'
+    interiorDesc = "The inside of the fridge is cold and claustrophobic,
+    and {i} cannot see the rest of <<getOutermostRoom().roomTitle>> from
+    in here.<<end>> "
+    betterStorageHeader
+}
+
++Sink;
+
++kitchenCounter: CounterTop {
+    desc = "A granite counter top. Perfect for all of one's kitchen needs. "
+    adjectivesFromItems = 'kitchen '
 }
 ++LowFloorHeight;
 ++ClimbOverLink -> kitchenOven;

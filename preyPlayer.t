@@ -239,8 +239,8 @@ prey: PlayerActor { 'The Prey;;me self myself'
         "<.p>
         Over time, <<skashek.getPeekHe()>> had been slowly gaining{dummy}
         on {me}. It seems {i} have found my limit, then.
-        <b>{I} can evade him for <<skashekAIControls.maxLongStreak>>
-        turns, maximum</b>. It's a shame that this lesson is lethal.\b
+        <b>{I} can evade him through <<skashekAIControls.maxLongStreak>>
+        rooms, maximum</b>. It's a shame that this lesson is lethal.\b
         {I} feel a deep urge to refuse death, so {i} attempt to face {my}
         attacker. Instead, {i} sail off of my feet, as ";
         restOfStreakDeath();

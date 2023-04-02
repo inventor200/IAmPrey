@@ -21,7 +21,9 @@ skashekChaseState: SkashekAIState {
 
     start(prevState) {
         #ifdef __DEBUG
-        //setupForTesting();
+        #if __SKASHEK_ALLOW_TESTING_CHASE
+        setupForTesting();
+        #endif
         #endif
         resetShortStreak = nil;
         incrementShortStreak = nil;
@@ -83,32 +85,35 @@ skashekChaseState: SkashekAIState {
             >>at<<or
             >>right at<<at random>>';
         local player = skashek.getPracticalPlayer();
-        local shortStreakLimit = skashek.getContextualMaxShortStreak() - 2;
+        //local shortStreakLimit = skashek.getContextualMaxShortStreak();
+        #if __DEBUG_SKASHEK_ACTIONS
+        "<.p>
+        \tShort: <<skashekAIControls.shortStreak>> / <<skashekAIControls.maxShortStreak>>
+        <.p>";
+        #endif
+        local isShortDangerous =
+            skashekAIControls.shortStreak + 1 >= skashekAIControls.maxShortStreak;
+        if (skashek.getOutermostRoom().roomNavigationType == killRoom) {
+            isShortDangerous = true;
+        }
         if (skashek.isPlayerVulnerableToShortStreak()) {
             if (skashek.isPlayerOnFloor()) {
-                if (skashekAIControls.shortStreak < shortStreakLimit) {
-                    if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak) {
+                if (!isShortDangerous) {
+                    if (skashekAIControls.longStreak >= skashekAIControls.maxLongStreak - 1) {
                         "<<getPeekHe(true)>> is <<sprintingVerbs>>{dummy}
-                        {me}! {I} get the sinking feeling that
-                        {i} {am} going to die here... ";
-                        return;
-                    }
-                    if (skashekAIControls.longStreak == skashekAIControls.maxLongStreak - 1) {
-                        "<<getPeekHe(true)>> is <<sprintingVerbs>>{dummy}
-                        {me}! If {i} do not evade not, he will
+                        {me}! If {i} do not evade now, he will
                         likely{dummy} kill {me} in the next room. ";
                         return;
                     }
                     "<<getPeekHe(true)>> is <<sprintingVerbs>>{dummy}
-                    {me}, but {i} still have time to do
-                    react! ";
+                    {me}, but {i} still have time to react! ";
                     return;
                 }
                 "<<getPeekHe(true)>> is bearing down{dummy}
                 on {me}! {I} need to make a decisive move <i>now!</i> ";
                 return;
             }
-            if (skashekAIControls.shortStreak < shortStreakLimit) {
+            if (!isShortDangerous) {
                 "<<getPeekHe(true)>> watches{dummy} {me} from
                 <<player.getOutermostRoom().floorObj.theName>>, with
                 a grin that says {i} {am} not safe here! ";

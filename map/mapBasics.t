@@ -16,13 +16,13 @@ carpetedFloor: Floor { 'the floor;;carpet rug'
 #define airlockDisclaimer '\n<b>It probably does not close itself automatically.</b>'
 
 #define standardDoorDescription \
-    "TODO: Add description. \
+    "A heavy, metal door. A spring-resistent handle keeps rooms closed, but accessible. \
+    Hidden pneumatics make the doors close automatically. \
     There seems to be a sort of rough, rectangular cat door \
     cut into the bottom of the door. "
 
 #define lockedDoorDescription \
-    "TODO: Add description. \
-    There seems to be a proximity lock on this door, and a \
+    "There seems to be a proximity lock on this door, and a \
     startling lack of cat accessibility. "
 
 #define airlockDoorDesc \

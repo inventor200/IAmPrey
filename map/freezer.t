@@ -1,5 +1,5 @@
 freezer: Room { 'The Freezer'
-    "TODO: Add description. "
+    "The freezer is absolutely empty, and positively <i>massive</i>. "
 
     north = freezerNorthExit
     west = freezerWestExit

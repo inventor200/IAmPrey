@@ -1,8 +1,11 @@
 assemblyShop: Room { 'The Assembly Shop'
-    "TODO: Add description.\b
+    "<<if gCatMode>>There used to be a lot more machines here,
+    until a new citizen made something dumb, and was killed for it.
+    (He tasted good, too!)<<else>>There's evidence suggesting more
+    machines used to be housed here, but only one remains.<<end>>\b
     A CNC machine sits in the southeast corner of the room.
     Far above it, on the east wall, {i} see a vent.\b
-    A doorway to the Common Room is to the <<hyperDir('south')>>,
+    A way to the Common Room is to the <<hyperDir('south')>>,
     while the exit door is to the <<hyperDir('north')>>. "
 
     south = commonRoom

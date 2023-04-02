@@ -122,7 +122,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     metal door.\b
     To the south, a locked door goes to the Reactor Turbine Room.
     To the north, another locked door leads to the Freezer.
-    To the <<hyperDir('east')>>, a doorway leads to the Reservoir
+    To the <<hyperDir('east')>> is the Reservoir
     Control Room. "
 
     north = northReservoirCorridorExit
@@ -185,7 +185,10 @@ southReservoirCorridorEntry: MaintenanceDoor { 'the reservoir access south door'
 reservoirControlSightLine: WindowRegion;
 
 reservoirControlRoom: Room { 'The Reservoir Control Room'
-    "TODO: Add description. "
+    "The Control Room boast the latest in humidity-resistant computer systems.
+    A doorway to the <<hyperDir('east')>> (beside a window) provides access to the Reservoir's
+    observation catwalk, while a way to the <<hyperDir('west')>> goes back to
+    the Corridor. "
 
     east = reservoirDoorwayOut
     west = reservoirCorridor
@@ -216,36 +219,40 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     familiar = roomsFamiliarByDefault
 }
 
++Unthing { 'engineer;;engineers'
+    'The engineers are long-dead, and were like eaten ages ago. '
+}
+
++Decoration { 'controls;computer;systems displays computers insulation'
+    "Well-insulated controls and displays allow engineers to monitor the Reservoir. "
+}
+
 +reservoirDoorwayOut: Passage { 'the access doorway;;door'
-    "TODO: Add description. "
+    "A simple, metal doorway, leading <<hyperDir('out')>> to the catwalk. "
     destination = reservoir
 }
 
 DefineWindowPair(reservoirControlRoom, reservoir)
     vocab = 'observation window;reinforced monitoring control room[weak] reactor[weak] reservoir glass;glass pane'
-    desc = "TODO: Add description. "
+    desc = "Something prevents the window from being obscured by steam and humidity,
+    but the method isn't visible. "
     breakMsg = 'The window is reinforced,
         and designed to resist creatures{dummy} like {me}. '
     remoteHeader = 'through the window'
 ;
 
-/*
- * UPPER:
- * Reactor water sprays into from the south as steam, cools,
- * and hot air is pulled into a large ceiling fan. A condenser
- * feed acts as a secondary waterfall from the east. The upper
- * half is much like a sauna.
- * 
- * LOWER:
- * Cooler water condenses and collects at the bottom. This
- * reservoir also acts as an overflow containment system. The
- * water here is "cooler", but it's still quite hot (just not
- * harmful).
- */
-
-//TODO: Add ambient stuff for all the water going everywhere
 reservoir: Room { 'The Reactor Reservoir'
-    "TODO: Add description. "
+    "Gargantuan sprays of steaming water fire from outlets in the wall.
+    However, they fail to meet the north wall before impacting the water
+    below. The sheer scale of the Reservoir could fit the entire core group
+    of facility rooms, and still have room for more.\b
+    To the north, a giant section of wall acts as a region of perpetual rainfall,
+    seemingly forming from nothing. The air is saturated with humidity and moisture,
+    and plenty of droplets{dummy} pelt {me} from all the sprays.\b
+    The sheer height of the Reservoir makes all depth perceptions of the eye fail
+    spectacularly. An unbelievably-massive ceiling fan{dummy} works industriously above {me}.\b
+    All of this, to act as an incredible heat exchanger for the facility's
+    reactor, without ever interfacing with the outside world. "
 
     west = reservoirDoorwayIn
     down = diveIntoWaterConnector
@@ -258,7 +265,8 @@ reservoir: Room { 'The Reactor Reservoir'
     moistureFactor = 1
 
     descFrom(pov) {
-        "TODO: Add remote description. ";
+        "Of what's visible, most of it is great sprays of water.
+        It might be worth seeing in person! ";
     }
 
     getSpecialPeekDirectionTarget(dirObj) {
@@ -412,12 +420,14 @@ reservoir: Room { 'The Reactor Reservoir'
 }
 
 +reservoirDoorwayIn: Passage { 'the control room doorway;;door'
-    "TODO: Add description. "
+    "A metal doorway, leading <<hyperDir('in')>> to the Control Room. "
     destination = reservoirControlRoom
 }
 
 +reservoirWaterFromAbove: Decoration { 'the water;;reservoir pit below down'
-    "TODO: Add description.<<revealSkashekFishing()>> "
+    "The water below seems deep to be knee-deep, though it's really
+    hard to tell from way up here. It seems to flow out,
+    though, probably through an unseen drainage tunnel.<<revealSkashekFishing()>> "
 
     decorationActions = [
         Examine, Search, SearchClose, SearchDistant, PeekInto, PeekThrough,
@@ -466,6 +476,20 @@ reservoir: Room { 'The Reactor Reservoir'
     mutated subspecies of kelp...? "
     ambiguouslyPlural = true
     notImportantMsg = '{The subj cobj} {is} too far away. '
+}
+
++Decoration { 'waterfall;;rainfall condenser'
+    "The condenser along the north wall acts as some strange hybrid
+    of a waterfall and localized rainfall. "
+    notImportantMsg = '{The subj cobj} {is} too far away. '
+}
+
++Decoration { 'spray;;outlet outlets sprays'
+    "The outlets could fit a car, and the force and volume of piping-hot
+    water spraying out could probably be misunderstood as some kind of
+    weapon or demolition method. However, across the great expanse of
+    the Reservoir, the spray turns to mist, and feeds into to rainfall
+    by the north wall. "
 }
 
 skashekFishing: Decoration {
@@ -539,7 +563,9 @@ skashekFishing: Decoration {
 }
 
 reservoirCeilingFan: Ceiling { 'large ceiling[n] fan'
-    "TODO: Add description."
+    "The colossal ceiling fan has blades as wide as Lab A, and as
+    long as the Storage Bay and Hangar, <i>combined</i>, and they move with
+    the unimaginable force of a god. "
 }
 
 humidAtmosphere: Atmosphere { 'air;humid moist wet;mist fog steam humidity moisture atmosphere breeze wind'
@@ -549,7 +575,8 @@ humidAtmosphere: Atmosphere { 'air;humid moist wet;mist fog steam humidity moist
 }
 
 reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
-    "TODO: Add description. "
+    "A reinforced, grated, metal catwalk allows
+    for safe observation of the Reservoir. "
 
     dobjFor(PeekAround) asDobjFor(LookUnder)
     dobjFor(LookUnder) {
@@ -561,9 +588,11 @@ reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
     }
 }
 
-//TODO: Sounds of rushing water
-reservoirStrainer: Room { 'The Strainer Stage'
-    "TODO: Add description. "
+reservoirStrainer: Room {
+    vocab = 'The Strainer[weak] Stage;;tunnel'
+    roomTitle = 'The Strainer Stage'
+    desc = "The concrete tunnel end here, at a massive grate. Water flows through
+    in a current, which borders on hazardous. "
 
     north = "Swimming against the current would only dead-end{dummy}
         {me} in the reservoir. "
@@ -571,6 +600,25 @@ reservoirStrainer: Room { 'The Strainer Stage'
 
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
+
+    roomDaemon() {
+        checkRoomDaemonTurns;
+        "<<one of
+        >>The current rushes <<one of>>past<<or>><<one of>>by<<or>>under<<or>>past<<at random>> me<<or>>noisily by<<at random>>.<<
+        or>>The echoey tunnel is full of noise from the rushing waters.<<at random>> ";
+        inherited();
+    }
+}
+
++Decoration { 'water;;current'
+    "The water here is actually quite chilly, and flows past with an uneasy amount of force. "
+}
+
++Decoration { 'strainer;;grate'
+    "The metal strainer is littered in bits of pale kelp from the Reservoir floor. "
+}
+++Decoration { 'pale kelp'
+    "Pale kelp from the Reservoir. It probably tastes horrific. "
 }
 
 DefineDoorWestTo(lifeSupportBottom, reservoirStrainer, 'the Reservoir Access door')

@@ -765,7 +765,11 @@ class MapModeRoom: Room {
         inherited(traveler, origin);
     }
 
-    evaluateTrapsAndTracks(actor) {
+    evaluateTraps(actor) {
+        // Do not handle traps and tracks for map mode
+    }
+
+    evaluateTracks(actor) {
         // Do not handle traps and tracks for map mode
     }
 }

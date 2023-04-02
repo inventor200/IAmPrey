@@ -318,27 +318,13 @@ deliveryRoom: Room { 'The Delivery Room'
     }
 }
 
-+Chair { 'stool;;chair seat'
-    "A simple stool. "
++Stool {
     homeDesc = "The stool sits in front of the makeup vanity,
         giving a nice viewing angle to the mirror. "
-    backHomeMsg =
-        '{I} {put} {the dobj} back in front of the makeup vanity, where it belongs. '
+    homePhrase = 'in front of the makeup vanity'
 }
 
-+dresser: Fixture { 'wardrobe closet;;dresser'
-    "A metal locker, which has been converted to store a selection of clothes. "
-    betterStorageHeader
-
-    remapIn: SubComponent {
-        isOpenable = nil
-        isEnterable = true
-        isHidingSpot = true
-    }
-    remapOn: SubComponent {
-        isBoardable = true
-    }
-}
++dresser: Wardrobe;
 ++AwkwardFloorHeight;
 
 +makeupVanity: FixedPlatform { 'makeup vanity;;table'

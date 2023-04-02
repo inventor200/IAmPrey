@@ -7,7 +7,7 @@ utilityPassage: Room { 'The Utility Corridor'
     northeast = northUtilityPassageExit
     south = southUtilityPassageExit
 
-    northwestMuffle = enrichmentRoom
+    northwestMuffle = classroom
     southeastMuffle = breakroom
     westMuffle = cloneQuarters
 

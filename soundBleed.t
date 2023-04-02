@@ -88,7 +88,18 @@ soundBleedCore: object {
     }
 
     doPropagationForPlayer(soundProfile, startRoom) {
+        if (startRoom == nil) {
+            // Sounds do not travel in a void.
+            return;
+        }
         goalRoom = gPlayerChar.getOutermostRoom();
+        // Putting this here, because some calls are trying
+        // to start somewhere other than a room:
+        startRoom = startRoom.getOutermostRoom();
+        if (startRoom == nil) {
+            "<.p>What the fuck?<.p>";
+            return;
+        }
         // If the sound comes from the same room that the player is in,
         // then we should have provided this sound directly by now.
         if (startRoom == gPlayerChar.getOutermostRoom()) return;
@@ -103,6 +114,10 @@ soundBleedCore: object {
     }
 
     doPropagationForSkashek(soundProfile, startRoom) {
+        if (startRoom == nil) {
+            // Sounds do not travel in a void.
+            return;
+        }
         goalRoom = skashek.getOutermostRoom();
         soundStartRoom = startRoom;
         propagateRoomForSkashek(startRoom, soundProfile, soundProfile.strength, nil);

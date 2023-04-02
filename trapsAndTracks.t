@@ -9,11 +9,13 @@ modify TravelConnector {
     }
 
     execTravel(actor, traveler, conn) {
-        evaluateTrapsAndTracks(actor);
+        if (evaluateTraps(actor)) {
+            evaluateTracks(actor);
+        }
         inherited(actor, traveler, conn);
     }
 
-    evaluateTrapsAndTracks(actor) {
+    evaluateTraps(actor) {
         if (!skashekAIControls.isNoTargetMode) {
             if (actor == gPlayerChar && isTrapped) {
                 if (actor.getOutermostRoom() == skashek.getOutermostRoom()) {
@@ -22,9 +24,13 @@ modify TravelConnector {
                 else {
                     actor.springExteriorTrap();
                 }
-                return;
+                return nil;
             }
         }
+        return true;
+    }
+
+    evaluateTracks(actor) {
         if (actor == gPlayerChar) {
             if (skashek.canSee(actor)) {
                 skashek.informLikelyDestination(mostLikelyDestination());
@@ -57,7 +63,9 @@ modify Door {
     }
 
     execTravel(actor, traveler, conn) {
-        evaluateTrapsAndTracks(actor);
+        if (evaluateTraps(actor)) {
+            evaluateTracks(actor);
+        }
         setPlayerTrap(nil);
         local oldRoom = actor.getOutermostRoom();
         local slamsLeft = huntCore.pollTrickNumber(&closeDoorCount);
@@ -126,14 +134,15 @@ modify Room {
     }
 
     execTravel(actor, traveler, conn) {
-        evaluateTrapsAndTracks(actor);
+        evaluateTracks(actor);
         inherited(actor, traveler, conn);
+    }
+
+    travelerEntering(traveler, origin) {
+        // This mechanic is only here for Prey, anyway.
+        if (prey.isOrIsIn(traveler)) {
+            evaluateTraps(prey);
+        }
+        inherited(traveler, origin);
     }
 }
-
-/*modify LocalClimbPlatform {
-    execTravel(actor, traveler, conn) {
-        evaluateTrapsAndTracks(actor);
-        inherited(actor, traveler, conn);
-    }
-}*/
