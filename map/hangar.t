@@ -124,6 +124,30 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     mapModeDirections = [&east, &west]
     familiar = roomsFamiliarByDefault
+
+    hasAllSuitParts = nil
+    suitReportMsg = ''
+
+    travelerEntering(traveler, origin) {
+        inherited(traveler, origin);
+        hasAllSuitParts = allPartsInInventory();
+        local strBfr = new StringBuffer(32);
+        strBfr.append(
+            '{I} need all seven pieces of the
+            envirosuit in {my} inventory, before
+            {i} can leave!\b'
+        );
+        suitReportMsg = '{I} need all seven pieces of the
+            envirosuit in {my} inventory, before
+            {i} can leave!\b' + suitTracker.getProgressLists() + '<.p>';
+    }
+
+    allPartsInInventory() {
+        for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+            if (!suitTracker.missingPieces[i].isIn(gPlayerChar)) return nil;
+        }
+        return true;
+    }
 }
 
 +airlockInsideExit: PrefabDoor { 'the inner exit door'
@@ -146,7 +170,10 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     dobjFor(Open) {
         verify() {
-            // TODO: Check for suit pieces.
+            if (!emergencyAirlock.hasAllSuitParts) {
+                illogical(emergencyAirlock.suitReportMsg);
+                return;
+            }
             logical;
         }
         action() {

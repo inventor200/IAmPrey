@@ -8,7 +8,7 @@
 -FL /usr/local/share/frobtads/tads3/lib
 -we
 -v
--d
+## -d
 
 ##sources
 -lib system

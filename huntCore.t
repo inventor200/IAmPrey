@@ -148,13 +148,13 @@ huntCore: InitObject {
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
 
-    helmetLocations = static [
+    helmetLocations = [
         breakroomTable,
         evaluationRoom,
         labBTable
     ]
 
-    gearLocations = static [
+    gearLocations = [
         northeastCubicleFilingCabinet.topDrawer,
         northeastCubicleFilingCabinet.middleDrawer,
         northeastCubicleFilingCabinet.bottomDrawer,
@@ -196,14 +196,14 @@ huntCore: InitObject {
     diveOffReservoirCount = nil
     distractingSinkCount = nil
 
-    difficultySettings = static [
+    difficultySettings = static new Vector([
         basicTutorialSetting,
         preyTutorialSetting,
         easyModeSetting,
         mediumModeSetting,
         hardModeSetting,
         nightmareModeSetting
-    ]
+    ])
 
     difficulty = mediumMode
     difficultySettingObj = mediumModeSetting
@@ -255,13 +255,11 @@ huntCore: InitObject {
         sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
         if (!midGame) {
             skashek.initSeed();
+            if (!gCatMode) scatterPieces();
             freeTurnAlertsRemaining =
                 difficultySettingObj.startingFreeTurnAlerts;
             skashekAIControls.currentState = getStartingAIState();
             skashekAIControls.currentState.needsGameStartSetup = true;
-            #ifdef __DEBUG
-            skashekAIControls.currentState.setupForTesting();
-            #endif
             skashekAIControls.currentState.activate();
         }
 
@@ -317,6 +315,38 @@ huntCore: InitObject {
         }
         if (self.(actualTrickProp) == 1) return oneTrickRemaining;
         return plentyOfTricksRemaining;
+    }
+
+    scatterPieces() {
+        local smallPlaces = new Vector(gearLocations.length);
+        local largePlaces = new Vector(gearLocations.length);
+        for (local i = 1; i <= gearLocations.length; i++) {
+            local container = gearLocations[i];
+            if (container.maxSingleBulk <= 1) {
+                smallPlaces.append(container);
+            }
+            else if (container.maxSingleBulk > 1) {
+                largePlaces.append(container);
+            }
+        }
+
+        #ifdef __DEBUG
+        "<.p>DISTRIBUTION:";
+        #endif
+
+        for (local i = 2; i <= suitTracker.missingPieces.length; i++) {
+            local piece = suitTracker.missingPieces[i];
+            local scatterVec = smallPlaces;
+            if (piece.bulk > 1) scatterVec = largePlaces;
+            local index = skashek.getRandomResult(scatterVec.length);
+            piece.moveInto(scatterVec[index]);
+            #ifdef __DEBUG
+            "\n<<piece.theName>> goes into\n
+            \t<<scatterVec[index].theName>>!\n
+            \t(in <<scatterVec[index].getOutermostRoom().theName>>)";
+            #endif
+            scatterVec.removeElementAt(index);
+        }
     }
 
     freeTurnAlertsRemaining = 2

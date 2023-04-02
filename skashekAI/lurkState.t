@@ -95,10 +95,8 @@ skashekLurkState: SkashekAIState {
     }
 
     start(prevState) {
-        #ifdef __DEBUG
         #if __SKASHEK_ALLOW_TESTING_LURK
         setupForTesting();
-        #endif
         #endif
         inspectionTurns = 0;
         creepTurns = 0;

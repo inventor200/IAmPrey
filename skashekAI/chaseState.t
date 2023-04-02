@@ -20,10 +20,8 @@ skashekChaseState: SkashekAIState {
     //interceptLungeAvailable = nil
 
     start(prevState) {
-        #ifdef __DEBUG
         #if __SKASHEK_ALLOW_TESTING_CHASE
         setupForTesting();
-        #endif
         #endif
         resetShortStreak = nil;
         incrementShortStreak = nil;

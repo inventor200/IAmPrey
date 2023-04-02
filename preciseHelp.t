@@ -262,9 +262,9 @@ modify Instructions {
 modify helpMessage {
     showHowToWinAndProgress() {
         if (gCatMode) return;
-        //TODO: Show progress
         "<b>Find all seven pieces of the environment suit, and escape through the
-        emergency airlock to win!</b>";
+        emergency airlock to win!</b>\b
+        <<suitTracker.getProgressLists()>>";
     }
 
     showHeader() {
@@ -321,9 +321,9 @@ modify helpMessage {
         "\b\t<b>NOTE FROM THE AUTHOR:</b>\b
         Hello!\n
         This is a BETA BUILD of <i>I Am Prey</i>, and I was under a considerable
-        time crunch, I appreciate your understanding and patience!\b
+        time crunch, so I appreciate your understanding and patience!\b
         Unfortunately, I could not get the in-game tutorial materials added in
-        time! :(\b
+        time!\b
         In the meantime, please refer to the <i>How To Play I Am Prey</i>
         document, which should have been packaged with this release! ";
     }
