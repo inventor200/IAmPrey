@@ -47,10 +47,13 @@ prologueCore: InitObject {
         #endif
         "\b<b>Note for new and experienced players:</b>\n
         This will not be a standard parser game. Players of <b>all skill levels</b>
-        should consult the HELP command, or refer to the <i>How to Play</i>
-        guide (which should have come with this game).\b
+        should consult the <<helpDocTitle>>
+        (which should have come with this game).\b
         There are a number of game mechanics ahead, but
-        they were not designed with the traditions of this medium in mind. ";
+        they were not designed with the traditions of this medium in mind.\b
+        This game is a BETA build, so the in-game help menu has not been
+        implemented. In the post-comp release, the in-game help will have the
+        same content as the survival guide.  ";
         inputManager.pauseForMore();
         "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
@@ -81,12 +84,12 @@ prologueCore: InitObject {
 
     play() {
         #if __SHOW_PROLOGUE
-        "\b\b\b<i>Use the</i> <<gDirectCmdStr('help')>> <i>command,
+        /*"\b\b\b<i>Use the</i> <<gDirectCmdStr('help')>> <i>command,
         if you would like written tutorials or other info resources.\b
         You can also use the</i> <<gDirectCmdStr('verbs')>> <i>command,
         which will provide a reference for all actions and commands that are
         useful throughout this game!</i>
-        \b\b\b";
+        \b\b\b";*/
         #endif
         "<center><small>WELCOME TO...</small>\b
         <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\n

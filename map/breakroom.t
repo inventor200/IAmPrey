@@ -18,11 +18,11 @@ breakroom: Room {
 }
 +breakRoomFridge: Fridge;
 ++AwkwardFloorHeight;
-+CounterTop;
++breakroomCounter: CounterTop;
 +StorageLocker;
 ++AwkwardFloorHeight;
 ++JumpOverLink -> breakRoomFridge;
-++JumpOverLink -> CounterTop;
+++JumpOverLink -> breakroomCounter;
 +Chair
     homeDesc = "The chair sits <<homePhrase>>. "
     homePhrase = 'between the counter and the table'

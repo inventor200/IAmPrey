@@ -934,10 +934,16 @@ modify Door {
         clearFuse(&closingFuse);
         if (canPlayerSense()) {
             wasPlayerExpectingAClose = true;
+            if (otherSide != nil) {
+                otherSide.wasPlayerExpectingAClose = true;
+            }
             clearFuse(&playerCloseExpectationFuse);
         }
         if (canEitherBeSeenBy(skashek)) {
             wasSkashekExpectingAClose = true;
+            if (otherSide != nil) {
+                otherSide.wasSkashekExpectingAClose = true;
+            }
             clearFuse(&skashekCloseExpectationFuse);
         }
     }
@@ -1000,10 +1006,16 @@ modify Door {
             emitNormalClosingSound();
         }
         wasPlayerExpectingAClose = nil;
+        if (otherSide != nil) {
+            otherSide.wasPlayerExpectingAClose = nil;
+        }
         if (!wasSkashekExpectingAClose) {
             makeSkashekSuspicious();
         }
         wasSkashekExpectingAClose = nil;
+        if (otherSide != nil) {
+            otherSide.wasSkashekExpectingAClose = nil;
+        }
     }
 
     normalClosingMsg =
@@ -1035,7 +1047,7 @@ modify Door {
     
     suspicionMsgQuestionGrp1 = '{was} {i}
         <<one of>><<suspicionMsgAlt1>><<or>><<suspicionMsgAlt2>>
-        that<<at random>>'
+        did that<<at random>>'
     
     suspicionMsgQuestionGrp2 = 'was that
         <<one of>><i>{my}</i> door<<or>>one of <i>{my}</i>
@@ -1255,7 +1267,13 @@ modify Door {
         if (airlockDoor) {
             // Only the player slams airlock doors
             wasPlayerExpectingAClose = true;
+            if (otherSide != nil) {
+                otherSide.wasPlayerExpectingAClose = nil;
+            }
             wasSkashekExpectingAClose = nil;
+            if (otherSide != nil) {
+                otherSide.wasSkashekExpectingAClose = nil;
+            }
         }
         checkClosingExpectations();
         makeOpen(nil);
@@ -1361,19 +1379,29 @@ modify Door {
             inherited();
         }
         action() {
-            if (gActorIsPrey) skashek.highlightDoorChange(self);
             local qualifies = qualifiesForCloseTrick();
             if (canSlamMe || qualifies) {
                 if (gActorIsPrey) {
                     wasPlayerExpectingAClose = true;
+                    if (otherSide != nil) {
+                        otherSide.wasPlayerExpectingAClose = true;
+                    }
                 }
                 else {
                     wasSkashekExpectingAClose = true;
+                    if (otherSide != nil) {
+                        otherSide.wasSkashekExpectingAClose = true;
+                    }
                 }
                 slam();
                 if (qualifies) {
                     //huntCore.spendTrick(&closeDoorCount);
                     spendCloseTrick();
+                }
+                else if (gActorIsPrey) {
+                    // This is skipped if door is slammed in face,
+                    // because that's not worth a comment.
+                    skashek.highlightDoorChange(self);
                 }
             }
             else {
@@ -1787,7 +1815,7 @@ modify Room {
                 makeListStr(openExpectedDoors, &getScanName, 'and')>>
                 <<if openExpectedDoors.length > 1>>are<<else>>is<<end>>
                 currently open, but {i}
-                <<one of>>probably knew<<or>>already knew<<or>>were expecting<<at random>>
+                <<one of>>probably knew<<or>>already knew<<or>>{was} expecting<<at random>>
                 that. ";
             }
             else {

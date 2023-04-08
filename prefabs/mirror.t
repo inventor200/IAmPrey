@@ -46,7 +46,7 @@ class SmashedMirror: Mirror {
 }
 
 mirrorShards: MultiLoc, Decoration {
-    vocab = 'shard;partial shattered sharp piece[n] of[prep] mirror[weak];shard chunk'
+    vocab = 'shard;partial shattered sharp piece[n] of[prep] mirror[weak] glass;shard chunk glass'
     desc = "A jagged piece of the smashed mirror, still attached to the frame. "
     ambiguouslyPlural = true
 
@@ -106,7 +106,7 @@ mirrorShards: MultiLoc, Decoration {
     }
 }
 
-mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[weak];shard chunk'
+mirrorShard: Thing { 'shard;partial shattered sharp piece[n] of[prep] mirror[weak] glass;shard chunk glass'
     "A jagged, reflective piece of a smashed mirror. Mind the sharp edges. "
 
     gaveWarning = nil

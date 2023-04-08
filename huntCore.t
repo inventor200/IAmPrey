@@ -8,8 +8,12 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 
 #ifdef __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS true
+#define __DEBUG_SUIT nil
+#define __DEBUG_SUIT_PLACEMENT nil
 #else
 #define __DEBUG_SKASHEK_ACTIONS nil
+#define __DEBUG_SUIT nil
+#define __DEBUG_SUIT_PLACEMENT nil
 #endif
 
 class DifficultySetting: object {
@@ -149,8 +153,8 @@ huntCore: InitObject {
     wasBathTimeAnnounced = nil
 
     helmetLocations = [
-        breakroomTable,
         evaluationRoom,
+        breakroomTable,
         labBTable
     ]
 
@@ -171,14 +175,14 @@ huntCore: InitObject {
         armoryCabinet.topDrawer,
         armoryCabinet.middleDrawer,
         armoryCabinet.bottomDrawer,
-        breakRoomFridge.remapIn,
+        //breakRoomFridge.remapIn,
         snackFridge.remapIn,
         classroomShelves,
         directorCabinet.topDrawer,
         directorCabinet.middleDrawer,
         directorCabinet.bottomDrawer,
         cloneStorageChest.remapIn,
-        evaluationShelves,
+        //evaluationShelves,
         walkInFridge,
         labAShelves,
         libraryCabinet.topDrawer,
@@ -255,7 +259,11 @@ huntCore: InitObject {
         sneakyCore.sneakSafetyOn = difficultySettingObj.hasSneak;
         if (!midGame) {
             skashek.initSeed();
+            #if __DEBUG_SUIT
+            //
+            #else
             if (!gCatMode) scatterPieces();
+            #endif
             freeTurnAlertsRemaining =
                 difficultySettingObj.startingFreeTurnAlerts;
             skashekAIControls.currentState = getStartingAIState();
@@ -330,17 +338,59 @@ huntCore: InitObject {
             }
         }
 
-        #ifdef __DEBUG
+        #if __DEBUG_SUIT_PLACEMENT
         "<.p>DISTRIBUTION:";
+        #endif
+
+        // Move helmet
+        local realInEvalRoom = skashek.getRandomResult(8) == 1;
+        local decider = skashek.getRandomResult(16) <= 8;
+        local mainRoom = nil;
+        local otherRooms = nil;
+        if (realInEvalRoom) {
+            mainRoom = helmetLocations[1];
+            otherRooms = [
+                helmetLocations[2],
+                helmetLocations[3]
+            ];
+        }
+        else if (decider) {
+            mainRoom = helmetLocations[2];
+            otherRooms = [
+                helmetLocations[1],
+                helmetLocations[3]
+            ];
+        }
+        else {
+            mainRoom = helmetLocations[3];
+            otherRooms = [
+                helmetLocations[1],
+                helmetLocations[2]
+            ];
+        }
+
+        local index = skashek.getRandomResult(helmetLocations.length);
+        enviroHelmet.moveInto(mainRoom);
+        decider = skashek.getRandomResult(16) <= 8;
+        local deciderIndex = decider ? 1 : 2;
+        local fakeRoom = otherRooms[deciderIndex];
+        fakeHelmet.moveInto(fakeRoom);
+        #if __DEBUG_SUIT_PLACEMENT
+        "\nreal helmet goes into\n
+        \t<<mainRoom.theName>>!\n
+        \t(in <<mainRoom.getOutermostRoom().roomTitle>>)
+        \nfake helmet goes into\n
+        \t<<fakeRoom.theName>>!\n
+        \t(in <<fakeRoom.getOutermostRoom().roomTitle>>)";
         #endif
 
         for (local i = 2; i <= suitTracker.missingPieces.length; i++) {
             local piece = suitTracker.missingPieces[i];
             local scatterVec = smallPlaces;
             if (piece.bulk > 1) scatterVec = largePlaces;
-            local index = skashek.getRandomResult(scatterVec.length);
+            index = skashek.getRandomResult(scatterVec.length);
             piece.moveInto(scatterVec[index]);
-            #ifdef __DEBUG
+            #if __DEBUG_SUIT_PLACEMENT
             "\n<<piece.theName>> goes into\n
             \t<<scatterVec[index].theName>>!\n
             \t(in <<scatterVec[index].getOutermostRoom().theName>>)";

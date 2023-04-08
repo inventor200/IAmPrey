@@ -1,6 +1,8 @@
 class Chair: HomeHaver, Platform {
     vocab = 'chair;;stool seat'
-    basicDesc = "A simply chair. It rests <<homePhrase>>. "
+    simplestDescMsg = 'A simple chair. '
+    homeDesc = "<<simplestDescMsg>>It rests <<homePhrase>>. "
+    basicDesc = "<<simplestDescMsg>>"
     bulk = 2
     canSitOnMe = true
     homePhrase = 'on the floor'
@@ -12,15 +14,17 @@ class Chair: HomeHaver, Platform {
 
 class Stool: Chair {
     vocab = 'stool;;chair seat'
-    basicDesc = "A simply stool. It rests <<homePhrase>>. "
+    simplestDescMsg = 'A simple stool. '
 }
 
-class PluralChair: Chair {
+class PluralChair: Platform {
     vocab = 'chairs;one[weak] of[prep];stools seats chair stool seat'
     theName = 'one of the chairs'
     desc = "A collection of chairs, each made to factory standard. "
     plural = true
     isTakeable = nil
+    bulk = 2
+    canSitOnMe = true
 
     cannotTakeMsg = 'There are too many to choose, and {i} cannot take them all. '
 }

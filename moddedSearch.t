@@ -450,7 +450,7 @@ modify Thing {
             doNested(SearchDistant, remapTarg);
         }
         else {
-            if (gActor.canReach(remapIn)) {
+            if (gActor.canReach(remapTarg)) {
                 doNested(LookIn, remapTarg);
             }
             else {

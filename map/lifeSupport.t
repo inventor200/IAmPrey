@@ -1,4 +1,4 @@
-coolingDuctSightLine: HallRegion;
+//coolingDuctSightLine: HallRegion;
 
 fakeDuctCeiling: Ceiling { 'ceiling;top;top[weak] end airflow'
     "The cooling duct is a wide, vertical drop. Cold air is pumped in from
@@ -49,15 +49,15 @@ fakeDuctFloor: Floor { 'space[n] below;bottom;ground bottom[weak] end drop curve
     fans are probably that way. "
 }
 
-class CoolingDuctSegment: HallwaySegment {
-    desc = "<<if lookAroundArmed
+class CoolingDuctSegment: Room {
+    desc = "<<first time
         >>{I} <<one of>><<one of>>hold onto<<or>>grip<<at random>><<or
         >><<one of>>hold<<or>>press<<or>>push<<at random>>
-        {myself} against<<at random>> <<insidesDesc>>.
+        {myself} against<<at random>> <<insidesDesc>>.<<only>>
         <<if coolingDuctLowerOuterDoor.isOpen
         >>Light spills in from the open access door at the bottom,<<else
         >>Minimal hints of light bounce from the server room above,<<end>>
-        giving {my} night vision enough to see.<<end>> "
+        giving {my} night vision enough to see. "
     nameHeader = 'Inside Cooling Duct'
 
     wallsDesc =
@@ -67,8 +67,8 @@ class CoolingDuctSegment: HallwaySegment {
         >><<freezer.coldAluminum>><<at random>>
         <<wallsDesc>><<one of>> of the duct<<or>><<at random>>'
 
-    regions = [coolingDuctSightLine]
-    lookAroundRegion = coolingDuctSightLine
+    //regions = [coolingDuctSightLine]
+    //lookAroundRegion = coolingDuctSightLine
 
     ceilingObj = fakeDuctCeiling
     wallsObj = coolingDuctWalls
@@ -206,7 +206,8 @@ ambientLifeSupportNoiseRunner: InitObject {
 lifeSupportMachines: MultiLoc, Thing { 'machines;;machinery pipes tubes fans'
     "Pipes, tubes, and machines fill the room with activity. Some even
     span the top and bottom floors of Life Support. "
-
+    isFixed = true
+    isDecoration = true
     plural = true
 
     locationList = [lifeSupportTop, lifeSupportBottom]
@@ -298,6 +299,8 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
 
     noDoorHereMsg = 'This segment of the duct has no access door. '
 
+    specialDesc = "A large cooling duct runs vertically, along the south wall. "
+
     remappingLookIn = true
     remappingSearch = true
 
@@ -362,6 +365,8 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
 
 +coolingDuctLowerSegment: Decoration { 'cooling duct'
     desc = coolingDuctMiddleSegment.desc
+
+    specialDesc = coolingDuctMiddleSegment.specialDesc
 
     remappingLookIn = true
 
@@ -434,7 +439,7 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
     down = insideCoolingDuctLower
     out = coolingDuctUpperInnerGrate
 
-    regions = [coolingDuctSightLine]
+    //regions = [coolingDuctSightLine]
 
     inRoomName(pov) {
         return 'in the upper segment';

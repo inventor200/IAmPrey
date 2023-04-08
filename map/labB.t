@@ -24,6 +24,12 @@ labB: Room { 'Lab B'
 ++Decoration { 'microphone;mic;mic stand'
     "A small microphone on a stand. "
 }
+#ifdef __DEBUG
+++Thing { 'testing object'
+    "A test object. "
+    bulk = 2
+}
+#endif
 +Whiteboard {
     hasWriting = true
     writtenDesc() {

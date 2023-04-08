@@ -135,6 +135,10 @@ skashekChaseState: SkashekAIState {
 
         if (stunTurns > 0) {
             stunTurns--;
+            if (stunTurns == 0 && !skashek.canSee(skashek.getPracticalPlayer())) {
+                cursePrey();
+                doLurkFallback();
+            }
             resetShortStreak = true;
             decrementLongStreak = true;
             return;
@@ -173,17 +177,21 @@ skashekChaseState: SkashekAIState {
         if (route == nil) {
             routeFailed = true;
             fallbackToLurk = true;
+            #if __DEBUG_SKASHEK_ACTIONS
             "<.p>
             CHASE: Lunge failed!\n
             \tNil route!
             <.p>";
+            #endif
         }
         else if (route.length == 1) {
             routeFailed = true;
+            #if __DEBUG_SKASHEK_ACTIONS
             "<.p>
             CHASE: Lunge failed!\n
             \tNo route!
             <.p>";
+            #endif
         }
 
         // A length of 2 triggers the lunge
@@ -191,26 +199,32 @@ skashekChaseState: SkashekAIState {
 
         if (routeLen == 1) {
             routeFailed = true;
+            #if __DEBUG_SKASHEK_ACTIONS
             "<.p>
             CHASE: Lunge failed!\n
             \tToo short!
             <.p>";
+            #endif
         }
 
+        #if __DEBUG_SKASHEK_ACTIONS
         if (routeLen == 3) {
             "<.p>
             CHASE: Lunge paused!
             <.p>";
         }
+        #endif
 
         if (routeLen > 3) {
             routeFailed = true;
             fallbackToLurk = true;
+            #if __DEBUG_SKASHEK_ACTIONS
             "<.p>
             CHASE: Lunge failed!\n
             \tToo long!\n
             \tFalling back to lurk!
             <.p>";
+            #endif
         }
 
         local closedDoorCount = 0;
@@ -226,10 +240,12 @@ skashekChaseState: SkashekAIState {
                             // Locked doors are too much of a hassle.
                             routeFailed = true;
                             fallbackToLurk = true;
+                            #if __DEBUG_SKASHEK_ACTIONS
                             "<.p>
                             CHASE: Lunge failed!\n
                             \tClosed and locked door in the way!
                             <.p>";
+                            #endif
                             break;
                         }
                     }
@@ -241,10 +257,12 @@ skashekChaseState: SkashekAIState {
         if (closedDoorCount > 1) {
             routeFailed = true;
             fallbackToLurk = true;
+            #if __DEBUG_SKASHEK_ACTIONS
             "<.p>
             CHASE: Lunge failed!\n
             \tToo many closed doors! (<<closedDoorCount>>)
             <.p>";
+            #endif
         }
 
         if (routeFailed) {
@@ -363,10 +381,7 @@ skashekChaseState: SkashekAIState {
 
         if (fallbackToLurk) {
             fallbackToLurk = nil;
-            skashekLurkState.startRandom = nil;
-            skashekLurkState.goalRoom = lastKnownPlayerRoom;
-            skashekLurkState.activate();
-            skashekLurkState.addSpeedBoost(3);
+            doLurkFallback();
         }
     }
 
@@ -382,15 +397,21 @@ skashekChaseState: SkashekAIState {
     offSightAfter(ends) {
         if (!ends) return;
         if (stunTurns > 0) return;
+        cursePrey();
+    }
+
+    doLurkFallback() {
+        skashekLurkState.startRandom = nil;
+        skashekLurkState.goalRoom = lastKnownPlayerRoom;
+        skashekLurkState.activate();
+        skashekLurkState.addSpeedBoost(3);
+    }
+
+    cursePrey() {
+        local player = skashek.getPracticalPlayer();
+        //if (!player.canSee(skashek) && !player.canHear(skashek)) return;
         if (skashek.didAnnouncementDuringTurn) return;
-        skashek.prepareSpeech();
-        "<q><<one of
-        >>You won't get away <i>that</i> easy!<<or
-        >>It's a matter of time, Prey!<<or
-        >>You're a <i>difficult</i> one, huh?<<or
-        >>Don't think you've <i>escaped</i>, Prey!<<or
-        >>You don't make this easy, Prey!<<
-        at random>></q>
-        <<getPeekHe>> <<one of>>shouts<<or>>barks<<or>>yells<<at random>>. ";
+        skashek.reciteAnnouncement(cursingPlayerEscapeMessage);
+        skashek.performNextAnnouncement(skashek.canSee(player));
     }
 }

@@ -4,6 +4,7 @@
 
 #define gFormatForScreenReader gameMain.formatForScreenReader
 #define gDefaultPOV 1
+#define helpDocTitle '<i>Prey\'s Survival Guide</i>'
 
 #define gDirectCmdStr(command) \
     (gFormatForScreenReader ? \
@@ -23,13 +24,13 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM hangar
+/*-*/  #define __TEST_ROOM eastHall
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
-    #define __SKASHEK_FROZEN true
+    #define __SKASHEK_FROZEN nil
    #define __SKASHEK_TOOTHLESS nil
   #define __SKASHEK_IMMOBILE nil
- #define __SKASHEK_NO_TARGET true
+ #define __SKASHEK_NO_TARGET nil
 #define __SKASHEK_ALLOW_TESTING_LURK nil
 #define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
 #define __SKASHEK_ALLOW_TESTING_CHASE nil
@@ -114,7 +115,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9 BETA'
+    version = '0.9.1 BETA (Patch 1)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'
@@ -154,7 +155,7 @@ versionInfo: GameID {
         \t<i>Testing:</i>\n
         Mathbrush (<a href='https://ifdb.org/showuser?id=nufzrftl37o9rw5t'>Link to IFDB</a>)\n
         Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)\n
-        Piergiorgio d'errico\n
+        Piergiorgio d'Errico\n
         Pinkunz (<a href='https://ifdb.org/showuser?id=dqr2mj29irbx1qv4'>Link to IFDB</a>)\n
         Rovarsson";
     }

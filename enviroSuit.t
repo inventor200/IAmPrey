@@ -30,20 +30,28 @@ suitTracker: object {
 
     announcePieces() {
         if (discoveredPieces.length == 0) {
-            if (announceDaemon != nil) announceDaemon.removeEvent();
-            announceDaemon = nil;
+            clearAnnounceEvent();
             return;
         }
-        local strList = makeListStr(valToList(discoveredPieces), &theName, 'and');
+        local strList = 'the ' + makeListStr(valToList(discoveredPieces), &shortName, 'and');
         local numLeft = getNumberLeft();
         local toGoPhrase = 'That\'s all of them! {I} must enter the Emergency Airlock!!
             {I} cannot allow <<gSkashekName>> to stop me now! {My} victory is so close!\b
             <i>(Set your compass by typing in <<gDirectCmdStr('go to emergency airlock')>>,
             and find the next step in the route with the <<gDirectCmdStr('compass')>> command!)</i>';
         if (numLeft > 0) {
-            toGoPhrase = 'Only ' + spellNumber(7 - getCount()) + ' more envirosuit pieces to go!';
+            local pieceNoun = 'piece';
+            if (numLeft != 1) pieceNoun += 's';
+            toGoPhrase = 'Only ' + spellNumber(7 - getCount()) +
+                ' more envirosuit ' + pieceNoun + ' to go!';
         }
         say('<.p><b>{I} found ' + strList + '!</b>\b' + toGoPhrase + '<.p>');
+        clearAnnounceEvent();
+    }
+
+    clearAnnounceEvent() {
+        if (announceDaemon != nil) announceDaemon.removeEvent();
+        announceDaemon = nil;
     }
 
     getNumberLeft() {
@@ -105,13 +113,10 @@ class EnviroSuitPart: Wearable {
     piecesLabel = '<b>This is one of the pieces for the environment suit!</b>'
     dobjFor(Wear) {
         verify() {
-            if (gCatMode) {
-                illogical('What an ugly peasant piece! Absolutely <i>not!</i> ');
-                return;
-            }
             if (!gActor.isIn(emergencyAirlock)) {
                 illogical(
-                    '{I} do not need to wear the suit, as it would only slow me down.
+                    '{I} do not need to wear the suit right now,
+                    as it would only slow me down.
                     {I} just need to have all the pieces{dummy} in {my} inventory,
                     before heading into the Emergency Airlock. {I} can put the suit
                     pieces on <i>after</i> the inner Airlock door is shut! '
@@ -138,12 +143,72 @@ class EnviroSuitPart: Wearable {
         }
         return str + ')</b>';
     }
+
+    #if __DEBUG_SUIT
+    location = hangar
+    #endif
 }
 
 enviroHelmet: EnviroSuitPart { 'envirosuit helmet;enviro environment suit;visor piece part'
     "A sealed helmet with a transparent visor. <<piecesLabel>> "
     bulk = 2
     shortName = 'helmet'
+}
+
+fakeHelmet: Thing {
+    vocab = enviroHelmet.vocab
+    desc() {
+        if (isRevealedFake) {
+            "A <<paperMache>> version of the real envirosuit helmet.
+            This will <i>not</i> keep{dummy} {me} safe! ";
+        }
+        else {
+            enviroHelmet.desc();
+        }
+    }
+    bulk = 2
+    trueVocab = 'fake helmet;envirosuit enviro environment suit;visor piece part'
+    isRevealedFake = nil
+
+    paperMache = 'paper-m\u00E2ch\u00E9'
+
+    itsAFakeMsg =
+        '{I} realized the helmet is made of <<paperMache>>. It\'s a fake.
+        Truly, <<gSkashekName>>\'s tricks are more plentiful than {my} own. '
+
+    dobjFor(Wear) {
+        verify() {
+            if (isRevealedFake) {
+                illogical('{I} cannot wear this without damaging it.
+                    It\'s only made of <<paperMache>>. ');
+            }
+        }
+        check() { }
+        action() {
+            revealFake();
+        }
+        report() { }
+    }
+
+    dobjFor(Take) {
+        action() {
+            revealFake();
+            inherited();
+        }
+    }
+
+    dobjFor(TakeFrom) {
+        action() {
+            revealFake();
+            inherited();
+        }
+    }
+
+    revealFake() {
+        isRevealedFake = true;
+        replaceVocab(trueVocab);
+        say(itsAFakeMsg);
+    }
 }
 
 enviroTorso: EnviroSuitPart { 'envirosuit torso;enviro environment suit chest;chestpiece chestplate piece part top shirt'
@@ -161,7 +226,7 @@ enviroPants: EnviroSuitPart { 'envirosuit bottoms;enviro environment suit pair[n
     bulk = 2
     ambiguouslyPlural = true
     qualified = true
-    shortName = 'pants'
+    shortName = 'bottoms'
 }
 
 enviroLeftGlove: EnviroSuitPart { 'envirosuit left glove;enviro environment suit;mitten mit mitt piece part'

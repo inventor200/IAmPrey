@@ -2,7 +2,8 @@ class Bathroom: Room {
     desc = "The only light bounces around a privacy wall
     from the hallway, shrouding the room in near-darkness. However, the
     smell of industrial cleaning is in the air. <<gSkashekName>> has been busy.\b
-    A row of toilets on the west wall sit across the row of sinks on the east wall.
+    A row of toilets on the west wall sit across the row of sinks
+    and mirror on the east wall.
     On the <<showerWall>> wall is a cluster of communal showers. "
 
     atmosphereObj = bathroomAir
@@ -16,7 +17,7 @@ bathroomAir: Atmosphere {
 }
 
 northBathroom: Bathroom {
-    vocab = 'north end[weak] restroom;north-end;bathroom toilet lavatory'
+    vocab = 'north end[weak] restroom;north-end;bathroom lavatory'
     roomTitle = 'North-End Restroom'
 
     showerWall = 'north'
@@ -29,9 +30,10 @@ northBathroom: Bathroom {
 +northBathroomSink: PluralSink;
 +PluralShower;
 +PluralToilet;
++Mirror;
 
 southBathroom: Bathroom {
-    vocab = 'south end[weak] restroom;south-end;bathroom toilet lavatory'
+    vocab = 'south end[weak] restroom;south-end;bathroom lavatory'
     roomTitle = 'South-End Restroom'
 
     showerWall = 'south'
@@ -46,3 +48,4 @@ southBathroom: Bathroom {
 +southBathroomSink: PluralSink;
 +PluralShower;
 +PluralToilet;
++Mirror;

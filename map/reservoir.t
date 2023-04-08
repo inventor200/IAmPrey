@@ -185,7 +185,7 @@ southReservoirCorridorEntry: MaintenanceDoor { 'the reservoir access south door'
 reservoirControlSightLine: WindowRegion;
 
 reservoirControlRoom: Room { 'The Reservoir Control Room'
-    "The Control Room boast the latest in humidity-resistant computer systems.
+    "The Control Room boasts the latest in humidity-resistant computer systems.
     A doorway to the <<hyperDir('east')>> (beside a window) provides access to the Reservoir's
     observation catwalk, while a way to the <<hyperDir('west')>> goes back to
     the Corridor. "
@@ -242,7 +242,8 @@ DefineWindowPair(reservoirControlRoom, reservoir)
 ;
 
 reservoir: Room { 'The Reactor Reservoir'
-    "Gargantuan sprays of steaming water fire from outlets in the wall.
+    "{I} stand on a catwalk, which is all that{dummy} stops {me} from falling.
+    Gargantuan sprays of steaming water fire from outlets in the wall.
     However, they fail to meet the north wall before impacting the water
     below. The sheer scale of the Reservoir could fit the entire core group
     of facility rooms, and still have room for more.\b
@@ -425,9 +426,11 @@ reservoir: Room { 'The Reactor Reservoir'
 }
 
 +reservoirWaterFromAbove: Decoration { 'the water;;reservoir pit below down'
-    "The water below seems deep to be knee-deep, though it's really
-    hard to tell from way up here. It seems to flow out,
-    though, probably through an unseen drainage tunnel.<<revealSkashekFishing()>> "
+    "The water below seems deep to be <<if gCatMode>>knee-deep, though it's really
+    hard to tell from way up here<<else
+    >>quite deep, should {i} decide to dive<<end>>. It seems to flow out,
+    <<if !gCatMode>>though, <<end>>probably
+    through an unseen drainage tunnel.<<revealSkashekFishing()>> "
 
     decorationActions = [
         Examine, Search, SearchClose, SearchDistant, PeekInto, PeekThrough,

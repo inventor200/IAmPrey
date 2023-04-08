@@ -95,6 +95,41 @@ inspectingDeliveryRoomMessage: HidingParanoiaMessage {
     <<remark()>> "
 }
 
+// Skashek confirms the player is not in the delivery room
+cursingPlayerEscapeMessage: IntercomMessage {
+    remark =
+    "<<one of
+    >>You won't get away <i>that</i> easy!<<or
+    >>It's a matter of time, Prey!<<or
+    >>You're a <i>difficult</i> one, huh?<<or
+    >>Don't think you've <i>escaped</i>, Prey!<<or
+    >>You don't make this easy, Prey!<<
+    at random>>"
+
+    curseVerb =
+    "<<one of>>shouts<<or>>barks<<or>>yells<<at random>>"
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> <<curseVerb()>> can be heard over the intercom:\b
+    <q><<remark()>></q>"
+
+    inPersonAudioMsg =
+    "<<skashek.getPeekHis(true)>> <<curseVerb()>> can be heard in the room:\b
+    <q><<remark()>></q>"
+
+    inPersonFullMsg =
+    "<q><<remark()>></q> <<skashek.getPeekHe()>> <<curseVerb()>> angrily."
+    
+    inPersonStealthyMsg() {
+        inPersonFullMsg();
+    }
+
+    interruptedMsg =
+    "<q><<remark()>></q> <<skashek.getPeekHe()>> <<curseVerb()>> angrily,
+    until he{dummy} spots {me}.
+    <q>Oh. Nevermind, Prey! You didn't get far!</q>"
+}
+
 // Mock player for letting a door close
 mockForDoorCloseMessage: IntercomMessage {
     cachedLastDoor = nil

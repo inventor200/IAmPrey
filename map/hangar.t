@@ -116,7 +116,7 @@ wasteProcessing: Room { 'Waste Processing'
 }
 
 emergencyAirlock: Room { 'The Emergency Airlock'
-    "The emergency airlock is cramped tube, full of bright colors,
+    "The emergency airlock is a cramped tube, full of bright colors,
     allowing anyone to identify it in a hurry. "
 
     east = airlockOutsideExit

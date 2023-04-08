@@ -13,9 +13,9 @@
     desc = "A wide office desk sits in the corner of the cubicle. " \
 } \
 ++LowFloorHeight; \
-++JumpUpLink ->cubicleName##FilingCabinet; \
+++ClimbUpLink ->cubicleName##FilingCabinet; \
 +cubicleName##FilingCabinet: FilingCabinet; \
-++HighFloorHeight; \
+++AwkwardFloorHeight; \
 +Chair \
     homeDesc = "The chair sits <<homePhrase>>. " \
     homePhrase = 'in front of the cubicle desk' \

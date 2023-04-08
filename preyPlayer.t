@@ -264,24 +264,19 @@ prey: PlayerActor { 'The Prey;;me self myself'
     physicalStateDescDaemon = nil
 
     batchIDNumber = '6845'
+    possibleIDs = [
+        '1193',
+        '7469',
+        '8211',
+        '9032'
+    ]
 
     startTheDay() {
         inherited();
-
-        local playerIDNumber = 
-            ((skashek.getRandomResult(1, 100) - 1) * 100)
-            + (skashek.getRandomResult(1, 100) - 1);
         
-        batchIDNumber = '' + playerIDNumber;
-        if (playerIDNumber < 10) {
-            batchIDNumber = '0' + playerIDNumber + '00';
-        }
-        else if (playerIDNumber < 100) {
-            batchIDNumber = playerIDNumber + '00';
-        }
-        else if (playerIDNumber < 1000) {
-            batchIDNumber = playerIDNumber + '0';
-        }
+        batchIDNumber = possibleIDs[
+            skashek.getRandomResult(possibleIDs.length)
+        ];
 
         #ifdef __DEBUG
         local startWet = nil;

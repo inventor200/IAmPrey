@@ -81,6 +81,7 @@ DefineDistComponentFor(RunningWater, Sink)
             "Running water makes quite the audible noise! ";
         }
         else {
+            if (!gActionIs(ListenTo)) return;
             noWaterMsg();
         }
     }
@@ -252,7 +253,7 @@ DefineDistComponentFor(ShowerHead, PluralShower)
     isDecoration = true
 ;
 
-class PluralToilet: Decoration {
+class PluralToilet: FixedPlatform {
     vocab = 'toilets;toilet[weak] metal one[weak] of[prep];seats toilet seat'
     theName = 'one of the toilets'
     desc = "A row of round, metal toilets. "

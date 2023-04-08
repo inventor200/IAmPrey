@@ -599,17 +599,18 @@ parkourCore: object {
         "The following surfaces{plural} {is} either in easy reach,
         or rest{s/ed} on the same surface that {i} {do}:<.p>";
         if (formatForScreenReader) {
-            "<<makeListStr(platList, &theName, 'and')>>";
+            "<<makeListStr(platList, &getPlatformName, 'and')>>";
         }
         else {
             local strBfr = new StringBuffer();
             for (local i = 1; i <= platList.length; i++) {
                 local plat = platList[i];
+                local platName = plat.getPlatformName();
                 strBfr.append('\n\t');
                 strBfr.append(aHrefAlt(
                     plat.getLocalPlatformBoardingCommand(),
-                    plat.theName,
-                    plat.theName
+                    platName,
+                    platName
                 ));
             }
             "<<toString(strBfr)>>";
@@ -667,6 +668,8 @@ reachGhostTest_: Thing {
         return nil;
     }
 }
+
+//TODO: Throw an error if link or path goes to a class, instead of object
 
 #ifdef __DEBUG
 #define __PARKOUR_REACH_DEBUG nil
@@ -798,6 +801,7 @@ QParkour: Special {
             }
             doNotFactorJumpForB = doNotFactorJump;
             #if __PARKOUR_REACH_DEBUG
+            extraReport('\n<<bLoc.getOutermostRoom() == nil ? 'nil' : 'found'>>');
             extraReport('\n(LOC B: <<bLoc.theName>> (<<bLoc.contType.prep>>)
                 in <<bLoc.getOutermostRoom().theName>>.)\n');
             #endif
@@ -1834,6 +1838,13 @@ modify Thing {
         return platList;
     }
 
+    getPlatformName() {
+        if (forcedLocalPlatform) return theName;
+        local pm = getParkourModule();
+        if (pm != nil) return pm.theName;
+        return theName;
+    }
+
     doProviderAccident(actor, traveler, path) {
         // For author implementation
     }
@@ -2345,6 +2356,9 @@ modify Actor {
             illogical(noParkourPathFromHereMsg); \
             return; \
         } \
+        /* At this point, we know there is a staging connection */ \
+        /* tryStagingSolution will take over from here. */ \
+        return; \
     } \
     else { \
         gParkourLastPath = getPathFrom(gParkourRunner, canBeUnknown); \
@@ -2363,10 +2377,12 @@ modify Actor {
     }
 
 #define verifyDirection(parkourDir, climbOrJump) \
-    if (gParkourLastPath.direction != parkour##parkourDir##Dir) { \
-        if (parkourCore.enforceDirectionality) { \
-            illogical(parkourCannot##climbOrJump##parkourDir##Msg); \
-            return; \
+    if (gParkourLastPath != nil) { \
+        if (gParkourLastPath.direction != parkour##parkourDir##Dir) { \
+            if (parkourCore.enforceDirectionality) { \
+                illogical(parkourCannot##climbOrJump##parkourDir##Msg); \
+                return; \
+            } \
         } \
     }
 
@@ -2386,6 +2402,7 @@ modify Actor {
     verifyJumpPathFromActor(actor, true) \
     verifyDirection(parkourDir, Jump)
 
+// TODO: The first case of this seems to be redundant with tryStagingSolution
 #define tryClimbInstead(climbAction) \
     if (gParkourLastPath == nil) { \
         /* Likely from standard container to parkour one */ \
@@ -2403,6 +2420,21 @@ modify Actor {
     local closestSurface = gParkourRunner.location; \
     beginParkourReset(parkourCore.announceRouteAfterTrying); \
     doNested(GetOff, closestSurface)
+
+#define tryStagingSolution(actor) \
+    if (gParkourRunnerModule == nil) { \
+        local closestSurface = gParkourRunner.location; \
+        if (checkStagingExitLocationConnection(closestSurface.exitLocation)) { \
+            beginParkourReset(parkourCore.announceRouteAfterTrying); \
+            if (closestSurface.contType == On) { \
+                doInstead(GetOff, closestSurface); \
+            } \
+            else { \
+                doInstead(GetOut, closestSurface); \
+            } \
+            return; \
+        } \
+    }
 
 #define doClimbFor(actor) \
     local closestParkourMod = gParkourRunnerModule; \
@@ -2422,6 +2454,7 @@ modify Actor {
         } \
         check() { checkParkour(gActor); } \
         action() { \
+            tryStagingSolution(gParkourRunner); \
             doClimbFor(gParkourRunner); \
             doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \
         } \
@@ -2438,6 +2471,7 @@ modify Actor {
         } \
         check() { checkParkour(gActor); } \
         action() { \
+            tryStagingSolution(gParkourRunner); \
             tryClimbInstead(ParkourClimb##parkourDir##To); \
             doClimbFor(gParkourRunner); \
             doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \

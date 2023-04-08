@@ -13,16 +13,19 @@ securityOffice: Room { 'The Security Office'
 }
 +Desk;
 ++LowFloorHeight;
-++ClimbUpLink -> StorageCabinet;
-++ClimbUpLink -> StorageCloset;
-++ClimbUpLink -> StorageLocker;
+++ClimbUpLink -> securityCabinet;
+++ClimbUpLink -> securityCloset;
+++ClimbUpLink -> securityLocker;
 +securityCabinet: StorageCabinet;
 ++AwkwardFloorHeight;
 +securityCloset: StorageCloset;
 ++AwkwardFloorHeight;
-++ClimbOverLink -> StorageCabinet;
-++ClimbOverLink -> StorageLocker;
+++ClimbOverLink -> securityCabinet;
+++ClimbOverLink -> securityLocker;
 +securityLocker: StorageLocker;
 ++AwkwardFloorHeight;
++Decoration { 'security monitors;;monitor screens screen'
+    "The security monitors seem damaged, and do not function. "
+}
 
 DefineDoorEastTo(northwestHall, securityOffice, 'the Security Office door')

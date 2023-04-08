@@ -316,15 +316,19 @@ modify helpMessage {
         emergencyMsg();
     }
 
+    showedAuthorsNote = nil
+
     emergencyMsg() {
         showHowToWinAndProgress();
+        if (showedAuthorsNote) return;
+        showedAuthorsNote = true;
         "\b\t<b>NOTE FROM THE AUTHOR:</b>\b
         Hello!\n
         This is a BETA BUILD of <i>I Am Prey</i>, and I was under a considerable
         time crunch, so I appreciate your understanding and patience!\b
         Unfortunately, I could not get the in-game tutorial materials added in
         time!\b
-        In the meantime, please refer to the <i>How To Play I Am Prey</i>
+        In the meantime, please refer to the <<helpDocTitle>>
         document, which should have been packaged with this release! ";
     }
 }

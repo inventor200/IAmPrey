@@ -19,7 +19,7 @@ class StoveVentDoor: VentGrateDoor {
 kitchen: Room { 'The Kitchen'
     "There are a lot of empty spaces, probably where extra utilities were
     once housed. Since only <<gSkashekName>> uses this space, there is
-    no need to redundancy.\b
+    no need for redundancy.\b
     An electric oven sits under a stove hood by the east wall,
     and the kitchen counter can be found beside it. A walk-in fridge
     takes up a good bit of the south wall. The northeast corner houses a metal sink. "
@@ -58,7 +58,7 @@ kitchen: Room { 'The Kitchen'
 +Sink;
 
 +kitchenCounter: CounterTop {
-    desc = "A granite counter top. Perfect for all of one's kitchen needs. "
+    desc = "A metal counter top. Perfect for all of one's kitchen needs. "
     adjectivesFromItems = 'kitchen '
 }
 ++LowFloorHeight;

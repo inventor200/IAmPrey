@@ -110,6 +110,7 @@ class PassablePipes: LocalClimbPlatform {
 
     dobjFor(SlideUnder) asDobjFor(TravelVia)
     dobjFor(GoThrough) asDobjFor(TravelVia)
+    dobjFor(Enter) asDobjFor(TravelVia)
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
 
     dobjFor(PeekBetween) asDobjFor(LookThrough)

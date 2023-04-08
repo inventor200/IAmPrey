@@ -642,7 +642,7 @@ skashekLurkState: SkashekAIState {
                 away</i> from me!</q> <<getPeekHe()>> says, smiling. ";
             }
             skashek.playerLeewayTurns--;
-            if (skashek.playerLeewayTurns == 0) {
+            if (skashek.playerLeewayTurns <= 0) {
                 leewayExpired = true;
             }
             return;

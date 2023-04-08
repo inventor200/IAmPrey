@@ -7,11 +7,13 @@ class MetalShelves: FixedPlatform {
 }
 
 class WeaponRack: Fixture {
-    vocab = 'weapon racks;weapons[weak] storage;rack shelf storage shelves slot slots'
+    vocab = 'weapon racks[weak];weapons[weak] storage;rack[weak] shelf[weak] storage shelves[weak] slot slots'
     desc = "Rough, metal slots for storing firearms. "
     plural = true
     contType = In
     isLikelyContainer() {
         return true;
     }
+
+    matchPhrases = ['weapon', 'weapons']
 }

@@ -97,6 +97,7 @@ skashekAIControls: object {
     isImmobile = __SKASHEK_IMMOBILE
     isNoTargetMode = __SKASHEK_NO_TARGET
 
+    previousState = skashekIntroState
     currentState = skashekIntroState
 
     #ifdef __DEBUG
@@ -127,6 +128,7 @@ class SkashekAIState: object {
         "<.p>Skashek is entering a new state: <<stateName>> ";
         #endif
         skashekAIControls.currentState = self;
+        skashekAIControls.previousState = prevState;
         if (needsGameStartSetup) {
             needsGameStartSetup = nil;
             startGameFrom();
@@ -257,9 +259,9 @@ class SkashekAIState: object {
 #include "skashekAnnouncements.t"
 
 skashekTalkingProfile: SoundProfile {
-    'the muffled sound of <<getPeekHis()>> voice'
-    'the nearby sound of <<getPeekHis()>> voice'
-    'the distant sound of <<getPeekHis()>> voice'
+    'the muffled sound of <<skashek.getPeekHis()>> voice'
+    'the nearby sound of <<skashek.getPeekHis()>> voice'
+    'the distant sound of <<skashek.getPeekHis()>> voice'
     strength = 3
 }
 
@@ -393,6 +395,8 @@ modify skashek {
         return gSkashekName + '\'s';
     }
 
+    // FIXME: This easter egg is causing weird behavior with the leeway counters.
+    // Figure out how to reinstate this later.
     checkDeliveryRoom() {
         if (hasSeenPreyOutsideOfDeliveryRoom) return;
         hasSeenPreyOutsideOfDeliveryRoom = true;
@@ -408,7 +412,7 @@ modify skashek {
             // Do not give leeway to an armed player
             return;
         }
-        if (huntCore.difficulty == nightmareMode) return;
+        /*if (huntCore.difficulty == nightmareMode) return;
         playerLeewayTurns = huntCore.difficultySettingObj.turnsBeforeSkashekDeploys;
         prepareSpeech();
         "<.p><q>Um, Prey,</q> <<getPeekHe()>> stammers, <q>I'm not sure if you
@@ -420,7 +424,7 @@ modify skashek {
         to get the fuck away from me, and <i>then</i> I will hunt you!
         <b>Remember:</b> You need to collect all seven pieces of the environment suit
         to escape! I've hidden them around the place! The timer starts <i>now</i>,
-        Prey!</q> ";
+        Prey!</q> ";*/
     }
 
     suppressIdleDescription(turns?) {
@@ -1003,6 +1007,13 @@ modify skashek {
         local om = getOutermostRoom();
         if (om.roomNavigationType != killRoom) return nil;
         if (om != getPracticalPlayer().getOutermostRoom()) return nil;
+        // Make sure if he's eating kelp chips, then it's not insta-death.
+        if (
+            skashekAIControls.previousState == skashekIntroState &&
+            om == breakroom
+        ) {
+            return nil;
+        }
         return true;
     }
 

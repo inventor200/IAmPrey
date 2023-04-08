@@ -54,6 +54,54 @@ modify actorInStagingLocation {
 
 #define holdActorStorage 100
 
+VerbRule(HideOn)
+    'hide' ('on'|'atop'|'on' 'top' ('of'|)) singleDobj
+    : VerbProduction
+    action = HideOn
+    verbPhrase = 'hide/hiding on (what)'
+    missingQ = 'what do you want to hide on'
+;
+
+DefineTAction(HideOn)
+    execAction(cmd) {
+        doInstead(Board, gDobj);
+    }
+;
+
+VerbRule(HideIn)
+    'hide' ('in'|'within'|'inside' ('of'|)) singleDobj
+    : VerbProduction
+    action = HideIn
+    verbPhrase = 'hide/hiding in (what)'
+    missingQ = 'what do you want to hide in'
+;
+
+DefineTAction(HideIn)
+    execAction(cmd) {
+        local targ = gDobj;
+        if (targ.remapIn != nil) targ = targ.remapIn;
+        doNested(Enter, targ);
+        if (targ.isOpenable && gActor.isIn(targ)) {
+            "<.p>(closing <<targ.theName>>)\n";
+            doNested(Close, targ);
+        }
+    }
+;
+
+VerbRule(HideUnder)
+    'hide' ('under'|'underneath') singleDobj
+    : VerbProduction
+    action = HideUnder
+    verbPhrase = 'hide/hiding under (what)'
+    missingQ = 'what do you want to hide under'
+;
+
+DefineTAction(HideUnder)
+    execAction(cmd) {
+        doInstead(SlideUnder, gDobj);
+    }
+;
+
 VerbRule(Lick)
     ('lick'|'mlem') singleDobj
     : VerbProduction
@@ -70,6 +118,10 @@ modify VerbRule(Attack)
     ('attack'|'kill'|'hit'|'kick'|'punch'|'strike'|'punish'|'swat' ('at'|)|
     ('lunge'|'dive') (('down'|) 'at'|)|'pounce' ('at'|'on'|'upon')|
     'tackle'|'ambush') singleDobj :
+;
+
+modify VerbRule(Inventory)
+    'i' | 'inv' | 'inventory' | ('take'|'check') 'inventory' | 'check' 'pockets':
 ;
 
 modify ParkourModule {
@@ -596,6 +648,18 @@ class HomeHaver: Thing {
             return nil;
         }
         return true;
+    }
+}
+
+modify remoteRoomContentsLister {
+    showListSuffix(lst, pl, irName) { 
+        " (visible in <<lst[1].getOutermostRoom().roomTitle>>). ";
+    }
+}
+
+modify remoteSubContentsLister {
+    showListSuffix(lst, pl, irName) { 
+        " (visible in <<lst[1].getOutermostRoom().roomTitle>>). ";
     }
 }
 

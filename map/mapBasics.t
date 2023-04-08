@@ -287,7 +287,7 @@ class Walls: MultiLoc, Thing {
     }
 }
 
-defaultWalls: Walls { 'wall;north n south s east e west w'
+defaultWalls: Walls { 'wall;north n south s east e west w northeast ne northwest nw southeast se southwest sw'
     "{I} {see} nothing special about the walls. "
     ambiguouslyPlural = true
     matchPhrases = ['wall', 'walls']
@@ -321,6 +321,13 @@ industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[we
         'upper section of walls', 'upper wall section'
     ]
     ambiguouslyPlural = true
+
+    // Other pipes are surely more important
+    filterResolveList(np, cmd, mode) {
+        if (np.matches.length > 1) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+    }
 }
 
 class Atmosphere: MultiLoc, Thing {
