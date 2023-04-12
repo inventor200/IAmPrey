@@ -212,19 +212,17 @@ DefineDistComponentFor(Faucet, Sink)
     }
 ;
 
-class PluralSink: Sink {
+class PluralSink: FakePlural, Sink {
     vocab = 'sinks;metal one[weak] of[prep];sink'
-    theName = 'one of the sinks'
     desc = "Simple, metal sinks, all built to factory standard. "
-    plural = true
+    fakeSingularPhrase = 'sink'
 }
 
-class PluralShower: Fixture {
-    vocab = 'showers;shower[weak] communal one[weak] of[prep];stalls shower stall'
-    theName = 'one of the shower stalls'
+class PluralShower: FakePlural, Fixture {
+    vocab = 'shower stalls;shower[weak] communal one[weak] of[prep];stalls shower stall'
     desc = "A cluster of open, communal shower stalls. "
     betterStorageHeader
-    plural = true
+    fakeSingularPhrase = 'shower stall'
     isEnterable = true
     isOpenable = nil
 
@@ -253,12 +251,11 @@ DefineDistComponentFor(ShowerHead, PluralShower)
     isDecoration = true
 ;
 
-class PluralToilet: FixedPlatform {
+class PluralToilet: FakePlural, FixedPlatform {
     vocab = 'toilets;toilet[weak] metal one[weak] of[prep];seats toilet seat'
-    theName = 'one of the toilets'
     desc = "A row of round, metal toilets. "
     betterStorageHeader
-    plural = true
+    fakeSingularPhrase = 'toilet'
 
     contType = In
 

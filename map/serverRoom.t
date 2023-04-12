@@ -64,13 +64,13 @@ serverRoomTop: Room { 'The Chilled Server Room'
     RoomHasLadderDown(serverLadderTop)
 }
 
-+serverBanks: Decoration { 'server banks;;computer server bank'
++serverBanks: FakePlural, Decoration { 'server banks;one[weak] of[prep];computer server bank'
     "Large, black cabinets full of running computers, wired together in
     complex ways. Thick cables run from their tops, and feed into an alcove
     to the southeast.\b
     To the north, there is a large vent grate, which pumps freezing air into
     the room. "
-    plural = true
+    fakeSingularPhrase = 'server'
 
     dobjFor(Eat) asDobjFor(Attack)
     dobjFor(Cut) asDobjFor(Attack)
@@ -160,12 +160,12 @@ serverRoomTop: Room { 'The Chilled Server Room'
     travelDesc = "{I} squeeze through the opening, climb down the data cables,
         and come to an uneasy landing on the northwest artificial womb. "
 }
-++serverRoomCables: ClimbDownPlatform { 'cables;server black dark insulated data hanging[weak] on[prep] ceiling[n];bundles[weak] wires cords connections'
+++serverRoomCables: FakePlural, ClimbDownPlatform { 'cables;server black dark insulated data hanging[weak] on[prep] ceiling[n] one[weak] of[prep];bundles[weak] wires cords connections wire cord cable'
     "Thick, dark, data cables feed into an
     <<if gPlayerChar.isIn(dataCableAlcove)>>alcove<<else
     >>opening in the floor of the alcove<<end
     >>, from multiple server banks in the small room. "
-    plural = true
+    fakeSingularPhrase = 'cable'
 
     dobjFor(SqueezeThrough) asDobjFor(TravelVia)
 

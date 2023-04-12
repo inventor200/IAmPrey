@@ -42,7 +42,6 @@ class Cubicle: Room {
 class FakeCubicle: Passage {
     desc = "The cubicles take up most of the space here, and their walls form the
     L-shaped hall {i} find {myself} in. "
-    ambiguouslyPlural = true
     otherSide = destination
     remappingSearch = true
     dobjFor(Search) asDobjFor(LookThrough)

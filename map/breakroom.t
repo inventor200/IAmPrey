@@ -38,10 +38,10 @@ breakroom: Room {
 
     bulk = 1
 }
-+++Trinket { 'pale kelp slices;;slice'
++++FakePlural, Trinket { 'slices[n] of[prep] kelp;pale one[weak] of[prep];slice'
     "A few slices of pale kelp remain in the bowl. "
     isFixed = true
-    plural = true
+    fakeSingularPhrase = 'slice of kelp'
 
     cannotTakeMsg =
         '{I} can hardly eat these, and the smell{dummy} would follow {me} everywhere. '

@@ -473,7 +473,7 @@ reservoir: Room { 'The Reactor Reservoir'
     }
 }
 
-+reactorKelp: Decoration { 'plant;mutated subspecies[weak] leafy glowing white pale reactor[weak];kelp leaf{leaves}'
++reactorKelp: Decoration { 'kelp;mutated subspecies[weak] leafy glowing white pale reactor[weak];plant leaf leaves'
     "They're hard to see from up here, but they vaguely look like pale leaves.
     It might be an illusion, but they seem to glow slightly, too. Maybe it's a
     mutated subspecies of kelp...? "

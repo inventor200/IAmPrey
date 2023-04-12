@@ -1,15 +1,15 @@
-class MetalShelves: FixedPlatform {
-    vocab = 'storage shelves;cargo' + adjectivesFromItems + ';rack shelf'
+class MetalShelves: FakePlural, FixedPlatform {
+    vocab = 'storage shelves;cargo' + adjectivesFromItems + ' one[weak] of[prep];rack shelf'
     desc = "Rough, metal shelves for storing various items. "
-    plural = true
+    fakeSingularPhrase = 'shelf'
 
     adjectivesFromItems = ''
 }
 
-class WeaponRack: Fixture {
-    vocab = 'weapon racks[weak];weapons[weak] storage;rack[weak] shelf[weak] storage shelves[weak] slot slots'
+class WeaponRack: FakePlural, Fixture {
+    vocab = 'weapon racks[weak];weapons[weak] storage one[weak] of[prep];rack[weak] shelf[weak] storage shelves[weak] slot slots'
     desc = "Rough, metal slots for storing firearms. "
-    plural = true
+    fakeSingularPhrase = 'weapon storage slot'
     contType = In
     isLikelyContainer() {
         return true;

@@ -224,6 +224,7 @@ enviroTorso: EnviroSuitPart { 'envirosuit torso;enviro environment suit chest;ch
 enviroPants: EnviroSuitPart { 'envirosuit bottoms;enviro environment suit pair[n] of[prep];bottom trousers pants leggings piece part'
     "Thick, insulated pants, sealed for protection of the wearer. <<piecesLabel>> "
     bulk = 2
+    plural = true
     ambiguouslyPlural = true
     qualified = true
     shortName = 'bottoms'

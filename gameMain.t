@@ -24,10 +24,10 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM eastHall
+/*-*/  #define __TEST_ROOM classroom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
-    #define __SKASHEK_FROZEN nil
+    #define __SKASHEK_FROZEN true
    #define __SKASHEK_TOOTHLESS nil
   #define __SKASHEK_IMMOBILE nil
  #define __SKASHEK_NO_TARGET nil

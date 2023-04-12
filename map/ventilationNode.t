@@ -1,7 +1,12 @@
 ventDuctCeiling: Ceiling {
     vocab = 'ventilation duct ceiling;vent air[weak] top;roof panel[weak]'
     desc = ventDuctWalls.desc
-    ambiguouslyPlural = true
+    
+    filterResolveList(np, cmd, mode) {
+        if (np.matches.length > 1) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+    }
 }
 
 ventDuctWalls: Walls { 'ventilation duct walls;vent air[weak];sides siding panels[weak]'
@@ -11,7 +16,12 @@ ventDuctWalls: Walls { 'ventilation duct walls;vent air[weak];sides siding panel
 ventDuctFloor: Floor {
     vocab = 'ventilation duct floor;vent air[weak] bottom;ground panel[weak]'
     desc = ventDuctWalls.desc
-    ambiguouslyPlural = true
+
+    filterResolveList(np, cmd, mode) {
+        if (np.matches.length > 1) {
+            np.matches = np.matches.subset({m: m.obj != self});
+        }
+    }
 }
 
 ventilationNode: Room { 'The Central Ventilation Node'
@@ -41,9 +51,9 @@ ventilationNode: Room { 'The Central Ventilation Node'
     specialDesc = "A patch of dried blood and bones can be seen in the corner."
 }
 
-+Decoration { 'bones;human clone;remains corpse hand bone'
++FakePlural, Decoration { 'bones;human clone one[weak] of[prep];remains corpse hand bone'
     "The bones of what could be a human hand, if the fingers were not so long. "
-    plural = true
+    fakeSingularPhrase = 'bone'
 }
 
 +assemblyShopExitVentGrate: VentGrateDoor {

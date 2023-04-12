@@ -75,7 +75,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
     }
 }
 
-#define cloneQuartersPipesVocab 'hole[n] in[prep] the wall[n];under[prep] the bed[weak] exposed;tubing tubes pipes'
+#define cloneQuartersPipesVocab 'pipes[n] in[prep] the wall[n];under[prep] the bed[weak] exposed;tubing tubes pipe hole'
 #define pipesMatchList ['hole', 'pipes', 'wall', 'tubing', 'tubes', 'pipes']
 
 missingUnderBedWallPipes: Unthing { cloneQuartersPipesVocab
@@ -99,7 +99,6 @@ underBedWallPipes: PassablePipes { cloneQuartersPipesVocab
     stagingLocation = southeastCloneBed.remapUnder
     exitLocation = southeastCloneBed.remapUnder
     requiresPeekAngle = true
-    plural = nil
 
     spottedHoleFromOtherSide = nil
     revealedUnderBed = nil

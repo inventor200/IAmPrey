@@ -45,10 +45,10 @@ class SmashedMirror: Mirror {
     }
 }
 
-mirrorShards: MultiLoc, Decoration {
-    vocab = 'shard;partial shattered sharp piece[n] of[prep] mirror[weak] glass;shard chunk glass'
+mirrorShards: MultiLoc, FakePlural, Decoration {
+    vocab = 'shards;partial shattered sharp piece[n] of[prep] mirror[weak] glass one[weak] of[prep];shard chunks chunk glass'
     desc = "A jagged piece of the smashed mirror, still attached to the frame. "
-    ambiguouslyPlural = true
+    fakeSingularPhrase = 'shard'
 
     initialLocationClass = SmashedMirror
     isTakeable = true

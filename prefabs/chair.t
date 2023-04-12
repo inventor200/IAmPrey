@@ -17,11 +17,10 @@ class Stool: Chair {
     simplestDescMsg = 'A simple stool. '
 }
 
-class PluralChair: Platform {
+class PluralChair: FakePlural, Platform {
     vocab = 'chairs;one[weak] of[prep];stools seats chair stool seat'
-    theName = 'one of the chairs'
     desc = "A collection of chairs, each made to factory standard. "
-    plural = true
+    fakeSingularPhrase = 'chair'
     isTakeable = nil
     bulk = 2
     canSitOnMe = true
@@ -31,6 +30,6 @@ class PluralChair: Platform {
 
 class PluralStool: PluralChair {
     vocab = 'stools;one[weak] of[prep];chairs seats chair stool seat'
-    theName = 'one of the stools'
     desc = "A collection of stools, each made to factory standard. "
+    fakeSingularPhrase = 'stool'
 }

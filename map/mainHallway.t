@@ -31,18 +31,18 @@ loadingArea: Room {
     familiar = roomsFamiliarByDefault
 }
 
-+Decoration { 'hooks;;hook'
++FakePlural, Decoration { 'hooks;one[weak] of[prep];hook'
     "Some simple hooks for hanging stuff. "
-    isPlural = true
+    fakeSingularPhrase = 'hook'
     isLikelyContainer() {
         return true;
     }
     contType = On
 }
 
-++Decoration { 'lifting straps;;strap band{bands}'
+++FakePlural, Decoration { 'lifting straps;one[weak] of[prep];strap band bands'
     "Neon green straps, designed to help humans haul heavy objects. "
-    plural = true
+    fakeSingularPhrase = 'lifting strap'
 }
 
 +loadingAreaDoorway: Passage { 'doorway'

@@ -273,9 +273,8 @@ modify Room {
     }
 }
 
-class Walls: MultiLoc, Thing {
+class Walls: MultiLoc, FakePlural, Thing {
     isFixed = true
-    plural = true
     isDecoration = true
     initialLocationClass = Room
     
@@ -287,9 +286,10 @@ class Walls: MultiLoc, Thing {
     }
 }
 
-defaultWalls: Walls { 'wall;north n south s east e west w northeast ne northwest nw southeast se southwest sw'
+defaultWalls: Walls { 'walls;north n south s east e west w northeast ne northwest nw southeast se southwest sw one[weak] of[prep];wall'
     "{I} {see} nothing special about the walls. "
-    ambiguouslyPlural = true
+    fakeSingularPhrase = 'wall'
+    useOneOfThe = nil
     matchPhrases = ['wall', 'walls']
 }
 
@@ -312,7 +312,7 @@ defaultCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles fra
     notImportantMsg = '{That dobj} {is} too far{dummy} above {me}. '
 }
 
-industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[weak];sections[weak]'
+industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[weak];sections[weak] pipe'
     "The upper section of the walls are exposed here, as there are no ceiling panels
     to cover them. The ceiling is much higher, too, and the various pipes of the
     facility are visible. "
@@ -320,7 +320,7 @@ industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[we
         'ceiling', 'pipes', 'upper section of wall',
         'upper section of walls', 'upper wall section'
     ]
-    ambiguouslyPlural = true
+    plural = true
 
     // Other pipes are surely more important
     filterResolveList(np, cmd, mode) {

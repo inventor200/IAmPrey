@@ -44,7 +44,7 @@ directorsOffice: Room { 'The Director\'s Office'
     <i>Meh. {I} never liked him, anyway.</i><<end>> "
 }
 
-+brokenGlass: Unthing { 'broken glass;shattered smashed;shards'
++brokenGlass: Unthing { 'broken glass;shattered smashed;shards shard'
     'The window might be smashed, but the shards have been cleaned up. '
     ambiguouslyPlural = true
 }

@@ -33,7 +33,7 @@ utilityPassage: Room { 'The Utility Corridor'
     pullHandleSide = true
 }
 
-+utilityWallPipes: PassablePipes { 'pipes[n] on[prep] the wall;west w in[prep] the wall[n];tubing tubes hole'
++utilityWallPipes: PassablePipes { 'pipes[n] in[prep] the wall[n];exposed west w on[prep] the wall[n];tubing tubes hole pipe'
     desc = "Part of the wall here has been demolished, leaving some pipes exposed.<<
         observeHistory()>> "
     destination = cloneQuarters
@@ -100,11 +100,12 @@ northUtilityPassageEntry: MaintenanceDoor { 'the exit door' @lifeSupportTop
     pullHandleSide = nil
 }
 
-class PassablePipes: LocalClimbPlatform {
+class PassablePipes: FakePlural, LocalClimbPlatform {
     secretLocalPlatform = true
-    plural = true
     preferredBoardingAction = SqueezeThrough
 
+    fakeSingularPhrase = 'hole in the wall'
+    useOneOfThe = nil
     matchPhrases = 'pipes'
     matchPhrasesExclude = nil
 

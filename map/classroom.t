@@ -17,6 +17,12 @@ classroom: Room { 'The Classroom'
 +Desk {
     'teacher\'s desk;teachers teacher teaching front'
 }
+#ifdef __DEBUG
+++Thing { 'testing object'
+    "A test object. "
+    bulk = 2
+}
+#endif
 +Projector;
 +ProjectorScreen;
 +classroomShelves: MetalShelves;

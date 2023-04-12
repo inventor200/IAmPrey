@@ -341,7 +341,7 @@ deliveryRoom: Room { 'The Delivery Room'
 ++SmashedMirror;
 #endif
 
-+deliveryRoomTowelRack: FixedPlatform { 'towel rack;;shelves'
++deliveryRoomTowelRack: FixedPlatform { 'towel rack;;shelf shelves'
     "A rough set of metal shelves, repurposed for holding towels.
     It sits between the makeup vanity and the southwest artificial womb. "
     ambiguouslyPlural = true
@@ -368,8 +368,8 @@ deliveryRoom: Room { 'The Delivery Room'
 ++AwkwardFloorHeight;
 ++ProviderLink @artificialWombs ->northwestWomb;
 ++ClimbOverPath ->southwestWomb;
-++Thing { 'towel;shower;rag'
-    "Plain, white towels, like what someone might find in a shower room. "
+++Thing { 'towel;shower;rag rags towels'
+    "A plain, white towel, like what someone might find in a shower room. "
     ambiguouslyPlural = true
     canDryWithMe = true
     bulk = 0
@@ -562,14 +562,14 @@ deliveryRoomCableHole: Decoration { 'opening;extra[weak] in[prep] the ceiling[n]
     notImportantMsg = 'The opening is on the ceiling, and is too far away to safely reach. '
 }
 
-deliveryRoomCables: ClimbUpPlatform { 'cables;server black dark insulated data three[weak] hanging[weak] from[prep] ceiling[n];bundles[weak] wires cords connections'
+deliveryRoomCables: FakePlural, ClimbUpPlatform { 'cables;server black dark insulated data three[weak] hanging[weak] from[prep] ceiling[n] one[weak] of[prep];bundles[weak] wires cords connections cable wire cord'
     "Thick, dark, data cables, spilling out from an opening in the ceiling,
     above the northwest artificial womb. They split off into three bundles, each going
     into one of the three wombs on the west wall. "
     location = northwestWomb
     subLocation = &remapOn
     secretLocalPlatform = true
-    plural = true
+    fakeSingularPhrase = 'cable'
 
     destination = serverRoomTop
     oppositeLocalPlatform = dataCableServerExit

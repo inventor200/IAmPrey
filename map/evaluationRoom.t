@@ -21,9 +21,9 @@ evaluationRoom: Room {
     familiar = roomsFamiliarByDefault
     roomNavigationType = killRoom
 }
-+Decoration { 'gym mats;wrestling gel;mat'
++FakePlural, Decoration { 'gym mats;wrestling gel one[weak] of[prep];mat'
     "Thick gel mats, which can provide protection against floor impacts. "
-    plural = true
+    fakeSingularPhrase = 'gym mat'
 }
 +evaluationShelves: MetalShelves;
 ++AwkwardFloorHeight;

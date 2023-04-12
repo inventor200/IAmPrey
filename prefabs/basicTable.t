@@ -28,12 +28,11 @@ class Desk: FurniturePlatform {
     altNouns = ';top[weak] desktop'
 }
 
-class PluralDesk: FurniturePlatform {
+class PluralDesk: FakePlural, FurniturePlatform {
     desc = "A collection of <<cabinetSubclassInDesc>> with a fake wood grain surfaces.
     All are made to factory standard. "
-    theName = 'one of the ' + cabinetSubclass
     cabinetSubclass = 'desks'
     stndAdjectivesFromItems = 'desk[weak] one[weak] of[prep] '
     altNouns = ';desk top[weak] tops[weak] desktop desktops'
-    plural = true
+    fakeSingularPhrase = 'desk'
 }
