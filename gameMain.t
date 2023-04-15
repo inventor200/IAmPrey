@@ -23,7 +23,7 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 4
+/*--*/  #define __FAST_DIFFICULTY 2
 /*-*/  #define __TEST_ROOM classroom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
@@ -115,7 +115,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.1 BETA (Patch 1)'
+    version = '0.9.2 BETA (Patch 2)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

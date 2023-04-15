@@ -12,10 +12,13 @@ classroom: Room { 'The Classroom'
     mapModeDirections = [&west, &east, &south]
     familiar = roomsFamiliarByDefault
 }
-+PluralDesk;
++PluralDesk {
+    matchPhrases = 'desks'
+}
 +PluralChair;
 +Desk {
     'teacher\'s desk;teachers teacher teaching front'
+    matchPhrases = 'desk'
 }
 #ifdef __DEBUG
 ++Thing { 'testing object'

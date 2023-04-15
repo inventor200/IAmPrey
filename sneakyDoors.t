@@ -251,6 +251,12 @@ DefineTAction(PeekDirection)
             sneakyCore.sneakDirection = nil;
         }
 
+        if (direction != nil) {
+            "\b
+            <<direction.name>>
+            \b";
+        }
+
         parkourCore.cacheParkourRunner(gActor);
         local loc = parkourCore.currentParkourRunner.getOutermostRoom();
         local conn = nil;
@@ -376,7 +382,7 @@ DefineTAction(SneakThrough)
 ;
 
 VerbRule(SneakDirection)
-    [badness 60] sneakVerbExpansion singleDir
+    [badness 55] sneakVerbExpansion singleDir
     : VerbProduction
     action = SneakDirection
     verbPhrase = 'sneak/sneaking (where)'  
@@ -390,7 +396,7 @@ class SneakDirection: TravelAction {
 }
 
 VerbRule(VagueSneak) 
-    [badness 55] sneakVerbExpansion 
+    [badness 50] sneakVerbExpansion 
     : VerbProduction
     action = VagueSneak
     verbPhrase = 'sneak/sneaking'
@@ -404,7 +410,7 @@ DefineIAction(VagueSneak)
 ;
 
 VerbRule(ChangeSneakMode)
-    [badness 10] sneakVerbExpansion literalDobj |
+    [badness 65] sneakVerbExpansion literalDobj |
     'turn' literalDobj sneakVerbExpansion ('mode'|) |
     ('turn'|'set') sneakVerbExpansion literalDobj |
     literalDobj sneakVerbExpansion ('mode'|)
@@ -612,7 +618,7 @@ sneakyCore: object {
 
                 "<<getSneakStep(2, '<b>PEEK</b>, just to be sure!', peekComm)>>";
                 local peekPrecache = conn.destination.getOutermostRoom().hasDanger();
-                if (direction.ofKind(Door)) {
+                if (direction.ofKind(Door) || direction.ofKind(Passage)) {
                     nestedAction(PeekThrough, conn);
                 }
                 else {
@@ -933,17 +939,11 @@ modify Door {
     witnessClosing() {
         clearFuse(&closingFuse);
         if (canPlayerSense()) {
-            wasPlayerExpectingAClose = true;
-            if (otherSide != nil) {
-                otherSide.wasPlayerExpectingAClose = true;
-            }
+            setForBothSides(&wasPlayerExpectingAClose, true);
             clearFuse(&playerCloseExpectationFuse);
         }
         if (canEitherBeSeenBy(skashek)) {
-            wasSkashekExpectingAClose = true;
-            if (otherSide != nil) {
-                otherSide.wasSkashekExpectingAClose = true;
-            }
+            setForBothSides(&wasSkashekExpectingAClose, true);
             clearFuse(&skashekCloseExpectationFuse);
         }
     }
@@ -1005,17 +1005,11 @@ modify Door {
         else {
             emitNormalClosingSound();
         }
-        wasPlayerExpectingAClose = nil;
-        if (otherSide != nil) {
-            otherSide.wasPlayerExpectingAClose = nil;
-        }
+        setForBothSides(&wasPlayerExpectingAClose, nil);
         if (!wasSkashekExpectingAClose) {
             makeSkashekSuspicious();
         }
-        wasSkashekExpectingAClose = nil;
-        if (otherSide != nil) {
-            otherSide.wasSkashekExpectingAClose = nil;
-        }
+        setForBothSides(&wasSkashekExpectingAClose, nil);
     }
 
     normalClosingMsg =
@@ -1083,38 +1077,28 @@ modify Door {
         else {
             if (primedPlayerAudio == normalClosingSound || primedPlayerAudio == slamClosingSound) {
                 // Audible suspicion
-                soundBleedCore.createSound(
-                    doorSuspiciousCloseNoiseProfile,
-                    getSoundSource(),
-                    getOutermostRoom(),
-                    nil
-                );
-                if (otherSide != nil) {
-                    soundBleedCore.createSound(
-                        doorSuspiciousCloseNoiseProfile,
-                        getSoundSource(),
-                        otherSide.getOutermostRoom(),
-                        nil
-                    );
-                }
+                emitSoundFromBothSides(doorSuspiciousCloseNoiseProfile, nil);
             }
             else {
                 // Inaudible suspicion
-                soundBleedCore.createSound(
-                    doorSuspiciousSilenceProfile,
-                    getSoundSource(),
-                    getOutermostRoom(),
-                    nil
-                );
-                if (otherSide != nil) {
-                    soundBleedCore.createSound(
-                        doorSuspiciousSilenceProfile,
-                        getSoundSource(),
-                        otherSide.getOutermostRoom(),
-                        nil
-                    );
-                }
+                emitSoundFromBothSides(doorSuspiciousSilenceProfile, nil);
             }
+        }
+    }
+
+    emitSoundFromBothSides(profile, fromPlayer) {
+        local sndSrc = getSoundSource();
+        soundBleedCore.createSound(
+            profile, sndSrc,
+            getOutermostRoom(),
+            fromPlayer
+        );
+        if (otherSide != nil) {
+            soundBleedCore.createSound(
+                profile, sndSrc,
+                otherSide.getOutermostRoom(),
+                fromPlayer
+            );
         }
     }
 
@@ -1130,40 +1114,14 @@ modify Door {
             }
         }
         else {
-            soundBleedCore.createSound(
-                doorSlamCloseNoiseProfile,
-                getSoundSource(),
-                getOutermostRoom(),
-                nil
-            );
-            if (otherSide != nil) {
-                soundBleedCore.createSound(
-                    doorSlamCloseNoiseProfile,
-                    getSoundSource(),
-                    otherSide.getOutermostRoom(),
-                    nil
-                );
-            }
+            emitSoundFromBothSides(doorSlamCloseNoiseProfile, nil);
         }
     }
 
     makeSkashekSuspicious() {
         if (primedPlayerAudio == normalClosingSound || primedPlayerAudio == slamClosingSound) {
             // Noisy door close
-            soundBleedCore.createSound(
-                doorSlamCloseNoiseProfile,
-                getSoundSource(),
-                getOutermostRoom(),
-                true
-            );
-            if (otherSide != nil) {
-                soundBleedCore.createSound(
-                    doorSlamCloseNoiseProfile,
-                    getSoundSource(),
-                    otherSide.getOutermostRoom(),
-                    true
-                );
-            }
+            emitSoundFromBothSides(doorSlamCloseNoiseProfile, true);
         }
         else {
             // Silent door close
@@ -1180,20 +1138,7 @@ modify Door {
 
     causeSilenceSuspicionForSkashek() {
         silentDoorRealizationFuse = nil;
-        soundBleedCore.createSound(
-            doorSuspiciousSilenceProfile,
-            getSoundSource(),
-            getOutermostRoom(),
-            true
-        );
-        if (otherSide != nil) {
-            soundBleedCore.createSound(
-                doorSuspiciousSilenceProfile,
-                getSoundSource(),
-                otherSide.getOutermostRoom(),
-                true
-            );
-        }
+        emitSoundFromBothSides(doorSuspiciousSilenceProfile, true);
     }
 
     canPlayerSense() {
@@ -1212,21 +1157,22 @@ modify Door {
         return canEitherBeHeardBy(gPlayerChar) && inProximity;
     }
 
+    setForBothSides(prop, stat) {
+        self.(prop) = stat;
+        if (otherSide != nil) {
+            otherSide.(prop) = stat;
+        }
+    }
+
     makeOpen(stat) {
         inherited(stat);
 
         if (airlockDoor) {
             if (canPlayerSense()) {
-                playerExpectsAirlockOpen = stat;
-                if (otherSide != nil) {
-                    otherSide.playerExpectsAirlockOpen = stat;
-                }
+                setForBothSides(&playerExpectsAirlockOpen, stat);
             }
             if (canEitherBeSeenBy(skashek)) {
-                skashekExpectsAirlockOpen = stat;
-                if (otherSide != nil) {
-                    otherSide.skashekExpectsAirlockOpen = stat;
-                }
+                setForBothSides(&skashekExpectsAirlockOpen, stat);
             }
         }
         else {
@@ -1266,14 +1212,8 @@ modify Door {
         primedPlayerAudio = slamClosingSound;
         if (airlockDoor) {
             // Only the player slams airlock doors
-            wasPlayerExpectingAClose = true;
-            if (otherSide != nil) {
-                otherSide.wasPlayerExpectingAClose = nil;
-            }
-            wasSkashekExpectingAClose = nil;
-            if (otherSide != nil) {
-                otherSide.wasSkashekExpectingAClose = nil;
-            }
+            setForBothSides(&wasPlayerExpectingAClose, true);
+            setForBothSides(&wasSkashekExpectingAClose, nil);
         }
         checkClosingExpectations();
         makeOpen(nil);
@@ -1382,16 +1322,10 @@ modify Door {
             local qualifies = qualifiesForCloseTrick();
             if (canSlamMe || qualifies) {
                 if (gActorIsPrey) {
-                    wasPlayerExpectingAClose = true;
-                    if (otherSide != nil) {
-                        otherSide.wasPlayerExpectingAClose = true;
-                    }
+                    setForBothSides(&wasPlayerExpectingAClose, true);
                 }
                 else {
-                    wasSkashekExpectingAClose = true;
-                    if (otherSide != nil) {
-                        otherSide.wasSkashekExpectingAClose = true;
-                    }
+                    setForBothSides(&wasSkashekExpectingAClose, true);
                 }
                 slam();
                 if (qualifies) {
@@ -1603,6 +1537,20 @@ DefineDistComponentFor(ProximityScanner, MaintenanceDoor)
 
     isDecoration = true
 ;
+
+modify Passage {
+    dobjFor(SneakThrough) {
+        verify() {
+            logical;
+        }
+        action() {
+            sneakyCore.trySneaking();
+            sneakyCore.doSneakStart(self, self);
+            doNested(TravelVia, self);
+            sneakyCore.doSneakEnd(self);
+        }
+    }
+}
 
 modify Room {
     hasDanger() {

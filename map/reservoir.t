@@ -225,6 +225,7 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
 
 +Decoration { 'controls;computer;systems displays computers insulation'
     "Well-insulated controls and displays allow engineers to monitor the Reservoir. "
+    plural = true
 }
 
 +reservoirDoorwayOut: Passage { 'the access doorway;;door'
