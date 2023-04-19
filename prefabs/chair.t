@@ -8,6 +8,8 @@ class Chair: HomeHaver, Platform {
     homePhrase = 'on the floor'
     backHomeMsg =
         '{I} {put} {the dobj} back <<homePhrase>>, where it belongs. '
+    matchPhrases = 'chair'
+    matchPhrasesExclude = nil
 
     dobjFor(SitIn) asDobjFor(SitOn)
 }
@@ -15,6 +17,7 @@ class Chair: HomeHaver, Platform {
 class Stool: Chair {
     vocab = 'stool;;chair seat'
     simplestDescMsg = 'A simple stool. '
+    matchPhrases = 'stool'
 }
 
 class PluralChair: FakePlural, Platform {

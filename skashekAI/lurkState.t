@@ -687,25 +687,6 @@ skashekLurkState: SkashekAIState {
         skashekChaseState.activate();
     }
 
-    /*doStuckInspection1() {
-        """
-        His eyes pan around <<skashek.getOutermostRoom().roomTitle>>.\b
-        <q>Are you here, Prey...?</q> he asks quietly. <q>Are you</q>
-        """;
-    }
-
-    doStuckInspection2() {
-        """
-        .
-        For a moment, {i} think he{dummy} sees {me}, but his gaze
-        continues onto something else.
-        """;
-    }
-
-    doStuckInspection3() {
-        "<.p>"
-    }*/
-
     describeNonTravelAction() {
         if (stunTurns > 0) {
             skashek.showSlamPainDesc();

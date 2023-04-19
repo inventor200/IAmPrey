@@ -109,7 +109,9 @@ DefineDistSubComponentFor(BaseCabinetRemapIn, BaseCabinet, remapIn)
         action() {
             for (local i = 1; i <= 3; i++) {
                 local drawer = getDrawer(i);
-                tryImplicitAction(Open, drawer);
+                if (!drawer.isOpen) {
+                    tryImplicitAction(Open, drawer);
+                }
                 if (i > 1) "\b";
                 "(searching in <<drawer.theName>>)\n";
                 searchCore.clearHistory();

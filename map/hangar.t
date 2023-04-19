@@ -73,6 +73,14 @@ hangar: Room { 'The Hangar'
     roomNavigationType = bigRoom
 }
 
+#if __DEBUG_SUIT
++testWearObstruction: Thing {
+    'wear obstruction'
+    "Just something to really get in the way of WEAR ALL! "
+    bulk = 2
+}
+#endif
+
 +airlockInsideEntry: PrefabDoor { 'the Emergency Airlock door'
     airlockDoorDesc
     otherSide = airlockInsideExit

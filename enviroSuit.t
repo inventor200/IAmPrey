@@ -111,9 +111,15 @@ suitTracker: object {
 class EnviroSuitPart: Wearable {
     shortName = 'piece'
     piecesLabel = '<b>This is one of the pieces for the environment suit!</b>'
+    wearingAll = (!gCatMode && gCommand.matchedAll)
+
     dobjFor(Wear) {
+        preCond = (wearingAll ? nil : [objHeld])
         verify() {
-            if (!gActor.isIn(emergencyAirlock)) {
+            if (wearingAll) {
+                logical;
+            }
+            else if (!gActor.isIn(emergencyAirlock)) {
                 illogical(
                     '{I} do not need to wear the suit right now,
                     as it would only slow me down.
@@ -122,6 +128,25 @@ class EnviroSuitPart: Wearable {
                     pieces on <i>after</i> the inner Airlock door is shut! '
                 );
             }
+        }
+        check() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
+        action() {
+            if (wearingAll) {
+                doInstead(Take, self);
+                return;
+            }
+            inherited();
+        }
+        report() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
         }
     }
 
