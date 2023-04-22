@@ -40,12 +40,26 @@ class FakePlural: object {
         else if (gActionIs(Look) || gAction.actionFailed) {
             plural = true;
         }
+        else if (!(gAction.ofKind(TAction) || gAction.ofKind(TIAction))) {
+            plural = true;
+        }
         else if (gIobj == self || gActionIs(Board) || gActionIs(Enter) || gActionIs(LieOn) || gActionIs(SitOn) || gActionIs(StandOn)) {
             plural = nil;
             polledWithPrep = true;
         }
         else {
-            plural = gCommand.verbProd.dobjMatch.grammarTag != 'normal';
+            local grammarTag = 'normal';
+            local gobj = gCommand.verbProd;
+            if (gobj != nil) {
+                gobj = gobj.dobjMatch;
+                if (gobj != nil) {
+                    gobj = gobj.grammarTag;
+                    if (gobj != nil) {
+                        grammarTag = gobj;
+                    }
+                }
+            }
+            plural = grammarTag != 'normal';
         }
         polledWithPrep = nil;
     }

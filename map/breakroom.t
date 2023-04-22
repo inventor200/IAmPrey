@@ -19,6 +19,7 @@ breakroom: Room {
 +breakRoomFridge: Fridge;
 ++AwkwardFloorHeight;
 +breakroomCounter: CounterTop;
+++LowFloorHeight;
 +StorageLocker;
 ++AwkwardFloorHeight;
 ++JumpOverLink -> breakRoomFridge;
@@ -28,6 +29,7 @@ breakroom: Room {
     homePhrase = 'between the counter and the table'
 ;
 +breakroomTable: Table;
+++LowFloorHeight;
 ++JumpOverLink -> breakRoomFridge;
 ++Trinket { 'bowl;of[prep] kelp[n]'
     "A small bowl of pale kelp slices. "

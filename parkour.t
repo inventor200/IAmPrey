@@ -11,10 +11,11 @@
 
 #define climbImplicitReport \
     implicitAnnouncement(success) { \
+        local dobjName = parkourCore.theImplicitPlatformName; \
         if (success) { \
-            return 'climbing to {the dobj}'; \
+            return 'climbing to <<dobjName>>'; \
         } \
-        return 'failing to climb to {the dobj}'; \
+        return 'failing to climb to <<dobjName>>'; \
     }
 
 #define climbForcesNoJumpFactor true
@@ -633,6 +634,11 @@ parkourCore: object {
         hasShownClimbAbbreviationHint = true;
     }
 
+    implicitPlatform = nil
+    theImplicitPlatformName() {
+        if (implicitPlatform == nil) return 'a better spot';
+        return implicitPlatform.theName;
+    }
     lastPath = nil
     currentParkourRunner = nil
     showNewRoute = nil
@@ -1070,6 +1076,7 @@ modify actorInStagingLocation {
             }
 
             if (impAction != nil && impDest != nil) {
+                parkourCore.implicitPlatform = impDest;
                 local tried = tryImplicitAction(impAction, impDest);
                 if (tried) {
                     spendImplicitTurn();
@@ -1158,9 +1165,11 @@ modify actorInStagingLocation {
                 if (gParkourRunner.location != stagingLocation) { \
                     local stagingParkourModule = stagingLocation.getParkourModule(); \
                     if (stagingParkourModule == nil) { \
+                        parkourCore.implicitPlatform = stagingLocation; \
                         tryImplicitAction(stagingLocation.climbOnAlternative, stagingLocation); \
                     } \
                     else { \
+                        parkourCore.implicitPlatform = stagingParkourModule; \
                         tryImplicitAction(Parkour##climbOrJump##parkourDir##To, stagingParkourModule); \
                     } \
                 } \

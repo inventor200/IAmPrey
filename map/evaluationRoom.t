@@ -27,9 +27,9 @@ evaluationRoom: Room {
 }
 +evaluationShelves: MetalShelves;
 ++AwkwardFloorHeight;
-++JumpOverLink -> StorageLocker;
+++JumpOverLink -> evaluationLocker;
 +WeaponRack;
-+StorageLocker;
++evaluationLocker: StorageLocker;
 ++AwkwardFloorHeight;
 
 DefineDoorWestTo(eastHall, evaluationRoom, 'the Evaluation Room door;eval')

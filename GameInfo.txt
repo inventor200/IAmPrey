@@ -5,7 +5,7 @@ HtmlByline: by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>
 AuthorEmail: josephcsoftware@gmail.com
 Desc: A horror-lite science fiction game of evasion.
 HtmlDesc: A horror-lite science fiction game of evasion.
-Version: 0.9.3 BETA (Patch 3)
+Version: 0.9.4 BETA (Patch 4)
 ReleaseDate: 2023-04-02
 LicenseType: freeware
 CopyingRules: <a href="https://creativecommons.org/licenses/by-sa/4.0/" >Creative Commons Attribution-ShareAlike 4.0 International</a>
