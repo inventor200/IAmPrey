@@ -24,7 +24,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM ventilationNode
+/*-*/  #define __TEST_ROOM classroom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN true
@@ -115,7 +115,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.4 BETA (Patch 4)'
+    version = '0.9.5 BETA (Patch 5)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'
@@ -157,7 +157,9 @@ versionInfo: GameID {
         Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)\n
         Piergiorgio d'Errico\n
         Pinkunz (<a href='https://ifdb.org/showuser?id=dqr2mj29irbx1qv4'>Link to IFDB</a>)\n
-        Rovarsson";
+        Rovarsson\b
+        \t<i>Accessibility Consulting/Testing:</i>\n
+        Rain";
     }
 }
 

@@ -595,7 +595,7 @@ reservoirCatwalk: Floor { 'catwalk;;platform floor ground deck ledge edge'
 reservoirStrainer: Room {
     vocab = 'The Strainer[weak] Stage;;tunnel'
     roomTitle = 'The Strainer Stage'
-    desc = "The concrete tunnel end here, at a massive grate. Water flows through
+    desc = "The concrete tunnel ends here, at a massive grate. Water flows through
     in a current, which borders on hazardous. "
 
     north = "Swimming against the current would only dead-end{dummy}

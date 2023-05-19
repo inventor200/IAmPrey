@@ -1,6 +1,6 @@
 classroom: Room { 'The Classroom'
     "Scattered desks indicate frequent chases have occurred here before.
-    A teacher's desk sits against the north wall, beside a projector screen.
+    A teacher's desk sits against the north wall, beside a projector screen.\b
     To the <<hyperDir('east')>>, a passage curves north to the Common Room. "
 
     east = commonRoomHall

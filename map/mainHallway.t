@@ -207,8 +207,8 @@ southHall: HallwaySegment {
     roomTitle = '<<nameHeader>> (H)'
     theName = 'the middle of the hall'
     additionalDesc = "\b
-    The hall extends <<hyperDir('west')>> with a restroom
-    to the <<hyperDir('south')>>. "
+    The hall extends to the <<hyperDir('west')>>, curves <<hyperDir('northeast')>>,
+    and also leads to a restroom to the <<hyperDir('south')>>. "
 
     regions = [southHallRegion]
 

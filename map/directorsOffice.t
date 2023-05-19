@@ -31,9 +31,10 @@ directorsOffice: Room { 'The Director\'s Office'
     }
     bulk = 2
     isEnterable = (gCatMode)
-    canLieOnMe = true
-    canSitOnMe = true
-    canSitInMe = true
+    isBoardable = (gCatMode)
+    canLieOnMe = (gCatMode)
+    canSitOnMe = (gCatMode)
+    canSitInMe = (gCatMode)
 }
 +Decoration { 'picture;hanging picture on[prep] wall[n];frame photo'
     "A photo of the last director this facility ever had, except...something is wrong.\b

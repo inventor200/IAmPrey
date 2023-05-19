@@ -6,7 +6,8 @@ library: Room { 'The Library'
     to facility staff, if they did not want to spend time at
     desktop computer.\b
     A storage cabinet sits by the south wall, and chairs are strewn about.\b
-    A stepladder sits by the north wall, under a vent grate. "
+    A stepladder sits by the north wall, under a vent grate.\b
+    To the <<hyperDir('west')>>, a way leads to Server Access. "
 
     west = serverRoomBottom
 
