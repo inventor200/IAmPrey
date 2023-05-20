@@ -132,7 +132,7 @@ hardModeSetting: DifficultySetting {
 nightmareModeSetting: DifficultySetting {
     title = 'Nightmare Mode'
     generalBlurb =
-        'What the <i>fuck?!</i> Something has really gotten into the Predator
+        'What the <i>heck?!</i> Something has really gotten into the Predator
         today! His cruelty is <i>insatiable!</i>'
     trickCount = 0
     turnsBeforeSkashekChecks = 1

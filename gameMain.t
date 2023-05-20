@@ -4,13 +4,12 @@
 
 #define gFormatForScreenReader gameMain.formatForScreenReader
 #define gDefaultPOV 1
-#define helpDocTitle '<i>Prey\'s Survival Guide</i>'
 
 #define gDirectCmdStr(command) \
     (gFormatForScreenReader ? \
-        ('<b>' + (command).toUpper() + '</b>') : \
+        ('<b><u>' + (command).toUpper() + '</u></b>') : \
         aHrefAlt((command).toLower(), (command).toUpper(), \
-        '<b>' + (command).toUpper() + '</b>') \
+        '<b><u>' + (command).toUpper() + '</u></b>') \
     )
 
 #include "betterChoices.t"
@@ -23,7 +22,7 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 4
+/*--*/  #define __FAST_DIFFICULTY 1
 /*-*/  #define __TEST_ROOM classroom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
@@ -87,7 +86,7 @@
 #include "moduleUnion.t"
 #include "prologue.t"
 #include "epilogue.t"
-#include "preciseHelp.t"
+#include "preciseHelp.h"
 #include "wardrobe.t"
 #include "enviroSuit.t"
 #include "mapMode.t"

@@ -16,7 +16,7 @@ prologueCore: InitObject {
         cls();
         #endif
         #if __SHOW_PROLOGUE
-        "<b>Content warning:</b>\n";
+        "<b>Content warning:</b>\b";
         if (gFormatForScreenReader) {
             "For violence, frequent crude language, and rare mentions of suicide.";
         }
@@ -25,13 +25,16 @@ prologueCore: InitObject {
             \t<tt>[&gt;&gt;]</tt> Frequent crude language\n
             \t<tt>[&gt;&gt;]</tt> Rare mentions of suicide";
         }
-        "\b<b>Anxiety warning:</b>\n
+        "\b<b>Anxiety warning:</b>\b
+
         This game features an active antagonist,
         so your turns must be spent wisely!\b
-        <b>Note on randomness and UNDO:</b>\n
+
+        <b>Note on randomness and <<InstructionsChapter.formatCommand('UNDO')>>:</b>\b
+
         Elements of this game are randomized, with casual replayability
-        in mind. Use of UNDO will not change the outcomes of randomized
-        events.\b
+        in mind. Use of <<InstructionsChapter.formatCommand('UNDO')>>
+        will not change the outcomes of randomized events.\b
         Rest assured that your survival is not decided by randomness.";
         "\b";
         inputManager.pauseForMore();
@@ -45,15 +48,21 @@ prologueCore: InitObject {
         #if __ALLOW_CLS
         cls();
         #endif
-        "\b<b>Note for new and experienced players:</b>\n
+        """
+        \b<b>Note for new and experienced players:</b>\b
+
         This will not be a standard parser game. Players of <b>all skill levels</b>
-        should consult the <<helpDocTitle>>
-        (which should have come with this game).\b
-        There are a number of game mechanics ahead, but
+        should consult <i>Prey's Survival Guide</i>
+        (which should have come with this game), or use the
+        <<InstructionsChapter.formatCommand('guide')>> command
+        for the in-game version of the document.\b
+
+        There are a number of new game mechanics ahead, and
         they were not designed with the traditions of this medium in mind.\b
-        This game is a BETA build, so the in-game help menu has not been
-        implemented. In the post-comp release, the in-game help will have the
-        same content as the survival guide.  ";
+
+        For more information, experienced parser players should use the
+        <<InstructionsChapter.formatCommand('parser warning')>> command.
+        \b""";
         inputManager.pauseForMore();
         "\b";
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');

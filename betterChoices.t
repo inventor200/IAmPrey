@@ -28,7 +28,7 @@ class ChoiceGiver: object {
             return 1;
         }
 
-        say('&nbsp;\b<b><tt>');
+        say('<.p><b><tt>');
         say(question);
         say('</tt></b>');
         if (context != nil) {
@@ -42,7 +42,7 @@ class ChoiceGiver: object {
             (beforeScreenReaderCertainty || gFormatForScreenReader);
 
         if (formatForScreenReader) {
-            say('\b(The choices are ');
+            say('<.p>(The choices are');
         }
         else {
             say('\n');
@@ -64,7 +64,7 @@ class ChoiceGiver: object {
             if (context != nil) hasContext = true;
 
             if (formatForScreenReader) {
-                say('<b>');
+                say('\n<b>');
                 say(abbreviation);
                 say('</b> for <q>');
                 say(text);
@@ -118,35 +118,41 @@ class ChoiceGiver: object {
                 }
 
                 if (context != nil) {
-                    say('\b<b>The description for <q>');
+                    say('<.p><b>The description for <q>');
                     say(text);
-                    say('</q> is:</b>\n');
+                    say('</q> is:</b><.p>');
                     say(context);
                 }
             }
         }
 
         local lastChoice = nil;
+        local lastChoiceLength = 0;
 
         do {
             lastChoice = nil;
             
             if (formatForScreenReader) {
-                say('\b<b>Type in your choice here:</b> ');
+                say('<.p><b>Type in your choice here:</b> ');
             }
             else {
-                say('\b&gt;&nbsp;');
+                say('<.p>&gt;&nbsp;');
             }
             local response = inputManager.getInputLine(nil);
+            say('&nbsp;<.p>');
             local reduced = response.trim().toUpper();
             for (local i = 1; i <= choices.length; i++) {
                 local choice = choices[i];
                 local abbreviation = choice[1];
                 if (reduced.left(abbreviation.length) == abbreviation) {
-                    lastChoice = i;
-                    return i;
+                    if (abbreviation.length >= lastChoiceLength) {
+                        lastChoice = i;
+                        lastChoiceLength = abbreviation.length;
+                    }
                 }
             }
+
+            if (lastChoice != nil) return lastChoice;
 
             say('\bInvalid choice.');
         } while(lastChoice == nil);
