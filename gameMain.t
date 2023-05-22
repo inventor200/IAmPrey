@@ -22,8 +22,8 @@
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
-/*--*/  #define __FAST_DIFFICULTY 1
-/*-*/  #define __TEST_ROOM classroom
+/*--*/  #define __FAST_DIFFICULTY 4
+/*-*/  #define __TEST_ROOM northeastCubicle
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN true
@@ -89,6 +89,7 @@
 #include "preciseHelp.h"
 #include "wardrobe.t"
 #include "enviroSuit.t"
+#include "computers.t"
 #include "mapMode.t"
 #include "map/map.h"
 
@@ -114,7 +115,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.6 BETA (Patch 6)'
+    version = '0.9.7 BETA (Patch 7)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

@@ -92,12 +92,23 @@ northeastCubicle: Cubicle { 'The Northeast Cubicle'
 }
 populateCubicle(northeastCubicle)
 
+TerminalDock @northeastCubicleDesk;
++TerminalComputer 'admin1';
+++TerminalFile 'downloads/test.txt' 'This is a test.';
+++UserFile 'mike.user' @mikeUserFolder;
+
+mikeUserFolder: TerminalUserFolder 'mike';
++TerminalFile 'mike-test.txt' 'This should be here.';
+
 southeastCubicle: Cubicle { 'The Southeast Cubicle'
     desc() {
         inherited();
     }
 }
 populateCubicle(southeastCubicle)
+
+TerminalDock @southeastCubicleDesk;
++TerminalComputer 'admin2';
 
 northwestCubicle: Cubicle { 'The Northwest Cubicle'
     desc() {
@@ -106,11 +117,17 @@ northwestCubicle: Cubicle { 'The Northwest Cubicle'
 }
 populateCubicle(northwestCubicle)
 
+TerminalDock @northwestCubicleDesk;
++TerminalComputer 'admin3';
+
 southwestCubicle: Cubicle { 'The Southwest Cubicle'
     desc() {
         inherited();
     }
 }
 populateCubicle(southwestCubicle)
+
+TerminalDock @southwestCubicleDesk;
++TerminalComputer 'admin4';
 
 DefineDoorWestTo(northwestHall, administration, 'the Administration door;admin')
