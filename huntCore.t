@@ -426,9 +426,13 @@ huntCore: InitObject {
         #else
         prey.moveInto(genericCatchNet);
         #endif
+
         //TODO: Later on, we can have him start in the map during cat mode,
         //      and slowly make his way down to the reservoir after checking
         //      the director's office for the cat.
+        #if __BANISH_SKASHEK
+        //
+        #else
         #ifdef __DEBUG
         local startRoom = __SKASHEK_START;
         if (startRoom == nil) startRoom = breakroom;
@@ -436,9 +440,13 @@ huntCore: InitObject {
         #else
         skashek.moveInto(breakroom);
         #endif
+        #endif
     }
 
     getStartingAIState() {
+        #if __BANISH_SKASHEK
+        return skashekCatModeState;
+        #else
         #ifdef __DEBUG
         local testState = __SKASHEK_STATE;
         if (testState != nil) {
@@ -447,6 +455,7 @@ huntCore: InitObject {
         return difficultySettingObj.startingSkashekState;
         #else
         return difficultySettingObj.startingSkashekState;
+        #endif
         #endif
     }
 

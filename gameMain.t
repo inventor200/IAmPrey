@@ -16,6 +16,7 @@
 
 // Begin compile modes
 #define __IS_MAP_TEST nil
+#define __BANISH_SKASHEK true
 
 #ifdef __DEBUG
 ////////////////////////////////////////////////
@@ -26,7 +27,7 @@
 /*-*/  #define __TEST_ROOM northeastCubicle
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
-    #define __SKASHEK_FROZEN true
+    #define __SKASHEK_FROZEN nil
    #define __SKASHEK_TOOTHLESS nil
   #define __SKASHEK_IMMOBILE nil
  #define __SKASHEK_NO_TARGET nil

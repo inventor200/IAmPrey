@@ -329,8 +329,6 @@ class TerminalComputer: Thing {
     desktopVocab = 'desktop terminal;docked;screen computer laptop'
     handheldVocab = 'tablet terminal;smart handheld;screen computer tablet'
 
-    contType = On
-
     currentDock = nil
 
     maxScreenItems = 6
