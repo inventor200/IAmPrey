@@ -116,7 +116,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.7 BETA (Patch 7)'
+    version = '0.9.8 BETA (Patch 8)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

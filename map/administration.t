@@ -95,6 +95,11 @@ populateCubicle(northeastCubicle)
 TerminalDock @northeastCubicleDesk;
 +TerminalComputer 'admin1';
 ++TerminalFile 'downloads/test.txt' 'This is a test.';
+++TerminalFile 'downloads/hide.txt' 'This is encrypted.'
+    isEncrypted() {
+        return getHomeTerminal().currentDock != admin2Dock;
+    }
+;
 ++UserFile 'mike.user' @mikeUserFolder;
 
 mikeUserFolder: TerminalUserFolder 'mike';
@@ -107,8 +112,8 @@ southeastCubicle: Cubicle { 'The Southeast Cubicle'
 }
 populateCubicle(southeastCubicle)
 
-TerminalDock @southeastCubicleDesk;
-+TerminalComputer 'admin2';
+admin2Dock: TerminalDock @southeastCubicleDesk;
+//+TerminalComputer 'admin2';
 
 northwestCubicle: Cubicle { 'The Northwest Cubicle'
     desc() {

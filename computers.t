@@ -49,15 +49,20 @@ modify Type
 ;
 
 modify Thing {
+    cannotDockMsg =
+        '{That subj dobj} {is} not something {i} can dock. '
+    cannotLogIntoMsg =
+        '{That subj dobj} {is} not something {i} can log into. '
+
     dobjFor(Dock) {
         verify() {
-            illogical('{That subj dobj} {is} not something {i} can dock. ');
+            illogical(cannotDockMsg);
         }
     }
 
     dobjFor(LogInto) {
         verify() {
-            illogical('{That subj dobj} {is} not something {i} can log into. ');
+            illogical(cannotLogIntoMsg);
         }
     }
 }
@@ -66,6 +71,21 @@ class TerminalFileSystemElement: object {
     location = nil
     name = 'untitled'
     accessibleName = (name)
+
+    getHomeTerminal() {
+        local cur = self;
+        while (cur.location != nil) {
+            cur = cur.location;
+        }
+        if (cur.ofKind(TerminalFileSystem)) {
+            return cur.homeTerminal;
+        }
+        return nil;
+    }
+
+    isEncrypted() {
+        return nil;
+    }
 
     getPathString() {
         if (location != nil) {
@@ -78,6 +98,7 @@ class TerminalFileSystemElement: object {
     }
 
     getRedirect() {
+        if (isEncrypted()) return nil;
         return self;
     }
 
@@ -131,6 +152,7 @@ class TerminalFileSystemElement: object {
     }
 
     traverseVector(vec, isFile) {
+        if (isEncrypted()) return nil;
         return self;
     }
 }
@@ -173,6 +195,8 @@ class TerminalFolder: TerminalFileSystemElement {
                 if (user != nil) return user;
             }
         }
+
+        if (isEncrypted()) return nil;
 
         return self;
     }
@@ -228,6 +252,13 @@ class TerminalFolder: TerminalFileSystemElement {
     }
 
     traverseVector(vec, isFile) {
+        if (isEncrypted()) {
+            if (vec.length > 0) {
+                vec.removeRange(1, -1);
+            }
+            return nil;
+        }
+
         if (vec.length == 0) {
             return getRedirect(); // Found
         }
@@ -245,6 +276,9 @@ class TerminalFolder: TerminalFileSystemElement {
                     local frontName = item.name.split('$')[1];
                     if ((item.name != searchName) && (frontName != searchName)) continue;
                     vec.removeElementAt(1);
+                    if (item.isEncrypted()) {
+                        return nil;
+                    }
                     return item;
                 }
             }
@@ -294,6 +328,7 @@ class TerminalFileSystem: TerminalFolder {
     currentUser = nil
     name = '/'
     accessibleName = 'root'
+    homeTerminal = nil
 
     /*needsAdding(element) {
         return nil;
@@ -396,6 +431,7 @@ class TerminalComputer: Thing {
     preinitThing() {
         inherited();
         fileSystem = new TerminalFileSystem();
+        fileSystem.homeTerminal = self;
         fileSystem.addFolder('downloads');
         fileSystem.addFolder('users');
         fileSystem.addFolder('home');
@@ -667,10 +703,14 @@ tcmd_ls: TerminalCommand {
     exec(terminal, arg?) {
         local fileCount = 0;
         local folderCount = 0;
+        local encryptedCount = 0;
 
         for (local i = 1; i <= terminal.currentFolder.contents.length; i++) {
             local item = terminal.currentFolder.contents[i];
-            if (item.ofKind(TerminalFolder)) {
+            if (item.isEncrypted()) {
+                encryptedCount++;
+            }
+            else if (item.ofKind(TerminalFolder)) {
                 folderCount++;
             }
             else {
@@ -686,6 +726,7 @@ tcmd_ls: TerminalCommand {
             }
             for (local i = 1; i <= terminal.currentFolder.contents.length; i++) {
                 local item = terminal.currentFolder.contents[i];
+                if (item.isEncrypted()) continue;
                 if (item.ofKind(TerminalFolder)) {
                     if (gFormatForScreenReader) {
                         terminal.addToScreenBuffer(
@@ -709,15 +750,24 @@ tcmd_ls: TerminalCommand {
             }
             for (local i = 1; i <= terminal.currentFolder.contents.length; i++) {
                 local item = terminal.currentFolder.contents[i];
+                if (item.isEncrypted()) continue;
                 if (!item.ofKind(TerminalFolder)) {
                     terminal.addToScreenBuffer(
                         '\n\t' + item.name
                     );
                 }
             }
+        } 
+
+        if (encryptedCount > 0) {
+            terminal.addToScreenBuffer(
+                '\nCurrent directory contains ' +
+                encryptedCount +
+                ' encrypted <<encryptedCount == 1 ? 'entry' : 'entries'>>.'
+            );
         }
 
-        if (folderCount == 0 && fileCount == 0) {
+        if (folderCount == 0 && fileCount == 0 && encryptedCount == 0) {
             terminal.addToScreenBuffer(
                 'Current directory is empty.'
             );
