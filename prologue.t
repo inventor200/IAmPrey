@@ -16,55 +16,61 @@ prologueCore: InitObject {
         cls();
         #endif
         #if __SHOW_PROLOGUE
-        "<b>Content warning:</b>\b";
-        if (gFormatForScreenReader) {
-            "For violence, frequent crude language, and rare mentions of suicide.";
+        if (!prologuePrefCore.skipIntro) {
+            "<b>Content warning:</b>\b";
+            if (gFormatForScreenReader) {
+                "For violence, frequent crude language, and rare mentions of suicide.";
+            }
+            else {
+                "\t<tt>[&gt;&gt;]</tt> Violence\n
+                \t<tt>[&gt;&gt;]</tt> Frequent crude language\n
+                \t<tt>[&gt;&gt;]</tt> Rare mentions of suicide";
+            }
+            "\b<b>Anxiety warning:</b>\b
+
+            This game features an active antagonist,
+            so your turns must be spent wisely!\b
+
+            <b>Note on randomness and <<InstructionsChapter.formatCommand('UNDO')>>:</b>\b
+
+            Elements of this game are randomized, with casual replayability
+            in mind. Use of <<InstructionsChapter.formatCommand('UNDO')>>
+            will not change the outcomes of randomized events.\b
+            Rest assured that your survival is not decided by randomness.";
+            "\b";
+            inputManager.pauseForMore();
         }
-        else {
-            "\t<tt>[&gt;&gt;]</tt> Violence\n
-            \t<tt>[&gt;&gt;]</tt> Frequent crude language\n
-            \t<tt>[&gt;&gt;]</tt> Rare mentions of suicide";
-        }
-        "\b<b>Anxiety warning:</b>\b
-
-        This game features an active antagonist,
-        so your turns must be spent wisely!\b
-
-        <b>Note on randomness and <<InstructionsChapter.formatCommand('UNDO')>>:</b>\b
-
-        Elements of this game are randomized, with casual replayability
-        in mind. Use of <<InstructionsChapter.formatCommand('UNDO')>>
-        will not change the outcomes of randomized events.\b
-        Rest assured that your survival is not decided by randomness.";
-        "\b";
-        inputManager.pauseForMore();
         #if __IS_MAP_TEST // is map test
         huntCore.setDifficulty(1);
         #if __ALLOW_CLS
         cls();
         #endif
-        catCutscene.play();
+        if (!prologuePrefCore.skipCatPrologue) {
+            catCutscene.play();
+        }
         #else // is not map test
         #if __ALLOW_CLS
         cls();
         #endif
-        """
-        \b<b>Note for new and experienced players:</b>\b
+        if (!prologuePrefCore.skipIntro) {
+            """
+            \b<b>Note for new and experienced players:</b>\b
 
-        This will not be a standard parser game. Players of <b>all skill levels</b>
-        should consult <i>Prey's Survival Guide</i>
-        (which should have come with this game), or use the
-        <<InstructionsChapter.formatCommand('guide')>> command
-        for the in-game version of the document.\b
+            This will not be a standard parser game. Players of <b>all skill levels</b>
+            should consult <i>Prey's Survival Guide</i>
+            (which should have come with this game), or use the
+            <<InstructionsChapter.formatCommand('guide')>> command
+            for the in-game version of the document.\b
 
-        There are a number of new game mechanics ahead, and
-        they were not designed with the traditions of this medium in mind.\b
+            There are a number of new game mechanics ahead, and
+            they were not designed with the traditions of this medium in mind.\b
 
-        For more information, experienced parser players should use the
-        <<InstructionsChapter.formatCommand('parser warning')>> command.
-        \b""";
-        inputManager.pauseForMore();
-        "\b";
+            For more information, experienced parser players should use the
+            <<InstructionsChapter.formatCommand('parser warning')>> command.
+            \b""";
+            inputManager.pauseForMore();
+            "\b";
+        }
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
         local difficulties = huntCore.difficultySettings;
         for (local i = 1; i <= difficulties.length; i++) {
@@ -78,9 +84,11 @@ prologueCore: InitObject {
         #endif
         if (!huntCore.difficultySettingObj.skipPrologue) {
             if (result == 1) {
-                catCutscene.play();
+                if (!prologuePrefCore.skipCatPrologue) {
+                    catCutscene.play();
+                }
             }
-            else {
+            else if (!prologuePrefCore.skipPreyPrologue) {
                 introCutscene.play();
             }
         }
@@ -117,6 +125,39 @@ prologueCore: InitObject {
         free-form exploration, use the <<gDirectCmdStr('restart')>> command to choose
         another difficulty, and begin a new game!
         <<end>>\b";
+
+        // Give the player random gameplay tips, similar to what is found in
+        // Deep Rock Galactic loading screens. This also helps players who
+        // still skipped the how-to-play guide.
+        "<center><b>RANDOM TIP:</b>\n<<one of>>
+        Use a combination of the 
+        <<InstructionsChapter.formatCommand('DROP ALL')>> command and the
+        <<InstructionsChapter.formatCommand('WEAR ALL')>> command to clear your inventory,
+        and take any nearby suit pieces, all in one turn!\n
+        Though you technically can't wear any suit pieces before you're in the
+        emergency airlock, you can still pick them up with the
+        <<InstructionsChapter.formatCommand('WEAR ALL')>> command!
+        <<or>>
+        You can condense the <<InstructionsChapter.formatCommand('OPEN')>>,
+        <<InstructionsChapter.formatCommand('ENTER')>>,
+        and <<InstructionsChapter.formatCommand('CLOSE')>> commands into one turns
+        by using the <<InstructionsChapter.formatCommand('HIDE IN')>> command!\n
+        Hide faster, hide smarter!
+        <<or>>
+        The Storage Bay and Hangar are both <i>huge</i>, and <<gSkashekName>> cannot
+        possibly control the connection between these two rooms!\n
+        Use this to your advantage to double-back on him!
+        <<or>>
+        New parkour routes can only be discovered with the
+        <<InstructionsChapter.formatCommand('SEARCH')>> command when the route connects
+        to the spot you currently stand! You cannot discover a route between a table and a
+        fridge, if you still stand on the floor!
+        <<or>>
+        If <<gSkashekName>> is following you into a room, try to hide inside of something!\n
+        If he sees you attempting to hide, however, then he will still hunt you down!
+        <<or>>
+        There might be something cool to find in the fume hood in the kitchen!
+        <<at random>></center>\b\b\b";
     }
 
     execute() {

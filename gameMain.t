@@ -85,6 +85,7 @@
 #include "trapsAndTracks.t"
 #include "trinkets.t"
 #include "moduleUnion.t"
+#include "prologuePrefs.t"
 #include "prologue.t"
 #include "epilogue.t"
 #include "preciseHelp.h"
@@ -116,7 +117,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.8 BETA (Patch 8)'
+    version = '0.9.9 BETA (Patch 9)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'
