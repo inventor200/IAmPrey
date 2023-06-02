@@ -2,7 +2,7 @@
 #include <tads.h>
 #include "advlite.h"
 
-#define gFormatForScreenReader gameMain.formatForScreenReader
+#define gFormatForScreenReader transScreenReader.formatForScreenReader
 #define gDefaultPOV 1
 
 #define gDirectCmdStr(command) \
@@ -86,6 +86,7 @@
 #include "trinkets.t"
 #include "moduleUnion.t"
 #include "prologuePrefs.t"
+#include "musicPlayer.t"
 #include "prologue.t"
 #include "epilogue.t"
 #include "preciseHelp.h"
@@ -98,7 +99,6 @@
 gameMain: GameMainDef {
     initialPlayerChar = prey
 
-    formatForScreenReader = nil
     lickedHandle = nil
 
     showIntro() {
@@ -117,7 +117,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.9 BETA (Patch 9)'
+    version = '0.9.10 BETA (Patch 10)'
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

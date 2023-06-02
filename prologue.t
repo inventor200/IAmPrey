@@ -9,13 +9,13 @@ prologueCore: InitObject {
     introCutscene = nil
     catCutscene = nil
 
-    execBeforeMe = [screenReaderInit]
+    execBeforeMe = [musicPlayer]
 
     selectDifficulty() {
-        #if __ALLOW_CLS
-        cls();
-        #endif
         #if __SHOW_PROLOGUE
+        #if __ALLOW_CLS
+        clsWithSong(nil);
+        #endif
         if (!prologuePrefCore.skipIntro) {
             "<b>Content warning:</b>\b";
             if (gFormatForScreenReader) {
@@ -43,7 +43,7 @@ prologueCore: InitObject {
         #if __IS_MAP_TEST // is map test
         huntCore.setDifficulty(1);
         #if __ALLOW_CLS
-        cls();
+        clsWithSong(preySong);
         #endif
         if (!prologuePrefCore.skipCatPrologue) {
             catCutscene.play();
@@ -79,10 +79,10 @@ prologueCore: InitObject {
         }
         local result = difficultyQuestion.ask();
         huntCore.setDifficulty(result);
-        #if __ALLOW_CLS
-        cls();
-        #endif
         if (!huntCore.difficultySettingObj.skipPrologue) {
+            #if __ALLOW_CLS
+            clsWithSong(preySong);
+            #endif
             if (result == 1) {
                 if (!prologuePrefCore.skipCatPrologue) {
                     catCutscene.play();
@@ -91,23 +91,24 @@ prologueCore: InitObject {
             else if (!prologuePrefCore.skipPreyPrologue) {
                 introCutscene.play();
             }
+            musicPlayer.playSong(chillSong);
+        }
+        else {
+            #if __ALLOW_CLS
+            clsWithSong(chillSong);
+            #endif
         }
         #endif // end is map test
         "\b";
         #else // do not show prologue
+        #if __ALLOW_CLS
+        clsWithSong(chillSong);
+        #endif
         huntCore.setDifficulty(__FAST_DIFFICULTY);
         #endif // end show prologue
     }
 
     play() {
-        #if __SHOW_PROLOGUE
-        /*"\b\b\b<i>Use the</i> <<gDirectCmdStr('help')>> <i>command,
-        if you would like written tutorials or other info resources.\b
-        You can also use the</i> <<gDirectCmdStr('verbs')>> <i>command,
-        which will provide a reference for all actions and commands that are
-        useful throughout this game!</i>
-        \b\b\b";*/
-        #endif
         "<center><small>WELCOME TO...</small>\b
         <b><tt>I AM <<if gCatMode>>CAT<<else>>PREY<<end>></tt></b>\n
         <small>version <<versionInfo.version>></small>\b

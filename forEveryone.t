@@ -8,12 +8,22 @@
 
 screenReaderInit: InitObject {
     execute() {
+        if (transScreenReader.playerHasScreenReaderPreference) {
+            if (transScreenReader.formatForScreenReader) {
+                statusLine.statusDispMode = StatusModeText;
+                prepForScreenReaders();
+            }
+            return;
+        }
+
+        transScreenReader.playerHasScreenReaderPreference = true;
+
         #if __SHOW_PROLOGUE
         if (ChoiceGiver.staticAsk(
             'Are you using a screen reader to play this story?', nil, true
         )) {
             statusLine.statusDispMode = StatusModeText;
-            gFormatForScreenReader = true;
+            transScreenReader.formatForScreenReader = true;
             prepForScreenReaders();
         }
         #endif
@@ -22,4 +32,9 @@ screenReaderInit: InitObject {
     prepForScreenReaders() {
         // For authors
     }
+}
+
+transient transScreenReader: object {
+    formatForScreenReader = nil
+    playerHasScreenReaderPreference = nil
 }

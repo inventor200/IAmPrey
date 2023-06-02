@@ -22,6 +22,18 @@ class ChoiceGiver: object {
         ]);
     }
 
+    showAskPrompt() {
+        if (formatForScreenReader) {
+            say('<.p><b>Type in your choice here:</b> ');
+        }
+        else {
+            say('<.p>&gt;&nbsp;');
+        }
+        local response = inputManager.getInputLine(nil);
+        say('&nbsp;<.p>');
+        return response.trim().toUpper();
+    }
+
     ask() {
         if (choices.length == 0) return nil;
         if (choices.length == 1) {
@@ -131,16 +143,7 @@ class ChoiceGiver: object {
 
         do {
             lastChoice = nil;
-            
-            if (formatForScreenReader) {
-                say('<.p><b>Type in your choice here:</b> ');
-            }
-            else {
-                say('<.p>&gt;&nbsp;');
-            }
-            local response = inputManager.getInputLine(nil);
-            say('&nbsp;<.p>');
-            local reduced = response.trim().toUpper();
+            local reduced = showAskPrompt();
             for (local i = 1; i <= choices.length; i++) {
                 local choice = choices[i];
                 local abbreviation = choice[1];

@@ -30,6 +30,8 @@ transient prologuePrefCore: InitObject {
     preferencesWereLoaded = nil
 
     fileName = 'I-Am-Prey-Preferences.cfg'
+
+    musicLineHead = 'player prefers music set to '
     
     execute() {
         if (preferencesWereLoaded) return;
@@ -94,6 +96,33 @@ transient prologuePrefCore: InitObject {
                             playerHasIntroPreference = true;
                             playerPrefersNoIntro = nil;
                             break;
+                        case 'player prefers no music':
+                            transMusicPlayer.playerGavePreferences = true;
+                            transMusicPlayer.playerWantsMusic = nil;
+                            break;
+                        case 'player prefers no sfx':
+                            transMusicPlayer.playerGavePreferences = true;
+                            transMusicPlayer.playerWantsSFX = nil;
+                            break;
+                        case 'player prefers sfx':
+                            transMusicPlayer.playerGavePreferences = true;
+                            transMusicPlayer.playerWantsSFX = true;
+                            break;
+                        default:
+                            if (statement.startsWith(musicLineHead)) {
+                                local possibleVolume = nil;
+                                local len = musicLineHead.length;
+                                if (statement.length > len) {
+                                    possibleVolume = tryInt(statement.substr(len));
+                                }
+                                if (possibleVolume == nil) {
+                                    possibleVolume = 50;
+                                }
+                                transMusicPlayer.playerGavePreferences = true;
+                                transMusicPlayer.playerWantsMusic = true;
+                                transMusicPlayer.musicVolume = possibleVolume;
+                            }
+                            break;
                     }
                 }
             }
@@ -106,43 +135,66 @@ transient prologuePrefCore: InitObject {
         }
     }
 
+    hasWrittenAnything = nil
+
+    writePreference(fl, str) {
+        fl.writeFile(str + ';\n');
+        hasWrittenAnything = true;
+    }
+
     writePreferences() {
+        hasWrittenAnything = nil;
         try {
             local prefsTextFile = File.openTextFile(fileName, FileAccessWrite);
 
             if (playerHasCatProloguePreference) {
                 if (playerPrefersNoCatPrologue) {
-                    prefsTextFile.writeFile('player prefers no cat prologue;\n');
+                    writePreference(prefsTextFile, 'player prefers no cat prologue');
                 }
                 else {
-                    prefsTextFile.writeFile('player prefers cat prologue;\n');
+                    writePreference(prefsTextFile, 'player prefers cat prologue');
                 }
             }
 
             if (playerHasPreyProloguePreference) {
                 if (playerPrefersNoPreyPrologue) {
-                    prefsTextFile.writeFile('player prefers no prey prologue;\n');
+                    writePreference(prefsTextFile, 'player prefers no prey prologue');
                 }
                 else {
-                    prefsTextFile.writeFile('player prefers prey prologue;\n');
+                    writePreference(prefsTextFile, 'player prefers prey prologue');
                 }
             }
 
             if (playerHasIntroPreference) {
                 if (playerPrefersNoIntro) {
-                    prefsTextFile.writeFile('player prefers no intro;\n');
+                    writePreference(prefsTextFile, 'player prefers no intro');
                 }
                 else {
-                    prefsTextFile.writeFile('player prefers intro;\n');
+                    writePreference(prefsTextFile, 'player prefers intro');
                 }
             }
 
-            if (
-                !playerHasCatProloguePreference &&
-                !playerHasPreyProloguePreference &&
-                !playerHasIntroPreference
-            ) {
-                prefsTextFile.writeFile('player has no preferences;\n');
+            if (transMusicPlayer.playerGavePreferences) {
+                if (transMusicPlayer.playerWantsMusic) {
+                    writePreference(prefsTextFile,
+                        musicLineHead +
+                        transMusicPlayer.musicVolume
+                    );
+                }
+                else {
+                    writePreference(prefsTextFile, 'player prefers no music');
+                }
+
+                if (transMusicPlayer.playerWantsSFX) {
+                    writePreference(prefsTextFile, 'player prefers sfx');
+                }
+                else {
+                    writePreference(prefsTextFile, 'player prefers no sfx');
+                }
+            }
+
+            if (!hasWrittenAnything) {
+                writePreference(prefsTextFile, 'player has no preferences');
             }
             
             prefsTextFile.closeFile();
@@ -153,6 +205,20 @@ transient prologuePrefCore: InitObject {
         } catch (FileSafetyException ex3) {
             //
         }
+    }
+
+    remindOfFile() {
+        "\b\t<b>REMEMBER:</b>\n
+        You can always reset your preferences by deleting the
+        following file:\n
+        <tt><<prologuePrefCore.fileName>></tt>\b
+        You can also edit this file directly!\n
+        It should be in the same directory as the game file!
+        \b\b\b";
+
+        inputManager.pauseForMore();
+
+        "\b";
     }
 }
 
@@ -178,24 +244,27 @@ modify Restart {
         );
 
         if (desireRestart) {
-            handleConfirmedRestart();
+            //handleConfirmedRestart();
             doRestartGame();
         }
     }
 
     doRestartGame() {
         handleConfirmedRestart();
+        musicPlayer.playSong(nil);
         PreRestartObject.classExec();
         throw new RestartSignal();
     }
 
     handleConfirmedRestart() {
+        local choiceMade = nil;
         if (!prologuePrefCore.playerHasIntroPreference) {
             prologuePrefCore.playerPrefersNoIntro = ChoiceGiver.staticAsk(
                 'Would you like to skip to the difficulty selection, from now on? '
             );
 
             prologuePrefCore.playerHasIntroPreference = true;
+            choiceMade = true;
         }
 
         if (gCatMode) {
@@ -205,6 +274,7 @@ modify Restart {
                 );
 
                 prologuePrefCore.playerHasCatProloguePreference = true;
+                choiceMade = true;
             }
         }
         else if (!prologuePrefCore.playerHasPreyProloguePreference) {
@@ -213,17 +283,13 @@ modify Restart {
             );
 
             prologuePrefCore.playerHasPreyProloguePreference = true;
+            choiceMade = true;
         }
 
         prologuePrefCore.writePreferences();
-
-        "\b\t<b>REMEMBER:</b>\n
-        You can always reset your skipping preferences by deleting the
-        following file:\n
-        <tt><<prologuePrefCore.fileName>></tt>
-        \b\b\b";
-
-        inputManager.pauseForMore();
+        if (choiceMade) {
+            prologuePrefCore.remindOfFile();
+        }
     }
 }
 
