@@ -10,6 +10,7 @@ cloneQuarters: Room { 'Clone Sleeping Quarters'
 
     ceilingObj = industrialCeiling
     floorObj = carpetedFloor
+    ambienceObject = carpetAmbience
 
     mapModeDirections = [&north, &west]
     familiar = roomsFamiliarByDefault

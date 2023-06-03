@@ -28,6 +28,7 @@ kitchen: Room { 'The Kitchen'
 
     eastMuffle = reservoirCorridor
     southMuffle = reactorNoiseRoom
+    ambienceObject = industrialAmbience
 
     mapModeDirections = [&north, &west]
     familiar = roomsFamiliarByDefault

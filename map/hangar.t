@@ -17,6 +17,7 @@ storageBay: Room { 'The Storage Bay'
     regions = [hangarSightLine]
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+    ambienceObject = hangarAmbience
 
     roomDaemon() {
         checkRoomDaemonTurns;
@@ -67,6 +68,7 @@ hangar: Room { 'The Hangar'
     
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+    ambienceObject = hangarAmbience
 
     mapModeDirections = [&west, &east]
     familiar = roomsFamiliarByDefault
@@ -113,6 +115,7 @@ wasteProcessing: Room { 'Waste Processing'
     
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+    ambienceObject = industrialAmbience
     mapModeLockedDoors = [wasteProcessingExit]
 }
 
@@ -132,6 +135,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     mapModeDirections = [&east, &west]
     familiar = roomsFamiliarByDefault
+    ambienceObject = tileAmbience
 
     hasAllSuitParts = nil
     suitReportMsg = ''

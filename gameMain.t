@@ -1,6 +1,7 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+#include "versionInfo.h"
 
 #define gFormatForScreenReader transScreenReader.formatForScreenReader
 #define gDefaultPOV 1
@@ -24,7 +25,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM northeastCubicle
+/*-*/  #define __TEST_ROOM utilityPassage
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
@@ -117,7 +118,7 @@ versionInfo: GameID {
     name = 'I Am Prey'
     byline = 'by Joey Cramsey'
     htmlByline = 'by <a href="mailto:josephcsoftware@gmail.com">Joey Cramsey</a>'
-    version = '0.9.10 BETA (Patch 10)'
+    version = __GAME_VERSION
     authorEmail = 'josephcsoftware@gmail.com'
     desc = 'A horror-lite science fiction game of evasion.'
     htmlDesc = 'A horror-lite science fiction game of evasion.'

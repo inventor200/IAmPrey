@@ -22,6 +22,7 @@ northBathroom: Bathroom {
 
     showerWall = 'north'
     south = northHall
+    ambienceObject = industrialAmbience
 
     mapModeDirections = [&south]
     familiar = roomsFamiliarByDefault
@@ -38,6 +39,7 @@ southBathroom: Bathroom {
 
     showerWall = 'south'
     north = southHall
+    ambienceObject = industrialAmbience
 
     eastMuffle = reactorNoiseRoom
 

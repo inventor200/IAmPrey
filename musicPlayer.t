@@ -106,16 +106,12 @@ musicPlayer: InitObject {
                 playSong(nil);
             }
 
-            //FIXME: Uncomment this once SFX are added
-            /*transMusicPlayer.playerWantsSFX = ChoiceGiver.staticAsk(
+            transMusicPlayer.playerWantsSFX = ChoiceGiver.staticAsk(
                 transMusicPlayer.playerWantsMusic ?
                 'Would you also like sound effects and ambience?'
                 :
                 'Would you like sound effects and ambience instead?'
-            );*/
-
-            //TODO: Save settings, and ask the player if they would
-            // like to use their previous sound settings upon restart.
+            );
 
             prologuePrefCore.writePreferences();
             prologuePrefCore.remindOfFile();
@@ -198,19 +194,17 @@ transient transMusicPlayer: object {
 
         local fade = nil;
         if (previousSong != currentSong) {
-            if (previousSong != nil) {
-                if (previousSong.fadeout) fade = true;
-            }
-            else {
-                // ALWAYS fade in from silence!
+            if (previousSong == nil || currentSong == nil) {
                 fade = true;
             }
-            if (currentSong != nil) {
-                if (currentSong.fadein) fade = true;
-            }
             else {
-                // ALWAYS fade out from silence!
                 fade = true;
+                if (previousSong != nil) {
+                    if (!previousSong.fadeout) fade = nil;
+                }
+                if (currentSong != nil) {
+                    if (!currentSong.fadein) fade = nil;
+                }
             }
         }
 
@@ -335,9 +329,154 @@ skashekSong: GameSong {
     fadeout = true
 }
 
+transient sfxPlayer: object {
+    fadetime = '2.0'
+    currentAmbience = nil
+
+    setAmbience(ambienceObj) {
+        if (!transMusicPlayer.allowSFX) return;
+        local previousAmbience = currentAmbience;
+        currentAmbience = ambienceObj;
+
+        // No point changing to the same ambience
+        if (currentAmbience == previousAmbience) return;
+
+        if (previousAmbience == nil) {
+            fadein(currentAmbience.sfxURL, toString(currentAmbience.volume));
+        }
+        else if (currentAmbience == nil) {
+            fadeout();
+        }
+        else {
+            crossfade(currentAmbience.sfxURL, toString(currentAmbience.volume));
+        }
+    }
+
+    fadeout() {
+        say(
+            '<SOUND CANCEL=BGAMBIENT
+            FADEOUT=CROSSFADE,' + fadetime + '>'
+        );
+    }
+
+    fadein(sfxURL, sfxVolume) {
+        say(
+            '<SOUND SRC="' + sfxURL + '"
+            LAYER=BGAMBIENT
+            FADEIN=CROSSFADE,' + fadetime + '
+            REPEAT=LOOP
+            VOLUME=' + sfxVolume + '>'
+        );
+    }
+
+    crossfade(sfxURL, sfxVolume) {
+        say(
+            '<SOUND SRC="' + sfxURL + '"
+            LAYER=BGAMBIENT
+            FADEIN=CROSSFADE,' + fadetime + '
+            INTERRUPT
+            REPEAT=LOOP
+            VOLUME=' + sfxVolume + '>'
+        );
+    }
+}
+
+class GameAmbience: object {
+    sfxURL = ''
+    volume = 75
+
+    // How much will the ambience silence foreground sounds?
+    drownOutFactor = 0
+
+    getDrownedVolume(soundObj) {
+        local floatVol = new BigNumber(soundObj.volume);
+        local one = new BigNumber(1);
+        local cent = new BigNumber(100);
+        local floatDrownOut =
+            (new BigNumber(drownOutFactor) / cent)
+            - (new BigNumber(soundObj.antiDrowningFactor) / cent);
+        local mult = one - floatDrownOut;
+        if (mult < 0) mult = 0;
+        if (mult > 1) mult = one;
+        local finalVol = floatVol * mult;
+        return toInteger(finalVol);
+    }
+}
+
+carpetAmbience: GameAmbience {
+    sfxURL = 'sounds/carpet.ogg'
+    //volume = 25
+}
+
+coolingDuctAmbience: GameAmbience {
+    sfxURL = 'sounds/coolingduct.ogg'
+    drownOutFactor = 50
+}
+
+hangarAmbience: GameAmbience {
+    sfxURL = 'sounds/hangar.ogg'
+}
+
+industrialAmbience: GameAmbience {
+    sfxURL = 'sounds/industrial.ogg'
+}
+
+tileAmbience: GameAmbience {
+    sfxURL = 'sounds/tile.ogg'
+    //volume = 50
+}
+
+class GameSFX: object {
+    sfxURL = ''
+    volume = 100
+
+    // How resistant is this sound to dampening?
+    antiDrowningFactor = 0
+}
+
+modify Room {
+    ambienceObject = tileAmbience
+
+    travelerEntering(traveler, origin) {
+        inherited(traveler, origin);
+        if (transMusicPlayer.allowSFX) {
+            if (gPlayerChar.isOrIsIn(traveler)) {
+                setFullAmbience();
+            }
+        }
+    }
+
+    setFullAmbience() {
+        say(
+            '<SOUND CANCEL=AMBIENT
+            FADEOUT=CROSSFADE,2.0>'
+        );
+        sfxPlayer.setAmbience(ambienceObject);
+        setAmbience();
+    }
+
+    setAmbience() {
+        //
+    }
+}
+
+recoverAmbience() {
+    if (gPlayerChar == nil) {
+        sfxPlayer.setAmbience(nil);
+        return;
+    }
+    local rm = gPlayerChar.getOutermostRoom();
+    if (rm == nil) {
+        sfxPlayer.setAmbience(nil);
+        return;
+    }
+    rm.setFullAmbience();
+}
+
 replace cls() {
     aioClearScreen();
     musicPlayer.recoverSong();
+    recoverAmbience();
 }
 
 clsWithSong(nextSong) {
@@ -399,6 +538,7 @@ modify Undo {
         if (ret) {
             // Recover the song from this turn.
             musicPlayer.updateSong();
+            recoverAmbience();
         }
 
         return ret;
@@ -412,6 +552,7 @@ modify Restore {
         if (ret) {
             // Recover the song from this turn.
             musicPlayer.updateSong();
+            recoverAmbience();
         }
 
         return ret;

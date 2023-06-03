@@ -9,6 +9,7 @@ freezer: Room { 'The Freezer'
     ceilingObj = industrialCeiling
     atmosphereObj = freezingAtmosphere
     isFreezing = true
+    ambienceObject = coolingDuctAmbience
 
     playerSurface =
         '<<if gCatMode>>{my} <<one of>><<or>>black<<or>>regal<<or>>royal<<or

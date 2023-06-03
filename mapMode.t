@@ -324,7 +324,7 @@ modify Room {
 mapModeDatabase: object {
     inMapMode = nil
     firstTimeMapMode = nil
-    actualPlayerChar = nil
+    actualPlayerChar = (gCatMode ? cat : prey)
     mapModeStart = nil
     compassTarget = nil
 
@@ -434,6 +434,7 @@ mapModeDatabase: object {
         gotoRoomInMapMode(
             gPlayerChar.getOutermostRoom().mapModeVersion
         );
+        recoverAmbience();
     }
 
     gotoRoomInMapMode(mapModeRoom) {
@@ -446,7 +447,6 @@ mapModeDatabase: object {
                 {My} available actions will be limited, but time does not pass here.<.p>";
             }
             setPlayer(mapModePlayer);
-            actualPlayerChar = gPlayerChar;
             mapModeStart = mapModeRoom;
         }
         mapModePlayer.moveInto(mapModeRoom);
@@ -458,6 +458,7 @@ mapModeDatabase: object {
         "<.p><tt>MAP MODE IS NOW OFF.</tt><.p>";
         setPlayer(actualPlayerChar);
         actualPlayerChar.getOutermostRoom().lookAroundWithin();
+        recoverAmbience();
     }
 
     resetPathCalculation() {
@@ -730,6 +731,7 @@ class MapModeRoom: Room {
         skashekRouteTable = new RouteTable(self, true);
     }
 
+    ambienceObject = nil
     isMapModeRoom = true
     familiar = true
     mapRoomIndex = -1

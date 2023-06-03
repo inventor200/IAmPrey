@@ -75,6 +75,7 @@ class CoolingDuctSegment: Room {
     floorObj = fakeDuctFloor
     atmosphereObj = freezingAtmosphere
     isFreezing = true
+    ambienceObject = coolingDuctAmbience
 
     roomBeforeAction() {
         if (gActionIs(Drop) || gActionIs(Throw) || gActionIs(ThrowDir) || gActionIs(ThrowTo)) {

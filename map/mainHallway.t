@@ -13,6 +13,7 @@ loadingArea: Room {
     east = loadingAreaDoorway
     west = northHall
     south = northeastHall
+    ambienceObject = industrialAmbience
 
     southeastMuffle = labB
 
@@ -64,6 +65,7 @@ class HallwaySegment: Room {
     nameHeader = 'The Main Hallway Ring'
 
     additionalDesc() { }
+    ambienceObject = industrialAmbience
 }
 
 loadingAreaSightLine: HallRegion;

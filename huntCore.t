@@ -418,6 +418,7 @@ huntCore: InitObject {
         #else
         cat.moveInto(catBed);
         #endif
+        recoverAmbience();
     }
 
     movePrey() {
@@ -427,9 +428,6 @@ huntCore: InitObject {
         prey.moveInto(genericCatchNet);
         #endif
 
-        //TODO: Later on, we can have him start in the map during cat mode,
-        //      and slowly make his way down to the reservoir after checking
-        //      the director's office for the cat.
         #if __BANISH_SKASHEK
         //
         #else
@@ -441,6 +439,7 @@ huntCore: InitObject {
         skashek.moveInto(breakroom);
         #endif
         #endif
+        recoverAmbience();
     }
 
     getStartingAIState() {

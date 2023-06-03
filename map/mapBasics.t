@@ -356,16 +356,19 @@ freezingAtmosphere: Atmosphere { 'air;;atmosphere breeze wind fog mist breath fr
 dreamWorldPrey: Room { 'The Artificial Dream'
     "{I} begin to wake up... "
     isFamiliar = nil
+    ambienceObject = nil
 }
 
 dreamWorldCat: Room { 'The Dream of Memories'
     "{I} begin to wake up... "
     isFamiliar = nil
+    ambienceObject = nil
 }
 
 dreamWorldSkashek: Room { 'The Dream of Starvation'
     "{I} begin to wake up... "
     isFamiliar = nil
+    ambienceObject = nil
 }
 
 // If the player tries to refer to their surroundings by "room",
