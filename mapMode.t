@@ -623,7 +623,11 @@ class RouteTable: object {
                     connector = cachedDoor;
                 }
             }
+            #if __USE_TRANSIENT_MAP_CACHE
+            knownDirections.append(new transient MapModeDirection(
+            #else
             knownDirections.append(new MapModeDirection(
+            #endif
                 dirProp,
                 actualDestination.mapModeVersion,
                 connector
@@ -643,7 +647,11 @@ class RouteTable: object {
                 local door = doorList[i];
                 local actualDestination = door.otherSide.getOutermostRoom();
                 if (actualDestination.mapModeVersion == nil) continue;
+                #if __USE_TRANSIENT_MAP_CACHE
+                knownDirections.append(new transient MapModeDirection(
+                #else
                 knownDirections.append(new MapModeDirection(
+                #endif
                     nil,
                     actualDestination.mapModeVersion,
                     door,
@@ -720,6 +728,52 @@ class RouteTable: object {
     }
 }
 
+routeStorageTestBed: object {
+    storedRouteTable = nil
+    storedRouteRef = nil
+
+    checkStatus() {
+        "Table: <<(storedRouteTable == nil)
+            ? 'nil' : 'stored'>>\n
+        Route: <<(storedRouteRef == nil)
+            ? 'nil' : 'stored'>>";
+    }
+}
+
+VerbRule(TestStoreRouteRef)
+    'store' 'route' 'ref'
+    : VerbProduction
+    action = TestStoreRouteRef
+    verbPhrase = 'store/storing route ref'
+;
+
+DefineSystemAction(TestStoreRouteRef)
+    includeInUndo = true
+    execAction(cmd) {
+        local mapModeRoom = gPlayerChar.getOutermostRoom().mapModeVersion;
+        routeStorageTestBed.storedRouteTable = mapModeRoom.playerRouteTable;
+        routeStorageTestBed.storedRouteRef =
+            mapModeRoom.playerRouteTable.findBestDirectionTo(
+                hangar.mapModeVersion
+            );
+        routeStorageTestBed.checkStatus();
+    }
+;
+
+VerbRule(TestCheckRouteRef)
+    'check' 'route' 'ref'
+    : VerbProduction
+    action = TestCheckRouteRef
+    verbPhrase = 'check/checking route ref'
+;
+
+DefineSystemAction(TestCheckRouteRef)
+    includeInUndo = true
+    execAction(cmd) {
+        routeStorageTestBed.checkStatus();
+    }
+;
+
 class MapModeRoom: Room {
     construct(_actual) {
         actualRoom = _actual;
@@ -727,8 +781,13 @@ class MapModeRoom: Room {
         roomTitle = _actual.roomTitle + ' (IN MAP MODE)';
         inherited Room.construct();
         mapRoomIndex = mapModeDatabase.allRooms.length + 1;
+        #if __USE_TRANSIENT_MAP_CACHE
+        playerRouteTable = new transient RouteTable(self, nil);
+        skashekRouteTable = new transient RouteTable(self, true);
+        #else
         playerRouteTable = new RouteTable(self, nil);
         skashekRouteTable = new RouteTable(self, true);
+        #endif
     }
 
     ambienceObject = nil

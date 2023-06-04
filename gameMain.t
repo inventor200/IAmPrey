@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
-/*(-)*/  #define __SHOW_PROLOGUE true
+/*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
 /*-*/  #define __TEST_ROOM nil
       #define __SKASHEK_START nil
@@ -38,22 +38,11 @@
 ///////////////////////////////////////*||*\
 
 // End compile modes
-
+// Debug builds cannot use map cache transience
+#define __USE_TRANSIENT_MAP_CACHE nil
 #else
 // DO NOT ALTER:
-#define __SHOW_PROLOGUE true
-#if __IS_MAP_TEST
-#define __FAST_DIFFICULTY 1
-#else
-#define __FAST_DIFFICULTY 4
-#endif
-#define __SKASHEK_FROZEN nil
-#define __SKASHEK_TOOTHLESS nil
-#define __SKASHEK_IMMOBILE nil
-#define __SKASHEK_NO_TARGET nil
-#define __SKASHEK_ALLOW_TESTING_LURK nil
-#define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
-#define __SKASHEK_ALLOW_TESTING_CHASE nil
+#include "defaultSettings.h"
 // ^- This is the non-debug behavior!!!
 #endif
 
