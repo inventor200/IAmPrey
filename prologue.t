@@ -1,4 +1,3 @@
-#define showPrologue prologueCore.play()
 #ifdef __DEBUG
 #define __ALLOW_CLS true
 #else
@@ -130,7 +129,7 @@ prologueCore: InitObject {
         // Give the player random gameplay tips, similar to what is found in
         // Deep Rock Galactic loading screens. This also helps players who
         // still skipped the how-to-play guide.
-        "<center><b>RANDOM TIP:</b>\n<<one of>>
+        "<center><b>RANDOM TIP:</b></center>\n<<one of>>
         Use a combination of the 
         <<InstructionsChapter.formatCommand('DROP ALL')>> command and the
         <<InstructionsChapter.formatCommand('WEAR ALL')>> command to clear your inventory,
@@ -158,7 +157,7 @@ prologueCore: InitObject {
         If he sees you attempting to hide, however, then he will still hunt you down!
         <<or>>
         There might be something cool to find in the fume hood in the kitchen!
-        <<at random>></center>\b\b\b";
+        <<at random>>\b\b\b";
     }
 
     execute() {

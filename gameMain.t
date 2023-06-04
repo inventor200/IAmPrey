@@ -23,9 +23,9 @@
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
-/*(-)*/  #define __SHOW_PROLOGUE nil
+/*(-)*/  #define __SHOW_PROLOGUE true
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM utilityPassage
+/*-*/  #define __TEST_ROOM nil
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
@@ -103,11 +103,23 @@ gameMain: GameMainDef {
     lickedHandle = nil
 
     showIntro() {
-        showPrologue;
+        if (huntCore.difficultySettingObj != restoreModeSetting) {
+            prologueCore.play();
+        }
+        else {
+            "\b<b>Prologue has been skipped.</b>\b
+            Use the <<gDirectCmdStr('restore')>> command to
+            load your saved game.\b
+            <b>NOTE:</b> If your saved game was from another
+            version of <i>I&nbsp;Am&nbsp;Prey</i>, then TADS will not be able to
+            restore it!\b
+            If you need you, you can also <<gDirectCmdStr('restart')>>.\b\b\b";
+        }
 
         skashek.startTheDay();
         gPlayerChar.startTheDay();
     }
+
     showGoodbye() {
         "Thank you for playing! Hope you come back soon! ";
     }

@@ -29,46 +29,52 @@ class DifficultySetting: object {
     turnsSkipsForFalling = 1
     startingSkashekState = skashekIntroState
     turnsBeforeSkashekDeploys = 10
+    lockoutUndo = nil
+    offerUndoOption = nil
+    showOtherQualities = true
 
     getBlurb() {
         local strBfr = new StringBuffer(12);
         strBfr.append(generalBlurb);
-        if (hasSneak) {
-            strBfr.append('\n\t<b>(AUTO-SNEAKING IS AVAILABLE)</b>');
-        }
-        strBfr.append('\b<i>(');
 
-        if (isCatMode) {
-            strBfr.append('You play as the Predator\'s pet cat, and cannot read notes.
-            However, the Predator will not chase you,
-            so you can freely explore the majority of the map at your own pace');
-        }
-        else if (trickCount == 0) {
-            strBfr.append('The Predator will never fall for <b>any tricks</b>');
-        }
-        else if (tricksFromPool) {
-            strBfr.append('The Predator will only fall for
-            <b>a total of ');
-            strBfr.append(spellNumber(trickCount));
-            strBfr.append(' tricks</b>, regardless of type');
-        }
-        else {
-            strBfr.append('The Predator will only fall for <b>each type</b> of trick <b>');
-            strBfr.append(spellNumber(trickCount));
-            strBfr.append('</b> time');
-            if (trickCount != 1) {
-                strBfr.append('s');
+        if (showOtherQualities) {
+            if (hasSneak) {
+                strBfr.append('\n\t<b>(AUTO-SNEAKING IS AVAILABLE)</b>');
             }
+            strBfr.append('\b<i>(');
+
+            if (isCatMode) {
+                strBfr.append('You play as the Predator\'s pet cat, and cannot read notes.
+                However, the Predator will not chase you,
+                so you can freely explore the majority of the map at your own pace');
+            }
+            else if (trickCount == 0) {
+                strBfr.append('The Predator will never fall for <b>any tricks</b>');
+            }
+            else if (tricksFromPool) {
+                strBfr.append('The Predator will only fall for
+                <b>a total of ');
+                strBfr.append(spellNumber(trickCount));
+                strBfr.append(' tricks</b>, regardless of type');
+            }
+            else {
+                strBfr.append('The Predator will only fall for <b>each type</b> of trick <b>');
+                strBfr.append(spellNumber(trickCount));
+                strBfr.append('</b> time');
+                if (trickCount != 1) {
+                    strBfr.append('s');
+                }
+            }
+
+            if (skipPrologue) {
+                strBfr.append(', and the prologue will be skipped.');
+            }
+            else {
+                strBfr.append('.');
+            }
+            strBfr.append(')</i>');
         }
 
-        if (skipPrologue) {
-            strBfr.append(', and the prologue will be skipped.');
-        }
-        else {
-            strBfr.append('.');
-        }
-
-        strBfr.append(')</i>');
         return toString(strBfr);
     }
 }
@@ -92,6 +98,7 @@ preyTutorialSetting: DifficultySetting {
         stealth or chase mechanics before.'
     hasSneak = true
     turnsBeforeSkashekDeploys = 16
+    offerUndoOption = true
 }
 
 easyModeSetting: DifficultySetting {
@@ -103,6 +110,7 @@ easyModeSetting: DifficultySetting {
     turnsBeforeSkashekChecks = 3
     startingFreeTurnAlerts = 1
     turnsBeforeSkashekDeploys = 12
+    offerUndoOption = true
 }
 
 mediumModeSetting: DifficultySetting {
@@ -114,6 +122,7 @@ mediumModeSetting: DifficultySetting {
     turnsBeforeSkashekChecks = 3
     startingFreeTurnAlerts = 0
     turnsBeforeSkashekDeploys = 8
+    offerUndoOption = true
 }
 
 hardModeSetting: DifficultySetting {
@@ -127,6 +136,7 @@ hardModeSetting: DifficultySetting {
     skipPrologue = true
     startingFreeTurnAlerts = 0
     turnsBeforeSkashekDeploys = 4
+    offerUndoOption = true
 }
 
 nightmareModeSetting: DifficultySetting {
@@ -140,6 +150,18 @@ nightmareModeSetting: DifficultySetting {
     startingFreeTurnAlerts = 0
     turnsSkipsForFalling = 2
     turnsBeforeSkashekDeploys = 0
+    lockoutUndo = true
+    offerUndoOption = nil
+}
+
+restoreModeSetting: DifficultySetting {
+    title = 'Restore Game'
+    generalBlurb =
+        'Load a saved game file, instead of starting a new game.'
+    startingSkashekState = skashekCatModeState
+    skipPrologue = true
+    offerUndoOption = nil
+    showOtherQualities = true
 }
 
 enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;
@@ -206,7 +228,8 @@ huntCore: InitObject {
         easyModeSetting,
         mediumModeSetting,
         hardModeSetting,
-        nightmareModeSetting
+        nightmareModeSetting,
+        restoreModeSetting
     ])
 
     difficulty = mediumMode
@@ -227,6 +250,7 @@ huntCore: InitObject {
         sneakyCore.armEndSneaking = nil;
         sneakyCore.sneakDirection = nil;
         switch (index) {
+            case 7:
             case 1:
                 difficulty = basicTutorial;
                 break;
@@ -247,8 +271,9 @@ huntCore: InitObject {
                 break;
         }
         difficultySettingObj = difficultySettings[index];
+        
         if (!midGame) {
-            if (index == 1) {
+            if (difficulty == basicTutorial) {
                 moveCat();
             }
             else {
@@ -412,18 +437,28 @@ huntCore: InitObject {
         libGlobal.playerCharName = cat.theName;
         // End hacky method
 
-        bathTimeFuse = new Fuse(self, &startBathTime, 9);
-        #ifdef __DEBUG
-        cat.moveInto(__TEST_ROOM);
-        #else
-        cat.moveInto(catBed);
-        #endif
+        if (huntCore.difficultySettingObj != restoreModeSetting) {
+            bathTimeFuse = new Fuse(self, &startBathTime, 9);
+            #ifdef __DEBUG
+            local playerStartRoom = __TEST_ROOM;
+            if (playerStartRoom == nil) {
+                playerStartRoom = catBed;
+            }
+            cat.moveInto(playerStartRoom);
+            #else
+            cat.moveInto(catBed);
+            #endif
+        }
         recoverAmbience();
     }
 
     movePrey() {
         #ifdef __DEBUG
-        prey.moveInto(__TEST_ROOM);
+        local playerStartRoom = __TEST_ROOM;
+        if (playerStartRoom == nil) {
+            playerStartRoom = genericCatchNet;
+        }
+        prey.moveInto(playerStartRoom);
         #else
         prey.moveInto(genericCatchNet);
         #endif
@@ -652,27 +687,6 @@ huntCore: InitObject {
         playerActionActor = nil;
     }
 }
-
-//TODO: When Skashek follows you into a room, you get one turn to act, and he will be
-//      reaching out for you by the next turn, and you will die if you are still in the
-//      same room by the third turn. (the "short-streak")
-//    > If you spend that first turn going into a different room, he will immediately
-//      follow you. If he can either follow you for 5(?) turns in a row
-//      (the "long-streak"), he catches you.
-//    > Every time he moves into another room, the short-streak resets.
-//    > Each turn spent climbing on a non-floor object contributes to the short-streak
-//      BUT it will not FINISH the short-steak, as long as you do not touch the floor!
-//      (He is waiting to snatch you!)
-//    > If the room immediately on the other side of a parkour connection is 3 turns
-//      (or fewer) away from the current room (via normal travel), then he can
-//      intercept you in the next room (tho he spends 1 turn opening the door, or
-//      waits outside for 1 turn).
-//      Doing this will decrement the long-streak by 2.
-//    > If he fails to follow you into a room, he tries to re-acquire, but every turn
-//      without you decrements the long-streak.
-//    > If you are in a room with 2+ normal-travel exits, then you are not saved from
-//      the short-streak, UNLESS you are on a platform specifically marked as "safe".
-//TODO: Passing through a door while being chased asks the player for an evasion trick.
 
 #define gHadRevokedFreeAction (turnsTaken == 0 && huntCore.revokedFreeTurn)
 #define gActionWasCostly ((turnsTaken > 0 || gHadRevokedFreeAction) \

@@ -41,7 +41,7 @@ musicPlayer: InitObject {
                 prologuePrefCore.remindOfFile();
             }
             else {
-                transMusicPlayer.playerGavePreferences = true;
+                transMusicPlayer.playerGavePreferences = nil;
             }
         }
         #endif
@@ -104,6 +104,9 @@ musicPlayer: InitObject {
                 }
 
                 playSong(nil);
+            }
+            else {
+                transMusicPlayer.playerWantsMusic = nil;
             }
 
             transMusicPlayer.playerWantsSFX = ChoiceGiver.staticAsk(
