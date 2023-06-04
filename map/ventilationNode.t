@@ -37,7 +37,7 @@ ventilationNode: Room { 'The Central Ventilation Node'
     ceilingObj = ventDuctCeiling
     wallsObj = ventDuctWalls
     floorObj = ventDuctFloor
-    ambienceObject = coolingDuctAmbience
+    ambienceObject = ventNodeAmbience
 
     north = assemblyShopExitVentGrate
     east = labAExitVentGrate

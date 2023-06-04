@@ -6,6 +6,7 @@ labA: Room { 'Lab A'
     northMuffle = northHall
     westMuffle = lifeSupportTop
     southMuffle = library
+    ambienceObject = assemblyShopLabAAmbience
 
     mapModeDirections = [&east]
     familiar = roomsFamiliarByDefault

@@ -12,6 +12,7 @@ assemblyShop: Room { 'The Assembly Shop'
 
     eastMuffle = lifeSupportTop
     westMuffle = directorsOffice
+    ambienceObject = assemblyShopLabAAmbience
 
     mapModeDirections = [&north, &south]
     familiar = roomsFamiliarByDefault

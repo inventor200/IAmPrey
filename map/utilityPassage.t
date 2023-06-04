@@ -13,6 +13,7 @@ utilityPassage: Room { 'The Utility Corridor'
 
     ceilingObj = industrialCeiling
     floorObj = cementFloor
+    ambienceObject = utilityCorridorAmbience
 
     mapModeDirections = [&east]
     mapModeLockedDoors = [southUtilityPassageExit, northUtilityPassageExit]

@@ -204,7 +204,7 @@ deliveryRoom: Room { 'The Delivery Room'
     southMuffle = southHall
 
     ceilingObj = industrialCeiling
-    ambienceObject = industrialAmbience
+    ambienceObject = deliveryRoomAmbience
 
     happyBirthdayPlayer() {
         if (gCatMode) return '';

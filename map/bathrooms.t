@@ -39,7 +39,7 @@ southBathroom: Bathroom {
 
     showerWall = 'south'
     north = southHall
-    ambienceObject = industrialAmbience
+    ambienceObject = southeastAmbience
 
     eastMuffle = reactorNoiseRoom
 

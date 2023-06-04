@@ -4,6 +4,7 @@ fakePumpRoom: Room { 'The Reactor Turbine Room'
     north = southReservoirCorridorEntry
     floorObj = cementFloor
     ceilingObj = industrialCeiling
+    ambienceObject = reservoirCorridorAmbience
 
     eastMuffle = reservoirControlRoom
 
@@ -135,6 +136,7 @@ reservoirCorridor: Room { 'The Reservoir Corridor'
     ceilingObj = industrialCeiling
     atmosphereObj = humidAtmosphere
     moistureFactor = 0
+    ambienceObject = reservoirCorridorAmbience
 
     roomDaemon() {
         checkRoomDaemonTurns;
@@ -201,6 +203,7 @@ reservoirControlRoom: Room { 'The Reservoir Control Room'
     ceilingObj = industrialCeiling
     atmosphereObj = humidAtmosphere
     moistureFactor = 0
+    ambienceObject = reservoirControlRoomAmbience
 
     getSpecialPeekDirectionTarget(dirObj) {
         if (dirObj == eastDir) return windowInreservoirControlRoom;
@@ -265,6 +268,7 @@ reservoir: Room { 'The Reactor Reservoir'
     floorObj = reservoirCatwalk
     atmosphereObj = humidAtmosphere
     moistureFactor = 1
+    ambienceObject = reservoirTopAmbience
 
     descFrom(pov) {
         "Of what's visible, most of it is great sprays of water.
@@ -604,6 +608,7 @@ reservoirStrainer: Room {
 
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
+    ambienceObject = strainerStageAmbience
 
     roomDaemon() {
         checkRoomDaemonTurns;

@@ -260,6 +260,7 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     westMuffle = commonRoom
     southeastMuffle = library
     southMuffle = serverRoomBottom
+    ambienceObject = lifeSupportAmbience
 
     roomDaemon() {
         checkRoomDaemonTurns;
@@ -345,6 +346,7 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
     mapModeDirections = [&up, &east]
     familiar = roomsFamiliarByDefault
     roomNavigationType = escapeRoom
+    ambienceObject = lifeSupportAmbience
 }
 
 +Decoration { 'puddle;residual;water'

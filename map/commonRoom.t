@@ -83,7 +83,7 @@ commonRoom: Room { 'The Common Room'
     ceilingObj = commonRoomCeiling
     wallsObj = topOfOtherWalls
     floorObj = carpetedFloor
-    ambienceObject = carpetAmbience
+    ambienceObject = commonRoomAmbience
 
     north = assemblyShop
     south = classroomHall

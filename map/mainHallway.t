@@ -220,6 +220,7 @@ southHall: HallwaySegment {
 
     northeastMuffle = deliveryRoom
     southeastMuffle = reactorNoiseRoom
+    ambienceObject = southeastAmbience
 
     inRoomName(pov) {
         local omr = pov.getOutermostRoom();

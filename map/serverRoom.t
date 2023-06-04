@@ -13,6 +13,7 @@ serverRoomBottom: Room { 'Server Access'
 
     ceilingObj = industrialCeiling
     floorObj = cementFloor
+    ambienceObject = utilityCorridorAmbience
 
     roomDaemon() {
         checkRoomDaemonTurns;
@@ -56,6 +57,7 @@ serverRoomTop: Room { 'The Chilled Server Room'
     
     atmosphereObj = freezingAtmosphere
     isFreezing = true
+    ambienceObject = serverRoomAmbience
 
     mapModeDirections = [&down]
     familiar = roomsFamiliarByDefault
