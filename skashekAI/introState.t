@@ -62,7 +62,8 @@ skashekIntroState: SkashekAIState {
                 "<<gSkashekName>> is...gone?\b
                 <i>Then, his face is centimeters
                 away from {my} own.</i>\b
-                <q>Fucking <i>run</i>, Prey!</q> he commands.
+                <q><<one of>>Fucking <<or>>You should <<or>>\^<<at random>><i>run</i>,
+                Prey!</q> he barks.
                 He's close enough to smell the kelp on his breath.\b
                 {My} head-start has ended, and the chase has begun. ";
                 startWithChase = true;

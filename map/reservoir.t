@@ -15,7 +15,7 @@ fakePumpRoom: Room { 'The Reactor Turbine Room'
 ;
 
 reactorNoiseRoom: Room { 'The Reactor Room'
-    "How the actual fuck are you reading this right now?!"
+    "How are you reading this right now?! Reactor noise error!!"
 
     northMuffle = southHall
     westMuffle = southBathroom

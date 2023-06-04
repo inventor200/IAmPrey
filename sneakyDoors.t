@@ -1368,11 +1368,14 @@ modify Door {
             from behind the door';
         switch (poll) {
             default:
-                "<q>Ach! Fuck you, Prey!!</q>
+                "<q>Ach! <<one of>>Fuck you<<or>>Smooth<<or>>Clever<<at random>>, Prey!!</q>
                 <<gSkashekName>> <<shoutVerb>>. ";
                 return;
             case oneTrickRemaining:
-                "<q>Fuck! I'm getting tired of your shit, Prey!!</q>
+                "<q><<one of>>Fuck<<or>>Ach!<<at random>>!
+                I'm getting tired of your
+                <<one of>>shit<<or>>antics<<or>>tactics<<at random>>,
+                Prey!!</q>
                 <<gSkashekName>> <<shoutVerb>>. ";
                 return;
             case noTricksRemaining:

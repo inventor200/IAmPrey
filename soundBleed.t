@@ -97,7 +97,7 @@ soundBleedCore: object {
         // to start somewhere other than a room:
         startRoom = startRoom.getOutermostRoom();
         if (startRoom == nil) {
-            "<.p>What the fuck?<.p>";
+            "<.p>What? You're seeing a startRoom error!<.p>";
             return;
         }
         // If the sound comes from the same room that the player is in,

@@ -14,7 +14,7 @@ epilogueCore: InitObject {
             "<<if airlockInsideExit.isOpen>>{I} slam a hand into the
             airlock controls and pull desperately at a convenient lever.
             The inner exit door slides shut, putting a layer{dummy} of reinforced
-            glass between {me} and the rest of this fucking facility.\b<<end>>
+            glass between {me} and the rest of this accursed facility.\b<<end>>
             An ominous shadow darkens the inside of the airlock, blocking the
             light coming in from the hangar. Part of {me} wants to vomit, overcome
             with anxiety. It takes a full three seconds to remember that he can't
@@ -40,7 +40,7 @@ epilogueCore: InitObject {
         });
  
         leaveFacilityEnding.addPage({:
-            "<<if positiveRelationshipEnding>>
+            "<<if epilogueCore.positiveRelationshipEnding>>
             {I} manage to find {my} voice.\b
             <q>Well, this is it, then? I'm sorry you'll go hungry, I guess...?
             There are always more where I came from...</q>\b
@@ -50,7 +50,7 @@ epilogueCore: InitObject {
             <q>You make it sound like a bad thing. I've <i>won</i>.</q>\b
             <q>Yes, and <i>I lost</i>, Prey. It's all cake and confetti for
             <i>you</i>&mdash;and some part of me is <i>proud</i>, too&mdash;but...</q>\b
-            <q>What the fuck is a '<i>confetti</i>'...?</q> {i} ask, unfamiliar
+            <q>What the heck is a '<i>confetti</i>'...?</q> {i} ask, unfamiliar
             with the word.\b
             He{dummy} ignores {my} question.
             <q>Prey, eventually the opportunities will run out. <i>Literally</i>.
@@ -58,7 +58,7 @@ epilogueCore: InitObject {
             <q>But not the war...</q>\b
             He nods. <q>Prey, I know you've had a rough birthday, but if I could even
             <i>approximate</i> a position to ask a favor of you...</q>\b
-            <q>As long as it doesn't involve letting you through this fucking door...</q>\b
+            <q>As long as it doesn't involve letting you through this door...</q>\b
             His cackle is full and genuine. <q>No, no. Just... many of the humans
             you might see out there did not cause this. It's only a handful, behind
             it all, and they're preying on the rest, just like they intended for
@@ -109,10 +109,10 @@ epilogueCore: InitObject {
 
         // Negative relationship alternative
         leaveFacilityEnding.addPage({:
-            "<<if positiveRelationshipEnding>>
+            "<<if epilogueCore.positiveRelationshipEnding>>
             {I} turn {my} attention to the airlock controls, and begin the cycling
             procedure. When {i} look back up, he hasn't moved a centimeter.\b
-            <q>Goodbye, fucker,</q> {i} say to him.\b
+            <q>Goodbye, monster,</q> {i} say to him.\b
             He chuckles at that, but doesn't break his gaze.
             <<else>>
             {My} hand absently works the airlock controls. {I} can't take

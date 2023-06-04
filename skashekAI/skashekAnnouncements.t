@@ -78,7 +78,7 @@ class HidingParanoiaMessage: IntercomMessage {
     "<<skashek.getPeekHe(true)>> is looking around the room, but
     does a double-take when he{dummy} sees {me}.\b
     <q>Oh! Didn't see you there!</q> he exclaims, chuckling to himself.
-    <q>Now, you'd best <i>fucking run</i>, Prey!</q> "
+    <q>Now, you'd best <i><<one of>>fucking <<or>><<at random>>run</i>, Prey!</q> "
 }
 
 // Skashek confirms the player is not in the delivery room
@@ -283,12 +283,15 @@ mockForRunningWaterMessage: IntercomMessage {
         "<<one of>>Curses!<<or>>Curses, Prey!<<or>>Nuisance!<<at random>>";
     }
     showStandardMessage2() {
-        "Prey, you've left the fucking <i>water</i> running?!<<if hasYelledBefore
+        "Prey, you've left the<<one of>> fucking<<or>><<at random>>
+        <i>water</i> running?!<<if hasYelledBefore
         >> <i><b>Again???</b></i><<end>>
         <<one of
         >>Are you a child??<<or
-        >>I <i>hate</i> that fucking sound!<<or
-        >>What the fuck is <i>wrong</i> with you??<<at random>>";
+        >>I <i>hate</i> that <<one of>>fucking <<or>><<at random>>sound!<<or
+        >>What <<one of>>the fuck <<or>><<at random>>is
+        <<one of>><i>wrong</i> with you??<<or>>your
+        <i><<one of>>deal<<or>>problem<<at random>>??</i><<at random>><<at random>>";
         hasYelledBefore = true;
     }
 
@@ -577,11 +580,31 @@ hidingParanoia_3_3_Message: HidingParanoiaMessage {
     paying no mind to the many generations of Prey, who have sustained me since.
     It feels <i>disloyal</i>, among other things.</q>"
 
+    //TODO: Marssella actually poisoned her own kelp. She used a closed social
+    // social favor to poison her kelp supply after a random amount of time
+    // had elapsed, but also relegated the task of requesting this to a note,
+    // hidden and later replaced by a decoy note, which she would not check.
+    // This complex series of events had enough separation that her artificial
+    // brainstem didn't resolve it all the way, which allowed her to successfully
+    // commit suicide.
+    //
+    // Have a note stored on a terminal somewhere that has this explained.
+    //
+    // Also have another encrypted note stored on the botanist's terminal that
+    // explains that the kelp is actually a kind of super-spinach, which reveals
+    // that cannibalism was never necessary at all. The project had to remain
+    // hidden because the facility couldn't afford to find a reason to stop the
+    // supply trucks, which also carried spies.
+    //
+    // Also, the easter egg where the kelp supposedly feeds on tritium radiation,
+    // which isn't possible, and this reveals that there's actually a reactor leak,
+    // and the water is irradiated, and the kelp actually feeds on this harder
+    // kind of radiation.
     remark3 =
     "<q>I wasn't eager, by the way. She starved herself to death, by giving me
     the <i>actual</i> remaining food supplies, while she ate that fucking
     <i>reservoir kelp</i>. I guess the circuits in her brain stem thought that
-    was <q>eating</q>, and not the slow suicide that it was.</q>"
+    was <q>eating</q>, and not the slow suicide that it really was.</q>"
 
     remark4 =
     "<q>I wish her lapse in mutualism had done the other way. I wish she would
@@ -589,7 +612,7 @@ hidingParanoia_3_3_Message: HidingParanoiaMessage {
     final moments. Maybe she would have cared less about my well-being, then.</q>"
 
     remark5 =
-    "<q>But apparently <i>chaos</i> fucking decides. So maybe I'm confessing to
+    "<q>But apparently <i>chaos</i> decides. So maybe I'm confessing to
     and empty room, again. Maybe that would be for the best.</q>"
 
     inPersonStealthyMsg =

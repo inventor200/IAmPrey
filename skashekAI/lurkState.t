@@ -650,7 +650,7 @@ skashekLurkState: SkashekAIState {
         if (leewayExpired) {
             leewayExpired = nil;
             "<.p><q>My mercy has expired, Prey!</q> <<getPeekHe()>> shouts.
-            <q>Run for your fucking <i>life!!</i></q><.p>";
+            <q>Run for your <i>life!!</i></q><.p>";
         }
         else {
             if (!begins) return;

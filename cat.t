@@ -124,7 +124,7 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me you self myself you
     It used to make an infuriating jingling sound, but ever since the lone
     citizen became {my} only neighbor, he had wrapped some yarn around it{dummy},
     allowing {me} to move more silently. {I}{'m} not sure why he never just
-    <i>removed the fucking collar entirely</i>, but it's only a minor infraction.
+    <i>removed the collar entirely</i>, but it's only a minor infraction.
     His services{dummy} to {me} outweigh this...<i>mostly</i>.
     <<else>>It\'s a little round name tag for the cat. Someone seems to have
     wrapped some yarn around it, though it's not clear <i>why</i>. Maybe it's

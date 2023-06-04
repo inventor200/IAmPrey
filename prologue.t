@@ -190,7 +190,7 @@ prologueCore: InitObject {
             The Enemy is said to be a powerful colossus of culture, and
             yet&mdash;somehow&mdash;it is also
             egregiously <i>incompetent</i>, almost to the point of self-satire.\b
-            Above all, none of it makes <i>any fucking sense</i>,
+            Above all, none of it makes <i>any dang sense</i>,
             but it's{dummy} still told to {me} with bold self-assurance."
         });
         introCutscene.addPage({:
