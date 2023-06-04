@@ -7,5 +7,6 @@ Scripts/*
 run.sh
 dtl.sh
 gameMain.t3
+gameMainRelease.t3
 I-Am-Prey-Preferences.cfg
 release.sh
