@@ -324,7 +324,7 @@ modify Room {
 mapModeDatabase: object {
     inMapMode = nil
     firstTimeMapMode = nil
-    actualPlayerChar = nil
+    actualPlayerChar = (gCatMode ? cat : prey)
     mapModeStart = nil
     compassTarget = nil
 
@@ -446,7 +446,6 @@ mapModeDatabase: object {
                 {My} available actions will be limited, but time does not pass here.<.p>";
             }
             setPlayer(mapModePlayer);
-            actualPlayerChar = gPlayerChar;
             mapModeStart = mapModeRoom;
         }
         mapModePlayer.moveInto(mapModeRoom);
