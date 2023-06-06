@@ -11,3 +11,4 @@
 #define __SKASHEK_ALLOW_TESTING_LURK nil
 #define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
 #define __SKASHEK_ALLOW_TESTING_CHASE nil
+#define __ALLOW_CLS true

@@ -1,3 +1,9 @@
+#ifdef __DEBUG
+#define __DEBUG_TERMINALS nil
+#else
+#define __DEBUG_TERMINALS nil
+#endif
+
 VerbRule(Dock)
     'dock' singleDobj  
     : VerbProduction
@@ -193,12 +199,16 @@ class TerminalFileSystemElement: object {
         name = pathSteps[1];
 
         if (location.needsAdding(self)) {
+            #if __DEBUG_TERMINALS
             "\bAdded <<name>> to <<location.name>>\b";
+            #endif
             location.add(self);
         }
+        #if __DEBUG_TERMINALS
         else {
             "\b<<name>> not needed in <<location.name>>\b";
         }
+        #endif
     }
 
     breakPath(pathStr) {

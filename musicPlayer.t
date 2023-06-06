@@ -363,6 +363,22 @@ transient sfxPlayer: object {
         }
     }
 
+    play(soundObj) {
+        if (!transMusicPlayer.allowSFX) return;
+        
+        local sndVolume = soundObj.volume;
+        if (currentAmbience != nil) {
+            sndVolume = currentAmbience.getDrownedVolume(soundObj);
+        }
+
+        say(
+            '<SOUND SRC="' + soundObj.sfxURL + '"
+            LAYER=FOREGROUND
+            INTERRUPT
+            VOLUME=' + toString(sndVolume) + '>'
+        );
+    }
+
     fadeout() {
         say(
             '<SOUND CANCEL=BGAMBIENT
@@ -454,8 +470,12 @@ replace cls() {
 }
 
 clsWithSong(nextSong) {
+    #if __ALLOW_CLS
     musicPlayer.songDuringTurn = nextSong;
     cls();
+    #else
+    changeSong(nextSong);
+    #endif
 }
 
 // Recommended to always use this instead of playSong(),

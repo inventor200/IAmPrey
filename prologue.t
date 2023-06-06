@@ -1,9 +1,3 @@
-#ifdef __DEBUG
-#define __ALLOW_CLS true
-#else
-#define __ALLOW_CLS true
-#endif
-
 prologueCore: InitObject {
     introCutscene = nil
     catCutscene = nil
@@ -12,9 +6,7 @@ prologueCore: InitObject {
 
     selectDifficulty() {
         #if __SHOW_PROLOGUE
-        #if __ALLOW_CLS
         clsWithSong(nil);
-        #endif
         if (!prologuePrefCore.skipIntro) {
             "<b>Content warning:</b>\b";
             if (gFormatForScreenReader) {
@@ -41,9 +33,7 @@ prologueCore: InitObject {
         }
         #if __IS_MAP_TEST // is map test
         huntCore.setDifficulty(1);
-        #if __ALLOW_CLS
         clsWithSong(preySong);
-        #endif
         if (!prologuePrefCore.skipCatPrologue) {
             catCutscene.play();
         }
@@ -79,9 +69,7 @@ prologueCore: InitObject {
         local result = difficultyQuestion.ask();
         huntCore.setDifficulty(result);
         if (!huntCore.difficultySettingObj.skipPrologue) {
-            #if __ALLOW_CLS
             clsWithSong(preySong);
-            #endif
             if (result == 1) {
                 if (!prologuePrefCore.skipCatPrologue) {
                     catCutscene.play();
@@ -91,18 +79,25 @@ prologueCore: InitObject {
                 introCutscene.play();
             }
             changeSong(chillSong);
+            if (huntCore.difficulty != basicTutorial) {
+                sfxPlayer.play(emergeSnd);
+            }
         }
         else {
-            #if __ALLOW_CLS
-            clsWithSong(chillSong);
-            #endif
+            if (result < 7) {
+                clsWithSong(chillSong);
+            }
+            else {
+                clsWithSong(preySong);
+            }
+            if (huntCore.difficulty != basicTutorial) {
+                sfxPlayer.play(emergeSnd);
+            }
         }
         #endif // end is map test
         "\b";
         #else // do not show prologue
-        #if __ALLOW_CLS
         clsWithSong(chillSong);
-        #endif
         huntCore.setDifficulty(__FAST_DIFFICULTY);
         #endif // end show prologue
     }

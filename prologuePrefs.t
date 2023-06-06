@@ -252,6 +252,8 @@ modify Restart {
     doRestartGame() {
         handleConfirmedRestart();
         musicPlayer.playSong(nil);
+        sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
         PreRestartObject.classExec();
         throw new RestartSignal();
     }

@@ -34,7 +34,7 @@
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
-/*(-)*/  #define __SHOW_PROLOGUE nil
+/*(-)*/  #define __SHOW_PROLOGUE true
 /*--*/  #define __FAST_DIFFICULTY 4
 /*-*/  #define __TEST_ROOM deliveryRoom
       #define __SKASHEK_START nil
@@ -46,6 +46,7 @@
 #define __SKASHEK_ALLOW_TESTING_LURK nil
 #define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
 #define __SKASHEK_ALLOW_TESTING_CHASE nil
+#define __ALLOW_CLS true
 ///////////////////////////////////////*||*\
 
 // End compile modes
