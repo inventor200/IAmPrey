@@ -623,11 +623,7 @@ class RouteTable: object {
                     connector = cachedDoor;
                 }
             }
-            #if __USE_TRANSIENT_MAP_CACHE
-            knownDirections.append(new transient MapModeDirection(
-            #else
-            knownDirections.append(new MapModeDirection(
-            #endif
+            knownDirections.append(cached MapModeDirection(
                 dirProp,
                 actualDestination.mapModeVersion,
                 connector
@@ -646,12 +642,7 @@ class RouteTable: object {
             for (local i = 1; i <= doorList.length; i++) {
                 local door = doorList[i];
                 local actualDestination = door.otherSide.getOutermostRoom();
-                if (actualDestination.mapModeVersion == nil) continue;
-                #if __USE_TRANSIENT_MAP_CACHE
-                knownDirections.append(new transient MapModeDirection(
-                #else
-                knownDirections.append(new MapModeDirection(
-                #endif
+                knownDirections.append(cached MapModeDirection(
                     nil,
                     actualDestination.mapModeVersion,
                     door,
@@ -781,13 +772,8 @@ class MapModeRoom: Room {
         roomTitle = _actual.roomTitle + ' (IN MAP MODE)';
         inherited Room.construct();
         mapRoomIndex = mapModeDatabase.allRooms.length + 1;
-        #if __USE_TRANSIENT_MAP_CACHE
-        playerRouteTable = new transient RouteTable(self, nil);
-        skashekRouteTable = new transient RouteTable(self, true);
-        #else
-        playerRouteTable = new RouteTable(self, nil);
-        skashekRouteTable = new RouteTable(self, true);
-        #endif
+        playerRouteTable = cached RouteTable(self, nil);
+        skashekRouteTable = cached RouteTable(self, true);
     }
 
     ambienceObject = nil

@@ -157,7 +157,7 @@ nightmareModeSetting: DifficultySetting {
 restoreModeSetting: DifficultySetting {
     title = 'Restore Game'
     generalBlurb =
-        'Load a saved game file, instead of starting a new game.'
+        'Skips everything, so you can quickly load a saved game file.'
     startingSkashekState = skashekCatModeState
     skipPrologue = true
     offerUndoOption = nil

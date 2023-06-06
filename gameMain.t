@@ -13,6 +13,17 @@
         '<b><u>' + (command).toUpper() + '</u></b>') \
     )
 
+// Macro keyword "cached" acts like "new" for preinit cache data.
+// If this is a debug build, then the data is not transient, to
+// allow the use of save files.
+// In release versions, it WILL be transient, slimming down saves
+// quite a bit.
+#ifdef __DEBUG
+#define cached new
+#else
+#define cached new transient
+#endif
+
 #include "betterChoices.t"
 
 // Begin compile modes
@@ -38,8 +49,6 @@
 ///////////////////////////////////////*||*\
 
 // End compile modes
-// Debug builds cannot use map cache transience
-#define __USE_TRANSIENT_MAP_CACHE nil
 #else
 // DO NOT ALTER:
 #include "defaultSettings.h"
