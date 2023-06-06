@@ -29,6 +29,17 @@ kitchen: Room { 'The Kitchen'
     eastMuffle = reservoirCorridor
     southMuffle = reactorNoiseRoom
     ambienceObject = southeastAmbience
+    decorativeSFX = [
+        drip1Decor,
+        drip2Decor,
+        drip3Decor,
+        drip4Decor,
+        drip5Decor,
+        drip6Decor,
+        drip7Decor,
+        drip8Decor,
+        drip9Decor
+    ]
 
     mapModeDirections = [&north, &west]
     familiar = roomsFamiliarByDefault

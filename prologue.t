@@ -90,7 +90,7 @@ prologueCore: InitObject {
             else if (!prologuePrefCore.skipPreyPrologue) {
                 introCutscene.play();
             }
-            musicPlayer.playSong(chillSong);
+            changeSong(chillSong);
         }
         else {
             #if __ALLOW_CLS

@@ -232,7 +232,7 @@ VerbRule(TestDeath)
 
 DefineSystemAction(TestDeath)
     execAction(cmd) {
-        finishGameMsg(ftDeath, gEndingOptionsLoss);
+        finishGameMsgSong(ftDeath, gEndingOptionsLoss);
     }
 ;
 #endif

@@ -344,7 +344,7 @@ reservoir: Room { 'The Reactor Reservoir'
             get my attention! </q>\b
             <i><q>I demand cancellation of Bath Time, peasant!!</q></i> {i} shout,
             but all that seems to come out is: <i><q>Mraow!!</q></i> ";
-            finishGameMsg(ftVictory, gEndingOptionsWin);
+            finishGameMsgSong(ftVictory, gEndingOptionsWin);
         }
         else if (checkNoDivesLeft()) {
             "{I} leap from the catwalk,
@@ -354,7 +354,7 @@ reservoir: Room { 'The Reactor Reservoir'
             He's shouting something, but {I} don't catch enough before
             {my} head slams into the hard floor.\b
             {I} don't wake back up. ";
-            finishGameMsg(ftDeath, gEndingOptionsLoss);
+            finishGameMsgSong(ftDeath, gEndingOptionsLoss);
         }
         else if (checkBeingChased()) {
             "{I} dive from the catwalk, and plummet into the hot reservoir

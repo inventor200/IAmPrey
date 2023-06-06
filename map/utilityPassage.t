@@ -14,6 +14,17 @@ utilityPassage: Room { 'The Utility Corridor'
     ceilingObj = industrialCeiling
     floorObj = cementFloor
     ambienceObject = utilityCorridorAmbience
+    decorativeSFX = [
+        drip1Decor,
+        drip2Decor,
+        drip3Decor,
+        drip4Decor,
+        drip5Decor,
+        drip6Decor,
+        drip7Decor,
+        drip8Decor,
+        drip9Decor
+    ]
 
     mapModeDirections = [&east]
     mapModeLockedDoors = [southUtilityPassageExit, northUtilityPassageExit]

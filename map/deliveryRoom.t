@@ -205,6 +205,23 @@ deliveryRoom: Room { 'The Delivery Room'
 
     ceilingObj = industrialCeiling
     ambienceObject = deliveryRoomAmbience
+    decorativeSFX = [
+        womb1Decor,
+        womb2Decor,
+        womb3Decor,
+        womb4Decor,
+        womb5Decor,
+        womb6Decor,
+        drip1Decor,
+        drip2Decor,
+        drip3Decor,
+        drip4Decor,
+        drip5Decor,
+        drip6Decor,
+        drip7Decor,
+        drip8Decor,
+        drip9Decor
+    ]
 
     happyBirthdayPlayer() {
         if (gCatMode) return '';

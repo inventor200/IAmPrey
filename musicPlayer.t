@@ -1,3 +1,5 @@
+#include "sounddefs.h"
+
 musicPlayer: InitObject {
     songDuringTurn = nil
 
@@ -304,37 +306,10 @@ transient transMusicPlayer: object {
     }
 }
 
-class GameSong: object {
-    songURL = ''
-    fadein = nil
-    fadeout = nil
-}
-
-chillSong: GameSong {
-    songURL = 'music/chill.ogg'
-    fadein = true
-}
-
-chaseSong: GameSong {
-    songURL = 'music/chase.ogg'
-    fadeout = true
-}
-
-preySong: GameSong {
-    songURL = 'music/prey.ogg'
-    fadein = true
-    fadeout = true
-}
-
-skashekSong: GameSong {
-    songURL = 'music/predator.ogg'
-    fadein = true
-    fadeout = true
-}
-
 transient sfxPlayer: object {
     fadetime = '2.0'
     currentAmbience = nil
+    currentRoom = nil
 
     setAmbience(ambienceObj) {
         if (!transMusicPlayer.allowSFX) return;
@@ -352,6 +327,39 @@ transient sfxPlayer: object {
         }
         else {
             crossfade(currentAmbience.sfxURL, toString(currentAmbience.volume));
+        }
+    }
+
+    setDecorations(room) {
+        if (!transMusicPlayer.allowSFX) return;
+        if (currentRoom == room) return;
+
+        if (currentRoom != nil) {
+            say(
+                '<SOUND CANCEL=AMBIENT
+                FADEOUT=' + sfxPlayer.fadetime + '>'
+            );
+        }
+        currentRoom = room;
+
+        if (currentRoom == nil) return;
+
+        local decorationsList = valToList(currentRoom.decorativeSFX);
+
+        for (local i = 1; i <= decorationsList.length; i++) {
+            local snd = decorationsList[i];
+            local sndVolume = snd.volume;
+            if (currentAmbience != nil) {
+                sndVolume = currentAmbience.getDrownedVolume(snd);
+            }
+            local probability = snd.probability;
+            if (probability == nil) probability = 5;
+            say(
+                '<SOUND SRC="' + snd.sfxURL + '"
+                LAYER=AMBIENT
+                RANDOM=' + toString(probability) + '
+                VOLUME=' + toString(sndVolume) + '>'
+            );
         }
     }
 
@@ -384,148 +392,26 @@ transient sfxPlayer: object {
     }
 }
 
-class GameAmbience: object {
-    sfxURL = ''
-    volume = 75
-
-    // How much will the ambience silence foreground sounds?
-    drownOutFactor = 0
-
-    getDrownedVolume(soundObj) {
-        local floatVol = new BigNumber(soundObj.volume);
-        local one = new BigNumber(1);
-        local cent = new BigNumber(100);
-        local floatDrownOut =
-            (new BigNumber(drownOutFactor) / cent)
-            - (new BigNumber(soundObj.antiDrowningFactor) / cent);
-        local mult = one - floatDrownOut;
-        if (mult < 0) mult = 0;
-        if (mult > 1) mult = one;
-        local finalVol = floatVol * mult;
-        return toInteger(finalVol);
-    }
-}
-
-carpetAmbience: GameAmbience {
-    sfxURL = 'sounds/carpet.ogg'
-}
-
-coolingDuctAmbience: GameAmbience {
-    sfxURL = 'sounds/coolingduct.ogg'
-    drownOutFactor = 75
-}
-
-freezerAmbience: GameAmbience {
-    sfxURL = 'sounds/coolingduct.ogg'
-    volume = 50
-}
-
-hangarAmbience: GameAmbience {
-    sfxURL = 'sounds/hangar.ogg'
-}
-
-industrialAmbience: GameAmbience {
-    sfxURL = 'sounds/industrial.ogg'
-}
-
-tileAmbience: GameAmbience {
-    sfxURL = 'sounds/tile.ogg'
-}
-
-utilityCorridorAmbience: GameAmbience {
-    sfxURL = 'sounds/utilitycorridor.ogg'
-}
-
-serverRoomAmbience: GameAmbience {
-    sfxURL = 'sounds/serverroom.ogg'
-}
-
-southeastAmbience: GameAmbience {
-    sfxURL = 'sounds/southeast.ogg'
-}
-
-commonRoomAmbience: GameAmbience {
-    sfxURL = 'sounds/commonroom.ogg'
-}
-
-assemblyShopLabAAmbience: GameAmbience {
-    sfxURL = 'sounds/assemblylaba.ogg'
-}
-
-deliveryRoomAmbience: GameAmbience {
-    sfxURL = 'sounds/deliveryroom.ogg'
-}
-
-reservoirCorridorAmbience: GameAmbience {
-    sfxURL = 'sounds/rescorr.ogg'
-    drownOutFactor = 50
-}
-
-reservoirControlRoomAmbience: GameAmbience {
-    sfxURL = 'sounds/rescontrol.ogg'
-    drownOutFactor = 75
-}
-
-reservoirTopAmbience: GameAmbience {
-    sfxURL = 'sounds/waterfall.ogg'
-    drownOutFactor = 90
-}
-
-reservoirBottomAmbience: GameAmbience {
-    sfxURL = 'sounds/reservoir.ogg'
-    drownOutFactor = 25
-}
-
-strainerStageAmbience: GameAmbience {
-    sfxURL = 'sounds/strainer.ogg'
-    drownOutFactor = 25
-}
-
-lifeSupportAmbience: GameAmbience {
-    sfxURL = 'sounds/lifesupport.ogg'
-    drownOutFactor = 75
-}
-
-ventNodeAmbience: GameAmbience {
-    sfxURL = 'sounds/ventnode.ogg'
-    drownOutFactor = 25
-}
-
-cloneQuartersAmbience: GameAmbience {
-    sfxURL = 'sounds/commonroom.ogg'
-    volume = 25
-}
-
-class GameSFX: object {
-    sfxURL = ''
-    volume = 100
-
-    // How resistant is this sound to dampening?
-    antiDrowningFactor = 0
-}
-
 modify Room {
     ambienceObject = tileAmbience
+    decorativeSFX = nil
 
     travelerEntering(traveler, origin) {
         inherited(traveler, origin);
         if (transMusicPlayer.allowSFX) {
             if (gPlayerChar.isOrIsIn(traveler)) {
-                setFullAmbience();
+                setFullAmbience(true);
             }
         }
     }
 
-    setFullAmbience() {
-        say(
-            '<SOUND CANCEL=AMBIENT
-            FADEOUT=' + sfxPlayer.fadetime + '>'
-        );
+    setFullAmbience(traveled?) {
         sfxPlayer.setAmbience(ambienceObject);
-        setAmbience();
+        sfxPlayer.setDecorations(self);
+        setAmbience(traveled);
     }
 
-    setAmbience() {
+    setAmbience(traveled?) {
         //
     }
 }
@@ -533,25 +419,64 @@ modify Room {
 recoverAmbience() {
     if (gPlayerChar == nil) {
         sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
         return;
     }
     local rm = gPlayerChar.getOutermostRoom();
     if (rm == nil) {
         sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
         return;
     }
+
     rm.setFullAmbience();
 }
 
 replace cls() {
     aioClearScreen();
+    
     musicPlayer.recoverSong();
-    recoverAmbience();
+
+    local allowAmbience = true;
+    if (musicPlayer.songDuringTurn != nil) {
+        if (!musicPlayer.songDuringTurn.allowAmbience) allowAmbience = nil;
+    }
+
+    if (allowAmbience) {
+        sfxPlayer.currentAmbience = nil;
+        sfxPlayer.currentRoom = nil;
+        recoverAmbience();
+    }
+    else {
+        sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
+    }
 }
 
 clsWithSong(nextSong) {
     musicPlayer.songDuringTurn = nextSong;
     cls();
+}
+
+// Recommended to always use this instead of playSong(),
+// because this will enforce ambient sound rules, too.
+changeSong(nextSong) {
+    musicPlayer.playSong(nextSong);
+
+    if (!transMusicPlayer.allowSFX) return;
+
+    local allowAmbience = true;
+    if (nextSong != nil) {
+        if (!nextSong.allowAmbience) allowAmbience = nil;
+    }
+
+    if (allowAmbience) {
+        recoverAmbience();
+    }
+    else {
+        sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
+    }
 }
 
 #ifdef __DEBUG
@@ -627,4 +552,9 @@ modify Restore {
 
         return ret;
     }
+}
+
+finishGameMsgSong(msg, song, extra) {
+    changeSong(song);
+    finishGameMsg(msg, extra);
 }

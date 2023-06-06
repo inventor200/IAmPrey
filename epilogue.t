@@ -5,7 +5,7 @@ epilogueCore: InitObject {
     leaveFacility() {
         "\b";
         leaveFacilityEnding.play();
-        finishGameMsg(ftVictory, gEndingOptionsWin);
+        finishGameMsgSong(ftVictory, gEndingOptionsWin);
     }
 
     execute() {

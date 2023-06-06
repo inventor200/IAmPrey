@@ -8,7 +8,7 @@
             "<.p>"; \
             response; \
             "<.p>"; \
-            finishGameMsg(ftDeath, gEndingOptionsLoss); \
+            finishGameMsgSong(ftDeath, gEndingOptionsLoss); \
         } \
     }
 

@@ -36,7 +36,7 @@
 //////////////////////////////////////////////
 /*(-)*/  #define __SHOW_PROLOGUE nil
 /*--*/  #define __FAST_DIFFICULTY 4
-/*-*/  #define __TEST_ROOM northeastCubicle
+/*-*/  #define __TEST_ROOM deliveryRoom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
     #define __SKASHEK_FROZEN nil
@@ -58,8 +58,8 @@
 #define gActorIsPlayer (gActor == gPlayerChar)
 #define gActorIsPrey (gActor == prey)
 #define gActorIsCat (gActor == cat)
-#define gEndingOptionsWin [finishOptionCredits, finishOptionUndo, finishOptionAmusing]
-#define gEndingOptionsLoss [finishOptionCredits, finishOptionUndo]
+#define gEndingOptionsWin preySong, [finishOptionCredits, finishOptionUndo, finishOptionAmusing]
+#define gEndingOptionsLoss skashekSong, [finishOptionCredits, finishOptionUndo]
 #define actorCapacity 10
 #define actorBulk 25
 #include "forEveryone.t"
