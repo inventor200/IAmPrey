@@ -20,6 +20,35 @@ VerbRule(LogInto)
 DefineTAction(LogInto)
 ;
 
+VerbRule(ShowTerminals)
+    ('show'|'list'|) 'terminals' 
+    : VerbProduction
+    action = ShowTerminals
+    verbPhrase = 'list/listing terminals'
+;
+
+DefineIAction(ShowTerminals)
+    execAction(cmd) {
+        local scope = Q.scopeList(gActor);
+        local terminalsFound = nil;
+        for (local i = 1; i <= scope.length; i++) {
+            local item = scope[i];
+            if (!gActor.canReach(item)) continue;
+            if (!item.ofKind(TerminalComputer)) continue;
+            terminalsFound = true;
+            "A terminal with a device name of <q><tt><<item.deviceName>></tt></q>
+            <<if item.currentDock != nil>>sits in a dock,
+            <<item.currentDock.stagingLocation.objInPrep>>
+            <<item.currentDock.stagingLocation.theName>><<else
+            >>is <<item.stagingLocation.objInPrep>>
+            <<item.stagingLocation.theName>><<end>>.\n";
+        }
+        if (!terminalsFound) {
+            "{I} cannot seem to find any nearby terminals. ";
+        }
+    }
+;
+
 modify VerbRule(TypeOn)
     'type' ('on'|'in'|'into') singleDobj :
 ;
@@ -36,15 +65,45 @@ modify VerbRule(TypeLiteralOnWhat)
 modify Type
     execAction(cmd) {
         local scope = Q.scopeList(gActor);
+        local terminalsInScope = new Vector(4);
         for (local i = 1; i <= scope.length; i++) {
             local item = scope[i];
             if (!gActor.canReach(item)) continue;
             if (!item.ofKind(TerminalComputer)) continue;
-            extraReport('<.p>(typing on <<item.theName>>...)<.p>');
-            nestedAction(TypeOn, item, gLiteral);
+            terminalsInScope.append(item);
+        }
+        if (terminalsInScope.length > 0) {
+            if (terminalsInScope.length > 1) {
+                terminalsInScope.sort(true, {a, b:
+                    scoreForTerminal(a) - scoreForTerminal(b)
+                });
+            }
+            local chosen = terminalsInScope[1];
+            extraReport('<.p>');
+            extraReport(
+                '(typing on device named <q><tt><<chosen.deviceName>></tt></q>...)'
+            );
+            if (terminalsInScope.length > 1) {
+                extraReport(
+                    '\n<small><i>(Wrong terminal? Use the <<gDirectCmdStr('terminals')>>
+                    command to find the name of another terminal.)</i></small>'
+                );
+            }
+            extraReport('<.p>');
+            nestedAction(TypeOn, chosen, gLiteral);
             return;
         }
         askForIobj(TypeOn);
+    }
+
+    scoreForTerminal(item) {
+        if (item == libGlobal.lastTypedOnObj) {
+            return 32 + item.valueBiasScore;
+        }
+        if (item.isIn(gActor)) {
+            return 16 + item.valueBiasScore;
+        }
+        return item.valueBiasScore;
     }
 ;
 
@@ -361,10 +420,17 @@ TerminalComputer template 'deviceName';
 class TerminalComputer: Thing {
     vocab = handheldVocab
 
-    desktopVocab = 'desktop terminal;docked;screen computer laptop'
-    handheldVocab = 'tablet terminal;smart handheld;screen computer tablet'
+    desktopVocab = 'desktop terminal;docked;screen computer laptop <<deviceName>>'
+    handheldVocab = 'tablet terminal;smart handheld;screen computer tablet <<deviceName>>'
+
+    desc = "A rectangular touch screen computer.<<if !gCatMode>>
+    The device's name seems to be <q><tt><<deviceName>></tt></q><<end>> "
 
     currentDock = nil
+
+    // A score that makes it more likely to type on this.
+    // Can be from 0 to 15
+    valueBiasScore = 0
 
     maxScreenItems = 6
     screenBuffer = perInstance(new Vector())
@@ -439,11 +505,16 @@ class TerminalComputer: Thing {
         currentFolder = fileSystem;
     }
 
+    takeFocus() {
+        libGlobal.lastTypedOnObj = self;
+    }
+
     dock(dockObj) {
         currentDock = dockObj;
         replaceVocab(desktopVocab);
         isListed = nil;
         fileSystem.add(currentDock.fileSystem);
+        takeFocus();
     }
 
     undock() {
@@ -455,6 +526,7 @@ class TerminalComputer: Thing {
             isListed = true;
             currentFolder = fileSystem;
         }
+        takeFocus();
     }
 
     dobjFor(PutIn) {
@@ -522,6 +594,7 @@ class TerminalComputer: Thing {
                 inaccessible(catNotTechnoMsg);
                 return;
             }
+            takeFocus();
             illogical(technoHelpMsg);
         }
     }
@@ -534,6 +607,7 @@ class TerminalComputer: Thing {
                 inaccessible(catNotTechnoMsg);
                 return;
             }
+            takeFocus();
             illogical(technoHelpMsg);
         }
     }
@@ -590,7 +664,7 @@ class TerminalComputer: Thing {
         if (gFormatForScreenReader) {
             return
                 'Command from username <q><<getUsername()>></q>,
-                from device name <q><<deviceName>></q>.\n
+                from device named <q><<deviceName>></q>.\n
                 Command executed in <q><<currentFolder.accessibleName>></q> directory.
                 Command was the following:\n';
         }
