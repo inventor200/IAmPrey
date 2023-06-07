@@ -368,6 +368,7 @@ reservoir: Room { 'The Reactor Reservoir'
             "{I} can expect <<gSkashekName>> to be heading for Life Support
             to intercept me, though. {I} should waste no time getting finding
             a way out of this killzone. ";
+            sfxPlayer.play(emergeSnd);
         }
         else {
             "{I} dive from the catwalk, and plummet into the hot reservoir
@@ -376,6 +377,7 @@ reservoir: Room { 'The Reactor Reservoir'
             "{I} need to be careful in the nearby Life Support area,
             as it can be a bit of a narrow killzone, if <i>he</i> is
             patrolling the area. ";
+            sfxPlayer.play(emergeSnd);
         }
         inherited();
     }
@@ -609,6 +611,17 @@ reservoirStrainer: Room {
     mapModeDirections = [&west]
     familiar = roomsFamiliarByDefault
     ambienceObject = strainerStageAmbience
+    decorativeSFX = [
+        drip1Decor,
+        drip2Decor,
+        drip3Decor,
+        drip4Decor,
+        drip5Decor,
+        drip6Decor,
+        drip7Decor,
+        drip8Decor,
+        drip9Decor
+    ]
 
     roomDaemon() {
         checkRoomDaemonTurns;

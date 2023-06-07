@@ -149,7 +149,7 @@ class CoolingDuctSegment: Room {
                 >>, <<freezer.subclauseAmbienceOnEntry>><<end>>.
                 {I} press {my} limbs against the <<freezer.coldAluminum>> walls.
                 Now pinned in place, {i} {am} ready to climb
-                <<gDirectCmdStr('up')>> or <<gDirectCmdStr('down')>><.p> ";
+                <<hyperDir('up')>> or <<hyperDir('down')>><.p> ";
             }
         }
         if (gPlayerChar.isOrIsIn(actor)) {

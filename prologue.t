@@ -8,28 +8,26 @@ prologueCore: InitObject {
         #if __SHOW_PROLOGUE
         clsWithSong(nil);
         if (!prologuePrefCore.skipIntro) {
-            "<b>Content warning:</b>\b";
-            if (gFormatForScreenReader) {
-                "For violence, frequent crude language, and rare mentions of suicide.";
-            }
-            else {
-                "\t<tt>[&gt;&gt;]</tt> Violence\n
-                \t<tt>[&gt;&gt;]</tt> Frequent crude language\n
-                \t<tt>[&gt;&gt;]</tt> Rare mentions of suicide";
-            }
-            "\b<b>Anxiety warning:</b>\b
+            "<<formatAlert('Content warning:')>>";
+            say(createFlowingList([
+                'violence',
+                'frequent, crude language',
+                'rare mentions of suicide'
+            ]));
+            """
+            <<formatAlert('Anxiety warning:')>>
 
             This game features an active antagonist,
-            so your turns must be spent wisely!\b
+            so your turns must be spent wisely!
 
-            <b>Note on randomness and <<InstructionsChapter.formatCommand('UNDO')>>:</b>\b
+            <<formatTitle('Note on randomness and ' + titleCommand('UNDO'))>>
 
             Elements of this game are randomized, with casual replayability
-            in mind. Use of <<InstructionsChapter.formatCommand('UNDO')>>
+            in mind. Use of <<formatCommand('UNDO')>>
             will not change the outcomes of randomized events.\b
-            Rest assured that your survival is not decided by randomness.";
-            "\b";
-            inputManager.pauseForMore();
+            Rest assured that your survival is not decided by randomness.
+            <<wait for player>>
+            """;
         }
         #if __IS_MAP_TEST // is map test
         huntCore.setDifficulty(1);
@@ -43,22 +41,21 @@ prologueCore: InitObject {
         #endif
         if (!prologuePrefCore.skipIntro) {
             """
-            \b<b>Note for new and experienced players:</b>\b
+            <<formatTitle('Note for new and experienced players')>>
 
             This will not be a standard parser game. Players of <b>all skill levels</b>
             should consult <i>Prey's Survival Guide</i>
             (which should have come with this game), or use the
-            <<InstructionsChapter.formatCommand('guide')>> command
+            <<formatCommand('guide')>> command
             for the in-game version of the document.\b
 
             There are a number of new game mechanics ahead, and
             they were not designed with the traditions of this medium in mind.\b
 
             For more information, experienced parser players should use the
-            <<InstructionsChapter.formatCommand('parser warning')>> command.
-            \b""";
-            inputManager.pauseForMore();
-            "\b";
+            <<formatCommand('parser warning')>> command.
+            <<wait for player>>
+            """;
         }
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
         local difficulties = huntCore.difficultySettings;
@@ -115,9 +112,10 @@ prologueCore: InitObject {
         "</center>";
         helpMessage.showHeader();
         "\b<<if gCatMode>>
-        <b>REMEMBER:</b> In Cat Mode, you are free to explore! There is no pressure to
+        <<remember>>
+        In Cat Mode, you are free to explore! There is no pressure to
         <q>win</q> or <q>solve a puzzle</q> here! Once you are satisfied with your
-        free-form exploration, use the <<gDirectCmdStr('restart')>> command to choose
+        free-form exploration, use <<formatTheCommand('restart', shortCmd)>> to choose
         another difficulty, and begin a new game!
         <<end>>\b";
 
@@ -126,17 +124,17 @@ prologueCore: InitObject {
         // still skipped the how-to-play guide.
         "<center><b>RANDOM TIP:</b></center>\n<<one of>>
         Use a combination of the 
-        <<InstructionsChapter.formatCommand('DROP ALL')>> command and the
-        <<InstructionsChapter.formatCommand('WEAR ALL')>> command to clear your inventory,
+        <<formatCommand('DROP ALL')>> command and the
+        <<formatCommand('WEAR ALL')>> command to clear your inventory,
         and take any nearby suit pieces, all in one turn!\n
         Though you technically can't wear any suit pieces before you're in the
         emergency airlock, you can still pick them up with the
-        <<InstructionsChapter.formatCommand('WEAR ALL')>> command!
+        <<formatCommand('WEAR ALL')>> command!
         <<or>>
-        You can condense the <<InstructionsChapter.formatCommand('OPEN')>>,
-        <<InstructionsChapter.formatCommand('ENTER')>>,
-        and <<InstructionsChapter.formatCommand('CLOSE')>> commands into one turns
-        by using the <<InstructionsChapter.formatCommand('HIDE IN')>> command!\n
+        You can condense <<formatTheCommand('OPEN')>>,
+        <<formatTheCommand('ENTER')>>,
+        and <<formatTheCommand('CLOSE')>> into one turns
+        by using <<formatTheCommand('HIDE IN')>>!\n
         Hide faster, hide smarter!
         <<or>>
         The Storage Bay and Hangar are both <i>huge</i>, and <<gSkashekName>> cannot
@@ -144,7 +142,7 @@ prologueCore: InitObject {
         Use this to your advantage to double-back on him!
         <<or>>
         New parkour routes can only be discovered with the
-        <<InstructionsChapter.formatCommand('SEARCH')>> command when the route connects
+        <<formatCommand('SEARCH')>> command when the route connects
         to the spot you currently stand! You cannot discover a route between a table and a
         fridge, if you still stand on the floor!
         <<or>>

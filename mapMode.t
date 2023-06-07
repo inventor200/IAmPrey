@@ -358,21 +358,16 @@ mapModeDatabase: object {
     }
 
     cancelNonMapAction() {
-        "{I} cannot do that in map mode.\n
-        The available actions in map mode are:\n";
-        if (gFormatForScreenReader) {
-            "<b>GO</b> <i>(direction)</i>, <b>GO TO</b> <i>(location)</i>,
-            <b>EXAMINE COMPASS</b>, and <b>LOOK AROUND</b>. ";
-        }
-        else {
-            """
-            \t<tt>[&gt;&gt;]</tt> <b>GO</b> <i>(direction)</i>\n
-            \t<tt>[&gt;&gt;]</tt> <b>GO TO</b> <i>(location)</i>\n
-            \t<tt>[&gt;&gt;]</tt> <b>COMPASS</b>\n
-            \t<tt>[&gt;&gt;]</tt> <b>LOOK AROUND</b>
-            """;
-        }
-        //exit;
+        """
+        {I} cannot do that in map mode.\n
+        The available actions in map mode are:
+        <<createFlowingList([
+            formatCommand('GO : direction'),
+            formatCommand('GO TO : direction'),
+            formatCommand('EXAMINE COMPASS'),
+            formatCommand('LOOK AROUND')
+        ])>>
+        """;
     }
 
     setGoto(target) {
@@ -401,8 +396,9 @@ mapModeDatabase: object {
     checkCompass() {
         if (compassTarget == nil) {
             "{I} have not set {my} compass yet.\n
-            Use the <b>GO TO</b> command.\n
-            \tExample: <b>GO TO HANGAR</b>";
+            Use <<formatTheCommand('GO TO')>>.\n
+            <<formatAlert('Example:')>>
+            <<formatCommand('GO TO HANGAR')>>";
             exit;
         }
 

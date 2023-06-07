@@ -11,16 +11,16 @@ experiencedWarningChapter: InstructionsChapter {
 experiencedWarningPage1: InstructionsPage {
     page() {
         """
-        This game makes use of the <<formatCommand('SEARCH')>> command, but not
+        This game makes use of <<formatTheCommand('SEARCH')>>, but not
         quite in the same way it has been used, traditionally.\b
 
         Objects in the game are always <q>in play</q>, and not added
-        to the game's world after the player uses <<formatCommand('SEARCH')>> on a
+        to the game's world after the player uses <<formatTheCommand('SEARCH')>> on a
         container. There are only two possible exceptions in <i>I Am Prey</i>,
         and one has multiple alternative discovery methods,
         while the other exception is completely optional during gameplay.\b
 
-        The list of <<formatCommand('search')>> verbs is as follows:
+        The list of search verbs is as follows:
 
         <<createUnorderedList([
             '<<formatCommand('search')>>\n
@@ -38,9 +38,9 @@ experiencedWarningPage2: InstructionsPage {
     page() {
         """
         <<formatTitle(
-            '<u>SEARCH</u> ' +
+            titleCommand('SEARCH') + ' ' +
             (gFormatForScreenReader ? 'versus' : 'vs') +
-            ' <u>EXAMINE</u>'
+            ' ' + titleCommand('EXAMINE')
         )>>
 
         <<formatCommand('SEARCH')>> takes a turn to use, and will allow the player
@@ -59,7 +59,7 @@ experiencedWarningPage2: InstructionsPage {
 experiencedWarningPage3: InstructionsPage {
     page() {
         """
-        <<formatTitle('<u>SEARCH</u> via Exploration')>>
+        <<formatTitle(titleCommand('SEARCH') + ' via Exploration')>>
 
         Most applications of <<formatCommand('SEARCH')>> can be
         alternatively achieved by exploring something.

@@ -37,8 +37,10 @@ suitTracker: object {
         local numLeft = getNumberLeft();
         local toGoPhrase = 'That\'s all of them! {I} must enter the Emergency Airlock!!
             {I} cannot allow <<gSkashekName>> to stop me now! {My} victory is so close!\b
-            <i>(Set your compass by typing in <<gDirectCmdStr('go to emergency airlock')>>,
-            and find the next step in the route with the <<gDirectCmdStr('compass')>> command!)</i>';
+            <i>(Set your compass by typing in
+            <<formatCommand('go to emergency airlock', longCmd)>>,
+            and find the next step in the route with
+            <<formatTheCommand('compass', shortCmd)>>!)</i>';
         if (numLeft > 0) {
             local pieceNoun = 'piece';
             if (numLeft != 1) pieceNoun += 's';

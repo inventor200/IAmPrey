@@ -10,8 +10,8 @@ awarenessChapter: InstructionsChapter {
 awarenessPage1: InstructionsPage {
     page() {
         """
-        The player can use the <<formatCommand('LISTEN')>> and
-        <<formatCommand('PEEK')>> commands to gather environmental
+        The player can use <<formatTheCommand('LISTEN')>> and
+        <<formatTheCommand('PEEK')>> to gather environmental
         clues about <<gSkashekName>>.
         Other clues can be gathered by hearing muffled sounds
         through walls, and doors automatically closing.

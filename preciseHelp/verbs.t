@@ -5,7 +5,7 @@ class VerbsPage: InstructionsPage {
             res += ' / ' + formatCommand(other);
         }
         if (arg != nil) {
-            res += '&nbsp;<i>(' + arg.toLower().findReplace(' ', '&nbsp;') + ')</i>';
+            res += '&nbsp;' + formatCommandArg(arg);
         }
         if (shortened != nil) {
             res += '\n\tShortened to: ' + formatCommand(shortened);
@@ -43,7 +43,7 @@ verbsPage1: InstructionsPage {
         which are necessary to complete this game.\b
 
         These are listed with
-        <<formatCommand('VERB NAME')>>&nbsp;<i>(type&nbsp;of&nbsp;target&nbsp;object)</i> notation.\b
+        <<formatCommand('VERB : object')>> notation.\b
 
         <<formatCommand('go')>>&nbsp;<i>(compass direction name)</i>\n
         Direction names include

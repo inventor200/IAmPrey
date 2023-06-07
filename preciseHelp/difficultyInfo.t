@@ -45,7 +45,7 @@ autoSneakPage2: InstructionsPage {
         risk-averse mindset that will avoid most dangers.
         As the player gets more skilled, they can afford to take more risks.\b
 
-        To turn off auto-sneak, use the <<formatCommand('SNEAK MODE OFF')>> command.
+        To turn off auto-sneak, use <<formatTheCommand('SNEAK MODE OFF')>>.
         """;
     }
 }

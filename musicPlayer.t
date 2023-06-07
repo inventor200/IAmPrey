@@ -19,9 +19,7 @@ musicPlayer: InitObject {
             If you would like to get the most out of your experience,
             however, it is recommended that you play this game in
             <a href='https://github.com/realnc/qtads/releases'>QTADS</a>!
-            \b";
-            inputManager.pauseForMore();
-            "\b";
+            <<wait for player>>";
             return;
         }
 

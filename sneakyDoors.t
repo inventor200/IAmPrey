@@ -461,7 +461,7 @@ DefineLiteralAction(ChangeSneakMode)
             sneakyCore.sneakSafetyOn = nil;
             "<.p>Auto-sneak mode is now OFF.\n
             If you would like to, you can
-            <<gDirectCmdStr('turn sneak back on')>> later!<.p>";
+            <<formatCommand('turn sneak back on', longCmd)>> later!<.p>";
         }
         else {
             "<.p>Unrecognized option: <q><<option>></q>!<.p>";
@@ -507,7 +507,7 @@ sneakyCore: object {
                 return;
             }
             "<.p>You have voluntarily disabled auto-sneak for this tutorial!\n
-            If you would like to, you can <<gDirectCmdStr('turn sneak on')>>.<.p>";
+            If you would like to, you can <<formatCommand('turn sneak on', longCmd)>>.<.p>";
             exit;
         }
         remindNoSneak();
@@ -515,9 +515,10 @@ sneakyCore: object {
     }
 
     remindNoSneak() {
-        "<.p><i><b>Auto-sneaking is disabled outside of tutorial modes!</b></i>";
+        say(formatAlert('Auto-sneaking is disabled outside of tutorial modes!'));
         if (useVerboseReminder) {
-            "\b<b>REMEMBER:</b> If the Predator expects <b>silence</b>, then
+            "<<remember>>
+            If the Predator expects <b>silence</b>, then
             <b>maintain the silence</b>!
             If the Predator expects a door to <b>slam shut</b>,
             then <b>let the door slam shut</b>!\b
@@ -561,16 +562,16 @@ sneakyCore: object {
         }
         if (gFormatForScreenReader) {
             return fullLine +
-                '<.p><i>({I} automatically tr{ies/ied}
-                the <q><b>' + actionText +
-                '</b></q> action.</i>)<.p>';
+                '<.p><i>({I} automatically tr{ies/ied}</i> ' +
+                formatTheCommand(actionText) +
+                '<i>.)</i><.p>';
         }
-        return fullLine + '<.p><i>&gt;' + actionText + '</i><.p>';
+        return fullLine + '<.p>' + formatInput(actionText) + '<.p>';
     }
 
     beginSneakLine() {
         if (sneakVerbosity >= 2) {
-            "<<getSneakLine('{I} {am} <b>SNEAKING</b>, so {i} perform{s/ed}
+            "<<getSneakLine('{I} {am} sneaking, so {i} perform{s/ed}
                 the necessary safety precautions, as a reflex...')>>";
         }
         else {
@@ -580,7 +581,7 @@ sneakyCore: object {
 
     concludeSneakLine() {
         if (sneakVerbosity < 2) return;
-        "<<getSneakLine('And thus concludes the art of <b>SNEAKING</b>!')>>";
+        "<<getSneakLine('And thus concludes the art of sneaking!')>>";
     }
 
     doSneakStart(conn, direction) {
@@ -589,7 +590,7 @@ sneakyCore: object {
             armEndSneaking = true;
             armSneaking = nil;
             beginSneakLine();
-            "<<getSneakStep(1, '<b>LISTEN</b> for nearby threats!', 'listen')>>";
+            "<<getSneakStep(1, formatCommand('LISTEN') + ' for nearby threats!', 'listen')>>";
             local listenPrecache = heardDangerFromDirection(
                 gActor, direction
             );
@@ -616,7 +617,8 @@ sneakyCore: object {
             if (allowPeek) {
                 peekComm = (gFormatForScreenReader ? 'peek ' : 'p ') + peekComm;
 
-                "<<getSneakStep(2, '<b>PEEK</b>, just to be sure!', peekComm)>>";
+                "<<getSneakStep(2, formatCommand('PEEK') +
+                    ', just to be sure!', peekComm)>>";
                 local peekPrecache = conn.destination.getOutermostRoom().hasDanger();
                 if (direction.ofKind(Door) || direction.ofKind(Passage)) {
                     nestedAction(PeekThrough, conn);
@@ -659,13 +661,15 @@ sneakyCore: object {
             closingSide.checkOpenExpectationFuse(&skashekCloseExpectationFuse) ||
             closingSide.skashekExpectsAirlockOpen;
         if (!expectsOpen) {
-            "<<getSneakStep(3, 'Quietly <b>CLOSE</b> the door{dummy} behind {me}!',
+            "<<getSneakStep(3, 'Quietly ' +
+                formatCommand('CLOSE') + ' the door{dummy} behind {me}!',
                 'close ' + closingSide.name)>>";
             nestedAction(Close, closingSide);
         }
         else {
             local closeExceptionLine = getSneakLine(
-                'Normally, {i} should <b>CLOSE</b> the door behind {myself},
+                'Normally, {i} should ' +
+                formatCommand('CLOSE') + ' the door behind {myself},
                 but {i} did not open this door.
                 Therefore, it\'s better to<<if closingSide.airlockDoor>>
                 <i>leave it open</i>,<<else>>

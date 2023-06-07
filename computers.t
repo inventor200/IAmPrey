@@ -91,8 +91,9 @@ modify Type
             );
             if (terminalsInScope.length > 1) {
                 extraReport(
-                    '\n<small><i>(Wrong terminal? Use the <<gDirectCmdStr('terminals')>>
-                    command to find the name of another terminal.)</i></small>'
+                    '\n<small><i>(Wrong terminal? Use
+                    <<formatTheCommand('terminals', shortCmd)>>
+                    to find the name of another terminal.)</i></small>'
                 );
             }
             extraReport('<.p>');
@@ -241,7 +242,7 @@ class UserFile: TerminalFile {
     contents =
         'This is a user credentials file for the
         username <q><<userFolder.username>></q>.
-        Login is possible if {i} <<gDirectCmdStr('type login ' + name)>>.'
+        Login is possible if {i} <<formatCommand('type login ' + name, longCmd)>>.'
 
     getMainDestination(terminal) {
         return terminal.fileSystem.traversePath('users', nil);
@@ -592,7 +593,7 @@ class TerminalComputer: Thing {
     catNotTechnoMsg = '{I} do not waste my time on such peasant devices. '
     technoHelpMsg =
         'If {i} want to use this terminal, {i} should type something specific into it.
-        Perhaps a sensible starting point is to <<gDirectCmdStr('type help')>>. '
+        Perhaps a sensible starting point is to <<formatCommand('type help', shortCmd)>>. '
 
     dobjFor(SwitchOn) asDobjFor(LogInto)
     dobjFor(SwitchOff) asDobjFor(LogInto)
@@ -656,7 +657,7 @@ class TerminalComputer: Thing {
         else {
             filteredCommand = filteredCommand.toLower();
         }
-        return filteredCommand.findReplace('&', '&amp;').findReplace('<', '&lt;').findReplace('>', '&gt;');
+        return filteredCommand.htmlify();
     }
 
     refreshUserConnection() {
@@ -712,8 +713,8 @@ class TerminalComputer: Thing {
         if (chosenCommand == nil) {
             addToScreenBuffer(
                 'ERROR! Unrecognized command: <q><<cmd>></q>\n
-                Type in <q><b>help</b></q> for a list of commands, or
-                <q><b>help&nbsp;&lt;command&gt;</b></q> to learn about a specific
+                <<formatCommand('Type help')>> for a list of commands, or
+                <<formatCommand('type help : command name')>> to learn about a specific
                 command.'
             );
             return;
@@ -913,7 +914,8 @@ tcmd_helpPlain: TerminalCommand {
 
     exec(terminal, arg?) {
         local res =
-            'Use <b>help &lt;command&gt;</b> to see how a command is used.\b
+            '\^' + formatTheCommand('type help : command name') +
+            ' to see how a command is used.\b
             <b>Available commands are the following:</b>';
         for (local i = 1; i <= terminalCommandLocker.list.length; i++) {
             local item = terminalCommandLocker.list[i];

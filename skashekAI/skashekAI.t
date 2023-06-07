@@ -422,7 +422,7 @@ modify skashek {
         He puts his hands on his hips, exasperated.\b
         <q>Okay, let me strike you a deal: I will give you a bit more time
         to get the fuck away from me, and <i>then</i> I will hunt you!
-        <b>Remember:</b> You need to collect all seven pieces of the environment suit
+        <<remember>> You need to collect all seven pieces of the environment suit
         to escape! I've hidden them around the place! The timer starts <i>now</i>,
         Prey!</q> ";*/
     }

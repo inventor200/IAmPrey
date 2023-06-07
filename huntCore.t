@@ -157,11 +157,12 @@ nightmareModeSetting: DifficultySetting {
 restoreModeSetting: DifficultySetting {
     title = 'Restore Game'
     generalBlurb =
-        'Skips everything, so you can quickly load a saved game file.'
+        'Skips everything, so you can quickly load a saved game file,
+        or read the in-game survival guide.'
     startingSkashekState = skashekCatModeState
     skipPrologue = true
     offerUndoOption = nil
-    showOtherQualities = true
+    showOtherQualities = nil
 }
 
 enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;

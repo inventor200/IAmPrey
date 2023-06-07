@@ -82,25 +82,31 @@ modify helpMessage {
 
     showHeader() {
         "<.p>
-        <<gDirectCmdStr('about')>> for a general summary.\n
-        <<gDirectCmdStr('credits')>> for author and tester credits.";
+        <<formatCommand('about', shortCmd)>> for a general summary.\n
+        <<formatCommand('credits', shortCmd)>> for author and tester credits.";
         if (!fromHelpCommand) {
-            "\n<<gDirectCmdStr('help')>> for tutorials and assistance.";
+            "\n<<formatCommand('help', shortCmd)>> for tutorials and assistance.";
         }
         if (sneakyCore.allowSneak) {
-            "\b\t<b>AUTO-SNEAK is ENABLED!</b>\n
-            Use the <b>SNEAK</b> (or <q><b>SN</b></q>) command to automatically
-            sneak around the map! For example:\n
-            \t<b>SNEAK NORTH</b>\n
-            \t<b>SN THRU DOOR</b>\b
-            <b>REMEMBER:</b> This is a <i>learning tool!</i> The <b>SNEAK</b>
-            command <i>will be disabled outside of tutorial modes,</i>
-            meaning you will need to remember to <b>LISTEN</b>, <b>PEEK</b>,
-            and <b>CLOSE DOOR</b> on your own!\b
+            "<<formatAlert('AUTO-SNEAK is ENABLED!')>>
+            Use <<formatTheCommand('SNEAK')>> (abbreviated <<abbr('SN')>>)
+            to automatically
+            sneak around the map! For example:
+            <<createFlowingList([
+                formatCommand('SNEAK NORTH'),
+                formatCommand('SN THRU DOOR')
+            ])>>
+            <<remember>>
+            This is a <i>learning tool!</i> \^<<formatTheCommand('SNEAK')>>
+            <i>will be disabled outside of tutorial modes,</i>
+            meaning you will need to remember to
+            <<formatCommand('LISTEN')>>,
+            <<formatCommand('PEEK')>>,
+            and <<formatCommand('CLOSE DOOR')>> on your own!\b
             If you'd rather practice without auto-sneak, simply enter in
-            <<gDirectCmdStr('sneak off')>>.\b
-            <b>REMEMBER:</b> You are always free to
-            <<gDirectCmdStr('turn sneak back on')>> in a tutorial mode!";
+            <<formatTheCommand('sneak off', shortCmd)>>.\b
+            <<remember>> You are always free to
+            <<formatCommand('turn sneak back on', longCmd)>> in a tutorial mode!";
         }
         fromHelpCommand = nil;
     }
@@ -109,17 +115,17 @@ modify helpMessage {
         showHowToWinAndProgress();
 
         "\bTo read the in-game copy of
-        Prey's Survival Guide (which explains how to play this game), type in the
-        <<gDirectCmdStr('guide')>> command at the prompt.
+        Prey's Survival Guide (which explains how to play this game), type in
+        <<formatTheCommand('guide', shortCmd)>> at the prompt.
         This could be necessary, if you are new to
-        interactive fiction (<q><tt>IF</tt></q>), text games, parser games,
+        interactive fiction (<q><<abbr('IF')>></q>), text games, parser games,
         text adventures, etc.\b
         For a reference list of verbs and commands, type in
-        <<gDirectCmdStr('verbs')>>.\b
+        <<formatTheCommand('verbs', shortCmd)>>.\b
         Remember, you can always explore a simplified version of the
         world&mdash;<i>without spending turns</i>&mdash;as long as you are
         in <i>map mode!</i>\n
-        Use the <<gDirectCmdStr('map')>> command to enter or leave map mode!";
+        Use <<formatTheCommand('map', shortCmd)>> to enter or leave map mode!";
 
         fromHelpCommand = true;
         

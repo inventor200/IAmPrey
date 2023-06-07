@@ -208,17 +208,13 @@ transient prologuePrefCore: InitObject {
     }
 
     remindOfFile() {
-        "\b\t<b>REMEMBER:</b>\n
+        "<<remember>>
         You can always reset your preferences by deleting the
         following file:\n
         <tt><<prologuePrefCore.fileName>></tt>\b
         You can also edit this file directly!\n
         It should be in the same directory as the game file!
-        \b\b\b";
-
-        inputManager.pauseForMore();
-
-        "\b";
+        <<wait for player>>";
     }
 }
 

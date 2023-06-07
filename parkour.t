@@ -493,6 +493,13 @@ DefineTAction(DebugCheckForContainer)
 ;
 #endif
 
+getBulletPoint(requiresJump, isHarmful) {
+    if (isHarmful && requiresJump) return '\n\t<tt><b>[!*]</b></tt>';
+    if (isHarmful) return '\n\t<tt><b>[!!]</b></tt>';
+    if (requiresJump) return '\n\t<tt><b>[**]</b></tt>';
+    return '\n\t<tt><b>[&gt;&gt;]</b></tt>';
+}
+
 //TODO: Tutorial hinting
 parkourCore: object {
     requireRouteRecon = true
@@ -534,11 +541,19 @@ parkourCore: object {
 
     getKeyString() {
         local strBfr = new StringBuffer(5);
-        strBfr.append('\t<i><b>Bullet Symbol Key:</b></i>\n');
-        strBfr.append('\t<b><tt>[!*]</tt></b> = dangerous jump\n');
-        strBfr.append('\t<b><tt>[!&gt;]</tt></b> = dangerous climb\n');
-        strBfr.append('\t<b><tt>[**]</tt></b> = jump\n');
-        strBfr.append('\t<b><tt>[&gt;&gt;]</tt></b> = simple climb<.p>');
+        strBfr.append(formatTitle('Bullet Symbol Key'));
+        createBasicListItem(strBfr,
+            getBulletPoint(true, true), ' = dangerous jump'
+        );
+        createBasicListItem(strBfr,
+            getBulletPoint(nil, true), ' = dangerous climb'
+        );
+        createBasicListItem(strBfr,
+            getBulletPoint(true, nil), ' = jump'
+        );
+        createBasicListItem(strBfr,
+            getBulletPoint(nil, nil), ' = simple climb'
+        );
         return toString(strBfr);
     }
 
@@ -549,7 +564,7 @@ parkourCore: object {
             '<small>Not sure what the bullet symbols mean?
             Click here!</small> ',
             '(Not sure what the bullet symbols mean?
-            Type <b>PARKOUR KEY</b> for clarification!) '
+            Type <<formatCommand('PARKOUR KEY')>> for clarification!) '
         ));
         strBfr.append('<.p>');
     }
@@ -614,7 +629,7 @@ parkourCore: object {
                     platName
                 ));
             }
-            "<<toString(strBfr)>>";
+            say(toString(strBfr));
         }
     }
 
@@ -622,13 +637,13 @@ parkourCore: object {
     loadAbbreviationReminder(strBfr) {
         if (hasShownClimbAbbreviationHint) return;
         strBfr.append(
-            '<.p>\t<tt><b>REMEMBER:</b></tt>\n
+            '<<remember>>
             <i>You can use parkour shorthand to enter commands faster!</i>\b
-            <b>CLIMB</b> can be shortened to <b>CL</b>, and
-            <b>JUMP</b> can be shortened to <b>JM</b>!\b
-            \t<tt><b>EXAMPLES:</b></tt>\n
-            <b>CL UP DESK</b> for an <i>explicit</i> climb-up, or just
-            <b>CL DESK</b> for an <i>implicit</i> climb, which picks the
+            <<formatCommand('CLIMB')>> can be shortened to <<abbr('CL')>>, and
+            <<formatCommand('JUMP')>> can be shortened to <<abbr('JM')>>!
+            <<formatTitle('Examples')>>
+            <<formatCommand('CL UP DESK')>> for an <i>explicit</i> climb-up, or just
+            <<formatCommand('CL DESK')>> for an <i>implicit</i> climb, which picks the
             most appropriate direction, but only if it was used before.'
         );
         hasShownClimbAbbreviationHint = true;
@@ -1182,17 +1197,17 @@ modify actorInStagingLocation {
 #define fastParkourClimbMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getClimbUpDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + upPrep + ' ' + theName, longCmd) + \
             '!) '; \
     } \
     getClimbOverDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + overPrep + ' ' + theName, longCmd) + \
             '!) '; \
     } \
     getClimbDownDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + downPrep + ' ' + theName, longCmd) + \
             '!) '; \
     } \
     getClimbUpMsg() { \
@@ -1208,17 +1223,17 @@ modify actorInStagingLocation {
 #define fastParkourJumpMsg(upPrep, overPrep, downPrep, capsActionStr, conjActionString) \
     getJumpUpDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + upPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + upPrep + ' ' + theName, longCmd) + \
             '!) '; \
     } \
     getJumpOverDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + overPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + overPrep + ' ' + theName, longCmd) + \
             '!) '; \
     } \
     getJumpDownDiscoverMsg() { \
         return '({I} learned a new route: ' + \
-            gDirectCmdStr(capsActionStr + ' ' + downPrep + ' ' + theName) + \
+            formatCommand(capsActionStr + ' ' + downPrep + ' ' + theName, longCmd) + \
             '!) '; \
     }
 
@@ -1246,7 +1261,7 @@ modify actorInStagingLocation {
     if (plat.secretLocalPlatform) { \
         local discoveryStr = \
             '({I} learned a new route: ' + \
-            gDirectCmdStr(plat.getLocalPlatformBoardingCommand()) + \
+            formatCommand(plat.getLocalPlatformBoardingCommand(), longCmd) + \
             '!) '; \
         announcePathDiscovery(discoveryStr, reportMethod); \
         plat.secretLocalPlatform = nil; \
@@ -1746,19 +1761,12 @@ modify Thing {
         }
         else {
             strBfr.append(getBulletPoint(requiresJump, isHarmful));
-            local commandText = 'GET OFF';
+            local commandText = ' GET OFF';
             if (requiresJump) {
-                commandText = 'JUMP OFF';
+                commandText = ' JUMP OFF';
             }
-            strBfr.append(gDirectCmdStr(commandText));
+            strBfr.append(formatCommand(commandText, longCmd));
         }
-    }
-
-    getBulletPoint(requiresJump, isHarmful) {
-        if (isHarmful && requiresJump) return '\n&nbsp;<tt><b>[!*]</b></tt> ';
-        if (isHarmful) return '\n&nbsp;<tt><b>[!!]</b></tt> ';
-        if (requiresJump) return '\n&nbsp;<tt><b>[**]</b></tt> ';
-        return '\n&nbsp;<tt><b>[&gt;&gt;]</b></tt> ';
     }
 
     checkProviderAccident(actor, traveler, path) {
@@ -2044,7 +2052,7 @@ modify Thing {
 
     getJumpOverToDiscoverMsg(destination) {
         return '({I} learned a new route:
-            <<gDirectCmdStr('jump over ' + theName)>>,
+            <<formatCommand('jump over ' + theName, longCmd)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -2055,7 +2063,7 @@ modify Thing {
 
     getRunAcrossToDiscoverMsg(destination) {
         return '({I} learned a new route:
-            <<gDirectCmdStr('run across ' + theName)>>,
+            <<formatCommand('run across ' + theName, longCmd)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -2066,7 +2074,7 @@ modify Thing {
 
     getSwingOnToDiscoverMsg(destination) {
         return '({I} learned a new route:
-            <<gDirectCmdStr('swing on ' + theName)>>,
+            <<formatCommand('swing on ' + theName, longCmd)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -2077,7 +2085,7 @@ modify Thing {
 
     getSqueezeThroughToDiscoverMsg(destination) {
         return '({I} learned a new route:
-            <<gDirectCmdStr('squeeze through ' + theName)>>,
+            <<formatCommand('squeeze through ' + theName, longCmd)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -2088,7 +2096,7 @@ modify Thing {
 
     getSlideUnderToDiscoverMsg(destination) {
         return '({I} learned a new route:
-            <<gDirectCmdStr('slide under ' + theName)>>,
+            <<formatCommand('slide under ' + theName, longCmd)>>,
             <<getProviderGoalDiscoverClause(destination)>>!) ';
     }
 
@@ -2923,6 +2931,7 @@ class ParkourModule: SubComponent {
                         local provider = path.provider.getParkourProvider(nil, nil);
                         if (provider == nil) continue;
                         strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
+                        strBfr.append(' ');
                         strBfr.append(getProviderHTML(provider));
                         strBfr.append('\n\t<i>leads to ');
                         strBfr.append(getBetterDestinationName(path.destination.parkourModule));
@@ -2935,6 +2944,7 @@ class ParkourModule: SubComponent {
                     for (local i = 1; i <= describedPaths.length; i++) {
                         local path = describedPaths[i];
                         strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
+                        strBfr.append(' ');
                         if (path.provider == nil) {
                             strBfr.append(getClimbHTML(
                                 path, path.injectedPathDescription.toUpper()
@@ -2988,12 +2998,13 @@ class ParkourModule: SubComponent {
 
     formatForBulletPoint(strBfr, path) {
         strBfr.append(getBulletPoint(path.requiresJump, path.isHarmful));
+        strBfr.append(' ');
         local destName = path.destination.parkourModule.theName;
         local commandAlt = getBetterPrepFromPath(path) + destName;
         strBfr.append(aHrefAlt(
             getClimbCommand(path).toLower(),
             commandAlt,
-            '<b>' + getClimbCommand(path).toUpper() + '</b>'
+            formatCommand(getClimbCommand(path), longFakeCmd)
         ));
     }
 
@@ -3012,7 +3023,7 @@ class ParkourModule: SubComponent {
         return aHrefAlt(
             getClimbCommand(path).toLower(),
             commandText,
-            '<b>' + commandText.toUpper() + '</b>'
+            formatCommand(commandText, longFakeCmd)
         );
     }
 
@@ -3042,7 +3053,7 @@ class ParkourModule: SubComponent {
         }
         return aHrefAlt(
             getProviderCommand(provider),
-            commandText, commandText
+            commandText, formatCommand(commandText, longFakeCmd)
         );
     }
 

@@ -6,12 +6,12 @@
 #define gFormatForScreenReader transScreenReader.formatForScreenReader
 #define gDefaultPOV 1
 
-#define gDirectCmdStr(command) \
-    (gFormatForScreenReader ? \
-        ('<b><u>' + (command).toUpper() + '</u></b>') : \
-        aHrefAlt((command).toLower(), (command).toUpper(), \
-        '<b><u>' + (command).toUpper() + '</u></b>') \
-    )
+string template <<free action>> freeAction;
+string template <<free actions>> freeActions;
+string template <<wait for player>> waitForPlayer;
+string template <<remember>> formatRemember;
+string template <<note>> formatNote;
+string template <<warning>> formatWarning;
 
 // Macro keyword "cached" acts like "new" for preinit cache data.
 // If this is a debug build, then the data is not transient, to
@@ -34,8 +34,8 @@
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
-/*(-)*/  #define __SHOW_PROLOGUE true
-/*--*/  #define __FAST_DIFFICULTY 4
+/*(-)*/  #define __SHOW_PROLOGUE nil
+/*--*/  #define __FAST_DIFFICULTY 2
 /*-*/  #define __TEST_ROOM deliveryRoom
       #define __SKASHEK_START nil
      #define __SKASHEK_STATE nil
@@ -107,12 +107,15 @@ gameMain: GameMainDef {
         }
         else {
             "\b<b>Prologue has been skipped.</b>\b
-            Use the <<gDirectCmdStr('restore')>> command to
+            Use <<formatTheCommand('restore', shortCmd)>> to
             load your saved game.\b
             <b>NOTE:</b> If your saved game was from another
             version of <i>I&nbsp;Am&nbsp;Prey</i>, then TADS will not be able to
             restore it!\b
-            If you need you, you can also <<gDirectCmdStr('restart')>>.\b\b\b";
+            To read the survival guide, use
+            <<formatTheCommand('guide', shortCmd)>>.\b
+            If you need you, you can also <<formatCommand('restart', shortCmd)>>.
+            \b\b\b";
         }
 
         skashek.startTheDay();

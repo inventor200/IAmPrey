@@ -50,7 +50,7 @@ screenReaderPage1: InstructionsPage {
         a replica of the visual map file, without ever costing
         a turn in-game.\b
 
-        To access this, use the <<formatCommand('MAP')>> command.
+        To access this, use <<formatTheCommand('MAP')>>.
         """;
     }
 }
@@ -58,16 +58,16 @@ screenReaderPage1: InstructionsPage {
 screenReaderPage2: InstructionsPage {
     page() {
         """
-        The <<formatCommand('GO TO')>> command sets the player's
+        \^<<formatTheCommand('GO TO')>> sets the player's
         mental compass, which will show the next step necessary
-        to reach the goal set by the <<formatCommand('GO TO')>> command.
-        To check this compass, simply use the <<formatCommand('COMPASS')>> command.
+        to reach the goal set by <<formatTheCommand('GO TO')>>.
+        To check this compass, simply use <<formatTheCommand('COMPASS')>>.
         """;
     }
 }
 
 missingContinueChapter: InstructionsChapter {
-    name = 'What Happened to <u>GO TO</u> and <u>CONTINUE</u>?'
+    name = 'What Happened to <<titleCommand('GO TO')>> and <<titleCommand('CONTINUE')>>?'
     indented = true
 
     script = [
@@ -78,15 +78,15 @@ missingContinueChapter: InstructionsChapter {
 missingContinuePage: InstructionsPage {
     page() {
         """
-        The default TADS commands of
-        <<formatCommand('GO TO')>> and <<formatCommand('CONTINUE')>>
-        have been remapped to the in-game map's 
-        <<formatCommand('GO TO')>> and <<formatCommand('COMPASS')>>
-        commands, respectively.\b
+        <<formatTheCommand('GO TO')>> and <<formatTheCommand('CONTINUE')>>,
+        common to most TADS games,
+        have been remapped to 
+        <<formatTheCommand('GO TO')>> and <<formatTheCommand('COMPASS')>>,
+        respectively, for using the in-game map.\b
 
         This was done because having an active, hunting antagonist
-        makes it too risky to use the <<formatCommand('CONTINUE')>>
-        command, which would automatically (and recklessly) walk
+        makes it too risky to use <<formatTheCommand('CONTINUE')>>,
+        which would automatically (and recklessly) walk
         the player into the next room, without any concern for
         threats and dangers, which must be investigated.
         """;

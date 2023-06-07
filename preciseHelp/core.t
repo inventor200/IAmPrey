@@ -1,3 +1,259 @@
+formatTitle(str) {
+    if (gFormatForScreenReader) {
+        return
+            '<.p>\^' +
+            str.toLower() +
+            '.<.p>';
+    }
+    return
+        '<.p><center><b><tt>' +
+        str.toUpper().findReplace('&NBSP;', '&nbsp;') +
+        '</tt></b></center><.p>';
+}
+
+formatAlert(str) {
+    if (gFormatForScreenReader) {
+        return
+            '<.p>\^' +
+            str.toLower() +
+            '<.p>';
+    }
+    return
+        '<.p><b><tt>' +
+        str +
+        '</tt></b><.p>';
+}
+
+commandFormatter: object {
+    frontEnd = 'cap '
+    backEnd = ' end cap'
+
+    _longFormat(str, tooLong) {
+        local comStr = str.toUpper();
+        if (!tooLong && !gFormatForScreenReader) {
+            comStr = comStr.findReplace('&NBSP;', '&nbsp;').findReplace(' ', '&nbsp;');
+        }
+        return comStr;
+    }
+
+    _screenReaderFormat(str, definiteName) {
+        if (!gFormatForScreenReader || definiteName) return str;
+        return frontEnd + str + backEnd;
+    }
+
+    _simpleCommand(str, commandEnum, definiteName) {
+        local parts = str.split(':', 2);
+        str = parts[1].trim();
+        local arg = '';
+        if (parts.length > 1) {
+            arg = '&nbsp;' + formatCommandArg(parts[2].trim());
+        }
+
+        local tooLong;
+        local isFake;
+
+        switch (commandEnum) {
+            default:
+            case shortFakeCmd:
+                tooLong = nil;
+                isFake = true;
+                break;
+            case shortCmd:
+                tooLong = nil;
+                isFake = nil;
+                break;
+            case longFakeCmd:
+                tooLong = true;
+                isFake = true;
+                break;
+            case longCmd:
+                tooLong = true;
+                isFake = nil;
+                break;
+        }
+
+        local baseRes = _longFormat(str, tooLong);
+        local res = baseRes + arg;
+
+        if (gFormatForScreenReader) {
+            return _screenReaderFormat(res, definiteName);
+        }
+
+        local isClickable = !isFake && !gFormatForScreenReader && outputManager.htmlMode;
+
+        local styledRes = '<b><u>' + baseRes + '</u></b>' + arg;
+
+        if (isClickable) {
+            res = aHrefAlt(
+                str.toLower(),
+                baseRes,
+                styledRes
+            );
+
+            return res;
+        }
+
+        return styledRes;
+    }
+}
+
+enum shortCmd, longCmd, shortFakeCmd, longFakeCmd;
+
+formatCommand(str, commandEnum?) {
+    return commandFormatter._simpleCommand(str, commandEnum, nil);
+}
+
+formatTheCommand(str, commandEnum?) {
+    return 'the ' + commandFormatter._simpleCommand(str, commandEnum, true) + ' command';
+}
+
+formatCommandArg(str) {
+    return '<i>(' + str.toLower().findReplace(' ', '&nbsp;') + ')</i>';
+}
+
+titleCommand(str) {
+    str = commandFormatter._longFormat(str, nil);
+    if (gFormatForScreenReader) {
+        return commandFormatter._screenReaderFormat(str, nil);
+    }
+    return '<u>' + str + '</u>';
+}
+
+theTitleCommand(str) {
+    str = commandFormatter._longFormat(str, nil);
+    if (gFormatForScreenReader) {
+        str = commandFormatter._screenReaderFormat(str, true);
+    }
+    else {
+        str = '<u>' + str + '</u>';
+    }
+    return 'the ' + str + ' command';
+}
+
+formatInput(str) {
+    if (gFormatForScreenReader) {
+        return '<i>' + str.toLower().findReplace(' ', '&nbsp;') + '</i>';
+    }
+    return '<i>&gt;' + str.toLower().findReplace(' ', '&nbsp;') + '</i>';
+}
+
+abbr(str) {
+    return '<tt><b><u>' + str.toUpper().findReplace('&NBSP;', '&nbsp;') + '</u></b></tt>';
+}
+
+getStandardBulletPoint() {
+    if (gFormatForScreenReader) return 'Bullet point. ';
+    return '<b><tt>[&gt;&gt;]</tt></b>';
+}
+
+createOrderedList(items) {
+    local lst = valToList(items);
+    local strBfr = new StringBuffer(lst.length * 5);
+
+    for (local i = 1; i <= lst.length; i++) {
+        createListItem(strBfr, '<b><tt>' + toString(i) + '.</tt></b>', lst[i]);
+    }
+
+    return '<.p>' + toString(strBfr) + '<.p>';
+}
+
+createUnorderedList(items) {
+    local lst = valToList(items);
+    local strBfr = new StringBuffer(lst.length * 5);
+
+    for (local i = 1; i <= lst.length; i++) {
+        createListItem(strBfr, getStandardBulletPoint(), lst[i]);
+    }
+
+    return '<.p>' + toString(strBfr) + '<.p>';
+}
+
+createFlowingList(items, conj?) {
+    local lst = valToList(items);
+    local strBfr = new StringBuffer(lst.length * 5);
+
+    if (conj == nil) conj = 'or';
+
+    if (gFormatForScreenReader) {
+        strBfr.append('\^');
+    }
+
+    for (local i = 1; i <= lst.length; i++) {
+        if (gFormatForScreenReader) {
+            strBfr.append(toString(lst[i]));
+            if (lst.length > 2 && i < lst.length) {
+                strBfr.append(', ');
+            }
+            if (i == lst.length - 1) {
+                strBfr.append(' ');
+                strBfr.append(conj);
+                strBfr.append(' ');
+            }
+        }
+        else {
+            createBasicListItem(
+                strBfr, getStandardBulletPoint(),
+                '\^' + toString(lst[i])
+            );
+        }
+    }
+
+    if (gFormatForScreenReader) {
+        strBfr.append('.');
+    }
+
+    return '<.p>' + toString(strBfr) + '<.p>';
+}
+
+createListItem(strBfr, marker, str) {
+    local markerStr = toString(marker);
+    if (gFormatForScreenReader) {
+        strBfr.append(markerStr);
+        strBfr.append(' ');
+        strBfr.append(toString(str));
+        strBfr.append('<.p>');
+    }
+    else {
+        createBasicListItem(strBfr, markerStr, toString(str));
+    }
+}
+
+createBasicListItem(strBfr, markerStr, str) {
+    strBfr.append('\t');
+    strBfr.append(markerStr);
+    strBfr.append(' ');
+    strBfr.append(str);
+    strBfr.append('\n');
+}
+
+freeAction() {
+    if (gFormatForScreenReader) return 'free action';
+    return '<b><i>FREE</i> action</b>';
+}
+
+freeActions() {
+    if (gFormatForScreenReader) return 'free actions';
+    return '<b><i>FREE</i> actions</b>';
+}
+
+waitForPlayer() {
+    "\b";
+    inputManager.pauseForMore();
+    "\b";
+}
+
+formatRemember() {
+    "<<formatAlert('Remember:')>>"; 
+}
+
+formatNote() {
+    "<<formatAlert('Note:')>>"; 
+}
+
+formatWarning() {
+    "<<formatAlert('Warning!')>>"; 
+}
+
 class InstructionsChapter: Cutscene {
     name = 'Untitled Chapter'
     indented = nil
@@ -18,100 +274,14 @@ class InstructionsChapter: Cutscene {
                 instructionsCore.offerNavigation(self);
             }
             else {
-                inputManager.pauseForMore();
+                waitForPlayer();
             }
         }
-    }
-
-    formatTitle(str) {
-        if (gFormatForScreenReader) {
-            return
-                '<.p>' +
-                str +
-                '<.p>';
-        }
-        return
-            '<.p><center><b><tt>' +
-            str.toUpper().findReplace('&NBSP;', '&nbsp;') +
-            '</tt></b></center><.p>';
-    }
-
-    formatCommand(str) {
-        return '<b><u>' +
-            str.toUpper().findReplace('&NBSP;', '&nbsp;').findReplace(' ', '&nbsp;') +
-            '</u></b>';
-    }
-
-    formatInput(str) {
-        if (gFormatForScreenReader) {
-            return '<i>' + str.toLower().findReplace(' ', '&nbsp;') + '</i>';
-        }
-        return '<i>&gt;' + str.toLower().findReplace(' ', '&nbsp;') + '</i>';
-    }
-
-    abbr(str) {
-        return '<tt><b><u>' + str.toUpper().findReplace('&NBSP;', '&nbsp;') + '</u></b></tt>';
-    }
-
-    createOrderedList(items) {
-        local lst = valToList(items);
-        local strBfr = new StringBuffer(lst.length * 5);
-
-        for (local i = 1; i <= lst.length; i++) {
-            createListItem(strBfr, toString(i) + '.', lst[i]);
-        }
-
-        return '<.p>' + toString(strBfr) + '<.p>';
-    }
-
-    createUnorderedList(items) {
-        local lst = valToList(items);
-        local strBfr = new StringBuffer(lst.length * 5);
-
-        for (local i = 1; i <= lst.length; i++) {
-            createListItem(strBfr, '&bull;', lst[i]);
-        }
-
-        return '<.p>' + toString(strBfr) + '<.p>';
-    }
-
-    createListItem(strBfr, marker, str) {
-        if (gFormatForScreenReader) {
-            strBfr.append(toString(marker));
-            strBfr.append(' ');
-            strBfr.append(toString(str));
-            strBfr.append('<.p>');
-        }
-        else {
-            strBfr.append('\t');
-            strBfr.append(toString(marker));
-            strBfr.append(' ');
-            strBfr.append(toString(str));
-            strBfr.append('\n');
-        }
-    }
-
-    freeAction() {
-        return '<b><i>FREE</i> action</b>';
-    }
-
-    freeActions() {
-        return '<b><i>FREE</i> actions</b>';
     }
 }
 
 class InstructionsPage: object {
     page() { }
-
-    // Shortcuts
-    formatTitle(str) { return InstructionsChapter.formatTitle(str); }
-    formatCommand(str) { return InstructionsChapter.formatCommand(str); }
-    formatInput(str) { return InstructionsChapter.formatInput(str); }
-    abbr(str) { return InstructionsChapter.abbr(str); }
-    createOrderedList(items) { return InstructionsChapter.createOrderedList(items); }
-    createUnorderedList(items) { return InstructionsChapter.createUnorderedList(items); }
-    freeAction() { return InstructionsChapter.freeAction(); }
-    freeActions() { return InstructionsChapter.freeActions(); }
 }
 
 instructionsCore: object {
@@ -182,7 +352,7 @@ instructionsCore: object {
     openTableOfContents() {
         if (!isOpen) say('\b\b\b');
         isOpen = true;
-        say(InstructionsChapter.formatTitle('Table of Contents'));
+        say(formatTitle('Table of Contents'));
         local chapterChoice = new ChoiceGiver(
             'Please choose a chapter to review.'
         );

@@ -230,7 +230,7 @@ inventoryPage3: InstructionsPage {
 }
 
 turnsAndUndoChapter: InstructionsChapter {
-    name = 'Taking Turns and <u>UNDO</u>'
+    name = 'Taking Turns and <<titleCommand('UNDO')>>'
     indented = true
 
     script = [
@@ -278,15 +278,15 @@ turnsAndUndoPage2: InstructionsPage {
 turnsAndUndoPage3: InstructionsPage {
     page() {
         """
-        The <<formatCommand('UNDO')>> command,
+        \^<<formatTheCommand('UNDO')>>,
         which is found in most parser games,
         can also be used in <i>I Am Prey</i>
         <b>at the player's discretion</b>.
-        With the <<formatCommand('undo')>> command,
+        With <<formatTheCommand('undo')>>,
         you are able to reverse your last command.\b
 
         While this game <i>does</i> have some randomized elements,
-        the <<formatCommand('UNDO')>> command will not change
+        <<formatTheCommand('UNDO')>> will not change
         the outcome of most encounters.
         The consequences of your actions are <i>entirely deterministic</i>,
         and this game <i>can</i> be completely solved through logic and planning.
@@ -306,8 +306,8 @@ turnsAndUndoPage4: InstructionsPage {
         for some parser players, who prefer it to remain available
         <b>for completely valid reasons</b>.
         With intent to welcome and support these players,
-        <i>I Am Prey</i> has not locked out the <<formatCommand('undo')>>
-        command, <b>unless the player chooses to lock it out for themself</b>.\b
+        <i>I Am Prey</i> has not locked out <<formatTheCommand('undo')>>,
+        <b>unless the player chooses to lock it out for themself</b>.\b
 
         It is assumed that the player will know what suits
         their desired challenge level and play style.

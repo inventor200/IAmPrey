@@ -16,7 +16,7 @@ class Cutscene: object {
             if (!gFormatForScreenReader) {
                 "\b<b><tt>(pg <<i>> of <<len>>)</tt></b>\n";
             }
-            inputManager.pauseForMore();
+            waitForPlayer();
         }
     }
 }
