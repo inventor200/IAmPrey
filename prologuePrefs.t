@@ -3,8 +3,325 @@
 // We save everything in plain text, in case the player wants to
 // manually edit their preferences.
 
+class BasePreference: object {
+    construct(_name, _isHidden, _stateProp, _stateStoringObject, _prefProp, _prefStortingObject) {
+        name = _name;
+        isHidden = _isHidden;
+        stateProp = _stateProp;
+        stateStoringObject = _stateStoringObject;
+        prefProp = _prefProp;
+        if (_prefStortingObject == nil) {
+            prefStortingObject = stateStoringObject;
+        }
+        else {
+            prefStortingObject = _prefStortingObject;
+        }
+    }
+
+    name = 'Untitled preference'
+    isHidden = nil
+    stateStoringObject = nil
+    stateProp = nil
+    prefStortingObject = nil
+    prefProp = nil
+
+    readState() {
+        return stateStoringObject.(stateProp);
+    }
+
+    writeState(state) {
+        stateStoringObject.(stateProp) = state;
+    }
+
+    hasPreference() {
+        return prefStortingObject.(prefProp);
+    }
+
+    claimPreference() {
+        prefStortingObject.(prefProp) = true;
+    }
+
+    process(statement) {
+        //claimPreference();
+        //writeState(nil);
+        return nil;
+    }
+
+    getFileString() {
+        return '';
+    }
+
+    getFileOptionString() {
+        return '';
+    }
+}
+
+class BooleanPreference: BasePreference {
+    construct(_name, _isHidden, _positiveStr, _negativeStr, _stateProp, _stateStoringObject, _prefProp, _prefStortingObject?) {
+        positiveStr = _positiveStr;
+        negativeStr = _negativeStr;
+        inherited(_name, _isHidden, _stateProp, _stateStoringObject, _prefProp, _prefStortingObject);
+    }
+
+    positiveStr = 'player prefers this option'
+    negativeStr = 'player prefers no option'
+
+    process(statement) {
+        if (statement == positiveStr) {
+            claimPreference();
+            writeState(true);
+            #if __DEBUG_PREFS
+            "\tPositive: <<positiveStr>>\n
+            \tConfirmed: <<readState() ? 'true' : 'nil'>>\n";
+            #endif
+            return true;
+        }
+        if (statement == negativeStr) {
+            claimPreference();
+            writeState(nil);
+            #if __DEBUG_PREFS
+            "\tNegative: <<negativeStr>>\n
+            \tConfirmed: <<readState() ? 'true' : 'nil'>>\n";
+            #endif
+            return true;
+        }
+        return nil;
+    }
+
+    getFileString() {
+        local actual = negativeStr;
+        local inverse = positiveStr;
+        if (readState()) {
+            actual = positiveStr;
+            inverse = negativeStr;
+        }
+        return '#\n#     ' + name + '\n' +
+            actual + ';\n#     Opposite option:\n#' +
+            inverse;
+    }
+
+    getFileOptionString() {
+        return '#\n#     Unused yes/no option:\n' +
+            '#' + positiveStr + ';\n#' + negativeStr + ';\n';
+    }
+}
+
+class ValuePreference: BasePreference {
+    construct(_name, _isHidden, _header, _stateProp, _stateStoringObject, _prefProp, _negativeBool, _prefStortingObject) {
+        header = _header;
+        negativeBool = _negativeBool;
+        inherited(_name, _isHidden, _stateProp, _stateStoringObject, _prefProp, _prefStortingObject);
+    }
+
+    header = 'player prefers version '
+    valueFromFile = nil
+    negativeBool = nil
+
+    processValueFromFile() {
+        return valueFromFile;
+    }
+
+    convertToFileValue(state) {
+        return nil;
+    }
+
+    readState() {
+        return stateStoringObject.(stateProp);
+    }
+
+    process(statement) {
+        if (negativeBool != nil) {
+            if (statement == negativeBool.negativeStr) {
+                negativeBool.process(nil);
+                return true;
+            }
+        }
+        local len = header.length;
+        if (statement.length <= len) return nil;
+        if (!statement.startsWith(header)) return nil;
+        claimPreference();
+        negativeBool.writeState(true);
+        valueFromFile = statement.substr(len);
+        local processedVal = processValueFromFile();
+        writeState(processedVal);
+        #if __DEBUG_PREFS
+        "\tValued: <<header + valueFromFile>> -&gt; <<processedVal>>\n
+        \tConfirmed: <<readState()>>\n";
+        #endif
+        return true;
+    }
+
+    getFileString() {
+        if (negativeBool != nil) {
+            #if __DEBUG_PREFS
+            "\nChecking negative bool...\n";
+            #endif
+            if (!negativeBool.readState()) {
+                #if __DEBUG_PREFS
+                "\tIt's negative.\n";
+                #endif
+                return negativeBool.negativeStr;
+            }
+        }
+        valueFromFile = convertToFileValue(readState());
+        #if __DEBUG_PREFS
+        "Processed value: <<valueFromFile>>\n";
+        #endif
+        return '#\n#     ' + name + '\n' +
+            header + valueFromFile;
+    }
+}
+
+class IntegerPreference: ValuePreference {
+    construct(_name, _isHidden, _minVal, _maxVal, _defaultVal, _header, _stateProp, _stateStoringObject, _prefProp, _negativeBool?, _prefStortingObject?) {
+        minVal = _minVal;
+        maxVal = _maxVal;
+        defaultVal = _defaultVal;
+        inherited(_name, _isHidden, _header, _stateProp, _stateStoringObject, _prefProp, _negativeBool, _prefStortingObject);
+    }
+
+    minVal = 0
+    maxVal = 100
+    defaultVal = 50
+
+    processValueFromFile() {
+        local possible = tryInt(valueFromFile);
+        if (possible == nil) return defaultVal;
+        if (possible < minVal) possible = minVal;
+        if (possible > maxVal) possible = maxVal;
+        return possible;
+    }
+
+    convertToFileValue(state) {
+        return toString(state);
+    }
+
+    getFileOptionString() {
+        return '#\n#     Unused integer option:\n' +
+            '#' + header + toString(defaultVal) + '\n'+
+            '# Number can be between ' + minVal + ' and ' + maxVal + '\n';
+    }
+}
+
+class EnumPreference: ValuePreference {
+    construct(_name, _isHidden, _srcList, _defaultVal, _header, _stateProp, _stateStoringObject, _prefProp, _negativeBool?, _prefStortingObject?) {
+        defaultVal = _defaultVal;
+        srcList = valToList(_srcList);
+        inherited(_name, _isHidden, _header, _stateProp, _stateStoringObject, _prefProp, _negativeBool, _prefStortingObject);
+    }
+
+    defaultVal = 1
+    srcList = []
+
+    processValueFromFile() {
+        for (local i = 1; i <= srcList.length; i++) {
+            if (valueFromFile == getComparableValueFromList(i)) {
+                return i;
+            }
+        }
+        return defaultVal;
+    }
+
+    convertToFileValue(state) {
+        return getComparableValueFromList(state);
+    }
+
+    getComparableValueFromList(index) {
+        return srcList[index].name;
+    }
+
+    getFileOptionString() {
+        local res = '#\n#     Unused named option:\n' +
+            '# Choices are:\n';
+        for (local i = 1; i <= srcList.length; i++) {
+            res += '#' + header + convertToFileValue(i) + '\n';
+        }
+        return res;
+    }
+}
+
 transient prologuePrefCore: InitObject {
     execAfterMe = [screenReaderInit]
+
+    prefVec = static new Vector([
+        new BooleanPreference('Cat prologue preference', nil,
+            'player prefers no cat prologue',
+            'player prefers cat prologue',
+            &playerPrefersNoCatPrologue,
+            prologuePrefCore,
+            &playerHasCatProloguePreference
+        ),
+        new BooleanPreference('Prey prologue preference', nil,
+            'player prefers no prey prologue',
+            'player prefers prey prologue',
+            &playerPrefersNoPreyPrologue,
+            prologuePrefCore,
+            &playerHasPreyProloguePreference
+        ),
+        new BooleanPreference('Intro preference', nil,
+            'player prefers no intro',
+            'player prefers intro',
+            &playerPrefersNoIntro,
+            prologuePrefCore,
+            &playerHasIntroPreference
+        ),
+        new IntegerPreference('Music volume preference', nil,
+            0, 100, 50,
+            'player prefers music set to ',
+            &musicVolume,
+            transMusicPlayer,
+            &playerGavePreferences,
+            new BooleanPreference('Music preference', nil,
+                'player prefers music',
+                'player prefers no music',
+                &playerWantsMusic,
+                transMusicPlayer,
+                &playerGavePreferences
+            )
+        ),
+        new BooleanPreference('SFX preference', nil,
+            'player prefers sfx',
+            'player prefers no sfx',
+            &playerWantsSFX,
+            transMusicPlayer,
+            &playerGavePreferences
+        ),
+        new BooleanPreference('Screen reader preference', nil,
+            'player uses screen reader',
+            'player does not use screen reader',
+            &formatForScreenReader,
+            transScreenReader,
+            &playerHasScreenReaderPreference
+        ),
+        new BooleanPreference('Read more preference', nil,
+            'player prefers extra read more',
+            'player prefers no extra read more',
+            &includeWaitForPlayerPrompt,
+            transScreenReader,
+            &playerHasScreenReaderPreference
+        ),
+        new EnumPreference('Command encapsulation style preference', nil,
+            transScreenReader.encapVec, 2,
+            'player prefers encapsulation using ',
+            &encapVecIndexPreference,
+            transScreenReader,
+            &playerHasScreenReaderPreference,
+            new BooleanPreference('Command encapsulation preference', nil,
+                'player prefers command encapsulation',
+                'player prefers no command encapsulation',
+                &formatForScreenReader,
+                transScreenReader,
+                &playerHasScreenReaderPreference
+            )
+        ),
+        new BooleanPreference('Encapsulation comma preference', nil,
+            'player prefers commas around commands',
+            'player prefers no commas around commands',
+            &encapPreferCommas,
+            transScreenReader,
+            &playerHasScreenReaderPreference
+        )
+    ])
 
     playerHasCatProloguePreference = nil
     playerPrefersNoCatPrologue = nil
@@ -30,12 +347,14 @@ transient prologuePrefCore: InitObject {
     preferencesWereLoaded = nil
 
     fileName = 'I-Am-Prey-Preferences.cfg'
-
-    musicLineHead = 'player prefers music set to '
     
     execute() {
         if (preferencesWereLoaded) return;
         preferencesWereLoaded = true;
+
+        #if __DEBUG_PREFS
+        "\b";
+        #endif
 
         try {
             local prefsTextFile = File.openTextFile(fileName, FileAccessRead);
@@ -47,7 +366,13 @@ transient prologuePrefCore: InitObject {
             do {
                 try {
                     lastLine = prefsTextFile.readFile();
-                    strBfr.append(lastLine);
+                    local trimLine = '';
+                    if (lastLine != nil) trimLine = lastLine.trim();
+                    if (trimLine.length > 0) {
+                        if (!lastLine.trim().startsWith('#')) {
+                            strBfr.append(lastLine);
+                        }
+                    }
                 } catch (FileIOException eex1) {
                     preferencesReadOkay = nil;
                     break;
@@ -63,66 +388,33 @@ transient prologuePrefCore: InitObject {
                 local prefsStatements =
                     toString(strBfr)
                     .toLower()
+                    .findReplace(';\n', ';')
+                    .findReplace('.\n', ';')
+                    .findReplace(',\n', ';')
+                    .findReplace('\n', '; ')
                     .findReplace('.', ';')
                     .findReplace(',', ';')
-                    .findReplace('\n', '; ')
                     .split(';');
 
                 for (local i = 1; i <= prefsStatements.length; i++) {
                     local statement = prefsStatements[i].trim();
 
-                    switch (statement) {
-                        case 'player prefers no cat prologue':
-                            playerHasCatProloguePreference = true;
-                            playerPrefersNoCatPrologue = true;
+                    #if __DEBUG_PREFS
+                    "Loading statement:\n\t<<statement>>\n";
+                    #endif
+
+                    for (local j = 1; j <= prefVec.length; j++) {
+                        local pref = prefVec[j];
+
+                        if (pref.process(statement)) {
+                            #if __DEBUG_PREFS
+                            "\bChecking: <<pref.name>>\n";
+                            #endif
+                            #if __DEBUG_PREFS
+                            "Found handler.\b";
+                            #endif
                             break;
-                        case 'player prefers cat prologue':
-                            playerHasCatProloguePreference = true;
-                            playerPrefersNoCatPrologue = nil;
-                            break;
-                        case 'player prefers no prey prologue':
-                            playerHasPreyProloguePreference = true;
-                            playerPrefersNoPreyPrologue = true;
-                            break;
-                        case 'player prefers prey prologue':
-                            playerHasPreyProloguePreference = true;
-                            playerPrefersNoPreyPrologue = nil;
-                            break;
-                        case 'player prefers no intro':
-                            playerHasIntroPreference = true;
-                            playerPrefersNoIntro = true;
-                            break;
-                        case 'player prefers intro':
-                            playerHasIntroPreference = true;
-                            playerPrefersNoIntro = nil;
-                            break;
-                        case 'player prefers no music':
-                            transMusicPlayer.playerGavePreferences = true;
-                            transMusicPlayer.playerWantsMusic = nil;
-                            break;
-                        case 'player prefers no sfx':
-                            transMusicPlayer.playerGavePreferences = true;
-                            transMusicPlayer.playerWantsSFX = nil;
-                            break;
-                        case 'player prefers sfx':
-                            transMusicPlayer.playerGavePreferences = true;
-                            transMusicPlayer.playerWantsSFX = true;
-                            break;
-                        default:
-                            if (statement.startsWith(musicLineHead)) {
-                                local possibleVolume = nil;
-                                local len = musicLineHead.length;
-                                if (statement.length > len) {
-                                    possibleVolume = tryInt(statement.substr(len));
-                                }
-                                if (possibleVolume == nil) {
-                                    possibleVolume = 50;
-                                }
-                                transMusicPlayer.playerGavePreferences = true;
-                                transMusicPlayer.playerWantsMusic = true;
-                                transMusicPlayer.musicVolume = possibleVolume;
-                            }
-                            break;
+                        }
                     }
                 }
             }
@@ -147,55 +439,45 @@ transient prologuePrefCore: InitObject {
         try {
             local prefsTextFile = File.openTextFile(fileName, FileAccessWrite);
 
-            if (playerHasCatProloguePreference) {
-                if (playerPrefersNoCatPrologue) {
-                    writePreference(prefsTextFile, 'player prefers no cat prologue');
-                }
-                else {
-                    writePreference(prefsTextFile, 'player prefers cat prologue');
-                }
-            }
+            #if __DEBUG_PREFS
+            "\bWriting preferences...\b";
+            #endif
 
-            if (playerHasPreyProloguePreference) {
-                if (playerPrefersNoPreyPrologue) {
-                    writePreference(prefsTextFile, 'player prefers no prey prologue');
-                }
-                else {
-                    writePreference(prefsTextFile, 'player prefers prey prologue');
-                }
-            }
+            prefsTextFile.writeFile(
+                '# Lines starting with a hashtag ("#") are ignored.\n'
+            );
+            prefsTextFile.writeFile(
+                '# Each option sits on its own line,\n'
+            );
+            prefsTextFile.writeFile(
+                '# and ends with a comma, period, or semicolon.\n'
+            );
 
-            if (playerHasIntroPreference) {
-                if (playerPrefersNoIntro) {
-                    writePreference(prefsTextFile, 'player prefers no intro');
+            for (local i = 1; i <= prefVec.length; i++) {
+                local pref = prefVec[i];
+                
+                #if __DEBUG_PREFS
+                "\bChecking: <<pref.name>>";
+                #endif
+                if (pref.hasPreference()) {
+                    local fs = pref.getFileString();
+                    #if __DEBUG_PREFS
+                    "\nWriting preference:\n\t<<fs>>";
+                    #endif
+                    writePreference(prefsTextFile, fs);
                 }
-                else {
-                    writePreference(prefsTextFile, 'player prefers intro');
-                }
-            }
-
-            if (transMusicPlayer.playerGavePreferences) {
-                if (transMusicPlayer.playerWantsMusic) {
-                    writePreference(prefsTextFile,
-                        musicLineHead +
-                        transMusicPlayer.musicVolume
-                    );
-                }
-                else {
-                    writePreference(prefsTextFile, 'player prefers no music');
-                }
-
-                if (transMusicPlayer.playerWantsSFX) {
-                    writePreference(prefsTextFile, 'player prefers sfx');
-                }
-                else {
-                    writePreference(prefsTextFile, 'player prefers no sfx');
+                else if (!pref.isHidden) {
+                    prefsTextFile.writeFile(pref.getFileOptionString());
                 }
             }
 
             if (!hasWrittenAnything) {
                 writePreference(prefsTextFile, 'player has no preferences');
             }
+
+            #if __DEBUG_PREFS
+            "\bWriting complete.\b";
+            #endif
             
             prefsTextFile.closeFile();
         } catch (FileNotFoundException ex1) {

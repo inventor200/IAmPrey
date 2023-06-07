@@ -25,8 +25,12 @@ formatAlert(str) {
 }
 
 commandFormatter: object {
-    frontEnd = 'cap '
-    backEnd = ' end cap'
+    frontEnd =
+        (transScreenReader.encapVec[transScreenReader.encapVecIndexPreference]
+        .frontEnd)
+    backEnd =
+        (transScreenReader.encapVec[transScreenReader.encapVecIndexPreference]
+        .backEnd)
 
     _longFormat(str, tooLong) {
         local comStr = str.toUpper();
@@ -36,9 +40,14 @@ commandFormatter: object {
         return comStr;
     }
 
+    _encapsulate(str, fr, bk, encapComma) {
+        local ecstr = (encapComma ? ', ' : ' ');
+        return fr + ecstr + str + ecstr + bk;
+    }
+
     _screenReaderFormat(str, definiteName) {
         if (!gFormatForScreenReader || definiteName) return str;
-        return frontEnd + str + backEnd;
+        return _encapsulate(str, frontEnd, backEnd, transScreenReader.encapPreferCommas);
     }
 
     _simpleCommand(str, commandEnum, definiteName) {
@@ -238,6 +247,14 @@ freeActions() {
 
 waitForPlayer() {
     "\b";
+    if (transScreenReader.includeWaitForPlayerPrompt) {
+        if (gFormatForScreenReader) {
+            "<.p>Press any key to continue.<.p>";
+        }
+        else {
+            "<.p><center><b><tt>Press any key to continue...</tt></b></center><.p>";
+        }
+    }
     inputManager.pauseForMore();
     "\b";
 }
