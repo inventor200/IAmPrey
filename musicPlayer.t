@@ -361,7 +361,7 @@ transient sfxPlayer: object {
         }
     }
 
-    play(soundObj, attenuation?) {
+    play(soundObj, attenuation?, forbidInterrupt?) {
         if (!transMusicPlayer.allowSFX) return;
         
         local sndVolume = soundObj.volume;
@@ -373,11 +373,13 @@ transient sfxPlayer: object {
         local attenMult = new BigNumber(attenuation) / new BigNumber(100);
         sndVolume = toInteger(new BigNumber(sndVolume) * attenMult);
 
+        local interrupt = soundObj.allowInterrupt && !forbidInterrupt;
+
         say(
             '<SOUND SRC="' + soundObj.sfxURL + '"
-            LAYER=FOREGROUND
-            INTERRUPT
-            VOLUME=' + toString(sndVolume) + '>'
+            LAYER=FOREGROUND ' +
+            (interrupt ? 'INTERRUPT ' : '') +
+            'VOLUME=' + toString(sndVolume) + '>'
         );
     }
 
@@ -502,9 +504,9 @@ changeSong(nextSong) {
 }
 
 // For some reason the existence of this function crashed the compiler.
-/*playSFX(soundObj, attenuation?) {
-    sfxPlayer.play(soundObj, attenuation);
-}*/
+playSFX(soundObj, attenuation?, forbidInterrupt?) {
+    sfxPlayer.play(soundObj, attenuation, forbidInterrupt);
+}
 
 #ifdef __DEBUG
 VerbRule(TestChaseSong)

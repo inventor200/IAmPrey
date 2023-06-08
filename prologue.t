@@ -78,7 +78,7 @@ prologueCore: InitObject {
             changeSong(chillSong);
             if (huntCore.difficulty != basicTutorial) {
                 //playSFX(emergeSnd);
-                sfxPlayer.play(emergeSnd);
+                playSFX(emergeSnd);
             }
         }
         else {
@@ -90,7 +90,7 @@ prologueCore: InitObject {
             }
             if (huntCore.difficulty != basicTutorial) {
                 //playSFX(emergeSnd);
-                sfxPlayer.play(emergeSnd);
+                playSFX(emergeSnd);
             }
         }
         #endif // end is map test

@@ -579,11 +579,17 @@ modify Actor {
             }
             else {
                 impact.impactPlayer();
+                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
+                if (sfxObj != nil) {
+                    playSFX(sfxObj, 100, true);
+                }
             }
             return;
         }
 
         // Otherwise, sort stuff...
+
+        local sfxVector = new Vector(8);
 
         // Prepare to group stuff by direction
         local impactsByDir = new Vector(12);
@@ -609,6 +615,10 @@ modify Actor {
             // If requested, we will show these alone
             if (impact.soundProfile.isSuspicious) {
                 impact.impactPlayer();
+                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
+                if (sfxObj != nil) {
+                    sfxVector.appendUnique(sfxObj);
+                }
                 continue;
             }
 
@@ -625,6 +635,10 @@ modify Actor {
 
             if (dirIndex == nil) {
                 impact.impactPlayer();
+                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
+                if (sfxObj != nil) {
+                    sfxVector.appendUnique(sfxObj);
+                }
                 continue;
             }
 
@@ -648,6 +662,10 @@ modify Actor {
             if (dirVec.length == 1) {
                 local impact = dirVec[1];
                 impact.impactPlayer();
+                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
+                if (sfxObj != nil) {
+                    sfxVector.appendUnique(sfxObj);
+                }
                 continue;
             }
 
@@ -665,6 +683,10 @@ modify Actor {
                 local impact = dirVec[j];
                 impact.setSourceBuffer();
                 local descString = impact.soundProfile.getDescString(form);
+                local sfxObj = impact.soundProfile.getSFXObject(form);
+                if (sfxObj != nil) {
+                    sfxVector.appendUnique(sfxObj);
+                }
                 strBfr.append(descString);
                 if (j == dirVec.length - 1) {
                     strBfr.append(', and ');
@@ -677,6 +699,11 @@ modify Actor {
             strBfr.append('.');
 
             say(toString(strBfr));
+        }
+
+        sfxVector.sort(true, { a, b: a.stackingPriority - b.stackingPriority });
+        for (local i = 1; i <= sfxVector.length && i <= 3; i++) {
+            playSFX(sfxVector[i], 100, true);
         }
     }
 }
@@ -695,6 +722,10 @@ class SoundProfile: object {
     sourceName = (sourceBuffer == nil ? 'something' : sourceBuffer.name)
     theSourceName = (sourceBuffer == nil ? 'something' : sourceBuffer.theName)
     absoluteDesc = nil
+
+    muffledSFXObject = nil
+    closeEchoSFXObject = nil
+    distantSFXObject = nil
 
     doPlayerPerception(form, sourceDirection, throughDoor) {
         local reportStr = getReportString(form, sourceDirection, throughDoor);
@@ -738,6 +769,17 @@ class SoundProfile: object {
                 return closeEchoStr;
             default:
                 return distantEchoStr;
+        }
+    }
+
+    getSFXObject(form) {
+        switch (form) {
+            case wallMuffle:
+                return muffledSFXObject;
+            case closeEcho:
+                return closeEchoSFXObject;
+            default:
+                return distantSFXObject;
         }
     }
 

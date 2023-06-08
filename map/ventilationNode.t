@@ -181,10 +181,10 @@ class VentGrateDoor: PrefabDoor {
         inherited(state);
         if (!gPlayerChar.canSee(self) && !gPlayerChar.canSee(otherSide)) return;
         if (state) {
-            sfxPlayer.play(ventOpenSnd);
+            playSFX(ventOpenSnd);
         }
         else {
-            sfxPlayer.play(ventCloseSnd);
+            playSFX(ventCloseSnd);
         }
     }
 

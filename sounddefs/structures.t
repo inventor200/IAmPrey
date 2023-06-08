@@ -33,6 +33,8 @@ class GameSFX: object {
 
     // How resistant is this sound to dampening?
     antiDrowningFactor = 0
+    allowInterrupt = true
+    stackingPriority = 0
 }
 
 class DecorativeSFX: GameSFX {

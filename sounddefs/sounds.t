@@ -5,27 +5,48 @@ emergeSnd: GameSFX {
 
 doorOpenSnd: GameSFX {
     sfxURL = 'sounds/dooropen.ogg'
-    volume = 100
+    volume = 30
 }
 
 doorShutSnd: GameSFX {
     sfxURL = 'sounds/doorclose.ogg'
+    volume = 80
+    stackingPriority = 14
+}
+
+doorSlamShutSnd: GameSFX {
+    sfxURL = 'sounds/doorslam.ogg'
+    volume = 85
+    stackingPriority = 20
+}
+
+doorShutMuffledSnd: GameSFX {
+    sfxURL = 'sounds/doormuffled.ogg'
     volume = 100
+    stackingPriority = 9
 }
 
 doorShutCloseSnd: GameSFX {
     sfxURL = 'sounds/dooraway.ogg'
-    volume = 100
+    volume = 50
+    stackingPriority = 8
 }
 
 doorShutDistantSnd: GameSFX {
     sfxURL = 'sounds/doordistant.ogg'
-    volume = 100
+    volume = 35
+    stackingPriority = 7
 }
 
 doorShutCarefulSnd: GameSFX {
     sfxURL = 'sounds/doorcareful.ogg'
-    volume = 100
+    volume = 25
+}
+
+RFIDUnlockSnd: GameSFX {
+    sfxURL = 'sounds/rfidunlock.ogg'
+    volume = 40
+    stackingPriority = 16
 }
 
 ventOpenSnd: GameSFX {

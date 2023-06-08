@@ -38,6 +38,10 @@ doorSlamCloseNoiseProfile: SoundProfile {
     'the echoing <i>ka-chunk</i> of <<theSourceName>> automatically closing'
     'the reverberating <i>thud</i> of a door automatically closing'
     strength = 5
+    
+    muffledSFXObject = doorShutMuffledSnd
+    closeEchoSFXObject = doorShutCloseSnd
+    distantSFXObject = doorShutDistantSnd
 
     afterEmission(room) {
         say('<.p>(Emitted door slam in <<room.roomTitle>>.)<.p>');
@@ -50,6 +54,10 @@ doorSuspiciousCloseNoiseProfile: SoundProfile {
     'the reverberating <i>thud</i> of a door automatically closing. <<lastSuspicionTarget.suspicionMsg>>'
     strength = 5
     isSuspicious = true
+    
+    muffledSFXObject = doorShutMuffledSnd
+    closeEchoSFXObject = doorShutCloseSnd
+    distantSFXObject = doorShutDistantSnd
 
     afterEmission(room) {
         say('<.p>(Emitted suspicious door slam in <<room.roomTitle>>.)<.p>');
@@ -74,6 +82,8 @@ doorUnlockBuzzProfile: SoundProfile {
     'the echoing, electronic buzz of <<theSourceName>> being unlocked'
     'the reverberating, electronic buzz of a door being unlocked'
     strength = 2
+
+    //TODO: Do different distances of buzzing
 
     afterEmission(room) {
         say('<.p>(Emitted unlock door buzz in <<room.roomTitle>>.)<.p>');
@@ -1018,7 +1028,7 @@ modify Door {
 
     normalClosingMsg =
         '{The subj obj}
-        <<one of>>sighs<<or>>hisses<<or>>wheezes<<at random>>
+        <<one of>>rattles<<or>>rumbles<<or>>clatters<<at random>>
         <<one of>>mechanically<<or>>automatically<<at random>>
         <<one of>>closed<<or>>shut<<at random>>,
         <<one of>>ending<<or>>concluding<<or>><<at random>>
@@ -1112,12 +1122,11 @@ modify Door {
                 local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>>";
-                sfxPlayer.play(doorShutSnd);
+                playSFX(doorShutSnd);
             }
             else if (primedPlayerAudio == slamClosingSound) {
                 say(slamClosingMsg);
-                //TODO: Slam sound
-                //sfxPlayer.play(doorShutSnd);
+                playSFX(doorSlamShutSnd);
             }
         }
         else {
@@ -1188,9 +1197,13 @@ modify Door {
                 if (canPlayerHearNearby()) {
                     say('I can hear <<theName>> opening... ');
                 }
-                if (canPlayerSense()) {
-                    sfxPlayer.play(doorOpenSnd);
-                }
+
+                //FIXME: ALL FOREGROUND SOUNDS NEED TO BE FUNNELLED INTO
+                // A QUEUE AND SORTED AND EVALUATED AT THE END OF THE TURN!!
+                // WE CANNOT DO THESE SOUNDS IN THE REPORT SEQUENCE!!!
+                /*if (canEitherBeHeardBy(gPlayerChar)) {
+                    playSFX(doorOpenSnd);
+                }*/
             }
             else {
                 witnessClosing();
@@ -1303,8 +1316,8 @@ modify Door {
         report() {
             if (gActorIsPlayer && !airlockDoor) {
                 "{I} gently close{s/d} the door,
-                so that it{dummy} {do} not make a sound. ";
-                sfxPlayer.play(doorShutCarefulSnd);
+                so that it{dummy} {do} makes very little sound. ";
+                playSFX(doorShutCarefulSnd);
             }
             else {
                 inherited();
