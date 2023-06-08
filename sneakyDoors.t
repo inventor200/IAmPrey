@@ -1112,9 +1112,12 @@ modify Door {
                 local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>>";
+                sfxPlayer.play(doorShutSnd);
             }
             else if (primedPlayerAudio == slamClosingSound) {
                 say(slamClosingMsg);
+                //TODO: Slam sound
+                //sfxPlayer.play(doorShutSnd);
             }
         }
         else {
@@ -1184,6 +1187,9 @@ modify Door {
                 startFuse();
                 if (canPlayerHearNearby()) {
                     say('I can hear <<theName>> opening... ');
+                }
+                if (canPlayerSense()) {
+                    sfxPlayer.play(doorOpenSnd);
                 }
             }
             else {
@@ -1298,6 +1304,7 @@ modify Door {
             if (gActorIsPlayer && !airlockDoor) {
                 "{I} gently close{s/d} the door,
                 so that it{dummy} {do} not make a sound. ";
+                sfxPlayer.play(doorShutCarefulSnd);
             }
             else {
                 inherited();

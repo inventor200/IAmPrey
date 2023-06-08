@@ -77,6 +77,7 @@ prologueCore: InitObject {
             }
             changeSong(chillSong);
             if (huntCore.difficulty != basicTutorial) {
+                //playSFX(emergeSnd);
                 sfxPlayer.play(emergeSnd);
             }
         }
@@ -88,6 +89,7 @@ prologueCore: InitObject {
                 clsWithSong(preySong);
             }
             if (huntCore.difficulty != basicTutorial) {
+                //playSFX(emergeSnd);
                 sfxPlayer.play(emergeSnd);
             }
         }

@@ -361,13 +361,17 @@ transient sfxPlayer: object {
         }
     }
 
-    play(soundObj) {
+    play(soundObj, attenuation?) {
         if (!transMusicPlayer.allowSFX) return;
         
         local sndVolume = soundObj.volume;
         if (currentAmbience != nil) {
             sndVolume = currentAmbience.getDrownedVolume(soundObj);
         }
+
+        if (attenuation == nil) attenuation = 100;
+        local attenMult = new BigNumber(attenuation) / new BigNumber(100);
+        sndVolume = toInteger(new BigNumber(sndVolume) * attenMult);
 
         say(
             '<SOUND SRC="' + soundObj.sfxURL + '"
@@ -496,6 +500,11 @@ changeSong(nextSong) {
         sfxPlayer.setDecorations(nil);
     }
 }
+
+// For some reason the existence of this function crashed the compiler.
+/*playSFX(soundObj, attenuation?) {
+    sfxPlayer.play(soundObj, attenuation);
+}*/
 
 #ifdef __DEBUG
 VerbRule(TestChaseSong)

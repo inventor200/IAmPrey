@@ -31,16 +31,18 @@ string template <<warning>> formatWarning;
 #define __BANISH_SKASHEK true
 
 #ifdef __DEBUG
+
 ////////////////////////////////////////////////
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
-/*><><><>*/  #define __SHOW_PROLOGUE true
-/*======*/  #define __FAST_DIFFICULTY 2
-/*     */  #define __TEST_ROOM deliveryRoom
-/*____*/  #define __SKASHEK_START nil
-/*(-)*/  #define __SKASHEK_STATE nil
-/*--*/  #define __SKASHEK_FROZEN nil
-/*-*/  #define __SKASHEK_TOOTHLESS nil
+
+             #define __SHOW_PROLOGUE nil
+            #define __FAST_DIFFICULTY 4
+           #define __TEST_ROOM northeastCubicle
+          #define __SKASHEK_START nil
+         #define __SKASHEK_STATE nil
+        #define __SKASHEK_FROZEN nil
+       #define __SKASHEK_TOOTHLESS nil
       #define __SKASHEK_IMMOBILE nil
      #define __SKASHEK_NO_TARGET nil
     #define __SKASHEK_ALLOW_TESTING_LURK nil
@@ -48,7 +50,6 @@ string template <<warning>> formatWarning;
   #define __SKASHEK_ALLOW_TESTING_CHASE nil
  #define __ALLOW_CLS true
 #define __DEBUG_PREFS nil
-///////////////////////////////////////*||*\
 
 // End compile modes
 #else

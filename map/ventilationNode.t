@@ -177,6 +177,17 @@ class VentGrateDoor: PrefabDoor {
         }
     }
 
+    makeOpen(state) {
+        inherited(state);
+        if (!gPlayerChar.canSee(self) && !gPlayerChar.canSee(otherSide)) return;
+        if (state) {
+            sfxPlayer.play(ventOpenSnd);
+        }
+        else {
+            sfxPlayer.play(ventCloseSnd);
+        }
+    }
+
     travelVia(actor) {
         inherited(actor);
         makeOpen(nil);
