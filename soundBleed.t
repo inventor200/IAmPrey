@@ -496,6 +496,8 @@ class SoundImpact: object {
         through <<throughDoor ? 'door' : 'other'>>.<.p>";
         #endif
 
+        addSFX(self);
+
         soundProfile.doPlayerPerception(
             form, sourceDirection, throughDoor
         );
@@ -506,7 +508,8 @@ class SoundImpact: object {
         soundProfile.subtleSound.perceiveIn(
             gPlayerChar.getOutermostRoom(),
             sourceDirection,
-            soundProfile.getReportString(form, sourceDirection, throughDoor)
+            soundProfile.getReportString(form, sourceDirection, throughDoor),
+            self
         );
     }
 
@@ -579,17 +582,11 @@ modify Actor {
             }
             else {
                 impact.impactPlayer();
-                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
-                if (sfxObj != nil) {
-                    playSFX(sfxObj, 100, true);
-                }
             }
             return;
         }
 
         // Otherwise, sort stuff...
-
-        local sfxVector = new Vector(8);
 
         // Prepare to group stuff by direction
         local impactsByDir = new Vector(12);
@@ -615,10 +612,6 @@ modify Actor {
             // If requested, we will show these alone
             if (impact.soundProfile.isSuspicious) {
                 impact.impactPlayer();
-                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
-                if (sfxObj != nil) {
-                    sfxVector.appendUnique(sfxObj);
-                }
                 continue;
             }
 
@@ -635,10 +628,6 @@ modify Actor {
 
             if (dirIndex == nil) {
                 impact.impactPlayer();
-                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
-                if (sfxObj != nil) {
-                    sfxVector.appendUnique(sfxObj);
-                }
                 continue;
             }
 
@@ -662,10 +651,6 @@ modify Actor {
             if (dirVec.length == 1) {
                 local impact = dirVec[1];
                 impact.impactPlayer();
-                local sfxObj = impact.soundProfile.getSFXObject(impact.form);
-                if (sfxObj != nil) {
-                    sfxVector.appendUnique(sfxObj);
-                }
                 continue;
             }
 
@@ -683,10 +668,7 @@ modify Actor {
                 local impact = dirVec[j];
                 impact.setSourceBuffer();
                 local descString = impact.soundProfile.getDescString(form);
-                local sfxObj = impact.soundProfile.getSFXObject(form);
-                if (sfxObj != nil) {
-                    sfxVector.appendUnique(sfxObj);
-                }
+                addSFX(impact, form);
                 strBfr.append(descString);
                 if (j == dirVec.length - 1) {
                     strBfr.append(', and ');
@@ -699,11 +681,6 @@ modify Actor {
             strBfr.append('.');
 
             say(toString(strBfr));
-        }
-
-        sfxVector.sort(true, { a, b: a.stackingPriority - b.stackingPriority });
-        for (local i = 1; i <= sfxVector.length && i <= 3; i++) {
-            playSFX(sfxVector[i], 100, true);
         }
     }
 }
@@ -735,7 +712,11 @@ class SoundProfile: object {
         }
         else {
             // LISTEN perception only
-            subtleSound.perceiveIn(gPlayerChar.getOutermostRoom(), sourceDirection, reportStr);
+            subtleSound.perceiveIn(
+                gPlayerChar.getOutermostRoom(),
+                sourceDirection, reportStr,
+                getSFXObject(form)
+            );
         }
     }
 
@@ -822,6 +803,7 @@ class SubtleSound: Noise {
     extraAlts = nil
     caughtMsg = '{I} hear{s/d} a mysterious sound. ' // Automatically generated
     missedMsg = 'The sound seems to have stopped. ' // Author-made
+    soundSrc = nil
 
     wasPerceived = nil
 
@@ -835,9 +817,10 @@ class SubtleSound: Noise {
         // For setting off actions based on player observation
     }
 
-    perceiveIn(room, dir, _caughtMsg) {
+    perceiveIn(room, dir, _caughtMsg, _soundSrc) {
         moveInto(room);
         caughtMsg = _caughtMsg;
+        soundSrc = _soundSrc;
         wasPerceived = nil;
         isBroadcasting = true;
         lastDirection = dir;
@@ -852,6 +835,7 @@ class SubtleSound: Noise {
         }
         else {
             say(caughtMsg);
+            addSFX(soundSrc);
             wasPerceived = true;
         }
     }

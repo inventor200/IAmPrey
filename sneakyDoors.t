@@ -82,8 +82,10 @@ doorUnlockBuzzProfile: SoundProfile {
     'the echoing, electronic buzz of <<theSourceName>> being unlocked'
     'the reverberating, electronic buzz of a door being unlocked'
     strength = 2
-
-    //TODO: Do different distances of buzzing
+    
+    muffledSFXObject = RFIDUnlockMuffledSnd
+    closeEchoSFXObject = RFIDUnlockCloseSnd
+    distantSFXObject = RFIDUnlockDistantSnd
 
     afterEmission(room) {
         say('<.p>(Emitted unlock door buzz in <<room.roomTitle>>.)<.p>');
@@ -1122,11 +1124,11 @@ modify Door {
                 local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>>";
-                playSFX(doorShutSnd);
+                addSFX(doorShutSnd);
             }
             else if (primedPlayerAudio == slamClosingSound) {
                 say(slamClosingMsg);
-                playSFX(doorSlamShutSnd);
+                addSFX(doorSlamShutSnd);
             }
         }
         else {
@@ -1194,16 +1196,12 @@ modify Door {
         else {
             if (stat) {
                 startFuse();
-                if (canPlayerHearNearby()) {
-                    say('I can hear <<theName>> opening... ');
-                }
-
-                //FIXME: ALL FOREGROUND SOUNDS NEED TO BE FUNNELLED INTO
-                // A QUEUE AND SORTED AND EVALUATED AT THE END OF THE TURN!!
-                // WE CANNOT DO THESE SOUNDS IN THE REPORT SEQUENCE!!!
-                /*if (canEitherBeHeardBy(gPlayerChar)) {
-                    playSFX(doorOpenSnd);
-                }*/
+                reportSenseAction(
+                    doorOpenSnd,
+                    doorOpenSnd,
+                    'I can hear <<getTheVisibleName()>> opening... ',
+                    doorOpenSnd
+                );
             }
             else {
                 witnessClosing();
@@ -1213,6 +1211,30 @@ modify Door {
         if (!stat && lockability == lockableWithKey) {
             // Doors re-lock when closing
             makeLocked(true);
+        }
+    }
+
+    reportSenseAction(directlySeeSoundSrc, farSeeSoundSrc, hearMsg, hearSoundSrc) {
+        local rm = gPlayerChar.getOutermostRoom();
+
+        local sharesRoom = nil;
+
+        if (getOutermostRoom() == rm) sharesRoom = true;
+        else if (otherSide != nil) {
+            if (otherSide.getOutermostRoom() == rm) sharesRoom = true;
+        }
+
+        if (canEitherBeSeenBy(gPlayerChar)) {
+            if (directlySeeSoundSrc != nil) addSFX(
+                sharesRoom ? directlySeeSoundSrc : farSeeSoundSrc,
+                sharesRoom ? nil : closeEcho
+            );
+        }
+        else if (canPlayerHearNearby()) {
+            if (hearMsg != nil) say(hearMsg);
+            if (hearSoundSrc != nil) addSFX(
+                hearSoundSrc, wallMuffle
+            );
         }
     }
 
@@ -1317,7 +1339,7 @@ modify Door {
             if (gActorIsPlayer && !airlockDoor) {
                 "{I} gently close{s/d} the door,
                 so that it{dummy} {do} makes very little sound. ";
-                playSFX(doorShutCarefulSnd);
+                addSFX(doorShutCarefulSnd);
             }
             else {
                 inherited();

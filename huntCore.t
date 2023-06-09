@@ -712,6 +712,7 @@ modify Action {
         // Map mode is done with everything frozen in time
         if (mapModeDatabase.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;
+            sfxPlayer.runSequence();
             return;
         }
 
@@ -726,6 +727,7 @@ modify Action {
             huntCore.handleFreeTurn();
             huntCore.offerTrickAction();
         }
+        sfxPlayer.runSequence();
 
         if (gHadRevokedFreeAction) libGlobal.totalTurns++;
 
@@ -839,10 +841,19 @@ modify Door {
         if (otherSide != nil) {
             if (gPlayerChar.canSee(otherSide)) return otherSide.theName;
         }
+        if (gPlayerChar.canSee(self)) return theName;
+
+        if (otherSide != nil) {
+            if (otherSide.getOutermostRoom() == gPlayerChar.getOutermostRoom()) {
+                return otherSide.theName;
+            }
+        }
+
         return theName;
     }
 
     dobjForReportSkashekOpen() {
+        addSFX(doorOpenSnd);
         "<<skashek.getPeekHe(true)>> opens <<getTheVisibleName()>>! ";
     }
 
@@ -852,12 +863,21 @@ modify Door {
     }
 
     dobjForReportSkashekUnlock() {
+        addSFX(RFIDUnlockSnd);
         "There is an electronic buzzing sound,
         as <<skashek.getPeekHe()>> unlocks <<getTheVisibleName()>>! ";
     }
 
     dobjForDoSkashekUnlock() {
-        if (!canEitherBeSeenBy(gPlayerChar)) {
+        if (canPlayerSense()) {
+            reportSenseAction(
+                RFIDUnlockSnd,
+                RFIDUnlockCloseSnd,
+                'I can hear <<getTheVisibleName()>> being unlocked... ',
+                RFIDUnlockMuffledSnd
+            );
+        }
+        else {
             soundBleedCore.createSound(
                 doorUnlockBuzzProfile,
                 getSoundSource(),

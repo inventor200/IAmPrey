@@ -33,8 +33,27 @@ class GameSFX: object {
 
     // How resistant is this sound to dampening?
     antiDrowningFactor = 0
-    allowInterrupt = true
     stackingPriority = 0
+}
+
+class DistanceSFX: GameSFX {
+    sourceVersion = nil
+    closeVersion = nil
+    distantVersion = nil
+    muffledVersion = nil
+
+    getFromForm(form) {
+        switch (form) {
+            default:
+                return sourceVersion;
+            case closeEcho:
+                return closeVersion;
+            case distantEcho:
+                return distantVersion;
+            case wallMuffle:
+                return muffledVersion;
+        }
+    }
 }
 
 class DecorativeSFX: GameSFX {

@@ -309,6 +309,10 @@ transient sfxPlayer: object {
     currentAmbience = nil
     currentRoom = nil
 
+    soundSequence = static new Vector()
+
+    maxSequenceLength = 3
+
     setAmbience(ambienceObj) {
         if (!transMusicPlayer.allowSFX) return;
         local previousAmbience = currentAmbience;
@@ -361,7 +365,62 @@ transient sfxPlayer: object {
         }
     }
 
-    play(soundObj, attenuation?, forbidInterrupt?) {
+    add(soundSrc, alteredForm?) {
+        if (soundSrc == nil) return;
+        if (!transMusicPlayer.allowSFX) return;
+        local soundObj = soundSrc;
+        local impact = nil;
+        local profile = nil;
+        local preferredForm = alteredForm;
+
+        if (soundObj.ofKind(SoundImpact)) {
+            impact = soundObj;
+            profile = soundObj.soundProfile;
+            if (preferredForm == nil) {
+                preferredForm = impact.form;
+            }
+            soundObj = profile.getSFXObject(preferredForm);
+        }
+        else if (soundObj.ofKind(SoundProfile)) {
+            profile = soundObj.soundProfile;
+            soundObj = profile.getSFXObject(preferredForm);
+        }
+
+        if (soundObj.ofKind(DistanceSFX)) {
+            soundObj = soundObj.getFromForm(preferredForm);
+        }
+        
+        soundSequence.appendUnique(soundObj);
+    }
+
+    runSequence() {
+        if (!transMusicPlayer.allowSFX) return;
+        if (soundSequence.length == 0) return;
+
+        local sortedSequence = new Vector(soundSequence.length);
+
+        for (local i = 1; i <= soundSequence.length; i++) {
+            sortedSequence.append(soundSequence[i]);
+        }
+
+        sortedSequence.sort(true, {a, b: a.stackingPriority - b.stackingPriority});
+
+        for (local i = maxSequenceLength; i <= sortedSequence.length; i++) {
+            // Keep the order which the sounds were added, but only
+            // play the most important ones, according to stackingPriority.
+            soundSequence.remove(sortedSequence[i]);
+        }
+
+        for (local i = 1; i <= soundSequence.length; i++) {
+            play(soundSequence[i], 100, true);
+        }
+
+        if (soundSequence.length > 0) {
+            soundSequence.removeRange(1, -1);
+        }
+    }
+
+    play(soundObj, attenuation?, doNotInterrupt?) {
         if (!transMusicPlayer.allowSFX) return;
         
         local sndVolume = soundObj.volume;
@@ -373,12 +432,10 @@ transient sfxPlayer: object {
         local attenMult = new BigNumber(attenuation) / new BigNumber(100);
         sndVolume = toInteger(new BigNumber(sndVolume) * attenMult);
 
-        local interrupt = soundObj.allowInterrupt && !forbidInterrupt;
-
         say(
             '<SOUND SRC="' + soundObj.sfxURL + '"
             LAYER=FOREGROUND ' +
-            (interrupt ? 'INTERRUPT ' : '') +
+            (doNotInterrupt ? '' : 'INTERRUPT ') +
             'VOLUME=' + toString(sndVolume) + '>'
         );
     }
@@ -506,6 +563,10 @@ changeSong(nextSong) {
 // For some reason the existence of this function crashed the compiler.
 playSFX(soundObj, attenuation?, forbidInterrupt?) {
     sfxPlayer.play(soundObj, attenuation, forbidInterrupt);
+}
+
+addSFX(soundSrc, alteredForm?) {
+    sfxPlayer.add(soundSrc, alteredForm);
 }
 
 #ifdef __DEBUG
