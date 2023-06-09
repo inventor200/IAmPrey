@@ -845,6 +845,8 @@ modify Door {
     passActionStr = 'enter'
     canSlamMe = true
 
+    doSoundPropagation = true
+
     pullHandleSide = (airlockDoor)
 
     // One must be on the staging location to peek through me
@@ -1103,6 +1105,8 @@ modify Door {
     }
 
     emitSoundFromBothSides(profile, fromPlayer) {
+        if (!doSoundPropagation) return;
+        
         local sndSrc = getSoundSource();
         soundBleedCore.createSound(
             profile, sndSrc,
@@ -1119,12 +1123,17 @@ modify Door {
     }
 
     emitNormalClosingSound() {
-        if (canEitherBeHeardBy(gPlayerChar)) {
+        if (canPlayerSense()) {
             if (primedPlayerAudio == normalClosingSound) {
                 local obj = getSoundSource();
                 gMessageParams(obj);
                 "<.p><<normalClosingMsg>>";
-                addSFX(doorShutSnd);
+                reportSenseAction(
+                    doorShutSnd,
+                    doorShutSnd,
+                    '<.p><<normalClosingMsg>>',
+                    doorShutSnd
+                );
             }
             else if (primedPlayerAudio == slamClosingSound) {
                 say(slamClosingMsg);
@@ -1214,15 +1223,19 @@ modify Door {
         }
     }
 
-    reportSenseAction(directlySeeSoundSrc, farSeeSoundSrc, hearMsg, hearSoundSrc) {
-        local rm = gPlayerChar.getOutermostRoom();
+    sharesRoomWith(witness) {
+        local rm = witness.getOutermostRoom();
 
-        local sharesRoom = nil;
-
-        if (getOutermostRoom() == rm) sharesRoom = true;
+        if (getOutermostRoom() == rm) return true;
         else if (otherSide != nil) {
-            if (otherSide.getOutermostRoom() == rm) sharesRoom = true;
+            if (otherSide.getOutermostRoom() == rm) return true;
         }
+
+        return nil;
+    }
+
+    reportSenseAction(directlySeeSoundSrc, farSeeSoundSrc, hearMsg, hearSoundSrc) {
+        local sharesRoom = sharesRoomWith(gPlayerChar);
 
         if (canEitherBeSeenBy(gPlayerChar)) {
             if (directlySeeSoundSrc != nil) addSFX(

@@ -45,6 +45,8 @@ class DistanceSFX: GameSFX {
     getFromForm(form) {
         switch (form) {
             default:
+                return self;
+            case bleedSource:
                 return sourceVersion;
             case closeEcho:
                 return closeVersion;

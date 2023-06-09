@@ -166,6 +166,8 @@ class VentGrateDoor: PrefabDoor {
 
     fellowMatchClass = VentGrateDoor
 
+    doSoundPropagation = nil
+
     dobjFor(Open) {
         report() {
             if (gActorIsCat) {

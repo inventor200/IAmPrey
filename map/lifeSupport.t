@@ -197,10 +197,14 @@ ambientLifeSupportNoiseRunner: InitObject {
     }
 
     playNoise() {
+        #if __DEBUG_IGNORE_FAKE_SOUNDS
+        //
+        #else
         soundBleedCore.createSound(
             lifeSupportSound, lifeSupportMachines,
             lifeSupportMachines.getOutermostRoom(), nil
         );
+        #endif
     }
 }
 
@@ -400,6 +404,8 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
     airlockDoor = true
     skipHandle = true
 
+    doSoundPropagation = nil
+
     standardExitMsg =
         '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
         prop{s/?ed} {myself} into position, and exit{s/ed} through <<theName>>'
@@ -415,6 +421,14 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
         }
         else {
             ductFog.moveInto(nil);
+        }
+        
+        if (!gPlayerChar.canSee(self) && !gPlayerChar.canSee(otherSide)) return;
+        if (state) {
+            addSFX(ventOpenSnd);
+        }
+        else {
+            addSFX(ventCloseSnd);
         }
     }
 }

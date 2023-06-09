@@ -380,10 +380,12 @@ transient sfxPlayer: object {
                 preferredForm = impact.form;
             }
             soundObj = profile.getSFXObject(preferredForm);
+            if (soundObj == nil) return;
         }
         else if (soundObj.ofKind(SoundProfile)) {
             profile = soundObj.soundProfile;
             soundObj = profile.getSFXObject(preferredForm);
+            if (soundObj == nil) return;
         }
 
         if (soundObj.ofKind(DistanceSFX)) {

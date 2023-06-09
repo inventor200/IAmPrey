@@ -3,10 +3,12 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
 #ifdef __DEBUG
 #define __DEBUG_SOUND_PLAYER_SIDE nil
+#define __DEBUG_IGNORE_FAKE_SOUNDS nil
 #define __DEBUG_SOUND_SKASHEK_SIDE nil
 #define __SHOW_EMISSION_STARTS nil
 #else
 #define __DEBUG_SOUND_PLAYER_SIDE nil
+#define __DEBUG_IGNORE_FAKE_SOUNDS nil
 #define __DEBUG_SOUND_SKASHEK_SIDE nil
 #define __SHOW_EMISSION_STARTS nil
 #endif
@@ -28,6 +30,13 @@ soundBleedCore: object {
     goalRoom = nil
     propagationPerceivedStrength = 0
     currentSoundImpact = nil
+
+    // Rooms linked with a shared audio region typically do not create
+    // falloff, but the Loading Area shares 2 regions, and becomes a
+    // sort of extreme audio amplifier, so this bool value alternates
+    // after every propagation through a shared audio region, creating
+    // the effect of 50% less falloff, but SOME falloff still happens.
+    everyOtherCounter = nil
 
     addEmission(vec, soundProfile, soundSource, room) {
         for (local i = 1; i <= vec.length; i++) {
@@ -141,6 +150,8 @@ soundBleedCore: object {
             propagatedRooms[i].highestSoundStrength = 0;
         }
 
+        everyOtherCounter = nil;
+
         propagatedRooms.removeRange(1, -1);
     }
 
@@ -182,7 +193,10 @@ soundBleedCore: object {
             return;
         }
 
+        // The sound is too quiet to continue
         if (strength <= 1) return;
+        // Do not propagate muffles beyond a single room
+        if (form == wallMuffle) return;
 
         for (local i = 1; i <= 12; i++) {
             room.selectSoundDirection(i);
@@ -217,7 +231,9 @@ soundBleedCore: object {
 
                 // Otherwise the propagationMode will be 0
                 if (propagationMode == 0) {
-                    falloff = room.canHearOutTo(selectedDestination) ? 0 : 1;
+                    falloff = room.canHearOutTo(selectedDestination)
+                        ? (everyOtherCounter ? 1 : 0) : 1;
+                    everyOtherCounter = !everyOtherCounter;
                 }
             }
 
@@ -309,7 +325,9 @@ soundBleedCore: object {
                         }
                     }
                     else {
-                        falloff = room.canHearOutTo(selectedDestination) ? 0 : 1;
+                        falloff = room.canHearOutTo(selectedDestination)
+                            ? (everyOtherCounter ? 1 : 0) : 1;
+                        everyOtherCounter = !everyOtherCounter;
                     }
 
                     nextStrength = strength - falloff;

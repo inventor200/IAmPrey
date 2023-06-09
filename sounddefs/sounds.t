@@ -19,7 +19,7 @@ doorShutCarefulSnd: GameSFX {
     volume = 25
 }
 
-doorShutSnd: GameSFX {
+doorShutSnd: DistanceSFX {
     sfxURL = 'sounds/doorclose.ogg'
     volume = 80
     stackingPriority = 28
@@ -30,7 +30,7 @@ doorShutSnd: GameSFX {
     muffledVersion = doorShutMuffledSnd
 }
 
-doorShutMuffledSnd: GameSFX {
+doorShutMuffledSnd: DistanceSFX {
     sfxURL = 'sounds/doormuffled.ogg'
     volume = 100
     stackingPriority = 26
@@ -41,7 +41,7 @@ doorShutMuffledSnd: GameSFX {
     muffledVersion = (self)
 }
 
-doorShutCloseSnd: GameSFX {
+doorShutCloseSnd: DistanceSFX {
     sfxURL = 'sounds/dooraway.ogg'
     volume = 50
     stackingPriority = 24
@@ -52,7 +52,7 @@ doorShutCloseSnd: GameSFX {
     muffledVersion = doorShutMuffledSnd
 }
 
-doorShutDistantSnd: GameSFX {
+doorShutDistantSnd: DistanceSFX {
     sfxURL = 'sounds/doordistant.ogg'
     volume = 35
     stackingPriority = 22

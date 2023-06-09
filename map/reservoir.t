@@ -111,9 +111,13 @@ ambientReactorNoiseRunner: InitObject {
     }
 
     playNoise() {
+        #if __DEBUG_IGNORE_FAKE_SOUNDS
+        //
+        #else
         soundBleedCore.createSound(reactorHumSound, reactor, reactorNoiseRoom, nil);
         soundBleedCore.createSound(turbineSound, reactorTurbines, fakePumpRoom, nil);
         //soundBleedCore.createSound(waterfallSound, reservoirWaterFromAbove, reservoir, nil);
+        #endif
     }
 }
 
