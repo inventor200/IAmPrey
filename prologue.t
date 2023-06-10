@@ -7,6 +7,18 @@ prologueCore: InitObject {
     selectDifficulty() {
         #if __SHOW_PROLOGUE
         clsWithSong(nil);
+        
+        if (!prologuePrefCore.skipIntro && prologuePrefCore.playerHasSeenIntro) {
+            if (ChoiceGiver.staticAsk(
+                'It seems you\'ve been here before.
+                Would you like to skip to difficulty selection?'
+            )) {
+                prologuePrefCore.playerHasIntroPreference = true;
+                prologuePrefCore.playerPrefersNoIntro = true;
+                prologuePrefCore.writePreferences();
+            }
+        }
+
         if (!prologuePrefCore.skipIntro) {
             "<<formatAlert('Content warning:')>>";
             say(createFlowingList([
@@ -57,6 +69,9 @@ prologueCore: InitObject {
             <<wait for player>>
             """;
         }
+        undoCounter.count = nil;
+        prologuePrefCore.playerHasSeenIntro = true;
+        prologuePrefCore.writePreferences();
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
         local difficulties = huntCore.difficultySettings;
         for (local i = 1; i <= difficulties.length; i++) {
@@ -64,6 +79,46 @@ prologueCore: InitObject {
             difficultyQuestion.add(toString(i), difficulty.title, difficulty.getBlurb());
         }
         local result = difficultyQuestion.ask();
+        if (huntCore.difficultySettings[result].offerUndoOption) {
+            local undoLockQuestion = new ChoiceGiver('Up for an extra challenge?');
+            undoLockQuestion.add('F', 'Free UNDO',
+                'The UNDO command can be use whenever, as many times as desired.'
+            );
+            undoLockQuestion.add('T', 'Use UNDO as a trick',
+                'The UNDO command will count as a trick,
+                and will be locked from use, once depleted.'
+            );
+            undoLockQuestion.add('L', 'Lock away UNDO',
+                'The UNDO command will be permanently locked from use.'
+            );
+            local undoSelection = undoLockQuestion.ask();
+            switch (undoSelection) {
+                default:
+                    huntCore.undoStyle = undoFree;
+                    break;
+                case 2:
+                    huntCore.undoStyle = undoAsTrick;
+                    break;
+                case 3:
+                    huntCore.undoStyle = undoLocked;
+                    break;
+            }
+            if (undoSelection == 3) {
+                """
+                \b\b\b
+                <<gSkashekName>> brings a piece of pale kelp to his lips.
+                They part, and reveal two rows of bloody, serrated teeth.\b
+                He pauses, his face locked into a sort of grin.\b
+                Today feels like a <i>special</i> day.\b
+                He doesn't know <i>why</i>, exactly, but he has a feeling that
+                <i>this</i> clone will be <i>fascinating</i> to hunt.\b
+                His maw opens, and he takes a bite of the kelp, hating
+                everything about the taste.\b
+                <<wait for player>>
+                \b\b\b
+                """;
+            }
+        }
         huntCore.setDifficulty(result);
         if (!huntCore.difficultySettingObj.skipPrologue) {
             clsWithSong(preySong);

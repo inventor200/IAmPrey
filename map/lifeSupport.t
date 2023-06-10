@@ -1,5 +1,3 @@
-//coolingDuctSightLine: HallRegion;
-
 fakeDuctCeiling: Ceiling { 'ceiling;top;top[weak] end airflow'
     "The cooling duct is a wide, vertical drop. Cold air is pumped in from
     below, and is sent up to the server room, found elsewhere. "
@@ -41,12 +39,22 @@ coolingDuctWalls: Walls { 'walls;inner metal cooling;insides panels duct'
             gPlayerChar.getOutermostRoom().attemptVerticalTravel(downDir);
         }
     }
+
+    dobjFor(Open) { remap = (gActor.getOutermostRoom().shuttable) }
+    dobjFor(Close) { remap = (gActor.getOutermostRoom().shuttable) }
 }
 
 fakeDuctFloor: Floor { 'space[n] below;bottom;ground bottom[weak] end drop curve floor'
     "The cooling duct is a wide, vertical drop, and curves below to the east,
     in the direction of the airflow's source. The facility's heat exchanger and
     fans are probably that way. "
+
+    contType = In
+
+    objInName = 'held between the walls'
+    objIntoName = 'into the duct'
+    objOutOfName = 'out of the duct'
+    objInPrep = 'held between the walls, over'
 }
 
 class CoolingDuctSegment: Room {
@@ -67,15 +75,14 @@ class CoolingDuctSegment: Room {
         >><<freezer.coldAluminum>><<at random>>
         <<wallsDesc>><<one of>> of the duct<<or>><<at random>>'
 
-    //regions = [coolingDuctSightLine]
-    //lookAroundRegion = coolingDuctSightLine
-
     ceilingObj = fakeDuctCeiling
     wallsObj = coolingDuctWalls
     floorObj = fakeDuctFloor
     atmosphereObj = freezingAtmosphere
     isFreezing = true
     ambienceObject = coolingDuctAmbience
+
+    shuttable = nil
 
     roomBeforeAction() {
         if (gActionIs(Drop) || gActionIs(Throw) || gActionIs(ThrowDir) || gActionIs(ThrowTo)) {
@@ -456,7 +463,7 @@ insideCoolingDuctUpper: CoolingDuctSegment { '<<nameHeader>> (Upper Segment)'
     down = insideCoolingDuctLower
     out = coolingDuctUpperInnerGrate
 
-    //regions = [coolingDuctSightLine]
+    shuttable = coolingDuctUpperInnerGrate
 
     inRoomName(pov) {
         return 'in the upper segment';
@@ -514,6 +521,8 @@ insideCoolingDuctLower: CoolingDuctSegment { '<<nameHeader>> (Lower Segment)'
     down = "If {i} go any lower, {i} might freeze to death;
         the industrial-grade heat exchanger is probably that way. "
     out = coolingDuctLowerInnerDoor
+
+    shuttable = coolingDuctLowerInnerDoor
 
     inRoomName(pov) {
         return 'in the lower segment';

@@ -66,12 +66,15 @@ class DifficultySetting: object {
                 }
             }
 
+            if (lockoutUndo) {
+                strBfr.append(', ');
+                if (!skipPrologue) strBfr.append('and ');
+                strBfr.append('<<formatTheCommand('undo')>> <b>will be locked</b> from use');
+            }
             if (skipPrologue) {
-                strBfr.append(', and the prologue will be skipped.');
+                strBfr.append(', and the prologue will be skipped');
             }
-            else {
-                strBfr.append('.');
-            }
+            strBfr.append('.');
             strBfr.append(')</i>');
         }
 
@@ -166,6 +169,129 @@ restoreModeSetting: DifficultySetting {
 }
 
 enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;
+enum undoFree, undoAsTrick, undoLocked, isUndoProp;
+
+transient undoCounter: object {
+    count = nil
+
+    useCounter() {
+        return huntCore.undoStyle == undoAsTrick;
+    }
+
+    updateTrickCount(nextAmount) {
+        if (!useCounter()) return;
+        local currentAmount = count;
+        if (currentAmount == nil) {
+            count = nextAmount;
+        }
+        else if (currentAmount < nextAmount) {
+            count = currentAmount;
+        }
+        else {
+            count = nextAmount;
+        }
+    }
+
+    getActualTrickCount() {
+        if (!useCounter()) return 10;
+        if (huntCore.difficultySettingObj.tricksFromPool) {
+            return huntCore.tricksInPool;
+        }
+        return count;
+    }
+
+    pollTrickNumber() {
+        if (!useCounter()) return 10;
+        local _count = getActualTrickCount();
+        if (_count <= 0) return 0;
+        return _count;
+    }
+
+    pollTrick() {
+        if (!useCounter()) return plentyOfTricksRemaining;
+        local _count = getActualTrickCount();
+        if (_count <= 0) return noTricksRemaining;
+        else if (_count == 1) return oneTrickRemaining;
+        return plentyOfTricksRemaining;
+    }
+
+    spendTrick() {
+        if (!useCounter()) return plentyOfTricksRemaining;
+        if (huntCore.difficultySettingObj.tricksFromPool) {
+            huntCore.difficultySettingObj.tricksFromPool--;
+            count = huntCore.difficultySettingObj.tricksFromPool;
+        }
+        else {
+            count--;
+        }
+        if (count <= 0) {
+            if (huntCore.difficultySettingObj.tricksFromPool) {
+                huntCore.difficultySettingObj.tricksFromPool = 0;
+            }
+            count = 0;
+            return noTricksRemaining;
+        }
+        if (count == 1) return oneTrickRemaining;
+        return plentyOfTricksRemaining;
+    }
+}
+
+modify Undo {
+    execAction(cmd) {
+        if (huntCore.difficultySettingObj == nightmareModeSetting) {
+            "You cannot undo your last action in Nightmare Mode.\b\b
+            <b>Best of luck to you.</b>\b\b";
+            return nil;
+        }
+
+        local suggestion =
+            'The most you can do from here is improvise or use
+            <<formatTheCommand('restart', shortCmd)>>.';
+        if (huntCore.undoStyle == undoLocked) {
+            "You have voluntarily locked UNDO from use.
+            <<suggestion>> ";
+            return nil;
+        }
+        else if (huntCore.undoStyle == undoAsTrick) {
+            local count = undoCounter.pollTrickNumber();
+
+            if (count == 0) {
+                "You have no remaining opportunities to undo your last action.
+                <<suggestion>> ";
+                return nil;
+            }
+
+            if (huntCore.difficultySettingObj.tricksFromPool) {
+                "A total of <b><<count>> tricks</b> remain in the pool,
+                and this will use <b>1</b> of them. ";
+            }
+            else {
+                local times = count == 1 ? 'time' : 'times';
+                "\^<<formatTheCommand('undo')>> 
+                can be used <b><<count>> more <<times>></b>,
+                <b><i>not</i></b> including <b><i>this</i></b> time. ";
+            }
+            if (count == 1) {
+                "If <<formatTheCommand('UNDO')>> is used now,
+                <b>it will be locked for the rest of the run.</b> ";
+            }
+            if (ChoiceGiver.staticAsk(
+                'Are you sure you want to spend a trick to UNDO?'
+            )) {
+                local res = inherited(cmd);
+                count--;
+                undoCounter.spendTrick();
+                local uses = count == 1 ? 'use' : 'uses';
+                local remain = count == 1 ? 'remains' : 'remain';
+                "<.p><b><<count>> <<uses>> now <<remain>>.</b> ";
+                return res;
+            }
+
+            "Undo canceled. <<count>> still remain.";
+        }
+        return inherited(cmd);
+    }   
+}
 
 huntCore: InitObject {
     revokedFreeTurn = nil
@@ -174,6 +300,7 @@ huntCore: InitObject {
     doorThatMovedOnItsOwn = nil
     inCatMode = (difficulty == basicTutorial)
     wasBathTimeAnnounced = nil
+    undoStyle = undoFree
 
     helmetLocations = [
         evaluationRoom,
@@ -222,6 +349,7 @@ huntCore: InitObject {
     closeDoorCount = nil
     diveOffReservoirCount = nil
     distractingSinkCount = nil
+    limitedUndoCount = isUndoProp
 
     difficultySettings = static new Vector([
         basicTutorialSetting,
@@ -297,16 +425,44 @@ huntCore: InitObject {
             skashekAIControls.currentState.activate();
         }
 
+        if (difficultySettingObj.lockoutUndo) undoStyle = undoLocked;
+
         updateTrickCount(&tricksInPool, difficultySettingObj.trickCount);
 
         if (!difficultySettingObj.tricksFromPool) {
             updateTrickCount(&closeDoorCount, tricksInPool);
             updateTrickCount(&diveOffReservoirCount, tricksInPool);
             updateTrickCount(&distractingSinkCount, tricksInPool);
+            if (undoStyle == undoAsTrick) {
+                updateTrickCount(&limitedUndoCount, tricksInPool);
+            }
+            else {
+                limitedUndoCount = nil;
+            }
+        }
+    }
+    
+    canUndo() {
+        switch (undoStyle) {
+            case undoLocked:
+                return nil;
+            case undoAsTrick:
+                return pollTrick(&limitedUndoCount) != noTricksRemaining;
+            default:
+                return true;
         }
     }
 
+    isPropForUndo(trickCountProp) {
+        return self.(trickCountProp) == isUndoProp;
+    }
+
     updateTrickCount(currentAmountProp, nextAmount) {
+        if (isPropForUndo(currentAmountProp)) {
+            undoCounter.updateTrickCount(nextAmount);
+            return;
+        }
+
         local currentAmount = self.(currentAmountProp);
         if (currentAmount == nil) {
             self.(currentAmountProp) = nextAmount;
@@ -327,6 +483,10 @@ huntCore: InitObject {
     }
 
     pollTrickNumber(trickCountProp) {
+        if (isPropForUndo(trickCountProp)) {
+            return undoCounter.pollTrickNumber();
+        }
+
         local actualTrickProp = getActualTrickProp(trickCountProp);
         local count = self.(actualTrickProp);
         if (count <= 0) return 0;
@@ -334,6 +494,10 @@ huntCore: InitObject {
     }
 
     pollTrick(trickCountProp) {
+        if (isPropForUndo(trickCountProp)) {
+            return undoCounter.pollTrick();
+        }
+
         local actualTrickProp = getActualTrickProp(trickCountProp);
         if (self.(actualTrickProp) <= 0) return noTricksRemaining;
         else if (self.(actualTrickProp) == 1) return oneTrickRemaining;
@@ -342,6 +506,11 @@ huntCore: InitObject {
 
     spendTrick(trickCountProp) {
         local actualTrickProp = getActualTrickProp(trickCountProp);
+
+        if (isPropForUndo(trickCountProp)) {
+            return undoCounter.spendTrick();
+        }
+
         self.(actualTrickProp)--;
         if (self.(actualTrickProp) <= 0) {
             self.(actualTrickProp) = 0;

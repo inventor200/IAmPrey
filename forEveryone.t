@@ -150,9 +150,9 @@ starsEncap: CommandEncapsulator {
 }
 
 capEncap: CommandEncapsulator {
-    name = 'cap and end cap'
-    frontEnd = 'cap'
-    backEnd = 'end cap'
+    name = 'caps'
+    frontEnd = 'caps'
+    backEnd = 'caps'
 }
 
 quoteEncap: CommandEncapsulator {

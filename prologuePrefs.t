@@ -34,10 +34,12 @@ class BasePreference: object {
     }
 
     hasPreference() {
+        if (prefProp == nil) return true;
         return prefStortingObject.(prefProp);
     }
 
     claimPreference() {
+        if (prefProp == nil) return;
         prefStortingObject.(prefProp) = true;
     }
 
@@ -52,6 +54,10 @@ class BasePreference: object {
     }
 
     getFileOptionString() {
+        return '';
+    }
+
+    getFileNegativeOptionString() {
         return '';
     }
 }
@@ -170,6 +176,14 @@ class ValuePreference: BasePreference {
         return '#\n#     ' + name + '\n' +
             header + valueFromFile;
     }
+
+    getFileNegativeOptionString() {
+        if (negativeBool != nil) {
+            return '#     To disable:\n#' +
+                negativeBool.negativeStr + ';\n';
+        }
+        return '';
+    }
 }
 
 class IntegerPreference: ValuePreference {
@@ -244,6 +258,13 @@ transient prologuePrefCore: InitObject {
     execAfterMe = [screenReaderInit]
 
     prefVec = static new Vector([
+        new BooleanPreference('Seen intro status', true,
+            'player has seen intro',
+            'player has not seen intro',
+            &playerHasSeenIntro,
+            prologuePrefCore,
+            nil
+        ),
         new BooleanPreference('Cat prologue preference', nil,
             'player prefers no cat prologue',
             'player prefers cat prologue',
@@ -322,6 +343,8 @@ transient prologuePrefCore: InitObject {
             &playerHasScreenReaderPreference
         )
     ])
+
+    playerHasSeenIntro = nil
 
     playerHasCatProloguePreference = nil
     playerPrefersNoCatPrologue = nil
@@ -465,6 +488,7 @@ transient prologuePrefCore: InitObject {
                     "\nWriting preference:\n\t<<fs>>";
                     #endif
                     writePreference(prefsTextFile, fs);
+                    prefsTextFile.writeFile(pref.getFileNegativeOptionString());
                 }
                 else if (!pref.isHidden) {
                     prefsTextFile.writeFile(pref.getFileOptionString());

@@ -196,7 +196,10 @@ soundBleedCore: object {
         // The sound is too quiet to continue
         if (strength <= 1) return;
         // Do not propagate muffles beyond a single room
-        if (form == wallMuffle) return;
+        if (form == wallMuffle) {
+            form = distantEcho;
+            strength = 1;
+        }
 
         for (local i = 1; i <= 12; i++) {
             room.selectSoundDirection(i);
@@ -297,6 +300,7 @@ soundBleedCore: object {
         }
 
         if (strength <= 1) return;
+
         for (local i = 1; i <= 12; i++) {
             room.selectSoundDirection(i);
 

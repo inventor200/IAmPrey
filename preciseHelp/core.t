@@ -251,6 +251,13 @@ waitForPlayer() {
         if (gFormatForScreenReader) {
             "<.p>Press any key to continue.<.p>";
         }
+        else if (outputManager.htmlMode) {
+            "<.p><center><<
+            aHrefAlt(
+                '', 'Press any key to continue...',
+                '<b><tt>Press any key to continue...</tt></b>'
+            )>></center><.p>";
+        }
         else {
             "<.p><center><b><tt>Press any key to continue...</tt></b></center><.p>";
         }
