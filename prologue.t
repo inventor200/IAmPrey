@@ -51,7 +51,6 @@ prologueCore: InitObject {
             catCutscene.play();
         }
         #else // is not map test
-        //if (!prologuePrefCore.skipIntro) {
             """
             <<formatTitle('Note for new and experienced players')>>
 
@@ -69,48 +68,70 @@ prologueCore: InitObject {
             <<wait for player>>
             """;
         }
-        local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
-        local difficulties = huntCore.difficultySettings;
-        for (local i = 1; i <= difficulties.length; i++) {
-            local difficulty = difficulties[i];
-            difficultyQuestion.add(toString(i), difficulty.title, difficulty.getBlurb());
-        }
-        local result = difficultyQuestion.ask();
-        if (huntCore.difficultySettings[result].offerUndoOption) {
-            local undoLockQuestion = new ChoiceGiver(
-                'Up for an <i><u>extra</u></i> challenge?'
-            );
-            undoLockQuestion.add('F', 'Free UNDO',
-                '\^<<formatTheCommand('UNDO')>> can be used at any time,
-                as many times as desired.
-                The difficulty mode will proceed as usual.'
-            );
-            undoLockQuestion.add('T', 'Use UNDO as a trick',
-                '\^<<formatTheCommand('UNDO')>> will count as a trick,
-                and will be locked from use after
-                <<huntCore.difficultySettingObj.trickCount>>.<<if
-                huntCore.difficultySettingObj.tricksFromPool>>
-                <i>Be warned that
-                <<huntCore.difficultySettingObj.title>>
-                spends tricks from a shared pool!</i><<end>>'
-            );
-            undoLockQuestion.add('L', 'Lock away UNDO',
-                '\^<<formatTheCommand('UNDO')>> will be permanently locked from use,
-                similar to Nightmare Mode. You must make as few mistakes
-                as possible.'
-            );
-            local undoSelection = undoLockQuestion.ask();
-            switch (undoSelection) {
-                default:
-                    huntCore.undoStyle = undoFree;
-                    break;
-                case 2:
-                    huntCore.undoStyle = undoAsTrick;
-                    break;
-                case 3:
-                    huntCore.undoStyle = undoLocked;
-                    break;
+
+        local optionsConfirmed = nil;
+        local result = 7;
+        local undoSelection = 1;
+
+        do {
+            local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
+            local difficulties = huntCore.difficultySettings;
+            for (local i = 1; i <= difficulties.length; i++) {
+                local difficulty = difficulties[i];
+                difficultyQuestion.add(toString(i), difficulty.title, difficulty.getBlurb());
             }
+            result = difficultyQuestion.ask();
+            if (huntCore.difficultySettings[result].offerUndoOption) {
+                local undoLockQuestion = new ChoiceGiver(
+                    'Up for an <i><u>extra</u></i> challenge?'
+                );
+                undoLockQuestion.add('F', 'Free UNDO',
+                    '\^<<formatTheCommand('UNDO')>> can be used at any time,
+                    as many times as desired.
+                    The difficulty mode will proceed as usual.'
+                );
+                undoLockQuestion.add('T', 'Use UNDO as a trick',
+                    '\^<<formatTheCommand('UNDO')>> will count as a trick,
+                    and will be locked from use after
+                    <<huntCore.difficultySettingObj.trickCount>>.<<if
+                    huntCore.difficultySettingObj.tricksFromPool>>
+                    <i>Be warned that
+                    <<huntCore.difficultySettingObj.title>>
+                    spends tricks from a shared pool!</i><<end>>'
+                );
+                undoLockQuestion.add('L', 'Lock away UNDO',
+                    '\^<<formatTheCommand('UNDO')>> will be permanently locked from use,
+                    similar to Nightmare Mode. You must make as few mistakes
+                    as possible.'
+                );
+                undoSelection = undoLockQuestion.ask();
+                switch (undoSelection) {
+                    default:
+                        huntCore.undoStyle = undoFree;
+                        break;
+                    case 2:
+                        huntCore.undoStyle = undoAsTrick;
+                        break;
+                    case 3:
+                        huntCore.undoStyle = undoLocked;
+                        break;
+                }
+            }
+
+            "<<formatTitle('Clone batch settings')>>
+            <b>Difficulty:</b> <tt><<huntCore.difficultySettingObj.title>></tt>\n
+            <b>Undo style:</b> <tt><<huntCore.getUndoStyleName()>></tt>\n";
+
+            optionsConfirmed = ChoiceGiver.staticAsk(
+                'Are you sure about these settings?'
+            );
+
+            #if __ALLOW_CLS
+            cls();
+            #endif
+        } while (!optionsConfirmed);
+
+        if (huntCore.difficultySettingObj.offerUndoOption) {
             if (undoSelection == 3) {
                 """
                 \b\b\b
@@ -127,6 +148,7 @@ prologueCore: InitObject {
                 """;
             }
         }
+
         huntCore.setDifficulty(result);
         if (!huntCore.difficultySettingObj.skipPrologue) {
             clsWithSong(preySong);

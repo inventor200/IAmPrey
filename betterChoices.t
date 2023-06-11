@@ -10,10 +10,6 @@ class ChoiceGiver: object {
     question = 'Would you like to choose?'
     context = nil
     beforeScreenReaderCertainty = nil
-    allowClicking = (
-        outputManager.htmlMode &&
-        !(gFormatForScreenReader || beforeScreenReaderCertainty)
-    )
 
     add(abbreviation, choiceStr, context?) {
         if (context != nil) {
@@ -95,33 +91,21 @@ class ChoiceGiver: object {
                     say('.');
                 }
             }
-            else if (allowClicking) {
-                say('\t' +
-                    aHrefAlt(
-                        abbreviation,
-                        text,
-                        '<b><tt>' + abbreviation +
-                        '</tt> = ' + text + '</b>'
-                    )
-                );
-                if (context != nil) {
-                    say('\n');
-                    say(context);
-                    say('\b');
-                }
-                else if (hasContext) {
-                    say('\b');
-                }
-                else {
-                    say('\n');
-                }
-            }
             else {
                 say('\t<b><tt>');
+                if (outputManager.htmlMode) {
+                    say('<FONT COLOR="#888888">');
+                }
                 say(abbreviation);
-                say('</tt> = ');
-                say(text);
-                say('</b>');
+                say('</tt></b> = ');
+                if (outputManager.htmlMode) {
+                    say('</FONT>');
+                }
+                say(aHrefAlt(
+                    abbreviation,
+                    text,
+                    '<b>' + text + '</b>'
+                ));
                 if (context != nil) {
                     say('\n');
                     say(context);
