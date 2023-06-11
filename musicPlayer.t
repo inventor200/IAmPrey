@@ -6,23 +6,6 @@ musicPlayer: InitObject {
     execBeforeMe = [screenReaderInit]
 
     execute() {
-        // Don't bother the players who are not using HTML-compatible terps.
-        if (!outputManager.htmlMode) {
-            if (transMusicPlayer.gaveHTMLDisclaimer) return;
-            transMusicPlayer.gaveHTMLDisclaimer = true;
-            "\b
-            This game comes with optional music and sound effects, but it seems
-            like your interpreter does not support these features.\b
-            That's okay, though! The music and sound effects do not carry
-            critical information, and this game has been tested on
-            many kinds of interpreters!\b
-            If you would like to get the most out of your experience,
-            however, it is recommended that you play this game in
-            <a href='https://github.com/realnc/qtads/releases'>QTADS</a>!
-            <<wait for player>>";
-            return;
-        }
-
         #if __SHOW_PROLOGUE
         if (transMusicPlayer.playerGavePreferences) {
             """
@@ -177,7 +160,6 @@ musicPlayer: InitObject {
 
 transient transMusicPlayer: object {
     playerGavePreferences = nil
-    gaveHTMLDisclaimer = nil
 
     playerWantsMusic = nil
     allowMusic = (playerWantsMusic && outputManager.htmlMode)

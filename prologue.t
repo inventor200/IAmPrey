@@ -15,9 +15,12 @@ prologueCore: InitObject {
             )) {
                 prologuePrefCore.playerHasIntroPreference = true;
                 prologuePrefCore.playerPrefersNoIntro = true;
-                prologuePrefCore.writePreferences();
             }
         }
+
+        undoCounter.count = nil;
+        prologuePrefCore.playerHasSeenIntro = true;
+        prologuePrefCore.writePreferences();
 
         if (!prologuePrefCore.skipIntro) {
             "<<formatAlert('Content warning:')>>";
@@ -40,18 +43,15 @@ prologueCore: InitObject {
             Rest assured that your survival is not decided by randomness.
             <<wait for player>>
             """;
-        }
         #if __IS_MAP_TEST // is map test
+        }
         huntCore.setDifficulty(1);
         clsWithSong(preySong);
         if (!prologuePrefCore.skipCatPrologue) {
             catCutscene.play();
         }
         #else // is not map test
-        #if __ALLOW_CLS
-        cls();
-        #endif
-        if (!prologuePrefCore.skipIntro) {
+        //if (!prologuePrefCore.skipIntro) {
             """
             <<formatTitle('Note for new and experienced players')>>
 
@@ -69,9 +69,6 @@ prologueCore: InitObject {
             <<wait for player>>
             """;
         }
-        undoCounter.count = nil;
-        prologuePrefCore.playerHasSeenIntro = true;
-        prologuePrefCore.writePreferences();
         local difficultyQuestion = new ChoiceGiver('Choose your difficulty');
         local difficulties = huntCore.difficultySettings;
         for (local i = 1; i <= difficulties.length; i++) {
@@ -80,16 +77,27 @@ prologueCore: InitObject {
         }
         local result = difficultyQuestion.ask();
         if (huntCore.difficultySettings[result].offerUndoOption) {
-            local undoLockQuestion = new ChoiceGiver('Up for an extra challenge?');
+            local undoLockQuestion = new ChoiceGiver(
+                'Up for an <i><u>extra</u></i> challenge?'
+            );
             undoLockQuestion.add('F', 'Free UNDO',
-                'The UNDO command can be use whenever, as many times as desired.'
+                '\^<<formatTheCommand('UNDO')>> can be used at any time,
+                as many times as desired.
+                The difficulty mode will proceed as usual.'
             );
             undoLockQuestion.add('T', 'Use UNDO as a trick',
-                'The UNDO command will count as a trick,
-                and will be locked from use, once depleted.'
+                '\^<<formatTheCommand('UNDO')>> will count as a trick,
+                and will be locked from use after
+                <<huntCore.difficultySettingObj.trickCount>>.<<if
+                huntCore.difficultySettingObj.tricksFromPool>>
+                <i>Be warned that
+                <<huntCore.difficultySettingObj.title>>
+                spends tricks from a shared pool!</i><<end>>'
             );
             undoLockQuestion.add('L', 'Lock away UNDO',
-                'The UNDO command will be permanently locked from use.'
+                '\^<<formatTheCommand('UNDO')>> will be permanently locked from use,
+                similar to Nightmare Mode. You must make as few mistakes
+                as possible.'
             );
             local undoSelection = undoLockQuestion.ask();
             switch (undoSelection) {
@@ -164,6 +172,16 @@ prologueCore: InitObject {
         #if __IS_MAP_TEST
         "\b<i><q>The limited edition for testers!</q></i>\n(The full game will <b>not</b> be a cat game, lol)";
         #endif
+        "\b
+        <small><b>Difficulty:</b></small>\n<tt><<huntCore.difficultySettingObj.title>></tt>\b
+        <small><b>Undo style:</b></small>\n<tt><<huntCore.getUndoStyleName()>></tt>
+        ";
+        #ifdef __DEBUG
+        "\b<b><tt>THIS IS A DEBUG BUILD!</tt></b>";
+        #endif
+        #if __BANISH_SKASHEK
+        "\b<b><tt>THIS IS A PREDATOR-FREE BUILD!</tt></b>";
+        #endif
         "</center>";
         helpMessage.showHeader();
         "\b<<if gCatMode>>
@@ -177,7 +195,7 @@ prologueCore: InitObject {
         // Give the player random gameplay tips, similar to what is found in
         // Deep Rock Galactic loading screens. This also helps players who
         // still skipped the how-to-play guide.
-        "<center><b>RANDOM TIP:</b></center>\n<<one of>>
+        "<center><small><b>RANDOM TIP:</b></small></center>\n<<one of>>
         Use a combination of the 
         <<formatCommand('DROP ALL')>> command and the
         <<formatCommand('WEAR ALL')>> command to clear your inventory,

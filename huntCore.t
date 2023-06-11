@@ -453,6 +453,17 @@ huntCore: InitObject {
         }
     }
 
+    getUndoStyleName() {
+        switch (undoStyle) {
+            case undoLocked:
+                return 'Locked';
+            case undoAsTrick:
+                return 'Trick';
+            default:
+                return 'Free';
+        }
+    }
+
     isPropForUndo(trickCountProp) {
         return self.(trickCountProp) == isUndoProp;
     }

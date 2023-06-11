@@ -368,10 +368,42 @@ transient prologuePrefCore: InitObject {
     )
 
     preferencesWereLoaded = nil
+    gaveHTMLDisclaimer = nil
 
     fileName = 'I-Am-Prey-Preferences.cfg'
     
     execute() {
+        #if __SHOW_PROLOGUE
+        if (!outputManager.htmlMode && !gaveHTMLDisclaimer) {
+            gaveHTMLDisclaimer = true;
+            """
+            <<formatTitle('Interpreter Mismatch')>>
+            Some interpreters do not support all of the possible features found
+            in TADS games, and it seems like this one might be missing a few things.\b
+            Some online interpreters, for example, might fail to save your settings,
+            due to restrictions from your web browser.
+            All of your preferences will be dumped, if this file cannot be saved
+            or loaded, which will require you to re-input your preference every
+            time you load this game.\b
+            If you are using an <i>offline</i> interpreter, then you might be missing
+            out on music and other sound effects, as well as certain menus and actions,
+            which can be navigated with mouse clicks.\b
+            These are all things that are completely outside of my control, because
+            TADS developers must work within the constraints made by the interpreter.
+            <b>However, I have designed everything in this game to be accessible
+            and playable, even if you are just using a command-line terminal.</b>\b
+            If you would like to check out what you might be missing out on, and
+            get the most out of your experience, then
+            it is recommended that you play this game with either the
+            <a href='https://github.com/realnc/qtads/releases'>QTADS</a>
+            or
+            <a href='https://www.ifwiki.org/HTML_TADS_(Interpreter)'>HTML TADS</a>
+            interpreters!
+            <<wait for player>>
+            """;
+        }
+        #endif
+
         if (preferencesWereLoaded) return;
         preferencesWereLoaded = true;
 
@@ -397,9 +429,11 @@ transient prologuePrefCore: InitObject {
                         }
                     }
                 } catch (FileIOException eex1) {
+                    showFailureWarning(true);
                     preferencesReadOkay = nil;
                     break;
                 } catch (FileModeException eex2) {
+                    showFailureWarning(true);
                     preferencesReadOkay = nil;
                     break;
                 }
@@ -442,12 +476,31 @@ transient prologuePrefCore: InitObject {
                 }
             }
         } catch (FileNotFoundException ex1) {
-            //
+            showFailureWarning(true);
         } catch (FileOpenException ex2) {
-            //
+            showFailureWarning(true);
         } catch (FileSafetyException ex3) {
-            //
+            showFailureWarning(true);
         }
+    }
+
+    showFailureWarning(wasLoading) {
+        """
+        <<formatTitle('OOPS!')>>
+
+        Something went wrong <<wasLoading ? 'loading' : 'saving'>>
+        your settings and preferences!\b
+
+        If you are using an online interpreter, your browser might not
+        be allowing this webpage to save and load local files. The local
+        storage allotted to this webpage might also be full.\b
+
+        If you are playing offline, then your interpreter might be
+        restricting read/write capabilities for games, or the game
+        file's location might have restricted permissions.
+
+        <<wait for player>>
+        """;
     }
 
     hasWrittenAnything = nil
@@ -505,11 +558,11 @@ transient prologuePrefCore: InitObject {
             
             prefsTextFile.closeFile();
         } catch (FileNotFoundException ex1) {
-            //
+            showFailureWarning(nil);
         } catch (FileOpenException ex2) {
-            //
+            showFailureWarning(nil);
         } catch (FileSafetyException ex3) {
-            //
+            showFailureWarning(nil);
         }
     }
 
@@ -519,7 +572,8 @@ transient prologuePrefCore: InitObject {
         following file:\n
         <tt><<prologuePrefCore.fileName>></tt>\b
         You can also edit this file directly!\n
-        It should be in the same directory as the game file!
+        <i>(It should be in the same directory as the game file,
+        if you are using an offline interpreter!)</i>
         <<wait for player>>";
     }
 }
