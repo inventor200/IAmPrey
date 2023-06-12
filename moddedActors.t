@@ -5,7 +5,8 @@
 
 modify Actor {
     bulk = actorBulk
-    bulkCapacity = actorCapacity
+    //bulkCapacity = actorCapacity
+    bulkCapacity = 2
     maxSingleBulk = 2
 
     outfit = nil

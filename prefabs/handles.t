@@ -1,8 +1,6 @@
-#define basicHandleProperties \
+#define basicHandleTabProperties \
     distOrder = 2 \
     isDecoration = true \
-    decorationActions = [Examine, Push, Pull, Taste, Lick] \
-    matchPhrases = ['handle', 'bar', 'latch'] \
     addParentVocab(_lexParent) { \
         if (_lexParent != nil) { \
             local lexParentWords = _lexParent.name.split(' '); \
@@ -16,7 +14,12 @@
             } \
             addVocab(';' + weakLexParentWords + ';'); \
         } \
-    } \
+    }
+
+#define basicHandleProperties \
+    basicHandleTabProperties \
+    decorationActions = [Examine, Push, Pull, Taste, Lick] \
+    matchPhrases = ['handle', 'bar', 'latch'] \
     dobjFor(Taste) { \
         verify() { } \
         check() { } \
@@ -96,18 +99,8 @@ DefineDistComponentFor(PullDoorHandle, Door)
     pushPullHandleProperties
 ;
 
-#define tinyDoorHandleProperties \
-    vocab = 'handle;metal[weak] pull[weak];latch' \
-    desc = "A tiny pull latch, which can open \
-        <<hatch == nil ? 'containers' : hatch.theName>>. " \
-    basicHandleProperties \
-    cannotPushMsg = '{That dobj} {is} not a push latch. ' \
-    cannotPullMsg = '{That dobj} {is} not a pull latch. ' \
-    isPullable = true \
+#define hatchHandlerProperties \
     hatch = nil \
-    getMiscInclusionCheck(obj, normalInclusionCheck) { \
-        return normalInclusionCheck && !obj.ofKind(Door) && (getLikelyHatch(obj) != nil); \
-    } \
     preCreate(_lexParent) { \
         hatch = getLikelyHatch(_lexParent); \
         if (hatch != nil) { \
@@ -120,10 +113,24 @@ DefineDistComponentFor(PullDoorHandle, Door)
     } \
     remapReach(action) { \
         return hatch; \
+    }
+
+#define tinyDoorHandleProperties \
+    vocab = 'handle;metal[weak] pull[weak];latch' \
+    desc = "A tiny pull latch, which can open \
+        <<hatch == nil ? 'containers' : hatch.theName>>. " \
+    basicHandleProperties \
+    cannotPushMsg = '{That dobj} {is} not a push latch. ' \
+    cannotPullMsg = '{That dobj} {is} not a pull latch. ' \
+    isPullable = true \
+    getMiscInclusionCheck(obj, normalInclusionCheck) { \
+        return normalInclusionCheck && !obj.ofKind(Door) && (getLikelyHatch(obj) != nil); \
     } \
+    hatchHandlerProperties \
     handleActions(Open, hatch)
 
 DefineDistComponent(TinyDoorHandle)
+    tinyDoorHandleProperties
     getLikelyHatch(obj) {
         if (obj.remapIn != nil) {
             if (obj.remapIn.contType == In && obj.remapIn.isOpenable) {
@@ -137,6 +144,4 @@ DefineDistComponent(TinyDoorHandle)
         }
         return nil;
     }
-
-    tinyDoorHandleProperties
 ;

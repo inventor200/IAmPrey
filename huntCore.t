@@ -414,7 +414,7 @@ huntCore: InitObject {
         if (!midGame) {
             skashek.initSeed();
             #if __DEBUG_SUIT
-            //
+            enviroSuitBag.moveInto(hangar);
             #else
             if (!gCatMode) scatterPieces();
             #endif
@@ -532,6 +532,10 @@ huntCore: InitObject {
     }
 
     scatterPieces() {
+        // Move bag
+        enviroSuitBag.moveInto(deliveryRoomStool);
+
+        // Scatter others
         local smallPlaces = new Vector(gearLocations.length);
         local largePlaces = new Vector(gearLocations.length);
         for (local i = 1; i <= gearLocations.length; i++) {

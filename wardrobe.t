@@ -48,6 +48,10 @@ class Outfit: Wearable {
         return 2;
     }
 
+    hideFromAll(action) {
+        return wornBy != nil;
+    }
+
     dobjFor(Wear) {
         verify() {
             if (gCatMode) {
@@ -78,6 +82,11 @@ class Outfit: Wearable {
     }
 }
 
+class ZippableGarment: FakeZippable {
+    isDecoration = true
+    decorationActions = [Examine, Zip, Unzip]
+}
+
 class CloneUniform: Outfit {
     vocab = 'uniform;battle;bdu dress'
 
@@ -105,7 +114,7 @@ class CloneUniform: Outfit {
         left breast pocket is a rank pin, and on the right is an ID number tag.'
 }
 
-class CloneUniformShirt: Decoration {
+class CloneUniformShirt: ZippableGarment {
     vocab = 'uniform shirt;battle dress bdu;top'
     desc = "A long-sleeve battle dress shirt, <<uniformSource.shirtDesc>>
     The sleeves are extra-long for a human, as they are meant to fit a clone. "
@@ -114,7 +123,7 @@ class CloneUniformShirt: Decoration {
     owner = (uniformSource.owner)
 }
 
-class CloneUniformPants: Decoration {
+class CloneUniformPants: ZippableGarment {
     vocab = 'uniform pants;battle dress bdu pair[n] of[prep];trousers bottoms'
     desc = "A pair of battle dress pants, <<uniformSource.camoDesc>>. "
 

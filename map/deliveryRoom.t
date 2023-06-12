@@ -336,7 +336,7 @@ deliveryRoom: Room { 'The Delivery Room'
     }
 }
 
-+Stool {
++deliveryRoomStool: Stool {
     homeDesc = "The stool sits in front of the makeup vanity,
         giving a nice viewing angle to the mirror. "
     homePhrase = 'in front of the makeup vanity'

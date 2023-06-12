@@ -75,6 +75,7 @@ hangar: Room { 'The Hangar'
     roomNavigationType = bigRoom
 }
 
+/*
 #if __DEBUG_SUIT
 +testWearObstruction: Thing {
     'wear obstruction'
@@ -82,6 +83,7 @@ hangar: Room { 'The Hangar'
     bulk = 2
 }
 #endif
+*/
 
 +airlockInsideEntry: PrefabDoor { 'the Emergency Airlock door'
     airlockDoorDesc

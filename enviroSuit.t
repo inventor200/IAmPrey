@@ -110,6 +110,376 @@ suitTracker: object {
     }
 }
 
+VerbRule(SlingOverShoulder)
+    (
+        'sling' singleDobj 'over' |
+        ('put'|'carry'|'drape') singleDobj ('on'|'over'|'across') |
+        'hang' singleDobj ('on'|'over'|'across'|'from')
+    )
+    ('my'|'the'|'prey\'s'|'preys'|'your'|) 'shoulder'
+    : VerbProduction
+    action = SlingOverShoulder
+    verbPhrase = 'sling/slinging (what) over the shoulder'
+    missingQ = 'what do you want to carry over the shoulder'
+;
+
+DefineTAction(SlingOverShoulder)
+;
+
+VerbRule(StrapOn)
+    'strap' 'on' singleDobj |
+    'strap' singleDobj 'on'
+    : VerbProduction
+    action = StrapOn
+    verbPhrase = 'strap/strapping on (what)'
+    missingQ = 'what do you want to strap on'
+;
+
+DefineTAction(StrapOn)
+;
+
+VerbRule(Unstrap)
+    'unstrap' singleDobj
+    : VerbProduction
+    action = Unstrap
+    verbPhrase = 'unstrap/unstrapping (what)'
+    missingQ = 'what do you want to unstrap'
+;
+
+DefineTAction(Unstrap)
+;
+
+VerbRule(Zip)
+    'zip' singleDobj |
+    'zip' ('up'|'closed'|'shut') singleDobj |
+    'zip' singleDobj ('up'|'closed'|'shut')
+    : VerbProduction
+    action = Zip
+    verbPhrase = 'zip/zipping up (what)'
+    missingQ = 'what do you want to zip up'
+;
+
+DefineTAction(Zip)
+;
+
+VerbRule(Unzip)
+    'unzip' singleDobj |
+    'zip' ('open') singleDobj |
+    'zip' singleDobj ('open') |
+    'unzip' ('open') singleDobj |
+    'unzip' singleDobj ('open')
+    : VerbProduction
+    action = Unzip
+    verbPhrase = 'unzip/unzipping up (what)'
+    missingQ = 'what do you want to unzip'
+;
+
+DefineTAction(Unzip)
+;
+
+modify Thing {
+    canSlingOverShoulder = nil
+    canStrapOn = nil
+    canZipMe = nil
+    shouldZipMe = (isOpenable && canZipMe)
+
+    cannotZipMsg =
+        '{I} {cannot} zip {that dobj}. '
+
+    shouldNotZipMsg =
+        '{I} {have} no reason to zip {that dobj}. '
+
+    cannotUnzipMsg =
+        '{I} {cannot} unzip {that dobj}. '
+
+    shouldNotUnzipMsg =
+        '{I} {have} no reason to unzip {that dobj}. '
+
+    dobjFor(SlingOverShoulder) {
+        verify() {
+            if (!canSlingOverShoulder) {
+                illogical('{That subj dobj} {is} not carried over a shoulder. ');
+            }
+        }
+        action() {
+            doInstead(Take, self);
+        }
+    }
+
+    dobjFor(StrapOn) {
+        verify() {
+            if (!canStrapOn) {
+                illogical('{I} {cannot} strap {that dobj} on. ');
+            }
+        }
+        action() {
+            doInstead(Wear, self);
+        }
+    }
+
+    dobjFor(Unstrap) {
+        verify() {
+            if (!canStrapOn) {
+                illogical('{I} {cannot} unstrap {that dobj}. ');
+            }
+        }
+        action() {
+            doInstead(Doff, self);
+        }
+    }
+
+    dobjFor(Zip) {
+        remap() {
+            if (!canZipMe && remapIn != nil && remapIn.canZipMe) {
+                return remapIn;
+            }
+            return self;
+        }
+        verify() {
+            if (!canZipMe) {
+                inaccessible(cannotZipMsg);
+            }
+            if (!isOpenable) {
+                illogical(
+                    '{That subj dobj} {is} already zipped up. '
+                );
+            }
+            else if (!shouldZipMe) {
+                illogical(shouldNotZipMsg);
+            }
+        }
+        action() {
+            doInstead(Close, self);
+        }
+    }
+
+    dobjFor(Unzip) {
+        remap() {
+            if (!canZipMe && remapIn != nil && remapIn.canZipMe) {
+                return remapIn;
+            }
+            return self;
+        }
+        verify() {
+            if (!canZipMe) {
+                inaccessible(cannotUnzipMsg);
+            }
+            if (isOpenable && isOpen) {
+                illogical(
+                    '{That subj dobj} {is} already unzipped. '
+                );
+            }
+            else if (!shouldZipMe) {
+                illogical(shouldNotUnzipMsg);
+            }
+        }
+        action() {
+            doInstead(Open, self);
+        }
+    }
+
+    okayOpenMsg = (canZipMe ?
+        'Unzipped. |{I} unzip{s/?ed} <<gActionListStr>>. ' :
+        'Opened. |{I} open{s/ed} <<gActionListStr>>. '
+    )
+    okayClosedMsg = (canZipMe ?
+        'Zipped. |{I} zip{s/?ed} up <<gActionListStr>>. ' :
+        'Done. |{I} close{s/d} <<gActionListStr>>. '
+    )
+
+    dobjFor(Close) {
+        report() {
+            say(okayClosedMsg);
+        }
+    }
+}
+
+class Zippable: Thing {
+    startUnzipped = nil
+
+    IncludeDistComponent(Zipper)
+}
+
+DefineDistSubComponentFor(ZippableInternals, Zippable, remapIn)
+    isOpen = nil
+    isOpenable = true
+    canZipMe = true
+    distOrder = 1
+
+    postCreate(_lexParent) {
+        bulkCapacity = _lexParent.bulkCapacity;
+        maxSingleBulk = _lexParent.maxSingleBulk;
+        isOpen = _lexParent.startUnzipped;
+    }
+;
+
+DefineDistComponent(Zipper)
+    vocab = 'zipper;;fly tab'
+    desc = "A small, metal zipper tab. "
+    basicHandleTabProperties
+    decorationActions = [Examine, Pull, Open, Close, Zip, Unzip]
+    matchPhrases = ['zipper', 'fly', 'tab']
+
+    hatchHandlerProperties
+
+    getLikelyHatch(obj) {
+        return obj.remapIn;
+    }
+
+    hasPrefabMatchWith(obj) {
+        if (!obj.ofKind(AbstractDistributedComponent)) return nil;
+        if (obj.originalPrototype == prototypeFakeZipper) return true;
+        return obj.originalPrototype == originalPrototype;
+    }
+
+    dobjFor(Open) { remap = (hatch) }
+    dobjFor(Close) { remap = (hatch) }
+    dobjFor(Zip) { remap = (hatch) }
+    dobjFor(Unzip) { remap = (hatch) }
+    dobjFor(Pull) {
+        remap = nil
+        preCond = [touchObj]
+        verify() { }
+        check() { }
+        action() {
+            if (hatch.isOpen) {
+                doInstead(Zip, hatch);
+            }
+            else {
+                doInstead(Unzip, hatch);
+            }
+        }
+    }
+;
+
+class FakeZippable: Thing {
+    startUnzipped = nil
+    canZipMe = true
+    shouldZipMe = nil
+
+    IncludeDistComponent(FakeZipper)
+}
+
+DefineDistComponent(FakeZipper)
+    vocab = 'zipper;;fly tab'
+    desc() { prototypeZipper.desc(); }
+    basicHandleTabProperties
+    decorationActions = [Examine, Pull, Open, Close, Zip, Unzip]
+    matchPhrases = ['zipper', 'fly', 'tab']
+
+    postCreate(_lexParent) {
+        addParentVocab(_lexParent);
+    }
+
+    remapReach(action) {
+        return lexicalParent;
+    }
+
+    getLikelyHatch(obj) {
+        return obj.remapIn;
+    }
+
+    hasPrefabMatchWith(obj) {
+        if (!obj.ofKind(AbstractDistributedComponent)) return nil;
+        if (obj.originalPrototype == prototypeZipper) return true;
+        return obj.originalPrototype == originalPrototype;
+    }
+
+    dobjFor(Open) { remap = (lexicalParent) }
+    dobjFor(Close) { remap = (lexicalParent) }
+    dobjFor(Zip) { remap = (lexicalParent) }
+    dobjFor(Unzip) { remap = (lexicalParent) }
+    dobjFor(Pull) {
+        remap = nil
+        preCond = [touchObj]
+        verify() { }
+        check() { }
+        action() {
+            if (hatch.isOpen) {
+                doInstead(Zip, lexicalParent);
+            }
+            else {
+                doInstead(Unzip, lexicalParent);
+            }
+        }
+    }
+;
+
+enviroSuitBag: BagOfHolding, Wearable, Zippable {
+    'envirosuit bag;enviro environment suit carryall[weak] duffel;kit carryall'
+    "A large duffel bag, which is designed to carry all the pieces of the envirosuit.
+    The full suit normally arrives packaged in this, if {i} had to take a guess. "
+
+    bulk = 2
+    bulkCapacity = actorCapacity
+    maxSingleBulk = 2
+    canSlingOverShoulder = true
+    canStrapOn = true
+    startUnzipped = true
+
+    hideFromAll(action) {
+        return wornBy != nil;
+    }
+
+    dobjFor(Take) {
+        action() {
+            inherited();
+            nestedAction(Wear, self);
+        }
+        report() { }
+    }
+    dobjFor(TakeFrom) {
+        action() {
+            inherited();
+            nestedAction(Wear, self);
+        }
+        report() { }
+    }
+
+    dobjFor(Wear) {
+        report() {
+            """
+            <<first time>>
+            <i>Excellent,</i> {i} think to {myself}, as {i} examine
+            the bag. Of course it's <i>empty</i>, but {i} won't
+            need to carry everything in my hands anymore.\b
+            There is a small victory in this.\b
+            <<only>>
+            {I} sling the envirosuit bag over my shoulder.
+            """;
+        }
+    }
+
+    dobjFor(Doff) {
+        report() {
+            "{I} slip off the envirosuit bag's strap. ";
+        }
+    }
+
+    affinityFor(obj) {
+        if (obj == fakeHelmet) return 0;
+        if (obj.ofKind(Outfit)) return 0;
+        if (obj.ofKind(EnviroSuitPart)) return 100;
+        return 50;
+    }
+}
++Fixture { 'strap'
+    "A long loop of synthetic fiber, to be put over the wearer's shoulder. "
+    owner = [enviroSuitBag]
+    ownerNamed = true
+    canSlingOverShoulder = true
+    canStrapOn = true
+    //subLocation = &remapOn
+
+    dobjFor(Take) { remap = enviroSuitBag }
+    dobjFor(TakeFrom) { remap = enviroSuitBag }
+    dobjFor(Wear) { remap = enviroSuitBag }
+    dobjFor(Doff) { remap = enviroSuitBag }
+    dobjFor(SlingOverShoulder) { remap = enviroSuitBag }
+    dobjFor(StrapOn) { remap = enviroSuitBag }
+    dobjFor(Unstrap) { remap = enviroSuitBag }
+}
+
 class EnviroSuitPart: Wearable {
     shortName = 'piece'
     piecesLabel = '<b>This is one of the pieces for the environment suit!</b>'
@@ -156,6 +526,11 @@ class EnviroSuitPart: Wearable {
         action() {
             inherited();
             suitTracker.markPiece(self);
+            if (!isIn(enviroSuitBag) && (
+                enviroSuitBag.isIn(gActor) || gActor.canReach(enviroSuitBag)
+            )) {
+                nestedAction(PutIn, self, enviroSuitBag);
+            }
         }
     }
 
@@ -238,17 +613,17 @@ fakeHelmet: Thing {
     }
 }
 
-enviroTorso: EnviroSuitPart { 'envirosuit torso;enviro environment suit chest;chestpiece chestplate piece part top shirt'
+enviroTorso: EnviroSuitPart, FakeZippable { 'envirosuit torso;enviro environment suit chest;chestpiece chestplate piece part top shirt'
     "An extra-long-sleeved, insulated, and sealed torso protector.
     A compact life support module is on the back. <<piecesLabel>> "
     bulk = 2
     shortName = 'torso'
 }
-++Decoration { 'life support;compact;back module'
++Decoration { 'life support;compact;back module'
     "A small box, containing compact filters, pumps, and an air supply. "
 }
 
-enviroPants: EnviroSuitPart { 'envirosuit bottoms;enviro environment suit pair[n] of[prep];bottom trousers pants leggings piece part'
+enviroPants: EnviroSuitPart, FakeZippable { 'envirosuit bottoms;enviro environment suit pair[n] of[prep];bottom trousers pants leggings piece part'
     "Thick, insulated pants, sealed for protection of the wearer. <<piecesLabel>> "
     bulk = 2
     plural = true
