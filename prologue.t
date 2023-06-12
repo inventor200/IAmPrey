@@ -218,13 +218,8 @@ prologueCore: InitObject {
         // Deep Rock Galactic loading screens. This also helps players who
         // still skipped the how-to-play guide.
         "<center><small><b>RANDOM TIP:</b></small></center>\n<<one of>>
-        Use a combination of the 
-        <<formatCommand('DROP ALL')>> command and the
-        <<formatCommand('WEAR ALL')>> command to clear your inventory,
-        and take any nearby suit pieces, all in one turn!\n
-        Though you technically can't wear any suit pieces before you're in the
-        emergency airlock, you can still pick them up with the
-        <<formatCommand('WEAR ALL')>> command!
+        As long as the <b>envirosuit bag</b> is within reach, any suit pieces
+        taken will be automatically stowed in the bag!
         <<or>>
         You can condense <<formatTheCommand('OPEN')>>,
         <<formatTheCommand('ENTER')>>,
@@ -236,8 +231,8 @@ prologueCore: InitObject {
         possibly control the connection between these two rooms!\n
         Use this to your advantage to double-back on him!
         <<or>>
-        New parkour routes can only be discovered with the
-        <<formatCommand('SEARCH')>> command when the route connects
+        New parkour routes can only be discovered with
+        <<formatTheCommand('SEARCH')>> when the route connects
         to the spot you currently stand! You cannot discover a route between a table and a
         fridge, if you still stand on the floor!
         <<or>>

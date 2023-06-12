@@ -49,8 +49,8 @@ parkourEvasionPage1: InstructionsPage {
         on various surfaces (such as <<formatInput('search table')>>).
         If the player can access the surface <b>from where they currently
         stand</b>, then the route will be added to their list of
-        <b>known parkour routes</b>, which can be reviewed with the
-        <<formatCommand('ROUTES all')>> command.
+        <b>known parkour routes</b>, which can be reviewed with
+        <<formatTheCommand('ROUTES all')>>.
         """;
     }
 }
@@ -59,8 +59,8 @@ parkourEvasionPage2: InstructionsPage {
     page() {
         """
         Note that only routes accessible from the player's
-        current location will appear when using the
-        <<formatCommand('routes')>> or <<formatCommand('routes all')>> command.\b
+        current location will appear when using
+        <<formatTheCommand('routes')>> or <<formatTheCommand('routes all')>>.\b
 
         <i>Use these hidden routes to find
         shortcuts and emergency escape routes!</i>

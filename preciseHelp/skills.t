@@ -53,8 +53,8 @@ doorsPage1: InstructionsPage {
 doorsPage2: InstructionsPage {
     page() {
         """
-        This can also be leveraged by using the
-        <<formatCommand('SLAM DOOR')>> command,
+        This can also be leveraged by using
+        <<formatTheCommand('SLAM DOOR')>>,
         which will create a loud sound.\b
 
         Additionally, if the player opens or closes doors in view of

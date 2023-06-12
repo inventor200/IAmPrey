@@ -120,7 +120,7 @@ DefineTIAction(DryOffWith)
 ;
 
 VerbRule(DrySelfWith)
-    ('dry' 'off'|'wipe' 'down') ('with'|'using'|'on') singleDobj
+    ('dry' ('myself'|'prey'|'yourself'|) 'off'|'wipe' ('myself'|'prey'|'yourself'|) 'down') ('with'|'using'|'on') singleDobj
     : VerbProduction
     action = DrySelfWith
     verbPhrase = 'dry/drying off (with what)'
@@ -131,6 +131,27 @@ DefineTAction(DrySelfWith)
     allowAll = nil
     execAction(cmd) {
         doNested(DryOffWith, gActor, gDobj);
+    }
+;
+
+VerbRule(DrySelfVague)
+    ('dry' ('myself'|'prey'|'yourself'|) 'off'|'wipe' ('myself'|'prey'|'yourself'|) 'down')
+    : VerbProduction
+    action = DrySelfVague
+    verbPhrase = 'dry/drying off'
+;
+
+DefineIAction(DrySelfVague)
+    execAction(cmd) {
+        local scope = Q.scopeList(gActor);
+        for (local i = 1; i <= scope.length; i++) {
+            local item = scope[i];
+            if (!item.canDryWithMe) continue;
+            doNested(DryOffWith, gActor, item);
+            return;
+        }
+
+        "{I} {do} not see anything in reach to dry off with. ";
     }
 ;
 
