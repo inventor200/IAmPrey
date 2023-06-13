@@ -1037,7 +1037,6 @@ modify Door {
     }
 
     dobjForReportSkashekOpen() {
-        addSFX(doorOpenSnd);
         "<.p><<skashek.getPeekHe(true)>> opens <<getTheVisibleName()>>! ";
     }
 

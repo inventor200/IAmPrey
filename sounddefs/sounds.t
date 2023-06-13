@@ -3,9 +3,14 @@ emergeSnd: GameSFX {
     volume = 60
 }
 
-doorOpenSnd: GameSFX {
-    sfxURL = 'sounds/dooropen.ogg'
-    volume = 30
+goodMoveSnd: GameSFX {
+    sfxURL = 'sounds/goodmove.ogg'
+    volume = 20
+}
+
+badMoveSnd: GameSFX {
+    sfxURL = 'sounds/badmove.ogg'
+    volume = 20
 }
 
 doorSlamShutSnd: GameSFX {
@@ -16,7 +21,51 @@ doorSlamShutSnd: GameSFX {
 
 doorShutCarefulSnd: GameSFX {
     sfxURL = 'sounds/doorcareful.ogg'
-    volume = 25
+    volume = 15
+}
+
+doorOpenSnd: DistanceSFX {
+    sfxURL = 'sounds/dooropen.ogg'
+    volume = 30
+    stackingPriority = 30
+
+    sourceVersion = (self)
+    closeVersion = doorOpenCloseSnd
+    distantVersion = doorOpenDistantSnd
+    muffledVersion = doorOpenMuffledSnd
+}
+
+doorOpenMuffledSnd: DistanceSFX {
+    sfxURL = 'sounds/dooropenmuffled.ogg'
+    volume = 85
+    stackingPriority = 27
+
+    sourceVersion = doorOpenSnd
+    closeVersion = doorOpenCloseSnd
+    distantVersion = doorOpenDistantSnd
+    muffledVersion = (self)
+}
+
+doorOpenCloseSnd: DistanceSFX {
+    sfxURL = 'sounds/dooropenaway.ogg'
+    volume = 20
+    stackingPriority = 24
+
+    sourceVersion = doorOpenSnd
+    closeVersion = (self)
+    distantVersion = doorOpenDistantSnd
+    muffledVersion = doorOpenMuffledSnd
+}
+
+doorOpenDistantSnd: DistanceSFX {
+    sfxURL = 'sounds/dooropendistant.ogg'
+    volume = 10
+    stackingPriority = 21
+
+    sourceVersion = doorOpenSnd
+    closeVersion = doorOpenCloseSnd
+    distantVersion = (self)
+    muffledVersion = doorOpenMuffledSnd
 }
 
 doorShutSnd: DistanceSFX {
@@ -33,7 +82,7 @@ doorShutSnd: DistanceSFX {
 doorShutMuffledSnd: DistanceSFX {
     sfxURL = 'sounds/doormuffled.ogg'
     volume = 100
-    stackingPriority = 26
+    stackingPriority = 25
 
     sourceVersion = doorShutSnd
     closeVersion = doorShutCloseSnd
@@ -44,7 +93,7 @@ doorShutMuffledSnd: DistanceSFX {
 doorShutCloseSnd: DistanceSFX {
     sfxURL = 'sounds/dooraway.ogg'
     volume = 50
-    stackingPriority = 24
+    stackingPriority = 22
 
     sourceVersion = doorShutSnd
     closeVersion = (self)
@@ -55,7 +104,7 @@ doorShutCloseSnd: DistanceSFX {
 doorShutDistantSnd: DistanceSFX {
     sfxURL = 'sounds/doordistant.ogg'
     volume = 35
-    stackingPriority = 22
+    stackingPriority = 19
 
     sourceVersion = doorShutSnd
     closeVersion = doorShutCloseSnd
@@ -77,7 +126,7 @@ RFIDUnlockSnd: DistanceSFX {
 RFIDUnlockMuffledSnd: DistanceSFX {
     sfxURL = 'sounds/rfidunlockmuffled.ogg'
     volume = 80
-    stackingPriority = 27
+    stackingPriority = 26
 
     sourceVersion = RFIDUnlockSnd
     closeVersion = RFIDUnlockCloseSnd
@@ -88,7 +137,7 @@ RFIDUnlockMuffledSnd: DistanceSFX {
 RFIDUnlockCloseSnd: DistanceSFX {
     sfxURL = 'sounds/rfidunlockaway.ogg'
     volume = 40
-    stackingPriority = 25
+    stackingPriority = 23
 
     sourceVersion = RFIDUnlockSnd
     closeVersion = (self)
@@ -99,7 +148,7 @@ RFIDUnlockCloseSnd: DistanceSFX {
 RFIDUnlockDistantSnd: DistanceSFX {
     sfxURL = 'sounds/rfidunlockdistant.ogg'
     volume = 40
-    stackingPriority = 23
+    stackingPriority = 20
 
     sourceVersion = RFIDUnlockSnd
     closeVersion = RFIDUnlockCloseSnd
