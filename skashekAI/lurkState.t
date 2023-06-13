@@ -555,6 +555,12 @@ skashekLurkState: SkashekAIState {
 
         local source = impact.sourceOrigin;
         local soundWasDoor = nil;
+        local soundWasParkour = (
+            impact.soundProfile == climbingNoiseProfile ||
+            impact.soundProfile == impactNoiseProfile ||
+            impact.soundProfile == hardImpactNoiseProfile
+        );
+
         if (source.ofKind(Door)) {
             soundWasDoor = true;
             if (source.getOutermostRoom().ofKind(HallwaySegment)) {
@@ -593,7 +599,8 @@ skashekLurkState: SkashekAIState {
         if (path.length == 1) return;
         local dist = path.length - 1;
 
-        if (dist >= lastSoundDistance) return;
+        // Prioritize closer sounds, but parkour sounds are much more useful
+        if (dist >= lastSoundDistance && !soundWasParkour) return;
 
         #if __DEBUG_SKASHEK_ACTIONS
         "<.p>
@@ -617,9 +624,39 @@ skashekLurkState: SkashekAIState {
                 }
             }
         }
+        else if (
+            impact.soundProfile == climbingNoiseProfile ||
+            impact.soundProfile == impactNoiseProfile
+        ) {
+            if (getRandomResult(4) > 1) {
+                skashek.mockPreyForAudibleClimbing();
+            }
+        }
+        else if (impact.soundProfile == hardImpactNoiseProfile) {
+            if (getRandomResult(4) > 1) {
+                skashek.mockPreyForAudibleFalling();
+            }
+        }
         
-        soundGoal = alternativeRoom;
-        lastSoundDistance = dist;
+        if (soundWasParkour) {
+            // Catching the player climbing is URGENT!!
+            #if __DEBUG_SKASHEK_ACTIONS
+            "<.p>
+            LURK: Heard climbing!\n
+            \t<<alternativeRoom.roomTitle>>
+            <.p>";
+            #endif
+            // Nevermind sound goal priority
+            soundGoal = nil;
+            lastSoundDistance = 1000;
+            // This has high priority now
+            temporaryGoal = alternativeRoom;
+            addSpeedBoost(excitementBonusTurns);
+        }
+        else {
+            soundGoal = alternativeRoom;
+            lastSoundDistance = dist;
+        }
     }
 
     onSightAfter(begins) {

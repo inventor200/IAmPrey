@@ -312,6 +312,65 @@ mockForRunningWaterMessage: IntercomMessage {
     interruptedMsg() { inPersonFullMsg(); }
 }
 
+// Mock player for audible climbing
+mockForAudibleClimbingMessage: IntercomMessage {
+    showStandardMessage() {
+        "<<one of>>You're making quite a lot of noise, Prey!<<or
+        >>Itsy bitsy Prey, climbing in my walls!<<or
+        >>Are you climbing in my walls, Prey?<<or
+        >>I think I hear a <i>really big mouse!</i><<or
+        >>You realize I can hear you, right?<<or
+        >>Ah, <i>there</i> you are...!<<at random>>";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage()>></q> "
+    
+    inPersonAudioMsg =
+    "<<skashek.getPeekHe(true)>> can be heard in the room:\b
+    <q><<showStandardMessage()>></q> "
+
+    inPersonFullMsg =
+    "<q><<showStandardMessage()>></q> <<skashek.getPeekHe()>>
+    <<one of>>exclaims<<or>>shouts<<or>>says<<at random>>. "
+    
+    inPersonStealthyMsg() { inPersonFullMsg(); }
+
+    interruptedMsg() { inPersonFullMsg(); }
+}
+
+// Mock player for audible falling
+mockForAudibleFallingMessage: IntercomMessage {
+    showStandardMessage() {
+        "<<one of>>Now don't break your<<one of>><<or>> fucking<<at random
+        >> <i>legs</i>, Prey!<<or
+        >>That fall sounded <i>painful</i>, Prey!<<or
+        >>That tech in your brain won't let you go so easily, Prey!<<or
+        >>Only <i>I</i> get to end you, Prey!</i><<or
+        >>You're going to need those legs, Prey!<<or
+        >>I wish you a swift recovery, Prey!<<or
+        >>You'll be slower in a cast, Prey!<<or
+        >>Every mistake brings me closer, Prey!<<at random>>";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage()>></q> "
+    
+    inPersonAudioMsg =
+    "<<skashek.getPeekHe(true)>> can be heard in the room:\b
+    <q><<showStandardMessage()>></q> "
+
+    inPersonFullMsg =
+    "<q><<showStandardMessage()>></q> <<skashek.getPeekHe()>>
+    <<one of>>exclaims<<or>>shouts<<or>>says<<at random>>. "
+    
+    inPersonStealthyMsg() { inPersonFullMsg(); }
+
+    interruptedMsg() { inPersonFullMsg(); }
+}
+
 // Punish player for having a weapon
 punishForWeaponMessage: IntercomMessage {
     causeForConcern = nil

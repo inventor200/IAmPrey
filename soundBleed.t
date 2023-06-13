@@ -3,9 +3,9 @@ enum bleedSource, wallMuffle, closeEcho, distantEcho;
 
 #ifdef __DEBUG
 #define __DEBUG_SOUND_PLAYER_SIDE nil
-#define __DEBUG_IGNORE_FAKE_SOUNDS nil
-#define __DEBUG_SOUND_SKASHEK_SIDE nil
-#define __SHOW_EMISSION_STARTS nil
+#define __DEBUG_IGNORE_FAKE_SOUNDS true
+#define __DEBUG_SOUND_SKASHEK_SIDE true
+#define __SHOW_EMISSION_STARTS true
 #else
 #define __DEBUG_SOUND_PLAYER_SIDE nil
 #define __DEBUG_IGNORE_FAKE_SOUNDS nil

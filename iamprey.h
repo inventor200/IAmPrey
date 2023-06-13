@@ -25,7 +25,7 @@ string template <<warning>> formatWarning;
 
 // Begin compile modes
 #define __IS_MAP_TEST nil
-#define __BANISH_SKASHEK true
+#define __BANISH_SKASHEK nil
 
 #ifdef __DEBUG
 
@@ -35,9 +35,9 @@ string template <<warning>> formatWarning;
 
              #define __SHOW_PROLOGUE nil
             #define __FAST_DIFFICULTY 4
-           #define __TEST_ROOM deliveryRoom
-          #define __SKASHEK_START nil
-         #define __SKASHEK_STATE nil
+           #define __TEST_ROOM exposedSupportBeam
+          #define __SKASHEK_START administration
+         #define __SKASHEK_STATE skashekLurkState
         #define __SKASHEK_FROZEN nil
        #define __SKASHEK_TOOTHLESS nil
       #define __SKASHEK_IMMOBILE nil

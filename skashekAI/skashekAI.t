@@ -1187,6 +1187,24 @@ modify skashek {
         concludeMockingOpportunity();
     }
 
+    // Player was heard climbing around
+    mockPreyForAudibleClimbing() {
+        if (!checkMockingOpportunity()) return;
+
+        reciteAnnouncement(mockForAudibleClimbingMessage);
+
+        concludeMockingOpportunity();
+    }
+
+    // Player was heard falling hard
+    mockPreyForAudibleFalling() {
+        if (!checkMockingOpportunity()) return;
+
+        reciteAnnouncement(mockForAudibleFallingMessage);
+
+        concludeMockingOpportunity();
+    }
+
     checkMockingOpportunity() {
         // Don't mock too often
         if (turnsBeforeNextMocking > 0) return nil;

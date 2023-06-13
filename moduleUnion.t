@@ -164,6 +164,7 @@ modify Thing {
         actor.addExhaustion(1);
 
         if (gActorIsCat) return; // Cats are silent!
+        if (path.isHarmful) return; // We are handling this elsewhere
         if (path.direction == parkourDownDir) {
             soundBleedCore.createSound(
                 impactNoiseProfile,
