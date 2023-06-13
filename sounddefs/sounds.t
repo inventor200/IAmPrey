@@ -1,16 +1,19 @@
 emergeSnd: GameSFX {
     sfxURL = 'sounds/emerge.ogg'
     volume = 60
+    antiDrowningFactor = 100
 }
 
 goodMoveSnd: GameSFX {
     sfxURL = 'sounds/goodmove.ogg'
-    volume = 20
+    volume = 10
+    antiDrowningFactor = 100
 }
 
 badMoveSnd: GameSFX {
     sfxURL = 'sounds/badmove.ogg'
     volume = 20
+    antiDrowningFactor = 100
 }
 
 doorSlamShutSnd: GameSFX {

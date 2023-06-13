@@ -35,15 +35,15 @@ string template <<warning>> formatWarning;
 
              #define __SHOW_PROLOGUE nil
             #define __FAST_DIFFICULTY 4
-           #define __TEST_ROOM deliveryRoom
-          #define __SKASHEK_START southwestishHall
+           #define __TEST_ROOM breakroom
+          #define __SKASHEK_START southwestHall
          #define __SKASHEK_STATE skashekLurkState
         #define __SKASHEK_FROZEN nil
        #define __SKASHEK_TOOTHLESS nil
       #define __SKASHEK_IMMOBILE nil
-     #define __SKASHEK_NO_TARGET true
+     #define __SKASHEK_NO_TARGET nil
     #define __SKASHEK_ALLOW_TESTING_LURK true
-   #define __SKASHEK_ALLOW_TESTING_LURK_GOAL lifeSupportBottom
+   #define __SKASHEK_ALLOW_TESTING_LURK_GOAL breakroom
   #define __SKASHEK_ALLOW_TESTING_CHASE nil
  #define __ALLOW_CLS true
 #define __DEBUG_PREFS nil

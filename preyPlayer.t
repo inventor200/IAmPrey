@@ -140,6 +140,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
                     <q>Ugh... I <i>knew</i> something about this grow cycle
                     seemed wrong. I gotta save the log files, and make
                     sure I don't get another brain-death next time...</q> ";
+                    gAction.hadNegativeOutcome = true;
                     finishGameMsgSong(ftFailure, gEndingOptionsLoss);
                 }
             }
@@ -225,6 +226,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
         he mutters, waiting{dummy} for {me} to bleed out.
         <q>Ah well...maybe the <i>next</i> Prey will figure that out...</q>\b
         Dizziness soon takes hold, and {i} collapse.";
+        gAction.hadNegativeOutcome = true;
         finishGameMsgSong(ftDeath, gEndingOptionsLoss);
     }
 
@@ -256,6 +258,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
         attached. Cold rushes into the void, and {i} sink into searing pain.\b
         {My} head is too dizzy to pinpoint exactly <i>when</i>, but {my} life
         comes to an end. ";
+        gAction.hadNegativeOutcome = true;
         finishGameMsgSong(ftDeath, gEndingOptionsLoss);
     }
 

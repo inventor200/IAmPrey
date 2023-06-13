@@ -8,6 +8,7 @@
             "<.p>"; \
             response; \
             "<.p>"; \
+            gAction.hadNegativeOutcome = true; \
             finishGameMsgSong(ftDeath, gEndingOptionsLoss); \
         } \
     }

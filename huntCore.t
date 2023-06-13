@@ -884,6 +884,7 @@ modify Action {
     skashekActionIProp = nil
     skashekVisibilityIProp = nil
     skashekReportIProp = nil
+    hadNegativeOutcome = nil
 
     doIntransitiveSkashek() { }
     reportIntransitiveSkashek() { }
@@ -896,7 +897,7 @@ modify Action {
         // Map mode is done with everything frozen in time
         if (mapModeDatabase.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;
-            sfxPlayer.runSequence();
+            sfxPlayer.runSequence(actionFailed || hadNegativeOutcome);
             return;
         }
 
@@ -911,7 +912,8 @@ modify Action {
             huntCore.handleFreeTurn();
             huntCore.offerTrickAction();
         }
-        sfxPlayer.runSequence();
+
+        sfxPlayer.runSequence(actionFailed || hadNegativeOutcome);
 
         if (gHadRevokedFreeAction) libGlobal.totalTurns++;
 

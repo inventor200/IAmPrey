@@ -377,9 +377,17 @@ transient sfxPlayer: object {
         soundSequence.appendUnique(soundObj);
     }
 
-    runSequence() {
+    runSequence(wasBad) {
         if (!transMusicPlayer.allowSFX) return;
-        if (soundSequence.length == 0) return;
+        if (soundSequence.length == 0) {
+            if (wasBad) {
+                play(badMoveSnd);
+            }
+            else {
+                play(goodMoveSnd);
+            }
+            return;
+        }
 
         local sortedSequence = new Vector(soundSequence.length);
 
@@ -629,6 +637,13 @@ modify Restore {
 }
 
 finishGameMsgSong(msg, song, extra) {
+    if (gAction.hadNegativeOutcome) {
+        playSFX(badMoveSnd);
+    }
+    else {
+        //TODO: Have a specific victory sound?
+        playSFX(goodMoveSnd);
+    }
     changeSong(song);
     finishGameMsg(msg, extra);
 }
