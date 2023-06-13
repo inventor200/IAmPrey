@@ -10,7 +10,7 @@ doorOpenSnd: GameSFX {
 
 doorSlamShutSnd: GameSFX {
     sfxURL = 'sounds/doorslam.ogg'
-    volume = 85
+    volume = 65
     stackingPriority = 50
 }
 

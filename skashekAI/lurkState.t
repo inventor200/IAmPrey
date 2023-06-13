@@ -637,6 +637,11 @@ skashekLurkState: SkashekAIState {
                 skashek.mockPreyForAudibleFalling();
             }
         }
+        if (impact.soundProfile == flushingToiletNoiseProfile && temporaryGoal == nil) {
+            if (getRandomResult(3) > 1) {
+                skashek.mockPreyForFlushing();
+            }
+        }
         
         if (soundWasParkour) {
             // Catching the player climbing is URGENT!!
@@ -693,11 +698,20 @@ skashekLurkState: SkashekAIState {
             if (!begins) return;
             if (!skashek.didAnnouncementDuringTurn) {
                 if (skashek.hasPlayerInKillRoom()) {
-                    "<.p><q>You've made a <i>dire</i> mistake, Prey!</q>
-                    <<getPeekHe()>> cackles.
-                    <q><i>None</i> of your predecessors have
-                    found a way out of here! You've been cornered in
-                    a <b>kill room</b>!</q> ";
+                    local ploc = prey.location;
+                    if (ploc.ofKind(ParkourModule)) ploc = ploc.getStandardOn();
+                    if (ploc.ofKind(SubComponent)) ploc = ploc.lexicalParent;
+                    if (ploc.ofKind(PluralToilet)) {
+                        "<.p><q>What?</q> <<getPeekHe()>> jeers,
+                        <q>too much dignity to simply <i>shit yourself?!</i></q> ";
+                    }
+                    else {
+                        "<.p><q>You've made a <i>dire</i> mistake, Prey!</q>
+                        <<getPeekHe()>> cackles.
+                        <q><i>None</i> of your predecessors have
+                        found a way out of here! You've been cornered in
+                        a <b>kill room</b>!</q> ";
+                    }
                 }
                 else {
                     "<.p><q><<one of

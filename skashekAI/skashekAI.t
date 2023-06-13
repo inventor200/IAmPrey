@@ -604,6 +604,8 @@ modify skashek {
 
         // Player is on the floor
         if (playerLoc == om) return true;
+        // No mercy in kill rooms!!
+        if (hasPlayerInKillRoom()) return true;
 
         local onParkourPlat = nil;
         if (playerLoc.parkourModule != nil) {
@@ -1201,6 +1203,15 @@ modify skashek {
         if (!checkMockingOpportunity()) return;
 
         reciteAnnouncement(mockForAudibleFallingMessage);
+
+        concludeMockingOpportunity();
+    }
+
+    // Player was heard flushing toilet
+    mockPreyForFlushing() {
+        if (!checkMockingOpportunity()) return;
+
+        reciteAnnouncement(mockForFlushingMessage);
 
         concludeMockingOpportunity();
     }

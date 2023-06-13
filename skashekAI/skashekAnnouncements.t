@@ -371,6 +371,39 @@ mockForAudibleFallingMessage: IntercomMessage {
     interruptedMsg() { inPersonFullMsg(); }
 }
 
+// Mock player for flushing the toilet
+mockForFlushingMessage: IntercomMessage {
+    showStandardMessage() {
+        "<<one of>>Do I scare you enough to <<one of>>shit<<or>>piss<<at random>>
+        yourself, Prey?<<or
+        >>Our creators make a dollar while we do the crime, and
+        that's why we shit on company time!<<or
+        >>I would recommend a different sort of movement, Prey!<<or
+        >>Do you have that kind of time, Prey?</i><<or
+        >>At least you flush, Prey!<<or
+        >>What a sound to be making, Prey!<<or
+        >>I'll give you a reason to <i>really</i>
+        <<one of>>shit<<or>>piss<<at random>>, Prey!<<or
+        >>You cannot flush <i>all</i> of your problems away, Prey!<<shuffled>>";
+    }
+
+    overCommsMsg =
+    "<<skashek.getPeekHis(true)>> voice can be heard over the intercom:\b
+    <q><<showStandardMessage()>></q> "
+    
+    inPersonAudioMsg =
+    "<<skashek.getPeekHe(true)>> can be heard in the room:\b
+    <q><<showStandardMessage()>></q> "
+
+    inPersonFullMsg =
+    "<q><<showStandardMessage()>></q> <<skashek.getPeekHe()>>
+    <<one of>>exclaims<<or>>shouts<<or>>says<<at random>>. "
+    
+    inPersonStealthyMsg() { inPersonFullMsg(); }
+
+    interruptedMsg() { inPersonFullMsg(); }
+}
+
 // Punish player for having a weapon
 punishForWeaponMessage: IntercomMessage {
     causeForConcern = nil

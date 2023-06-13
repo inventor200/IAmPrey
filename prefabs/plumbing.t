@@ -1,3 +1,25 @@
+VerbRule(FlushToilet)
+    'flush' singleDobj
+    : VerbProduction
+    action = FlushToilet
+    verbPhrase = 'flush/flushing (what)'
+    missingQ = 'what do you want to flush'
+;
+
+DefineTAction(FlushToilet)
+;
+
+modify Thing {
+    dobjFor(FlushToilet) {
+        preCond = [touchObj]
+        verify() {
+            illogical(
+                '{I} {cannot} flush {that dobj}. '
+            );
+        }
+    }
+}
+
 class Sink: Fixture {
     vocab = 'sink;metal'
     desc = "A simple, metal sink. "
@@ -251,15 +273,47 @@ DefineDistComponentFor(ShowerHead, PluralShower)
     isDecoration = true
 ;
 
+flushingToiletNoiseProfile: SoundProfile {
+    'the muffled noise of a toilet flushing'
+    'the nearby noise of a toilet flushing'
+    'the reverberating noise of a toilet flushing'
+    strength = 4
+
+    afterEmission(room) {
+        say('<.p>(Emitted flushing toilet in <<room.roomTitle>>.)<.p>');
+    }
+}
+
 class PluralToilet: FakePlural, FixedPlatform {
     vocab = 'toilets;toilet[weak] metal one[weak] of[prep];seats toilet seat'
     desc = "A row of round, metal toilets. "
     betterStorageHeader
     fakeSingularPhrase = 'toilet'
+    isBoardable = true
+    canSitOnMe = true
 
-    contType = In
+    contType = On
+    //isSafeParkourPlatform = nil
+    //isHidingSpot = nil
 
     isLikelyContainer() {
         return true;
+    }
+
+    dobjFor(FlushToilet) {
+        verify() { }
+        check() { }
+        action() {
+            soundBleedCore.createSound(
+                flushingToiletNoiseProfile,
+                self,
+                getOutermostRoom(),
+                true
+            );
+        }
+        report() {
+            "<i>Fwoosh</i>, goes the toilet, with powerful (and <i>loud</i>)
+            bursts of water! ";
+        }
     }
 }

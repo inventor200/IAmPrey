@@ -81,7 +81,7 @@ doorUnlockBuzzProfile: SoundProfile {
     'the muffled, electronic buzz of <<theSourceName>> being unlocked'
     'the echoing, electronic buzz of <<theSourceName>> being unlocked'
     'the reverberating, electronic buzz of a door being unlocked'
-    strength = 2
+    strength = 3
     
     muffledSFXObject = RFIDUnlockMuffledSnd
     closeEchoSFXObject = RFIDUnlockCloseSnd
@@ -1130,9 +1130,9 @@ modify Door {
                 "<.p><<normalClosingMsg>>";
                 reportSenseAction(
                     doorShutSnd,
-                    doorShutSnd,
+                    doorShutCloseSnd,
                     '<.p><<normalClosingMsg>>',
-                    doorShutSnd
+                    doorShutMuffledSnd
                 );
             }
             else if (primedPlayerAudio == slamClosingSound) {
@@ -1208,7 +1208,7 @@ modify Door {
                 reportSenseAction(
                     doorOpenSnd,
                     doorOpenSnd,
-                    'I can hear <<getTheVisibleName()>> opening... ',
+                    '<.p>I can hear <<getTheVisibleName()>> opening... ',
                     doorOpenSnd
                 );
             }

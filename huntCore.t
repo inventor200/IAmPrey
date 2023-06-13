@@ -7,7 +7,7 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #define nestedSkashekAction(action, dobj, iobj) huntCore.doSkashekAction(action, dobj, iobj)
 
 #ifdef __DEBUG
-#define __DEBUG_SKASHEK_ACTIONS true
+#define __DEBUG_SKASHEK_ACTIONS nil
 #define __DEBUG_SUIT nil
 #define __DEBUG_SUIT_PLACEMENT nil
 #else
@@ -1038,17 +1038,34 @@ modify Door {
 
     dobjForReportSkashekOpen() {
         addSFX(doorOpenSnd);
-        "<<skashek.getPeekHe(true)>> opens <<getTheVisibleName()>>! ";
+        "<.p><<skashek.getPeekHe(true)>> opens <<getTheVisibleName()>>! ";
+    }
+
+    dobjForDoSkashekClose() {
+        inherited();
+        if (canPlayerSense()) {
+            local obj = getSoundSource();
+            gMessageParams(obj);
+            reportSenseAction(
+                doorShutSnd,
+                doorShutCloseSnd,
+                '<.p><<normalClosingMsg>>',
+                doorShutMuffledSnd
+            );
+        }
+        else {
+            emitSoundFromBothSides(doorSlamCloseNoiseProfile, nil);
+        }
     }
 
     dobjForReportSkashekClose() {
-        "<<skashek.getPeekHe(true)>> closes <<getTheVisibleName()>>
-        behind himself. ";
+        addSFX(doorShutSnd);
+        "<.p><<skashek.getPeekHe(true)>> closes <<getTheVisibleName()>> behind himself. ";
     }
 
     dobjForReportSkashekUnlock() {
         addSFX(RFIDUnlockSnd);
-        "There is an electronic buzzing sound,
+        "<.p>There is an electronic buzzing sound,
         as <<skashek.getPeekHe()>> unlocks <<getTheVisibleName()>>! ";
     }
 
@@ -1057,7 +1074,7 @@ modify Door {
             reportSenseAction(
                 RFIDUnlockSnd,
                 RFIDUnlockCloseSnd,
-                'I can hear <<getTheVisibleName()>> being unlocked... ',
+                '<.p>I can hear <<getTheVisibleName()>> being unlocked... ',
                 RFIDUnlockMuffledSnd
             );
         }

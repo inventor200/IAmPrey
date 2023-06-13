@@ -396,7 +396,7 @@ transient sfxPlayer: object {
         }
 
         for (local i = 1; i <= soundSequence.length; i++) {
-            play(soundSequence[i], 100, true);
+            play(soundSequence[i], 100, i > 1);
         }
 
         if (soundSequence.length > 0) {
