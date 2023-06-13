@@ -295,6 +295,7 @@ modify Undo {
 
 huntCore: InitObject {
     revokedFreeTurn = nil
+    hadNegativeOutcome = nil
     playerWasSeenEntering = nil
     playerWasSeenHiding = nil
     doorThatMovedOnItsOwn = nil
@@ -884,7 +885,6 @@ modify Action {
     skashekActionIProp = nil
     skashekVisibilityIProp = nil
     skashekReportIProp = nil
-    hadNegativeOutcome = nil
 
     doIntransitiveSkashek() { }
     reportIntransitiveSkashek() { }
@@ -897,7 +897,7 @@ modify Action {
         // Map mode is done with everything frozen in time
         if (mapModeDatabase.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;
-            sfxPlayer.runSequence(actionFailed || hadNegativeOutcome);
+            sfxPlayer.runSequence(actionFailed || huntCore.hadNegativeOutcome);
             return;
         }
 
@@ -913,11 +913,12 @@ modify Action {
             huntCore.offerTrickAction();
         }
 
-        sfxPlayer.runSequence(actionFailed || hadNegativeOutcome);
+        sfxPlayer.runSequence(actionFailed || huntCore.hadNegativeOutcome);
 
         if (gHadRevokedFreeAction) libGlobal.totalTurns++;
 
         huntCore.revokedFreeTurn = nil;
+        huntCore.hadNegativeOutcome = nil;
     }
 }
 

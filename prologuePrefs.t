@@ -588,7 +588,7 @@ VerbRule(TestDeath)
 
 DefineSystemAction(TestDeath)
     execAction(cmd) {
-        gAction.hadNegativeOutcome = true;
+        huntCore.hadNegativeOutcome = true;
         finishGameMsgSong(ftDeath, gEndingOptionsLoss);
     }
 ;

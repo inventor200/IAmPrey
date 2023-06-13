@@ -358,7 +358,7 @@ reservoir: Room { 'The Reactor Reservoir'
             He's shouting something, but {I} don't catch enough before
             {my} head slams into the hard floor.\b
             {I} don't wake back up. ";
-            gAction.hadNegativeOutcome = true;
+            huntCore.hadNegativeOutcome = true;
             finishGameMsgSong(ftDeath, gEndingOptionsLoss);
         }
         else if (checkBeingChased()) {

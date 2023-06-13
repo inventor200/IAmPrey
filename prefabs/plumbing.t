@@ -316,4 +316,17 @@ class PluralToilet: FakePlural, FixedPlatform {
             bursts of water! ";
         }
     }
+
+    iobjFor(PutIn) {
+        verify() {
+            illogical('{I} don\'t think {i} will... ');
+        }
+    }
+
+    remappingLookIn = true
+    dobjFor(LookIn) {
+        verify() {
+            illogical('{I} see nothing interesting in the toilet. ');
+        }
+    }
 }

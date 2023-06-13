@@ -462,6 +462,7 @@ deliveryRoom: Room { 'The Delivery Room'
     +objectName: ArtificialWomb { vocab \
         doAccident(actor, traveler, path) { \
             traveler.moveInto(deliveryRoom); \
+            huntCore.hadNegativeOutcome = true; \
             if (gCatMode) { \
                 "<.p>{I} tentatively step onto the frame of <<theName>>, \
                 but its springy design causes it to bounce slightly in \
