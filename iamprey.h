@@ -25,7 +25,7 @@ string template <<warning>> formatWarning;
 
 // Begin compile modes
 #define __IS_MAP_TEST nil
-#define __BANISH_SKASHEK nil
+#define __BANISH_SKASHEK true
 
 #ifdef __DEBUG
 
@@ -35,15 +35,15 @@ string template <<warning>> formatWarning;
 
              #define __SHOW_PROLOGUE nil
             #define __FAST_DIFFICULTY 4
-           #define __TEST_ROOM deliveryRoom
-          #define __SKASHEK_START southwestHall
-         #define __SKASHEK_STATE skashekLurkState
-        #define __SKASHEK_FROZEN true
+           #define __TEST_ROOM hangar
+          #define __SKASHEK_START nil
+         #define __SKASHEK_STATE nil
+        #define __SKASHEK_FROZEN nil
        #define __SKASHEK_TOOTHLESS nil
       #define __SKASHEK_IMMOBILE nil
      #define __SKASHEK_NO_TARGET nil
-    #define __SKASHEK_ALLOW_TESTING_LURK true
-   #define __SKASHEK_ALLOW_TESTING_LURK_GOAL breakroom
+    #define __SKASHEK_ALLOW_TESTING_LURK nil
+   #define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
   #define __SKASHEK_ALLOW_TESTING_CHASE nil
  #define __ALLOW_CLS true
 #define __DEBUG_PREFS nil
@@ -73,6 +73,7 @@ string template <<warning>> formatWarning;
 #define gSkashekName skashek.globalParamName
 #define gCatName (huntCore.printApologyNoteForPG())
 #define gCatNickname (huntCore.printApologyNoteForPG(true))
+#include "invSoundCore.t"
 #include "moddedActors.t"
 #include "cat.t"
 #include "preyPlayer.t"

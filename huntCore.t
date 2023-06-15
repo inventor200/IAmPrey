@@ -8,7 +8,7 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 
 #ifdef __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS nil
-#define __DEBUG_SUIT nil
+#define __DEBUG_SUIT true
 #define __DEBUG_SUIT_PLACEMENT nil
 #else
 #define __DEBUG_SKASHEK_ACTIONS nil
@@ -894,6 +894,10 @@ modify Action {
     }
 
     turnSequence() {
+        // If the player tried wearing the suit at the wrong time,
+        // reset the explanation status.
+        suitWearingRuleHandler.reset();
+
         // Map mode is done with everything frozen in time
         if (mapModeDatabase.inMapMode || gAction.actionFailed) {
             revokedFreeTurn = nil;

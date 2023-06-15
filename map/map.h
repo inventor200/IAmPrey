@@ -25,3 +25,6 @@
 #include "freezer.t"
 #include "reservoir.t"
 #include "ventilationNode.t"
+#ifdef __DEBUG
+#include "testArea.t"
+#endif

@@ -168,3 +168,33 @@ ventCloseSnd: GameSFX {
     sfxURL = 'sounds/ventclose.ogg'
     volume = 50
 }
+
+skinCheckSnd: GameSFX {
+    sfxURL = 'sounds/skincheck.ogg'
+    volume = 20
+    antiDrowningFactor = 50
+}
+
+skinStowSnd: skinCheckSnd {
+    sfxURL = 'sounds/skinstow.ogg'
+}
+
+bagCheckSnd: skinCheckSnd {
+    sfxURL = 'sounds/bagcheck.ogg'
+}
+
+bagStowSnd: skinCheckSnd {
+    sfxURL = 'sounds/bagstow.ogg'
+}
+
+clothCheckSnd: skinCheckSnd {
+    sfxURL = 'sounds/clothcheck.ogg'
+}
+
+clothStowSnd: skinCheckSnd {
+    sfxURL = 'sounds/clothstow.ogg'
+}
+
+suitPartStowSnd: skinCheckSnd {
+    sfxURL = 'sounds/getsuitpart.ogg'
+}

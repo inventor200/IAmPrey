@@ -82,6 +82,20 @@ class Outfit: Wearable {
     }
 }
 
+modify Actor {
+    isNaked() {
+        for (local i = 1; i <= contents.length; i++) {
+            local item = contents[i];
+            if (item == enviroSuitBag) continue;
+            if (!item.isWearable) continue;
+            if (item.wornBy != self) continue;
+            return nil;
+        }
+
+        return true;
+    }
+}
+
 class ZippableGarment: FakeZippable {
     isDecoration = true
     decorationActions = [Examine, Zip, Unzip]
@@ -90,6 +104,7 @@ class ZippableGarment: FakeZippable {
 class CloneUniform: Outfit {
     vocab = 'uniform;battle;bdu dress'
 
+    aName = 'a uniform'
     headerName = 'combat uniform'
     headerPunctuation = ','
 

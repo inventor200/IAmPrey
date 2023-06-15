@@ -10,15 +10,101 @@ suitTracker: object {
     ])
     gatheredPieces = static new Vector(8)
     discoveredPieces = static new Vector(8)
+    foundFakeHelmet = nil
+    firstHelmetFound = nil
+
+    findHelmet(helmet) {
+        if (firstHelmetFound) return;
+        firstHelmetFound = helmet;
+    }
+
+    isFirstHelmet(helmet) {
+        if (firstHelmetFound == nil) return true;
+        if (!allowFakeHilarity()) {
+            return helmet == enviroHelmet;
+        }
+        return firstHelmetFound == helmet;
+    }
+
+    getHelmetSortingOrder(helmet) {
+        return isFirstHelmet(helmet) ? 1 : 10;
+    }
+
+    getHelmetIndex(helmet) {
+        if (firstHelmetFound == nil) return 1;
+        if (!allowFakeHilarity()) {
+            return (helmet == enviroHelmet) ? 1 : 3;
+        }
+        return (firstHelmetFound == helmet) ? 1 : 2;
+    }
+
+    getHelmetShortName(helmet) {
+        switch (getHelmetIndex(helmet)) {
+            default:
+                return 'helmet';
+            case 2:
+                return 'other helmet';
+            case 3:
+                return 'fake helmet';
+        }
+    }
+
+    getTheHelmetName(helmet) {
+        switch (getHelmetIndex(helmet)) {
+            default:
+                return 'the envirosuit helmet';
+            case 2:
+                return 'the other helmet';
+            case 3:
+                return 'the fake helmet';
+        }
+    }
+
+    getAHelmetName(helmet) {
+        switch (getHelmetIndex(helmet)) {
+            default:
+                return 'an envirosuit helmet';
+            case 2:
+                return 'another helmet';
+            case 3:
+                return 'a fake helmet';
+        }
+    }
+
+    foundRealHelmet() {
+        return enviroHelmet.moved;
+    }
+
+    allowFakeHilarity() {
+        return !(fakeHelmet.isRevealedFake || foundRealHelmet());
+    }
 
     getCount() {
-        return gatheredPieces.length;
+        local startingCount = gatheredPieces.length;
+        if (allowFakeHilarity() && foundFakeHelmet && !enviroHelmet.seen) {
+            // Only let the fake helmet increase the count if it's the only
+            // helmet we've seen so far. If we find 2 helmets, then just
+            // count 1.
+            startingCount++;
+        }
+        return startingCount;
+    }
+
+    getFullCount() {
+        return gatheredPieces.length +
+            (foundFakeHelmet ? 1 : 0);
     }
 
     markPiece(piece) {
-        local oldCount = getCount();
-        gatheredPieces.appendUnique(piece);
-        local newCount = getCount();
+        if (piece == enviroHelmet || piece == fakeHelmet) findHelmet(piece);
+        local oldCount = getFullCount();
+        if (piece != fakeHelmet) {
+            gatheredPieces.appendUnique(piece);
+        }
+        else if (allowFakeHilarity()) {
+            foundFakeHelmet = true;
+        }
+        local newCount = getFullCount();
         if (oldCount != newCount) {
             discoveredPieces.append(piece);
             if (announceDaemon != nil) return;
@@ -34,7 +120,8 @@ suitTracker: object {
             return;
         }
         local strList = 'the ' + makeListStr(valToList(discoveredPieces), &shortName, 'and');
-        local numLeft = getNumberLeft();
+        local numLeft = 7 - getCount();
+        if (numLeft < 0) numLeft = 0;
         local toGoPhrase = 'That\'s all of them! {I} must enter the Emergency Airlock!!
             {I} cannot allow <<gSkashekName>> to stop me now! {My} victory is so close!\b
             <i>(Set your compass by typing in
@@ -44,7 +131,7 @@ suitTracker: object {
         if (numLeft > 0) {
             local pieceNoun = 'piece';
             if (numLeft != 1) pieceNoun += 's';
-            toGoPhrase = 'Only ' + spellNumber(7 - getCount()) +
+            toGoPhrase = 'Only ' + spellNumber(numLeft) +
                 ' more envirosuit ' + pieceNoun + ' to go!';
         }
         say('<.p><b>{I} found ' + strList + '!</b>\b' + toGoPhrase + '<.p>');
@@ -56,37 +143,28 @@ suitTracker: object {
         announceDaemon = nil;
     }
 
-    getNumberLeft() {
-        return 7 - getCount();
-    }
-
     getProgressLists() {
         local strBfr = new StringBuffer(18);
-        local inventory = valToList(gPlayerChar.contents);
 
         local carriedParts = [];
         local partsFound = [];
         local partsRemaining = [];
-        local indexRem = 0;
-        
-        for (local i = 1; i <= inventory.length; i++) {
-            local obj = inventory[i];
-            if (!obj.ofKind(EnviroSuitPart)) continue;
-            carriedParts += obj;
+
+        for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+            local piece = suitTracker.missingPieces[i];
+            if (piece.isIn(gPlayerChar) || piece.isWornBy(gPlayerChar)) {
+                carriedParts += piece;
+            }
+            else if (gatheredPieces.indexOf(piece) != nil) {
+                partsFound += piece;
+            }
+            else {
+                partsRemaining += piece;
+            }
         }
-        for (local i = 1; i <= gatheredPieces.length; i++) {
-            local obj = gatheredPieces[i];
-            indexRem = carriedParts.indexOf(obj);
-            if (indexRem != nil) continue;
-            partsFound += obj;
-        }
-        for (local i = 1; i <= missingPieces.length; i++) {
-            local obj = missingPieces[i];
-            indexRem = carriedParts.indexOf(obj);
-            if (indexRem != nil) continue;
-            indexRem = partsFound.indexOf(obj);
-            if (indexRem != nil) continue;
-            partsRemaining += obj;
+
+        if (allowFakeHilarity() && foundFakeHelmet) {
+            partsFound += fakeHelmet;
         }
 
         if (carriedParts.length > 0) {
@@ -196,6 +274,7 @@ modify Thing {
         '{I} {have} no reason to unzip {that dobj}. '
 
     dobjFor(SlingOverShoulder) {
+        preCond = [touchObj]
         verify() {
             if (!canSlingOverShoulder) {
                 illogical('{That subj dobj} {is} not carried over a shoulder. ');
@@ -207,6 +286,7 @@ modify Thing {
     }
 
     dobjFor(StrapOn) {
+        preCond = [touchObj]
         verify() {
             if (!canStrapOn) {
                 illogical('{I} {cannot} strap {that dobj} on. ');
@@ -218,6 +298,7 @@ modify Thing {
     }
 
     dobjFor(Unstrap) {
+        preCond = [touchObj]
         verify() {
             if (!canStrapOn) {
                 illogical('{I} {cannot} unstrap {that dobj}. ');
@@ -229,6 +310,7 @@ modify Thing {
     }
 
     dobjFor(Zip) {
+        preCond = [touchObj]
         remap() {
             if (!canZipMe && remapIn != nil && remapIn.canZipMe) {
                 return remapIn;
@@ -254,6 +336,7 @@ modify Thing {
     }
 
     dobjFor(Unzip) {
+        preCond = [touchObj]
         remap() {
             if (!canZipMe && remapIn != nil && remapIn.canZipMe) {
                 return remapIn;
@@ -417,21 +500,30 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     canStrapOn = true
     startUnzipped = true
 
+    // After the player picks up the bag, any time
+    // inventory is checked and the bag is not in inventory BUT
+    // IS IN REACH, then it will also be automatically checked.
+    // However, we are only going to support this AFTER the player
+    // picks up the bag for the first time, so we do not accidentally
+    // create the suspicion that the bag never needs to be carried,
+    // if the player starts the game by checking inventory.
+    isUnited = nil
+    markUnited() {
+        isUnited = true;
+    }
+
     hideFromAll(action) {
-        return wornBy != nil;
+        //if (gActionIs(Wear)) return true;
+        //return wornBy != nil;
+        return true;
     }
 
     dobjFor(Take) {
         action() {
             inherited();
-            nestedAction(Wear, self);
-        }
-        report() { }
-    }
-    dobjFor(TakeFrom) {
-        action() {
-            inherited();
-            nestedAction(Wear, self);
+            if (gAction.parentAction == nil) {
+                nestedAction(Wear, self);
+            }
         }
         report() { }
     }
@@ -439,10 +531,12 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     dobjFor(Wear) {
         report() {
             """
-            <<first time>>
-            <i>Excellent,</i> {i} think to {myself}, as {i} examine
-            the bag. Of course it's <i>empty</i>, but {i} won't
-            need to carry everything in my hands anymore.\b
+            <<first time>><.p><<markUnited()>><i>Excellent,</i>
+            {i} think to {myself}, as {i} examine
+            the bag.
+            <<if remapIn.contents.length == 0
+            >>Of course it's <i>empty</i>, but {i} won't
+            need to carry everything in my hands anymore.\b<<end>>
             There is a small victory in this.\b
             <<only>>
             {I} sling the envirosuit bag over my shoulder.
@@ -463,13 +557,16 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
         return 50;
     }
 }
-+Fixture { 'strap'
++enviroSuitBagStrap: Fixture { 'strap'
     "A long loop of synthetic fiber, to be put over the wearer's shoulder. "
     owner = [enviroSuitBag]
     ownerNamed = true
     canSlingOverShoulder = true
     canStrapOn = true
-    //subLocation = &remapOn
+
+    hideFromAll(action) {
+        return enviroSuitBag.hideFromAll(action);
+    }
 
     dobjFor(Take) { remap = enviroSuitBag }
     dobjFor(TakeFrom) { remap = enviroSuitBag }
@@ -480,25 +577,429 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     dobjFor(Unstrap) { remap = enviroSuitBag }
 }
 
-class EnviroSuitPart: Wearable {
+suitWearingRuleHandler: object {
+    isSuitingUp = nil
+    hasPreparedExplanation = nil
+    hasExplained = nil
+    hasDoneTakes = nil
+    suitPartsInAll = static new Vector(8)
+    suitPartsInBag = static new Vector(8)
+    suitPartsInInventory = static new Vector(8)
+    suitPartsNearby = static new Vector(8)
+
+    reset() {
+        isSuitingUp = nil;
+        hasPreparedExplanation = nil;
+        hasExplained = nil;
+        hasDoneTakes = nil;
+
+        if (suitPartsInAll.length > 0) {
+            suitPartsInAll.removeRange(1, -1);
+        }
+        if (suitPartsInBag.length > 0) {
+            suitPartsInBag.removeRange(1, -1);
+        }
+        if (suitPartsInInventory.length > 0) {
+            suitPartsInInventory.removeRange(1, -1);
+        }
+        if (suitPartsNearby.length > 0) {
+            suitPartsNearby.removeRange(1, -1);
+        }
+    }
+
+    prepareExplanation(suitingUp?, doffing?) {
+        if (hasPreparedExplanation) return;
+        hasPreparedExplanation = true;
+        isSuitingUp = suitingUp;
+
+        local matches = gCommand.dobjs;
+
+        for (local i = 1; i <= matches.length; i++) {
+            local obj = matches[i].obj;
+            if (!obj.ofKind(EnviroSuitPart)) continue;
+            if (obj.wornBy != nil && !doffing) continue;
+            if (obj.isIn(enviroSuitBag)) {
+                suitPartsInBag += obj;
+                suitPartsInAll += obj;
+            }
+            else if (obj.isIn(gPlayerChar)) {
+                suitPartsInInventory += obj;
+                suitPartsInAll += obj;
+            }
+            else if (gPlayerChar.canReach(obj)) {
+                suitPartsNearby += obj;
+            }
+        }
+    }
+
+    prepareAutoDoff() {
+        if (hasPreparedExplanation) return;
+        hasPreparedExplanation = true;
+
+        for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+            local obj = suitTracker.missingPieces[i];
+            if (obj.wornBy == gPlayerChar) {
+                suitPartsInInventory += obj;
+                suitPartsInAll += obj;
+            }
+        }
+    }
+
+    showExplanation(isTaking?, doffing?) {
+        if (!hasPreparedExplanation) return;
+        if (hasExplained) return;
+        hasExplained = true;
+
+        if (isSuitingUp) {
+            say('\n');
+        }
+        else {
+            if (isTaking) {
+                say('\n');
+            }
+            else {
+                say('\n' + EnviroSuitPart.doNotWearOutsideAirlockMsg + '\b');
+            }
+
+            if (suitPartsInBag.length > 0) {
+                say(
+                    'The <<makeListStr(valToList(suitPartsInBag), &shortName, 'and')>>
+                    <<suitPartsInBag.length > 1 ? 'are' : 'is'>>
+                    already in the bag, so
+                    <<suitPartsInBag.length > 1 ? 'they' : 'it'>>
+                    remain in there.
+                    \b'
+                );
+            }
+
+            if (suitPartsInInventory.length > 0 && !doffing) {
+                say(
+                    'The <<makeListStr(valToList(suitPartsInInventory), &shortName, 'and')>>
+                    <<suitPartsInInventory.length > 1 ? 'are' : 'is'>>
+                    already in my inventory.
+                    \b'
+                );
+            }
+        }
+    }
+
+    doTakes(doffing?) {
+        if (!hasPreparedExplanation) return;
+        if (hasDoneTakes) return;
+        hasDoneTakes = true;
+
+        local piecesToMove = new Vector(8);
+
+        local bagAvailable = gPlayerChar.canReach(enviroSuitBag);
+
+        for (local i = 1; i <= suitPartsInInventory.length; i++) {
+            local item = suitPartsInInventory[i];
+            local moving = true;
+            if (doffing) {
+                moving = (item.wornBy == gPlayerChar);
+            }
+            if (moving) piecesToMove.append(item);
+        }
+
+        if (!doffing) {
+            for (local i = 1; i <= suitPartsNearby.length; i++) {
+                piecesToMove.append(suitPartsNearby[i]);
+            }
+
+            if (isSuitingUp && bagAvailable) {
+                for (local i = 1; i <= suitPartsInBag.length; i++) {
+                    piecesToMove.append(suitPartsInBag[i]);
+                }
+            }
+        }
+
+        if (piecesToMove.length == 0) return;
+
+        if (!bagAvailable && !isSuitingUp && !doffing) {
+            say(
+                '{My} envirosuit bag cannot be reached, so the
+                <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>
+                <<piecesToMove.length > 1 ? 'are' : 'is'>>
+                going to remain here for the moment.
+                \b'
+            );
+            return;
+        }
+
+        local smallestBulkToCarry = 1;
+        local bulkToClear = 0;
+        local bulkToDoff = 0;
+
+        for (local i = 1; i <= piecesToMove.length; i++) {
+            local item = piecesToMove[i];
+            if (item.bulk > smallestBulkToCarry) {
+                smallestBulkToCarry = item.bulk;
+            }
+            if (!isSuitingUp) {
+                bulkToClear += item.bulk;
+            }
+            if (doffing) {
+                bulkToDoff += item.bulk;
+            }
+        }
+
+        local bulkDroppedFromHands = 0;
+        local bulkDroppedFromBag = 0;
+
+        local bulkAvailableInLocation =
+            gPlayerChar.location.bulkCapacity
+            - gPlayerChar.location.getCarriedBulk();
+        local bulkAvailableInHands =
+            gPlayerChar.bulkCapacity
+            - gPlayerChar.getCarriedBulk();
+        local bulkAvailableInBag = bagAvailable ?
+            (enviroSuitBag.remapIn.bulkCapacity
+            - enviroSuitBag.remapIn.getCarriedBulk()) : 0;
+        
+        local droppedItems = new Vector(16);
+
+        if (isSuitingUp) {
+            smallestBulkToCarry = 2;
+        }
+        // Make sure bag is free
+        else if (bulkAvailableInBag < bulkToClear && bagAvailable) {
+            local goalBulk = doffing ? bulkToDoff : bulkToClear;
+            for (local i = 1; i <= enviroSuitBag.remapIn.contents.length; i++) {
+                local item = enviroSuitBag.remapIn.contents[i];
+                if (item.bulk <= 0) continue;
+                if (item.isFixed) continue;
+                if (enviroSuitBag.affinityFor(item) > 90) continue;
+                if (item.bulk > smallestBulkToCarry) {
+                    smallestBulkToCarry = item.bulk;
+                }
+                droppedItems.append(item);
+                bulkDroppedFromBag += item.bulk;
+                if (bulkAvailableInBag + bulkDroppedFromBag >= goalBulk) {
+                    break;
+                }
+            }
+        }
+
+        local bulkToDiscard = 0;
+
+        if (!bagAvailable && doffing) {
+            // We don't have our bag, and we gotta put this somewhere
+            // so to the floor it goes.
+            for (local i = 1; i <= piecesToMove.length; i++) {
+                bulkToDiscard += piecesToMove[i].bulk;
+            }
+        }
+
+        // Make sure hands are free
+        if (bulkAvailableInHands < smallestBulkToCarry) {
+            for (local i = 1; i <= gPlayerChar.contents.length; i++) {
+                local item = gPlayerChar.contents[i];
+                if (item.wornBy == gPlayerChar) continue;
+                if (item.bulk <= 0) continue;
+                if (item == enviroSuitBag) continue;
+                if (item.isFixed) continue;
+                if (droppedItems.length > 0) {
+                    droppedItems.insertAt(1, item);
+                }
+                else {
+                    droppedItems.append(item);
+                }
+                bulkDroppedFromHands += item.bulk;
+                if (bulkAvailableInHands + bulkDroppedFromHands >= smallestBulkToCarry) {
+                    break;
+                }
+            }
+        }
+
+        local totalBulkToDrop = bulkDroppedFromBag + bulkDroppedFromHands + bulkToDiscard;
+
+        if (totalBulkToDrop > 0) {
+            // Make sure there's organizing room first
+            if (bulkAvailableInLocation < totalBulkToDrop) {
+                say(
+                    '{I} don\'t have enough room where {i} stand to drop some things,
+                    and clear some space in {my} inventory.\b'
+                );
+                return;
+            }
+
+            // Inventory cannot be dropped in the cooling duct
+            if (gPlayerChar.getOutermostRoom().ofKind(CoolingDuctSegment)) {
+                say(
+                    '{I}{\'m} too busy holding {myself} to the walls of the duct
+                    to move inventory items around.\b'
+                );
+                return;
+            }
+        }
+
+        local oldOpenStatus = enviroSuitBag.remapIn.isOpen;
+        if (!oldOpenStatus && bagAvailable) {
+            enviroSuitBag.remapIn.makeOpen(true);
+            say('(first opening <<enviroSuitBag.theName>>)\b');
+        }
+
+        if (droppedItems.length > 0) {
+            for (local i = 1; i <= droppedItems.length; i++) {
+                local item = droppedItems[i];
+                if (item.wornBy == gPlayerChar && doffing) {
+                    item.makeWorn(nil);
+                }
+                item.actionMoveInto(gPlayerChar.location);
+            }
+
+            say(
+                '{I} make some room by dropping
+                <<makeListStr(valToList(droppedItems), &theName, 'and')>>.
+                \b'
+            );
+        }
+
+        if (isSuitingUp) {
+            for (local i = 1; i <= piecesToMove.length; i++) {
+                local item = piecesToMove[i];
+                item.actionMoveInto(gPlayerChar);
+                suitTracker.markPiece(item);
+                item.makeWorn(gPlayerChar);
+            }
+
+            if (piecesToMove.length > 0) {
+                say(
+                    '{I} put on
+                    <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>.
+                    \b'
+                );
+            }
+
+            if (emergencyAirlock.allPartsInInventory()) {
+                say('<i>Okay, ready to leave!</i>\b');
+            }
+            else {
+                say('<i>{I} think {i}{\'m} missing some pieces...</i>\b');
+            }
+        }
+        else if (bagAvailable) {
+            for (local i = 1; i <= piecesToMove.length; i++) {
+                local item = piecesToMove[i];
+                if (item.wornBy == gPlayerChar && doffing) {
+                    item.makeWorn(nil);
+                }
+                item.actionMoveInto(enviroSuitBag.remapIn);
+                suitTracker.markPiece(item);
+            }
+
+            say(
+                '{I} put the
+                <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>
+                in the bag'
+            );
+
+            if (!oldOpenStatus) {
+                enviroSuitBag.remapIn.makeOpen(nil);
+                say(', and close it');
+            }
+
+            say('.\b');
+        }
+        else if (doffing) {
+            say(
+                '{My} bag isn\'t nearby, so {i} will need to leave the
+                <<piecesToMove.length > 1 ? 'pieces' : piecesToMove[1].name>>
+                here.\b'
+            );
+
+            // Discarding suit to the floor
+            for (local i = 1; i <= piecesToMove.length; i++) {
+                local item = piecesToMove[i];
+                if (item.wornBy == gPlayerChar && doffing) {
+                    item.makeWorn(nil);
+                }
+                item.actionMoveInto(gPlayerChar.location);
+            }
+
+            say(
+                '{I} take off
+                <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>.
+                From there, {i} put <<piecesToMove.length > 1 ? 'them' : 'it'>>
+                on the floor.\b'
+            );
+        }
+
+        if (enviroSuitBag.wornBy == nil && bagAvailable) {
+            if (!enviroSuitBag.isIn(gPlayerChar)) {
+                enviroSuitBag.actionMoveInto(gPlayerChar);
+            }
+            nestedAction(Wear, enviroSuitBag);
+        }
+
+        // Pick up dropped items
+        local recoveredItems = new Vector(4);
+
+        for (local i = 1; i <= droppedItems.length; i++) {
+            local item = droppedItems[i];
+            if (item.isIn(gPlayerChar)) continue;
+            bulkAvailableInHands =
+                gPlayerChar.bulkCapacity
+                - gPlayerChar.getCarriedBulk();
+            if (item.bulk > bulkAvailableInHands) continue;
+            item.actionMoveInto(gPlayerChar);
+            recoveredItems.append(item);
+        }
+
+        if (recoveredItems.length > 0) {
+            say(
+                '<.p>{I} pick
+                <<makeListStr(valToList(recoveredItems), &theName, 'and')>>
+                back up.\b'
+            );
+        }
+    }
+}
+
+class PossibleSuitComponent: Wearable {
+    shortName = 'piece'
+
+    getLocationString() {
+        local str = shortName + ' <b>(';
+        if (location.ofKind(Room)) {
+            str += location.objInPrep + ' ' + location.roomTitle;
+        }
+        else {
+            str += location.objInPrep + ' ' + location.theName +
+                ', in ' + getOutermostRoom().roomTitle;
+        }
+        return str + ')</b>';
+    }
+}
+
+class EnviroSuitPart: PossibleSuitComponent {
     shortName = 'piece'
     piecesLabel = '<b>This is one of the pieces for the environment suit!</b>'
-    wearingAll = (!gCatMode && gCommand.matchedAll)
+    wearingAll = (gCommand.matchedAll || gCommand.matchedMulti)
+
+    doNotWearOutsideAirlockMsg =
+        '{I} do not need to wear the suit right now,
+        as it would only slow me down.
+        {I} just need to have all the pieces{dummy} in {my} inventory,
+        before heading into the Emergency Airlock. {I} can put the suit
+        pieces on <i>after</i> the inner Airlock door is shut! '
+    
+    noteSeen() {
+        inherited();
+        suitTracker.markPiece(self);
+    }
 
     dobjFor(Wear) {
-        preCond = (wearingAll ? nil : [objHeld])
+        preCond = (wearingAll ? [touchObj] : [objHeld])
         verify() {
             if (wearingAll) {
                 logical;
             }
             else if (!gActor.isIn(emergencyAirlock)) {
-                illogical(
-                    '{I} do not need to wear the suit right now,
-                    as it would only slow me down.
-                    {I} just need to have all the pieces{dummy} in {my} inventory,
-                    before heading into the Emergency Airlock. {I} can put the suit
-                    pieces on <i>after</i> the inner Airlock door is shut! '
-                );
+                illogical(doNotWearOutsideAirlockMsg);
+            }
+            else {
+                inherited();
             }
         }
         check() {
@@ -509,7 +1010,78 @@ class EnviroSuitPart: Wearable {
         }
         action() {
             if (wearingAll) {
-                doInstead(Take, self);
+                suitWearingRuleHandler.prepareExplanation(gActor.isIn(emergencyAirlock));
+                suitWearingRuleHandler.showExplanation();
+                suitWearingRuleHandler.doTakes();
+                return;
+            }
+            inherited();
+        }
+        report() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(Doff) {
+        verify() {
+            if (wearingAll) {
+                logical;
+            }
+            else {
+                inherited();
+            }
+        }
+        check() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
+        action() {
+            if (wearingAll) {
+                suitWearingRuleHandler.prepareExplanation(nil, true);
+                suitWearingRuleHandler.showExplanation(true, true);
+                suitWearingRuleHandler.doTakes(true);
+                return;
+            }
+            inherited();
+        }
+        report() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
+    }
+
+    dobjFor(Drop) {
+        preCond = (wearingAll ? nil : [objNotWorn])
+        verify() {
+            if (wearingAll) {
+                logical;
+            }
+            else {
+                inherited();
+            }
+        }
+        check() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
+        action() {
+            if (wearingAll) {
+                //local firstOne = !suitWearingRuleHandler.hasPreparedExplanation;
+                suitWearingRuleHandler.prepareExplanation(nil, true);
+                suitWearingRuleHandler.showExplanation(true, true);
+                suitWearingRuleHandler.doTakes(true);
+                /*if (gActor.canReach(enviroSuitBag) && firstOne) {
+                    nestedAction(Drop, enviroSuitBag);
+                }*/
                 return;
             }
             inherited();
@@ -523,27 +1095,59 @@ class EnviroSuitPart: Wearable {
     }
 
     dobjFor(Take) {
+        verify() {
+            if (wearingAll) {
+                logical;
+            }
+            else {
+                inherited();
+            }
+        }
+        check() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
+        }
         action() {
+            if (wearingAll) {
+                // Taking for wearing is handled in the Wear logic
+                if (gActor.isIn(emergencyAirlock) && gAction.parentAction != nil) return;
+                // Otherwise
+                suitWearingRuleHandler.prepareExplanation();
+                suitWearingRuleHandler.showExplanation(true);
+                suitWearingRuleHandler.doTakes();
+                return;
+            }
             inherited();
             suitTracker.markPiece(self);
+            if (gActor.isIn(emergencyAirlock)) return;
             if (!isIn(enviroSuitBag) && (
                 enviroSuitBag.isIn(gActor) || gActor.canReach(enviroSuitBag)
             )) {
-                nestedAction(PutIn, self, enviroSuitBag);
+                nestedAction(PutIn, self, enviroSuitBag.remapIn);
             }
+        }
+        report() {
+            if (wearingAll) {
+                return;
+            }
+            inherited();
         }
     }
 
-    getLocationString() {
-        local str = shortName + ' <b>(';
-        if (location.ofKind(Room)) {
-            str += location.objInPrep + ' ' + location.roomTitle;
+    dobjFor(TakeFrom) {
+        verify() {
+            if (wearingAll) {
+                logical;
+            }
+            else {
+                inherited();
+            }
         }
-        else {
-            str += location.objInPrep + ' ' + location.theName +
-                ', in ' + getOutermostRoom().roomTitle;
-        }
-        return str + ')</b>';
+        check() { checkDobjTake(); }
+        action() { actionDobjTake(); }
+        report() { reportDobjTake(); }
     }
 
     #if __DEBUG_SUIT
@@ -551,13 +1155,24 @@ class EnviroSuitPart: Wearable {
     #endif
 }
 
+Test 'partialdoff' [
+    'take bag', 'w', 'drop bag', 'e',
+    'take helmet', 'e', 'drop helmet', 'w',
+    'take torso', 'e', 'drop torso',
+    'purloin stool',
+    'wear all', 'doff pieces', 'drop pieces', 'i'
+];
+
 enviroHelmet: EnviroSuitPart { 'envirosuit helmet;enviro environment suit;visor piece part'
     "A sealed helmet with a transparent visor. <<piecesLabel>> "
     bulk = 2
-    shortName = 'helmet'
+    theName = (suitTracker.getTheHelmetName(self))
+    aName = (suitTracker.getAHelmetName(self))
+    shortName = (suitTracker.getHelmetShortName(self))
+    listOrder = (suitTracker.getHelmetSortingOrder(self))
 }
 
-fakeHelmet: Thing {
+fakeHelmet: PossibleSuitComponent {
     vocab = enviroHelmet.vocab
     desc() {
         if (isRevealedFake) {
@@ -568,9 +1183,20 @@ fakeHelmet: Thing {
             enviroHelmet.desc();
         }
     }
-    bulk = 2
+    bulk = enviroHelmet.bulk
     trueVocab = 'fake helmet;envirosuit enviro environment suit;visor piece part'
     isRevealedFake = nil
+    theName = (suitTracker.getTheHelmetName(self))
+    aName = (suitTracker.getAHelmetName(self))
+    shortName = (suitTracker.getHelmetShortName(self))
+    listOrder = (suitTracker.getHelmetSortingOrder(self))
+
+    noteSeen() {
+        inherited();
+        if (!isRevealedFake) {
+            suitTracker.markPiece(self);
+        }
+    }
 
     paperMache = 'paper-m\u00E2ch\u00E9'
 
@@ -618,6 +1244,7 @@ enviroTorso: EnviroSuitPart, FakeZippable { 'envirosuit torso;enviro environment
     A compact life support module is on the back. <<piecesLabel>> "
     bulk = 2
     shortName = 'torso'
+    listOrder = 2
 }
 +Decoration { 'life support;compact;back module'
     "A small box, containing compact filters, pumps, and an air supply. "
@@ -630,28 +1257,33 @@ enviroPants: EnviroSuitPart, FakeZippable { 'envirosuit bottoms;enviro environme
     ambiguouslyPlural = true
     qualified = true
     shortName = 'bottoms'
+    listOrder = 3
 }
 
 enviroLeftGlove: EnviroSuitPart { 'envirosuit left glove;enviro environment suit;mitten mit mitt piece part'
     "A protective glove for the left hand, modified to fit longer fingers. <<piecesLabel>> "
     bulk = 1
     shortName = 'left glove'
+    listOrder = 4
 }
 
 enviroRightGlove: EnviroSuitPart { 'envirosuit right glove;enviro environment suit;mitten mit mitt piece part'
     "A protective glove for the right hand, modified to fit longer fingers. <<piecesLabel>> "
     bulk = 1
     shortName = 'right glove'
+    listOrder = 5
 }
 
 enviroLeftBoot: EnviroSuitPart { 'envirosuit left boot;enviro environment suit;shoe piece part'
     "A protective glove for the left hand, modified to fit longer fingers. <<piecesLabel>> "
     bulk = 1
     shortName = 'left boot'
+    listOrder = 6
 }
 
 enviroRightBoot: EnviroSuitPart { 'envirosuit right boot;enviro environment suit;shoe piece part'
     "A protective glove for the right hand, modified to fit longer fingers. <<piecesLabel>> "
     bulk = 1
     shortName = 'right boot'
+    listOrder = 7
 }

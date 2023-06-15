@@ -691,6 +691,9 @@ reachGhostTest_: Thing {
 }
 
 //TODO: Throw an error if link or path goes to a class, instead of object
+// (Hello from the future. What did you mean by this?)
+// OH!! If parkour links are set incorrectly, then they will point to a class,
+// and not an instance of an object
 
 #ifdef __DEBUG
 #define __PARKOUR_REACH_DEBUG nil
@@ -706,6 +709,64 @@ QParkour: Special {
     priority = 16
     active = true
 
+    isObjectHeldByOrComponentOfHeldBy(a, b) {
+        if (b == nil) return nil;
+        if (!b.ofKind(Actor)) return nil;
+        /*while (
+            (a.ofKind(SubComponent) || 
+            (a.location != nil && a.location.ofKind(SubComponent))) &&
+            a != nil
+        ) {
+            if (a.location != nil && a.location.ofKind(SubComponent)) {
+                a = a.location.lexicalParent;
+            }
+            else {
+                a = a.lexicalParent;
+            }
+        }
+        return a.isOrIsIn(b);*/
+        return simplifyComplexObject(a).isOrIsIn(b);
+    }
+
+    simplifyComplexObject(a) {
+        if (a.ofKind(Actor)) return a;
+        if (a.ofKind(ParkourModule)) return a;
+        local obj = a;
+        local keepLooping = true;
+        while (keepLooping) {
+            keepLooping = nil;
+            if (obj.ofKind(ParkourModule)) return obj;
+            if (obj.location == nil) return obj;
+            if (obj.location.ofKind(Actor)) return obj;
+            if (obj.location.parkourModule != nil) return obj;
+            if (obj.stagingLocation.parkourModule != nil) return obj;
+            //if (obj.location.ofKind(ParkourModule)) return obj;
+
+            if (obj.ofKind(SubComponent)) {
+                if (obj.lexicalParent == nil) return obj;
+                if (obj.lexicalParent.parkourModule != nil) return obj;
+                obj = obj.lexicalParent;
+                keepLooping = true;
+            }
+            else if (obj.location.ofKind(SubComponent)) {
+                obj = obj.location.lexicalParent;
+                keepLooping = true;
+            }
+        }
+        return obj;
+    }
+
+    debuggableSimplifyComplexObject(a) {
+        local oldObj = a;
+        local newObj = simplifyComplexObject(a);
+        if (oldObj != newObj) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(Simplified <<oldObj.theName>> to <<newObj.theName>>)\n');
+            #endif
+        }
+        return newObj;
+    }
+
     reachProblemVerify(a, b) {
         local issues = [];
 
@@ -717,15 +778,30 @@ QParkour: Special {
         }
 
         // Don't worry about room connections
-        //if (a.ofKind(Room) && b.ofKind(Room)) return issues;
+        if (a.ofKind(Room) && b.ofKind(Room)) return issues;
 
-        local aReach = a;
+        // It's just inventory
+        if (isObjectHeldByOrComponentOfHeldBy(a, b)) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(Item in an inventory; passing...)\n');
+            #endif
+            return issues;
+        }
+        if (isObjectHeldByOrComponentOfHeldBy(b, a)) {
+            #if __PARKOUR_REACH_DEBUG
+            extraReport('\n(Item in an inventory; passing...)\n');
+            #endif
+            return issues;
+        }
+
+        // Worry about everything else, though
+        local aReach = debuggableSimplifyComplexObject(a);
         local aItem = nil;
         local aLoc = nil;
         local aLocReach = nil;
         local doNotFactorJumpForA = nil;
 
-        local bReach = b;
+        local bReach = debuggableSimplifyComplexObject(b);
         local bItem = nil;
         local bLoc = nil;
         local bLocReach = nil;

@@ -144,6 +144,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
 
     travelerEntering(traveler, origin) {
         inherited(traveler, origin);
+        if (!traveler.isOrIsIn(gPlayerChar)) return;
         hasAllSuitParts = allPartsInInventory();
         local strBfr = new StringBuffer(32);
         strBfr.append(
@@ -156,11 +157,48 @@ emergencyAirlock: Room { 'The Emergency Airlock'
             {i} can leave!\b' + suitTracker.getProgressLists() + '<.p>';
     }
 
+    travelerLeaving(traveler, destination) {
+        inherited(traveler, destination);
+        if (!traveler.isOrIsIn(gPlayerChar)) return;
+        if (destination != hangar) return;
+        if (!wearingParts()) return;
+
+        //local canReachBag = gPlayerChar.canReach(enviroSuitBag);
+
+        /*for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+            local piece = suitTracker.missingPieces[i];
+            if (!piece.canReach(gPlayerChar)) continue;
+            if (canReachBag) {
+                nestedAction(PutIn, piece, enviroSuitBag);
+            }
+            else {
+                nestedAction(Drop, piece);
+            }
+            "\n";
+        }*/
+
+        addSFX(bagStowSnd);
+        suitWearingRuleHandler.prepareAutoDoff();
+        //suitWearingRuleHandler.prepareExplanation();
+        suitWearingRuleHandler.showExplanation(true, true);
+        suitWearingRuleHandler.doTakes(true);
+
+        "After all: {I} cannot risk damaging the suit, or letting it{dummy}
+        weigh {me} down.<.p>";
+    }
+
     allPartsInInventory() {
         for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
             if (!suitTracker.missingPieces[i].isIn(gPlayerChar)) return nil;
         }
         return true;
+    }
+
+    wearingParts() {
+        for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+            if (suitTracker.missingPieces[i].wornBy == gPlayerChar) return true;
+        }
+        return nil;
     }
 }
 
@@ -191,6 +229,19 @@ emergencyAirlock: Room { 'The Emergency Airlock'
             logical;
         }
         action() {
+            local needToWearList = [];
+
+            for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+                local piece = suitTracker.missingPieces[i];
+                if (piece.wornBy == gPlayerChar) continue;
+                needToWearList += piece;
+            }
+
+            if (needToWearList.length > 0) {
+                "<.p><i>({I} first put on the
+                <<makeListStr(valToList(needToWearList), &shortName, 'and')>>.)</i><.p>";
+            }
+
             epilogueCore.leaveFacility();
         }
         report() { }
