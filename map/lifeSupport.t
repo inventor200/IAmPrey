@@ -90,12 +90,26 @@ class CoolingDuctSegment: Room {
             exit;
         }
 
+        if (
+            gActionIs(Take) || gActionIs(TakeFrom) ||
+            gActionIs(Wear) || gActionIs(Doff) ||
+            gActionIs(PutIn) || gActionIs(PutOn)
+        ) {
+            "{I} need the use of all of {my} limbs to hold {myself} here.\b
+            {I}{'m} afraid if {i} rearrange my inventory <i>now</i>, {i}
+            will plummet into the freezing air below, which has no
+            visible escape routes. ";
+            exit;
+        }
+
         if (gActionIs(ClimbUpVague) || gActionIs(Jump)) {
             attemptVerticalTravel(upDir);
         }
         
-        if (gActionIs(ClimbDownVague) || gActionIs(ParkourClimbOffIntransitive) ||
-            gActionIs(ParkourJumpOffIntransitive) || gActionIs(JumpOffIntransitive)) {
+        if (
+            gActionIs(ClimbDownVague) || gActionIs(ParkourClimbOffIntransitive) ||
+            gActionIs(ParkourJumpOffIntransitive) || gActionIs(JumpOffIntransitive)
+        ) {
             attemptVerticalTravel(downDir);
         }
 
@@ -179,6 +193,107 @@ class CoolingDuctSegment: Room {
         }
         climbStreak = value;
         otherHalf.climbStreak = value;
+    }
+
+    getDroppedItemsRoom() {
+        if (!hasTravelConnectorTo(outDir)) return nil;
+        return out.destination;
+    }
+
+    clearHands(traveler) {
+        if (!gPlayerChar.isOrIsIn(traveler)) return;
+        local dropRoom = getDroppedItemsRoom();
+        if (dropRoom == nil) return;
+        local vec = dropRoom.droppedItemsVector;
+        if (vec == nil) return;
+
+        local bagAvailable = gPlayerChar.canReach(enviroSuitBag);
+        local bulkAvailableInBag = bagAvailable ?
+            (enviroSuitBag.remapIn.bulkCapacity
+            - enviroSuitBag.remapIn.getCarriedBulk()) : 0;
+        local extraBagBulk = 0;
+        
+        local handItems = new Vector(gPlayerChar.contents.length);
+        local baggedItems = new Vector(gPlayerChar.contents.length);
+
+        // Stuff what you can into the bag, and drop everything else.
+        for (local i = 1; i <= gPlayerChar.contents.length; i++) {
+            local item = gPlayerChar.contents[i];
+            if (item.wornBy != nil) continue;
+            if (item == enviroSuitBag) continue;
+            if (item.isFixed) continue;
+            if (bagAvailable && item.bulk + extraBagBulk <= bulkAvailableInBag) {
+                item.actionMoveInto(enviroSuitBag.remapIn);
+                baggedItems.append(item);
+                extraBagBulk += item.bulk;
+            }
+            else {
+                item.actionMoveInto(dropRoom);
+                handItems.append(item);
+                vec.appendUnique(item);
+            }
+        }
+
+        if (baggedItems.length + handItems.length > 0) {
+            "\b\^<<first time>>It looks like {i} will need fully free {my}
+            limbs to traverse the duct ahead, so <<only>>{i} ";
+        }
+
+        if (baggedItems.length > 0) {
+            "put <<makeListStr(valToList(baggedItems), &theName, 'and')>>
+            in the bag";
+        }
+        
+        if (handItems.length > 0) {
+            if (baggedItems.length > 0) {
+                ", and ";
+            }
+            "drop <<makeListStr(valToList(handItems), &theName, 'and')>>.\b";
+
+            "<<first time>>If {i} must, {i} can come back for
+            <<handItems.length > 1 ? 'these' : (handItems[1].plural ? 'these' : 'this')>>
+            later.\b<<only>>";
+        }
+        else if (baggedItems.length > 0) {
+            ".\b";
+        }
+
+        if (bagAvailable && enviroSuitBag.wornBy != gPlayerChar) {
+            nestedAction(Wear, enviroSuitBag);
+        }
+    }
+}
+
+class RoomConnectedToCoolingDuct: Room {
+    droppedItemsVector = perInstance(new Vector(8))
+
+    lookAroundWithin() {
+        inherited();
+        recoverHands();
+    }
+
+    recoverHands() {
+        if (droppedItemsVector == nil) return;
+        if (droppedItemsVector.length == 0) return;
+
+        local remainingItems = new Vector(droppedItemsVector.length);
+
+        for (local i = 1; i <= droppedItemsVector.length; i++) {
+            local item = droppedItemsVector[i];
+            // If the item was moved, then nevermind
+            if (!gPlayerChar.canReach(item)) continue;
+            if (item.isIn(gPlayerChar)) continue;
+
+            remainingItems.appendUnique(item);
+        }
+
+        if (remainingItems.length > 0) {
+            "<.p>{I} had to leave
+            <<makeListStr(valToList(remainingItems), &theName, 'and')>>
+            behind, earlier.<.p>";
+        }
+
+        droppedItemsVector.removeRange(1, -1);
     }
 }
 
@@ -320,7 +435,8 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
     decorationActions = [
         Examine, Open, Close, Enter, GoThrough,
         LookIn, PeekThrough, PeekInto,
-        Search, SearchClose, SearchDistant
+        Search, SearchClose, SearchDistant,
+        PutIn
     ]
     dobjFor(Close) asDobjFor(Open)
     dobjFor(Enter) asDobjFor(Open)
@@ -337,9 +453,14 @@ lifeSupportTop: Room { 'Life Support (Upper Level)'
             illogical(noDoorHereMsg);
         }
     }
+    iobjFor(PutIn) {
+        verify() {
+            illogical(noDoorHereMsg);
+        }
+    }
 }
 
-lifeSupportBottom: Room { 'Life Support (Lower Level)'
+lifeSupportBottom: RoomConnectedToCoolingDuct { 'Life Support (Lower Level)'
     "Machines, ducts, and pipes fill the room, and
     the floor is damp with residual water.\b
     To the <<hyperDir('east')>>, a door provides access to the Reservoir Strainer Stage.
@@ -395,6 +516,13 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
     dobjFor(Search) { remap = coolingDuctLowerOuterDoor }
     dobjFor(SearchClose) { remap = coolingDuctLowerOuterDoor }
     dobjFor(SearchDistant) { remap = coolingDuctLowerOuterDoor }
+    iobjFor(PutIn) {
+        verify() {
+            illogical(
+                '{I} do not want to lose {that dobj} in the duct. '
+            );
+        }
+    }
 }
 
 ++coolingDuctLowerOuterDoor: PrefabDoor {
@@ -417,8 +545,10 @@ lifeSupportBottom: Room { 'Life Support (Lower Level)'
         '<<one of>>{I} awkwardly<<or>>With difficulty, {i}<<at random>>{aac}
         prop{s/?ed} {myself} into position, and exit{s/ed} through <<theName>>'
 
-    travelDesc =
-        "<<standardExitMsg>>. "
+    travelDesc() {
+        insideCoolingDuctLower.clearHands(gActor);
+        "<<standardExitMsg>>. ";
+    }
 
     makeOpen(stat) {
         inherited(stat);
@@ -484,6 +614,19 @@ coolingDuctUpperOuterGrate: CoolingDuctGrate {
 
     mostLikelyDestination() {
         return lifeSupportBottom;
+    }
+
+    travelDesc() {
+        insideCoolingDuctUpper.clearHands(gActor);
+        inherited();
+    }
+
+    iobjFor(PutIn) {
+        verify() {
+            illogical(
+                '{I} do not want to lose {that dobj} in the duct. '
+            );
+        }
     }
 }
 

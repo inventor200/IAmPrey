@@ -46,7 +46,7 @@ serverRoomBottom: Room { 'Server Access'
 
 DefineDoorWestTo(utilityPassage, serverRoomBottom, 'the Server Access door')
 
-serverRoomTop: Room { 'The Chilled Server Room'
+serverRoomTop: RoomConnectedToCoolingDuct { 'The Chilled Server Room'
     "The room here would normally be engulfed in total darkness, if it weren't
     for light spilling in from the ladder, in addition to all the running lights
     of the surrounding server banks. <<dataCableAlcove.desc>>\b

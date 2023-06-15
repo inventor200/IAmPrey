@@ -9,6 +9,7 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 #ifdef __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS nil
 #define __DEBUG_SUIT true
+#define __DEBUG_SUIT_LOCATION lifeSupportBottom
 #define __DEBUG_SUIT_PLACEMENT nil
 #else
 #define __DEBUG_SKASHEK_ACTIONS nil
@@ -415,7 +416,7 @@ huntCore: InitObject {
         if (!midGame) {
             skashek.initSeed();
             #if __DEBUG_SUIT
-            enviroSuitBag.moveInto(hangar);
+            enviroSuitBag.moveInto(__DEBUG_SUIT_LOCATION);
             #else
             if (!gCatMode) scatterPieces();
             #endif

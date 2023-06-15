@@ -666,9 +666,9 @@ suitWearingRuleHandler: object {
             if (suitPartsInBag.length > 0) {
                 say(
                     'The <<makeListStr(valToList(suitPartsInBag), &shortName, 'and')>>
-                    <<suitPartsInBag.length > 1 ? 'are' : 'is'>>
+                    <<suitPartsInBag.length > 1 ? 'are' : (suitPartsInBag[1].plural ? 'are' : 'is')>>
                     already in the bag, so
-                    <<suitPartsInBag.length > 1 ? 'they' : 'it'>>
+                    <<suitPartsInBag.length > 1 ? 'they' : (suitPartsInBag[1].plural ? 'they' : 'it')>>
                     remain in there.
                     \b'
                 );
@@ -677,7 +677,7 @@ suitWearingRuleHandler: object {
             if (suitPartsInInventory.length > 0 && !doffing) {
                 say(
                     'The <<makeListStr(valToList(suitPartsInInventory), &shortName, 'and')>>
-                    <<suitPartsInInventory.length > 1 ? 'are' : 'is'>>
+                    <<suitPartsInInventory.length > 1 ? 'are' : (suitPartsInInventory[1].plural ? 'are' : 'is')>>
                     already in my inventory.
                     \b'
                 );
@@ -739,7 +739,7 @@ suitWearingRuleHandler: object {
             say(
                 '{My} envirosuit bag cannot be reached, so the
                 <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>
-                <<piecesToMove.length > 1 ? 'are' : 'is'>>
+                <<piecesToMove.length > 1 ? 'are' : (piecesToMove[1].plural ? 'are' : 'is')>>
                 going to remain here for the moment.
                 \b'
             );
@@ -943,7 +943,8 @@ suitWearingRuleHandler: object {
             say(
                 '{I} take off
                 <<makeListStr(valToList(piecesToMove), &shortName, 'and')>>.
-                From there, {i} put <<piecesToMove.length > 1 ? 'them' : 'it'>>
+                From there, {i} put
+                <<piecesToMove.length > 1 ? 'them' : (piecesToMove[1].plural ? 'them' : 'it')>>
                 on the floor.\b'
             );
         }
@@ -1142,10 +1143,11 @@ class EnviroSuitPart: PossibleSuitComponent {
                 suitWearingRuleHandler.doTakes();
                 return;
             }
+            local wasAlreadyInBag = isIn(enviroSuitBag);
             inherited();
             suitTracker.markPiece(self);
             if (gActor.isIn(emergencyAirlock)) return;
-            if (!isIn(enviroSuitBag) && (
+            if (!wasAlreadyInBag && (
                 enviroSuitBag.isIn(gActor) || gActor.canReach(enviroSuitBag)
             )) {
                 nestedAction(PutIn, self, enviroSuitBag.remapIn);
@@ -1174,17 +1176,17 @@ class EnviroSuitPart: PossibleSuitComponent {
     }
 
     #if __DEBUG_SUIT
-    location = hangar
+    location = __DEBUG_SUIT_LOCATION
     #endif
 }
 
-Test 'partialdoff' [
+/*Test 'partialdoff' [
     'take bag', 'w', 'drop bag', 'e',
     'take helmet', 'e', 'drop helmet', 'w',
     'take torso', 'e', 'drop torso',
-    //'purloin stool',
-    'wear all'//, 'doff pieces', 'drop pieces', 'i'
-];
+    'purloin stool',
+    'wear all', 'doff pieces', 'drop pieces', 'i'
+];*/
 
 enviroHelmet: EnviroSuitPart { 'envirosuit helmet;enviro environment suit;visor piece part'
     "A sealed helmet with a transparent visor. <<piecesLabel>> "
