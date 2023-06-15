@@ -16,6 +16,12 @@ badMoveSnd: GameSFX {
     antiDrowningFactor = 100
 }
 
+travelSnd: GameSFX {
+    sfxURL = 'sounds/travel.ogg'
+    volume = 5
+    antiDrowningFactor = 100
+}
+
 doorSlamShutSnd: GameSFX {
     sfxURL = 'sounds/doorslam.ogg'
     volume = 65

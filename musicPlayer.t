@@ -294,6 +294,7 @@ transient sfxPlayer: object {
     soundSequence = static new Vector()
 
     maxSequenceLength = 3
+    hadTravel = nil
 
     setAmbience(ambienceObj) {
         if (!transMusicPlayer.allowSFX) return;
@@ -383,11 +384,17 @@ transient sfxPlayer: object {
             if (wasBad) {
                 play(badMoveSnd);
             }
+            else if (hadTravel) {
+                play(travelSnd);
+            }
             else {
                 play(goodMoveSnd);
             }
+            hadTravel = nil;
             return;
         }
+
+        hadTravel = nil;
 
         local sortedSequence = new Vector(soundSequence.length);
 

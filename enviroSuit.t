@@ -582,6 +582,7 @@ suitWearingRuleHandler: object {
     hasPreparedExplanation = nil
     hasExplained = nil
     hasDoneTakes = nil
+    takesFailed = nil
     suitPartsInAll = static new Vector(8)
     suitPartsInBag = static new Vector(8)
     suitPartsInInventory = static new Vector(8)
@@ -592,6 +593,7 @@ suitWearingRuleHandler: object {
         hasPreparedExplanation = nil;
         hasExplained = nil;
         hasDoneTakes = nil;
+        takesFailed = nil;
 
         if (suitPartsInAll.length > 0) {
             suitPartsInAll.removeRange(1, -1);
@@ -713,7 +715,25 @@ suitWearingRuleHandler: object {
             }
         }
 
-        if (piecesToMove.length == 0) return;
+        if (piecesToMove.length == 0) {
+            if (doffing) {
+                say(
+                    '{I} have no pieces left to take off.\b'
+                );
+            }
+            else if (isSuitingUp) {
+                say(
+                    '{I} have no pieces left to wear.\b'
+                );
+            }
+            else {
+                say(
+                    '{I} have no pieces left to move.\b'
+                );
+            }
+            takesFailed = true;
+            return;
+        }
 
         if (!bagAvailable && !isSuitingUp && !doffing) {
             say(
@@ -723,6 +743,7 @@ suitWearingRuleHandler: object {
                 going to remain here for the moment.
                 \b'
             );
+            takesFailed = true;
             return;
         }
 
@@ -820,6 +841,7 @@ suitWearingRuleHandler: object {
                     '{I} don\'t have enough room where {i} stand to drop some things,
                     and clear some space in {my} inventory.\b'
                 );
+                takesFailed = true;
                 return;
             }
 
@@ -829,6 +851,7 @@ suitWearingRuleHandler: object {
                     '{I}{\'m} too busy holding {myself} to the walls of the duct
                     to move inventory items around.\b'
                 );
+                takesFailed = true;
                 return;
             }
         }
@@ -1159,8 +1182,8 @@ Test 'partialdoff' [
     'take bag', 'w', 'drop bag', 'e',
     'take helmet', 'e', 'drop helmet', 'w',
     'take torso', 'e', 'drop torso',
-    'purloin stool',
-    'wear all', 'doff pieces', 'drop pieces', 'i'
+    //'purloin stool',
+    'wear all'//, 'doff pieces', 'drop pieces', 'i'
 ];
 
 enviroHelmet: EnviroSuitPart { 'envirosuit helmet;enviro environment suit;visor piece part'

@@ -894,8 +894,9 @@ modify Action {
     }
 
     turnSequence() {
-        // If the player tried wearing the suit at the wrong time,
-        // reset the explanation status.
+        if (suitWearingRuleHandler.takesFailed) {
+            actionFailed = true;
+        }
         suitWearingRuleHandler.reset();
 
         // Map mode is done with everything frozen in time
@@ -1105,6 +1106,7 @@ modify Door {
 modify Room {
     travelerEntering(traveler, origin) {
         inherited(traveler, origin);
+        sfxPlayer.hadTravel = true;
         if (gPlayerChar.isOrIsIn(traveler)) {
             new Fuse(self, &checkAfterAttemptedTravel, 0);
         }
