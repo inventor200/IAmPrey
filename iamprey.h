@@ -17,8 +17,10 @@ string template <<warning>> formatWarning;
 // quite a bit.
 #ifdef __DEBUG
 #define cached new
+#define __ALLOW_DEBUG_ACTIONS nil
 #else
 #define cached new transient
+#define __ALLOW_DEBUG_ACTIONS nil
 #endif
 
 #include "betterChoices.t"
@@ -35,7 +37,7 @@ string template <<warning>> formatWarning;
 
              #define __SHOW_PROLOGUE nil
             #define __FAST_DIFFICULTY 4
-           #define __TEST_ROOM hangar
+           #define __TEST_ROOM administration
           #define __SKASHEK_START nil
          #define __SKASHEK_STATE nil
         #define __SKASHEK_FROZEN nil

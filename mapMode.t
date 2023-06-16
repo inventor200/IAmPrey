@@ -228,7 +228,7 @@ modify ChangeSneakMode {
     isAllowedInMapMode = nil
 }
 
-#ifdef __DEBUG
+#if __ALLOW_DEBUG_ACTIONS
 VerbRule(DumpRouteTable)
     'dump' 'route' 'table'
     : VerbProduction
@@ -715,6 +715,7 @@ class RouteTable: object {
     }
 }
 
+#if __ALLOW_DEBUG_ACTIONS
 routeStorageTestBed: object {
     storedRouteTable = nil
     storedRouteRef = nil
@@ -760,6 +761,7 @@ DefineSystemAction(TestCheckRouteRef)
         routeStorageTestBed.checkStatus();
     }
 ;
+#endif
 
 class MapModeRoom: Room {
     construct(_actual) {

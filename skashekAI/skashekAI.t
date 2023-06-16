@@ -1,4 +1,4 @@
-#ifdef __DEBUG
+#ifdef __ALLOW_DEBUG_ACTIONS
 VerbRule(ReportSkashekRouteToPlayer)
     ('check'|'report'|'print'|'get'|'show'|'what' 'is'|'what\'s')
     ('skashek'|'skashek\'s'|) (

@@ -568,7 +568,7 @@ addSFX(soundSrc, alteredForm?) {
     sfxPlayer.add(soundSrc, alteredForm);
 }
 
-#ifdef __DEBUG
+#ifdef __ALLOW_DEBUG_ACTIONS
 VerbRule(TestChaseSong)
     'try' 'chase'
     : VerbProduction

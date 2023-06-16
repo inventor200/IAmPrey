@@ -477,7 +477,7 @@ DefineSystemAction(ShowAllParkourRoutes)
     }
 ;
 
-#ifdef __DEBUG
+#ifdef __ALLOW_DEBUG_ACTIONS
 VerbRule(DebugCheckForContainer)
     'is' singleDobj ('a'|'an'|) ('container'|'item') |
     ('container'|'cont'|'c') 'check' ('for'|'on'|) singleDobj |

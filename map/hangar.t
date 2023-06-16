@@ -163,28 +163,19 @@ emergencyAirlock: Room { 'The Emergency Airlock'
         if (destination != hangar) return;
         if (!wearingParts()) return;
 
-        //local canReachBag = gPlayerChar.canReach(enviroSuitBag);
+        local applicableParts = new Vector(8);
 
-        /*for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
+        for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
             local piece = suitTracker.missingPieces[i];
-            if (!piece.canReach(gPlayerChar)) continue;
-            if (canReachBag) {
-                nestedAction(PutIn, piece, enviroSuitBag);
-            }
-            else {
-                nestedAction(Drop, piece);
-            }
-            "\n";
-        }*/
+            if (piece.wornBy == nil) continue;
+            applicableParts.append(piece);
+        }
 
-        addSFX(bagStowSnd);
-        suitWearingRuleHandler.prepareAutoDoff();
-        //suitWearingRuleHandler.prepareExplanation();
-        suitWearingRuleHandler.showExplanation(true, true);
-        suitWearingRuleHandler.doTakes(true);
+        //addSFX(bagStowSnd);
+        smartInventoryCore.performOperationOn(operationDoffItems, applicableParts);
 
-        "After all: {I} cannot risk damaging the suit, or letting it{dummy}
-        weigh {me} down.<.p>";
+        "{I} cannot risk damaging the suit,
+        or letting it{dummy} weigh {me} down.<.p>";
     }
 
     allPartsInInventory() {

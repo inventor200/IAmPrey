@@ -2,7 +2,7 @@
 #define IN_SMART_BAG enviroSuitBag.remapIn
 
 #ifdef __DEBUG
-#define __DEBUG_SMART_INVENTORY true
+#define __DEBUG_SMART_INVENTORY nil
 #else
 #define __DEBUG_SMART_INVENTORY nil
 #endif
@@ -55,9 +55,10 @@ smartInventoryCore: object {
 
     getFilteredVector(originalVector, filterObject) {
         if (originalVector == nil) return nil;
-        if (dataIsNotCollection(originalVector)) {
+        originalVector = convertToVector(originalVector);
+        /*if (dataIsNotCollection(originalVector)) {
             originalVector = new Vector([originalVector]);
-        }
+        }*/
         if (filterObject == nil) return originalVector;
         local filtered = new Vector(originalVector.length);
 
@@ -173,6 +174,13 @@ smartInventoryCore: object {
         }
         return totalBulk;
     }
+
+    getList(vector) {
+        if (!vector.ofKind(Collection)) {
+            vector = valToList(vector);
+        }
+        return 'the ' + makeListStr(vector, &smartInventoryName, 'and the');
+    }
 }
 
 class SmartInventoryFilter: object {
@@ -187,6 +195,7 @@ class SmartInventoryFilter: object {
     includeJunkItems = true
 
     passesFilter(item) {
+        if (item.bulk == nil) return nil;
         if (item.isFixed) return nil;
         if (item.bulk > 2) return nil;
         if (!includeWornObjects) {
@@ -764,18 +773,17 @@ class SmartInventoryBatch: object {
     performMoves(movVec, destination) {
         if (movVec.length == 0) return;
         if (destination == gPlayerChar) {
-            "<.p>{I} take 
-            <<makeListStr(valToList(movVec), &theName, 'and')>>.<.p>";
+            "<.p>{I} take
+            <<smartInventoryCore.getList(movVec)>>.<.p>";
         }
         else {
             local inStr = destination.objInPrep + ' ' + destination.theName;
             if (destination.ofKind(Room)) {
                 inStr = destination.floorObj.objInPrep + ' ' +
-                    destination.floorObj.theName + ' of ' +
-                    destination.theName;
+                    destination.floorObj.theName;
             }
             "<.p>{I} put
-            <<makeListStr(valToList(movVec), &theName, 'and')>> <<inStr>>.<.p>";
+            <<smartInventoryCore.getList(movVec)>> <<inStr>>.<.p>";
         }
         for (local i = 1; i <= movVec.length; i++) {
             local item = movVec[i];
@@ -786,12 +794,12 @@ class SmartInventoryBatch: object {
     performWearing(clothesVec, state) {
         if (clothesVec.length == 0) return;
         if (state) {
-            "<.p>{I} put on 
-            <<makeListStr(valToList(clothesVec), &theName, 'and')>>.<.p>";
+            "<.p>{I} wear
+            <<smartInventoryCore.getList(clothesVec)>>.<.p>";
         }
         else {
             "<.p>{I} take off
-            <<makeListStr(valToList(clothesVec), &theName, 'and')>>.<.p>";
+            <<smartInventoryCore.getList(clothesVec)>>.<.p>";
         }
         for (local i = 1; i <= clothesVec.length; i++) {
             local item = clothesVec[i];
@@ -977,27 +985,17 @@ class SmartInventoryBatch: object {
     planWearItems() {
         isPlanningToWear = true;
         if (!isWearingAnOption) {
-            //TODO: Print warning
-            "<.p><b>(Warning will go here.)</b><.p>";
+            "<.p><<EnviroSuitPart.doNotWearOutsideAirlockMsg>><.p>";
             isPlanningToWear = nil;
         }
-        
-        local allowedItems = new Vector(matches.length);
 
         for (local i = 1; i <= matches.length; i++) {
             local item = matches[i];
             if (item.wornBy != nil) continue;
             if (!item.isWearable) continue;
-            if (subPlanTakeItem(item)) {
-                allowedItems.appendUnique(allowedItems);
+            if (subPlanTakeItem(item) && isPlanningToWear) {
+                wearItem(item);
             }
-        }
-
-        if (!isPlanningToWear) return;
-
-        for (local i = 1; i <= allowedItems.length; i++) {
-            local item = allowedItems[i];
-            wearItem(item);
         }
     }
 

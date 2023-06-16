@@ -895,11 +895,6 @@ modify Action {
     }
 
     turnSequence() {
-        if (suitWearingRuleHandler.takesFailed) {
-            actionFailed = true;
-        }
-        suitWearingRuleHandler.reset();
-
         if (smartInventoryCore.batchFailed) {
             actionFailed = true;
         }

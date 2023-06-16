@@ -578,7 +578,7 @@ transient prologuePrefCore: InitObject {
     }
 }
 
-#ifdef __DEBUG
+#ifdef __ALLOW_DEBUG_ACTIONS
 VerbRule(TestDeath)
     'try' 'death'
     : VerbProduction

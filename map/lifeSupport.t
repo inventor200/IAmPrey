@@ -207,60 +207,29 @@ class CoolingDuctSegment: Room {
         local vec = dropRoom.droppedItemsVector;
         if (vec == nil) return;
 
-        local bagAvailable = gPlayerChar.canReach(enviroSuitBag);
-        local bulkAvailableInBag = bagAvailable ?
-            (enviroSuitBag.remapIn.bulkCapacity
-            - enviroSuitBag.remapIn.getCarriedBulk()) : 0;
-        local extraBagBulk = 0;
-        
-        local handItems = new Vector(gPlayerChar.contents.length);
-        local baggedItems = new Vector(gPlayerChar.contents.length);
+        local problemVector = smartInventoryCore.convertToVector(
+            gPlayerChar.directlyHeld
+        );
 
-        // Stuff what you can into the bag, and drop everything else.
-        for (local i = 1; i <= gPlayerChar.contents.length; i++) {
-            local item = gPlayerChar.contents[i];
-            if (item.wornBy != nil) continue;
-            if (item == enviroSuitBag) continue;
-            if (item.isFixed) continue;
-            if (bagAvailable && item.bulk + extraBagBulk <= bulkAvailableInBag) {
-                item.actionMoveInto(enviroSuitBag.remapIn);
-                baggedItems.append(item);
-                extraBagBulk += item.bulk;
-            }
-            else {
-                item.actionMoveInto(dropRoom);
-                handItems.append(item);
-                vec.appendUnique(item);
-            }
+        if (problemVector.length == 0) return;
+
+        if (problemVector.length > 0) {
+            "<<first time>><.p>It looks like {i} will need fully free {my}
+            limbs to traverse the duct ahead...<.p><<only>>";
         }
 
-        if (baggedItems.length + handItems.length > 0) {
-            "\b\^<<first time>>It looks like {i} will need fully free {my}
-            limbs to traverse the duct ahead, so <<only>>{i} ";
+        smartInventoryCore.performOperationOn(operationFreeHands, problemVector);
+        local droppedItems =
+            smartInventoryCore.activeBatch
+            .floorPath.getMovedItems();
+
+        if (droppedItems.length > 0) {
+            "<<first time>><.p>If {i} must, {i} can come back for
+            <<droppedItems.length > 1 ? 'these' : (droppedItems[1].plural ? 'these' : 'this')>>
+            later.<.p><<only>>";
         }
 
-        if (baggedItems.length > 0) {
-            "put <<makeListStr(valToList(baggedItems), &theName, 'and')>>
-            in the bag";
-        }
-        
-        if (handItems.length > 0) {
-            if (baggedItems.length > 0) {
-                ", and ";
-            }
-            "drop <<makeListStr(valToList(handItems), &theName, 'and')>>.\b";
-
-            "<<first time>>If {i} must, {i} can come back for
-            <<handItems.length > 1 ? 'these' : (handItems[1].plural ? 'these' : 'this')>>
-            later.\b<<only>>";
-        }
-        else if (baggedItems.length > 0) {
-            ".\b";
-        }
-
-        if (bagAvailable && enviroSuitBag.wornBy != gPlayerChar) {
-            nestedAction(Wear, enviroSuitBag);
-        }
+        smartInventoryCore.dumpVectorAIntoB(droppedItems, vec);
     }
 }
 
