@@ -92,6 +92,7 @@ string template <<warning>> formatWarning;
 #include "preciseHelp.h"
 #include "wardrobe.t"
 #include "enviroSuit.t"
+#include "smartInventory.t"
 #include "computers.t"
 #include "mapMode.t"
 #include "map/map.h"
