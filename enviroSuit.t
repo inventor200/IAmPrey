@@ -1014,7 +1014,8 @@ class EnviroSuitPart: PossibleSuitComponent {
     }
 
     dobjFor(Wear) {
-        preCond = (wearingAll ? [touchObj] : [objHeld])
+        //preCond = (wearingAll ? [touchObj] : [objHeld])
+        preCond = (wearingAll ? nil : [objHeld])
         verify() {
             if (wearingAll) {
                 logical;
@@ -1119,6 +1120,7 @@ class EnviroSuitPart: PossibleSuitComponent {
     }
 
     dobjFor(Take) {
+        preCond = (wearingAll ? nil : [touchObj])
         verify() {
             if (wearingAll) {
                 logical;
@@ -1136,11 +1138,14 @@ class EnviroSuitPart: PossibleSuitComponent {
         action() {
             if (wearingAll) {
                 // Taking for wearing is handled in the Wear logic
-                if (gActor.isIn(emergencyAirlock) && gAction.parentAction != nil) return;
+                //if (gActor.isIn(emergencyAirlock) && gAction.parentAction != nil) return;
                 // Otherwise
-                suitWearingRuleHandler.prepareExplanation();
+                /*suitWearingRuleHandler.prepareExplanation();
                 suitWearingRuleHandler.showExplanation(true);
                 suitWearingRuleHandler.doTakes();
+                */
+                //TEST:
+                smartInventoryCore.performOperation(operationTakeItems);
                 return;
             }
             local wasAlreadyInBag = isIn(enviroSuitBag);
@@ -1162,6 +1167,7 @@ class EnviroSuitPart: PossibleSuitComponent {
     }
 
     dobjFor(TakeFrom) {
+        preCond = (wearingAll ? nil : [touchObj])
         verify() {
             if (wearingAll) {
                 logical;

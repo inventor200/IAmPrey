@@ -1,7 +1,16 @@
 #define SMART_BAG enviroSuitBag
 #define IN_SMART_BAG enviroSuitBag.remapIn
 
-enum operationTakeItems, operationDropItems, operationWearItems, operationDoffItems;
+#ifdef __DEBUG
+#define __DEBUG_SMART_INVENTORY true
+#else
+#define __DEBUG_SMART_INVENTORY nil
+#endif
+
+enum
+    operationTakeItems, operationDropItems,
+    operationWearItems, operationDoffItems,
+    operationFreeHands;
 
 smartInventoryCore: object {
     activeBatch = nil
@@ -26,6 +35,15 @@ smartInventoryCore: object {
 
     doBatch() {
         if (activeBatch == nil) return;
+        if (!activeBatch.isValid) {
+            batchFailed = true;
+            #if __DEBUG_SMART_INVENTORY
+            "\b
+            ERROR: Invalid before batch start.
+            \b";
+            #endif
+            return;
+        }
         activeBatch.plan();
         batchFailed = !activeBatch.isValid;
     }
@@ -63,9 +81,40 @@ smartInventoryCore: object {
     }
 
     convertToVector(obj) {
-        if (obj == nil) return new Vector();
-        if (obj.ofKind(Vector)) return obj;
-        if (obj.ofKind(List)) return new Vector(obj);
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        convertToVector: Converting data to Vector...
+        \b";
+        #endif
+        if (obj == nil) {
+            #if __DEBUG_SMART_INVENTORY
+            "\b
+            convertToVector: obj was nil.
+            \b";
+            #endif
+            return new Vector();
+        }
+        if (obj.ofKind(Vector)) {
+            #if __DEBUG_SMART_INVENTORY
+            "\b
+            convertToVector: obj was a Vector of length <<obj.length>>.
+            \b";
+            #endif
+            return obj;
+        }
+        if (obj.ofKind(List)) {
+            #if __DEBUG_SMART_INVENTORY
+            "\b
+            convertToVector: obj was a List of length <<obj.length>>.
+            \b";
+            #endif
+            return new Vector(obj);
+        }
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        convertToVector: obj was an item.
+        \b";
+        #endif
         local ret = new Vector(1);
         ret.append(obj);
         return ret;
@@ -146,14 +195,20 @@ class SmartInventoryFilter: object {
         if (!includeWearableObjects) {
             if (item.isWearable) return nil;
         }
+
+        local isInBag = nil;
+        if (gPlayerChar.canReach(SMART_BAG)) {
+            isInBag = item.isIn(IN_SMART_BAG);
+        }
+
         if (!includeHeldObjects && item.wornBy == nil) {
             if (
                 item.isIn(gPlayerChar) &&
-                !item.isIn(IN_SMART_BAG)
+                !isInBag
             ) return nil;
         }
         if (!includeBaggedObjects) {
-            if (item.isIn(IN_SMART_BAG)) return nil;
+            if (isInBag) return nil;
         }
         if (!includeSmartBagAsItem) {
             if (item == SMART_BAG) return nil;
@@ -162,10 +217,10 @@ class SmartInventoryFilter: object {
             if (item.bulk <= 0) return nil;
         }
         if (!includeInReach) {
-            if (!item.isIn(gPlayerChar)) return nil;
+            if (!item.isIn(gPlayerChar) && !isInBag) return nil;
         }
         else {
-            if (!gPlayerChar.canReach(item)) return nil;
+            if (!gPlayerChar.canReach(item) && !isInBag) return nil;
         }
         if (!includePriorityItems) {
             if (smartInventoryCore.isPriorityItem(item)) return nil;
@@ -306,16 +361,15 @@ class SmartInventoryCluster: object {
 }
 
 class SmartInventoryPathway: object {
-    construct(_fallbacks, _dest) {
-        fallbackPathways = valToList(_fallbacks);
+    construct(_dest) {
         destination = _dest;
-        priorityCluster = new SmartInventoryCluster(self);
-        junkCluster = new SmartInventoryCluster(self);
+        priorityCluster = new SmartInventoryCluster(self, true);
+        junkCluster = new SmartInventoryCluster(self, nil);
         overflow = new Vector(16);
     }
 
     isAvailable = nil
-    fallbackPathways = nil
+    fallbackPathways = []
     destination = nil
     priorityCluster = nil
     junkCluster = nil
@@ -342,12 +396,22 @@ class SmartInventoryPathway: object {
     }
 
     getBulkFromProp(vecProp) {
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        getBulkFromProp: Calculating bulk...
+        \b";
+        #endif
         local priorityBulk = smartInventoryCore.vectorToBulk(
             priorityCluster.(vecProp)
         );
         local junkBulk = smartInventoryCore.vectorToBulk(
             junkCluster.(vecProp)
         );
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        getBulkFromProp: Found <<priorityBulk + junkBulk>>
+        \b";
+        #endif
         return priorityBulk + junkBulk;
     }
 
@@ -387,12 +451,29 @@ class SmartInventoryPathway: object {
     }
 
     bakeMinimumBulk() {
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        bakeMinimumBulk: Baking...
+        \b";
+        #endif
         // Sometimes not all items in a container are accounted for,
         // so we find out the bulk of the unaccounted items, which we
         // can add back to future accounted bulks later.
         local filBulk = getBulkFromProp(&itemsFoundHere);
         local calBulk = destination.getCarriedBulk();
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        bakeMinimumBulk: From <<destination.theName>>\n\t
+        filBulk: <<filBulk>>\n\t
+        calBulk: <<calBulk>>
+        \b";
+        #endif
         minimumBulk = calBulk - filBulk;
+        #if __DEBUG_SMART_INVENTORY
+        "\b
+        bakeMinimumBulk: minimumBulk is <<minimumBulk>>
+        \b";
+        #endif
         resetPlan();
     }
 
@@ -472,7 +553,13 @@ class SmartInventoryBatch: object {
         matches = customItems;
 
         if (matches == nil) {
-            matches = smartInventoryCore.convertToVector(gCommand.dobjs);
+            local matchObjects = new Vector(gCommand.dobjs.length);
+            for (local i = 1; i <= gCommand.dobjs.length; i++) {
+                matchObjects.append(gCommand.dobjs[i].obj);
+            }
+            matches = smartInventoryCore.getFilteredVector(
+                matchObjects, allSuitPieces
+            );
         }
         else {
             matches = smartInventoryCore.convertToVector(matches);
@@ -489,14 +576,29 @@ class SmartInventoryBatch: object {
             return;
         }
 
-        floorPath = new SmartInventoryPathway(nil, gPlayerChar.location);
+        // Declare inventory paths
+        floorPath = new SmartInventoryPathway(gPlayerChar.location);
         floorPath.acceptsSuperOverflow = true;
-        bagPath = new SmartInventoryPathway([handsPath, floorPath], IN_SMART_BAG);
+        bagPath = new SmartInventoryPathway(IN_SMART_BAG);
         bagPath.isAvailable = gPlayerChar.canReach(SMART_BAG);
-        handsPath = new SmartInventoryPathway(
-            bagPath.isAvailable ? [bagPath, floorPath] : floorPath,
-            gPlayerChar.contents
-        );
+        handsPath = new SmartInventoryPathway(gPlayerChar);
+
+        switch (opType) {
+            // Concentrate inventory into player and bag
+            default:
+                bagPath.fallbackPathways = [handsPath, floorPath];
+                handsPath.fallbackPathways = (bagPath.isAvailable ?
+                    [bagPath, floorPath] : [floorPath]
+                );
+                break;
+            // Completely avoid anything being in the hands
+            case operationFreeHands:
+                bagPath.fallbackPathways = [floorPath];
+                handsPath.fallbackPathways = (bagPath.isAvailable ?
+                    [bagPath, floorPath] : [floorPath]
+                );
+                break;
+        }        
 
         // Assemble all relevant items
         local actionScope = new Vector();
@@ -522,7 +624,14 @@ class SmartInventoryBatch: object {
     }
 
     plan() {
-        //TODO: Make assignments
+        // Pick up bag
+        local wasBagOpen = IN_SMART_BAG.isOpen;
+        if (bagPath.isAvailable && !wasBagOpen) {
+            nestedAction(Open, IN_SMART_BAG);
+        }
+
+        sortMatches();
+
         switch (opType) {
             default:
             case operationTakeItems:
@@ -536,6 +645,9 @@ class SmartInventoryBatch: object {
                 break;
             case operationDoffItems:
                 planDoffItems();
+                break;
+            case operationFreeHands:
+                planFreeHands();
                 break;
         }
 
@@ -564,6 +676,9 @@ class SmartInventoryBatch: object {
             isValid = nil;
             return;
         }
+
+        // Move unsorted pieces
+        moveUnsortedPieces();
 
         local movedToFloor = floorPath.getMovedItems();
         local movedToBag = nil;
@@ -603,8 +718,38 @@ class SmartInventoryBatch: object {
         );
         // Wear clothes
         performWearing(worn, true);
+        // Pick up bag
+        if (bagPath.isAvailable && !SMART_BAG.isIn(gPlayerChar)) {
+            SMART_BAG.actionMoveInto(gPlayerChar);
+            nestedAction(Wear, SMART_BAG);
+            if (!wasBagOpen) {
+                nestedAction(Close, IN_SMART_BAG);
+            }
+        }
         // Pick up items from floor
         performMoves(startedInHands, handsPath.destination);
+    }
+
+    isCarriedByOtherActor(item) {
+        if (item.isOrIsIn(gPlayerChar)) return nil;
+        local itemParent = getParentOfItem(item);
+        while (!isNonPlayerActor(itemParent)) {
+            if (itemParent == nil) return nil;
+            itemParent = getParentOfItem(itemParent);
+        }
+        return true;
+    }
+
+    getParentOfItem(item) {
+        if (item == nil) return nil;
+        if (item.ofKind(SubComponent)) return lexicalParent;
+        return location;
+    }
+
+    isNonPlayerActor(actor) {
+        if (actor == nil) return nil;
+        if (!actor.ofKind(Actor)) return nil;
+        return actor != gPlayerChar;
     }
 
     subtractVecs(sourceVec, subtractionVec) {
@@ -623,9 +768,14 @@ class SmartInventoryBatch: object {
             <<makeListStr(valToList(movVec), &theName, 'and')>>.<.p>";
         }
         else {
+            local inStr = destination.objInPrep + ' ' + destination.theName;
+            if (destination.ofKind(Room)) {
+                inStr = destination.floorObj.objInPrep + ' ' +
+                    destination.floorObj.theName + ' of ' +
+                    destination.theName;
+            }
             "<.p>{I} put
-            <<makeListStr(valToList(movVec), &theName, 'and')>>
-            <<destination.objInPrep>> <<destination.theName>>.<.p>";
+            <<makeListStr(valToList(movVec), &theName, 'and')>> <<inStr>>.<.p>";
         }
         for (local i = 1; i <= movVec.length; i++) {
             local item = movVec[i];
@@ -693,21 +843,195 @@ class SmartInventoryBatch: object {
     bagPath = nil
     handsPath = nil
 
+    matchedSuitPiecesOnFloor = nil
+    matchedJunkOnFloor = nil
+    matchedSuitPiecesInBag = nil
+    matchedJunkInBag = nil
+    matchedSuitPiecesInHands = nil
+    matchedJunkInHands = nil
+    matchedUnbaggedSuitPieces = nil
+    unsortedSuitPieces = nil
+
+    isWearingAnOption = nil
+    isPlanningToWear = nil
+
+    sortMatches() {
+        isWearingAnOption = (gPlayerChar.getOutermostRoom() == emergencyAirlock);
+
+        matchedSuitPiecesOnFloor = smartInventoryCore.getFilteredVector(
+            matches, suitPiecesOnFloorFilter
+        );
+
+        matchedJunkOnFloor = smartInventoryCore.getFilteredVector(
+            matches, junkOnFloorFilter
+        );
+
+        if (bagPath.isAvailable) {
+            matchedSuitPiecesInBag = smartInventoryCore.getFilteredVector(
+                matches, suitPiecesInBagFilter
+            );
+        }
+        else {
+            matchedSuitPiecesInBag = new Vector();
+        }
+
+        if (bagPath.isAvailable) {
+            matchedJunkInBag = smartInventoryCore.getFilteredVector(
+                matches, junkInBagFilter
+            );
+        }
+        else {
+            matchedJunkInBag = new Vector();
+        }
+
+        matchedSuitPiecesInHands = smartInventoryCore.getFilteredVector(
+            matches, suitPiecesInHandsFilter
+        );
+
+        matchedJunkInHands = smartInventoryCore.getFilteredVector(
+            matches, junkInHandsFilter
+        );
+
+        matchedUnbaggedSuitPieces = smartInventoryCore.getFilteredVector(
+            matches, unbaggedSuitPiecesFilter
+        );
+
+        if (!bagPath.isAvailable) return;
+        
+        // Suit pieces that are held in the hands,
+        // but are not the focus of the current command.
+        // Out of convenience, we can try to keep these in the bag
+        unsortedSuitPieces = new Vector(
+            handsPath.priorityCluster.itemsFoundHere.length
+        );
+        smartInventoryCore.dumpVectorAIntoB(
+            handsPath.priorityCluster.itemsFoundHere,
+            unsortedSuitPieces
+        );
+        subtractVecs(
+            unsortedSuitPieces,
+            matches
+        );
+    }
+
+    moveUnsortedPieces() {
+        if (!bagPath.isAvailable) return;
+        if (unsortedSuitPieces.length == 0) return;
+        for (local i = 1; i <= unsortedSuitPieces.length; i++) {
+            local piece = unsortedSuitPieces[i];
+            if (bagPath.plannedCapacity < piece.bulk) return;
+            if (storeItemAt(piece, bagPath)) {
+                bagPath.plannedCapacity -= piece.bulk;
+            }
+        }
+    }
+
+    subPlanTakeItem(item) {
+        local _isPriorityItem = smartInventoryCore.isPriorityItem(item);
+        local foundInBag = bagPath.isAvailable ? 
+            matchedSuitPiecesInBag.indexOf(item) != nil : nil;
+        local baggingItems =
+            bagPath.isAvailable &&
+            (matchedUnbaggedSuitPieces.length > 0);
+        
+        // We are trying to take a suit piece out of the bag in
+        // an attempt to wear it, but it was forbidden elsewhere.
+        if (
+            foundInBag && _isPriorityItem &&
+            opType == operationWearItems &&
+            !isPlanningToWear
+        ) {
+            // We are overriding an attempt to take something
+            // out of a bag to wear.
+            return nil;
+        }
+
+        // We are grabbing a suit piece that was not found
+        // in the bag, and we are not intending to wear it,
+        // and the bag is available.
+        if (
+            _isPriorityItem && ((!isPlanningToWear &&
+            !foundInBag) || baggingItems) && bagPath.isAvailable
+        ) {
+            return storeItemAt(item, bagPath);
+        }
+
+        // We are intending to grab whatever this is.
+        return storeItemAt(item, handsPath);
+    }
+
     planTakeItems() {
-        //TODO: Plan
+        for (local i = 1; i <= matches.length; i++) {
+            local item = matches[i];
+            subPlanTakeItem(item);
+        }
     }
     
     planDropItems() {
-        //TODO: Plan
+        for (local i = 1; i <= matches.length; i++) {
+            local item = matches[i];
+            storeItemAt(item, floorPath);
+        }
     }
 
     planWearItems() {
-        //TODO: Plan
+        isPlanningToWear = true;
+        if (!isWearingAnOption) {
+            //TODO: Print warning
+            "<.p><b>(Warning will go here.)</b><.p>";
+            isPlanningToWear = nil;
+        }
+        
+        local allowedItems = new Vector(matches.length);
+
+        for (local i = 1; i <= matches.length; i++) {
+            local item = matches[i];
+            if (item.wornBy != nil) continue;
+            if (!item.isWearable) continue;
+            if (subPlanTakeItem(item)) {
+                allowedItems.appendUnique(allowedItems);
+            }
+        }
+
+        if (!isPlanningToWear) return;
+
+        for (local i = 1; i <= allowedItems.length; i++) {
+            local item = allowedItems[i];
+            wearItem(item);
+        }
     }
 
     planDoffItems() {
-        //TODO: Plan
+        for (local i = 1; i <= matches.length; i++) {
+            local item = matches[i];
+            if (item.wornBy == nil) continue;
+            subPlanTakeItem(item);
+        }
     }
+
+    planFreeHands() {
+        for (local i = 1; i <= matches.length; i++) {
+            local item = matches[i];
+            if (bagPath.isAvailable) {
+                storeItemAt(item, bagPath);
+            }
+            else {
+                storeItemAt(item, floorPath);
+            }
+        }
+    }
+}
+
+allSuitPieces: SmartInventoryFilter {
+    includeWornObjects = true
+    includeWearableObjects = true
+    includeHeldObjects = true
+    includeBaggedObjects = true
+    includeSmartBagAsItem = nil
+    includeZeroBulkItems = true
+    includeInReach = true
+    includePriorityItems = true
+    includeJunkItems = nil
 }
 
 foundOnFloorFilter: SmartInventoryFilter {
@@ -729,7 +1053,7 @@ foundInBagFilter: SmartInventoryFilter {
     includeBaggedObjects = true
     includeSmartBagAsItem = nil
     includeZeroBulkItems = nil
-    includeInReach = true
+    includeInReach = nil
     includePriorityItems = true
     includeJunkItems = true
 }
@@ -746,26 +1070,50 @@ foundOnPersonFilter: SmartInventoryFilter {
     includeJunkItems = true
 }
 
-foundInHandsFilter: SmartInventoryFilter {
+heldSuitPiecesFilter: foundOnPersonFilter {
     includeWornObjects = nil
+    includePriorityItems = true
+    includeJunkItems = nil
+}
+
+unbaggedSuitPiecesFilter: SmartInventoryFilter {
+    includeWornObjects = true
     includeWearableObjects = true
     includeHeldObjects = true
     includeBaggedObjects = nil
     includeSmartBagAsItem = nil
-    includeZeroBulkItems = nil
-    includeInReach = nil
+    includeZeroBulkItems = true
+    includeInReach = true
     includePriorityItems = true
+    includeJunkItems = nil
+}
+
+suitPiecesOnFloorFilter: foundOnFloorFilter {
+    includePriorityItems = true
+    includeJunkItems = nil
+}
+
+junkOnFloorFilter: foundOnFloorFilter {
+    includePriorityItems = nil
     includeJunkItems = true
 }
 
-wearingAsSuitFilter: SmartInventoryFilter {
-    includeWornObjects = true
-    includeWearableObjects = true
-    includeHeldObjects = nil
-    includeBaggedObjects = nil
-    includeSmartBagAsItem = nil
-    includeZeroBulkItems = true
-    includeInReach = nil
+suitPiecesInBagFilter: foundInBagFilter {
     includePriorityItems = true
     includeJunkItems = nil
+}
+
+junkInBagFilter: foundInBagFilter {
+    includePriorityItems = nil
+    includeJunkItems = true
+}
+
+suitPiecesInHandsFilter: foundOnPersonFilter {
+    includePriorityItems = true
+    includeJunkItems = nil
+}
+
+junkInHandsFilter: foundOnPersonFilter {
+    includePriorityItems = nil
+    includeJunkItems = true
 }
