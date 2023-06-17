@@ -108,6 +108,10 @@ modify helpMessage {
             <<remember>> You are always free to
             <<formatCommand('turn sneak back on', longCmd)>> in a tutorial mode!";
         }
+        if (!gFormatForScreenReader) {
+            mapURL.printBase();
+            mapURL.printFooter();
+        }
         fromHelpCommand = nil;
     }
 

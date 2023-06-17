@@ -4,15 +4,19 @@
     <meta charset="utf-8">
     <title>Parchment</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0">
-    <script src="setStory.js"></script>
     <script src="https://iplayif.com/dist/web/jquery.min.js"></script>
     <script src="https://iplayif.com/dist/web/ie.js" nomodule></script>
     <script src="https://iplayif.com/dist/web/main.js" type="module"></script>
+    <script src="setStory.js"></script>
     <link rel="stylesheet" href="https://iplayif.com/dist/web/web.css">
     <link rel="stylesheet" href="preystyle.css">
 </head>
 <body>
     <div class="preybackground"></div>
+    <div class="preyfakepadding"></div>
+    <img src="img/gamename.png" alt="Now playing I Am Prey" class="gamename"/>
+    <img src="img/skashek.png" alt="Artwork of the Predator on the left side" class="skashekprofile"/>
+    <img src="img/prey.png" alt="Artwork of Prey on the right side" class="preyprofile"/>
     <div id="gameport">
         <div id="about">
             <h1>Parchment</h1>
@@ -36,5 +40,8 @@
         </div>
         <div id="errorpane" style="display:none;"><div id="errorcontent">...</div></div>
     </div>
+    <!-- <div class="mapspacing">
+        <img src="img/mapicon.png" alt="Map link" class="mapicon"/>
+    </div> -->
 </body>
 </html>

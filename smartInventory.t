@@ -683,6 +683,9 @@ class SmartInventoryBatch: object {
             "<.p>{I} don't have enough room to move stuff around.
             {I} should try this again somewhere with more floor space.<.p>";
             isValid = nil;
+            if (!wasBagOpen) {
+                nestedAction(Close, IN_SMART_BAG);
+            }
             return;
         }
 
@@ -700,6 +703,22 @@ class SmartInventoryBatch: object {
         local movedToHands = handsPath.getMovedItems();
         local worn = handsPath.getWornClothes();
         local doffed = handsPath.getDoffedClothes();
+
+        local totalMovedItems =
+            movedToFloor.length +
+            movedToBag.length +
+            movedToHands.length;
+
+        // Nothing moved
+        if (totalMovedItems.length) {
+            "<.p>{I} don't suppose there is a rearrangement that would
+            achieve that.<.p>";
+            isValid = nil;
+            if (!wasBagOpen) {
+                nestedAction(Close, IN_SMART_BAG);
+            }
+            return;
+        }
 
         // Figure out what will be dropped, and then picked back up later.
         local startedInHands = handsPath.getFoundItems();

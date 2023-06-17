@@ -45,8 +45,8 @@ versionInfo: GameID {
     htmlDesc = 'A horror-lite science fiction game of evasion.'
     releaseDate = '2023-04-02'
     licenseType = 'freeware'
-    copyingRules = '<a href="https://creativecommons.org/licenses/by-sa/4.0/"
-        >Creative Commons Attribution-ShareAlike 4.0 International</a>'
+    copyingRules = '<a href="https://www.gnu.org/licenses/gpl-3.0.en.html"
+        >GPLv3.0</a>'
     presentationProfile = 'Plain Text'
     showAbout() {
         "<i>I Am Prey</i> is a game about situational awareness, evasion, and
@@ -61,9 +61,10 @@ versionInfo: GameID {
     }
     showCredit() {
         "\t<i>I stand on the shoulders of giants...</i>\n
-        <b>Author:</b> Joey Cramsey (<a href='mailto:josephcsoftware@gmail.com'>Email</a>)
-        (<a href='https://joeycramsey.bandcamp.com/'>Link to Bandcamp</a>)\n
-        <b><<one of
+        <b>Author:</b> Joey Cramsey";
+        authorEmailURL.printBase();
+        authorBandcampURL.printBase();
+        "\n<b><<one of
         >>Vibe Checker<<or
         >>Master of Whimsey<<or
         >>Comic Relief<<or
@@ -73,16 +74,28 @@ versionInfo: GameID {
         >>Maid Services<<or
         >>Catering<<shuffled>>:</b> Akira Lowe\n
         <b>Special thanks</b> to my partners, friends, and the excellent community
-        over at <a href='https://intfiction.org/'>Intfiction Forum</a>!\n
+        over at the ";
+        forumsURL.printBase();
+        "!\n
         <b>Adv3Lite library:</b> Eric Eve\n
         <b>TADS 3:</b> Michael J Roberts\b
         \t<i>Testing:</i>\n
-        Mathbrush (<a href='https://ifdb.org/showuser?id=nufzrftl37o9rw5t'>Link to IFDB</a>)\n
-        Nightshademaker (<a href='https://www.twitch.tv/nightshademakers'>Link to Twitch</a>)\n
-        Piergiorgio d'Errico\n
-        Pinkunz (<a href='https://ifdb.org/showuser?id=dqr2mj29irbx1qv4'>Link to IFDB</a>)\n
-        Rovarsson\b
+        Mathbrush";
+        mathbrushURL.printBase();
+        "\nNightshademaker";
+        nightshademakerURL.printBase();
+        "\nPiergiorgio d'Errico\n
+        Pinkunz";
+        pinkunzURL.printBase();
+        "\nRovarsson\b
         \t<i>Accessibility Consulting/Testing:</i>\n
         Rain";
+
+        authorEmailURL.printFooter();
+        authorBandcampURL.printFooter();
+        forumsURL.printFooter();
+        mathbrushURL.printFooter();
+        nightshademakerURL.printFooter();
+        pinkunzURL.printFooter();
     }
 }

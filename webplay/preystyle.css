@@ -6,6 +6,28 @@
     --glkote-buffer-reverse-fg: #111;
     --glkote-buffer-size: 15px;
     --glkote-error-border: #F00;
+    --glkote-prop-family: Helvetica, "AsyncGlk Sans", sans-serif;
+    /*--glkote-grid-size: 14px;*/
+    /*--glkote-grid-line-height: 18px;*/
+    --glkote-grid-size: 16px;
+    --glkote-grid-line-height: 18px;
+}
+
+@font-face {
+    font-family: "AsyncGlk Sans";
+    src: local("Helvetica"), local("Liberation Sans");
+    ascent-override: 91.7%;
+    descent-override: 21.9%;
+}
+
+.preyfakepadding {
+    background-color: #111;
+    inset: 0;
+    margin: 0 auto;
+    max-width: 964px;
+    overflow: hidden;
+    position: absolute;
+    z-index: -5;
 }
 
 .preybackground {
@@ -14,6 +36,55 @@
     width: 100%;
     height: 100%;
     z-index: -10;
+}
+
+span.Style_user2 {
+    color: #A9D1DA !important;
+}
+
+.gamename {
+    color: #A9D1DA;
+    overflow: hidden;
+    position: absolute;
+    right: 32px;
+    bottom: 32px;
+    z-index: -7;
+}
+
+.skashekprofile, .preyprofile {
+    color: #A9D1DA;
+    overflow: hidden;
+    position: absolute;
+    bottom: 0px;
+    max-width:50%;
+    max-height:100%;
+}
+
+.skashekprofile {
+    left: 0px;
+    z-index: -8;
+}
+
+.preyprofile {
+    right: 0px;
+    z-index: -9;
+}
+
+.mapspacing {
+    overflow: hidden;
+    position: absolute;
+    max-width: 964px;
+    max-height: 100%;
+    margin: 0 auto;
+    z-index: 50;
+}
+
+.mapicon {
+    position: fixed;
+    max-width: 64px;
+    max-height: 64px;
+    top: 64px;
+    right: 0px;
 }
 
  /* unvisited link */
