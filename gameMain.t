@@ -61,10 +61,9 @@ versionInfo: GameID {
     }
     showCredit() {
         "\t<i>I stand on the shoulders of giants...</i>\n
-        <b>Author:</b> Joey Cramsey";
-        authorEmailURL.printBase();
-        authorBandcampURL.printBase();
-        "\n<b><<one of
+        <b>Author:</b> Joey Cramsey<<authorEmailURL.printBase()
+        >><<authorBandcampURL.printBase()>>\n
+        <b><<one of
         >>Vibe Checker<<or
         >>Master of Whimsey<<or
         >>Comic Relief<<or
@@ -74,20 +73,15 @@ versionInfo: GameID {
         >>Maid Services<<or
         >>Catering<<shuffled>>:</b> Akira Lowe\n
         <b>Special thanks</b> to my partners, friends, and the excellent community
-        over at the ";
-        forumsURL.printBase();
-        "!\n
+        over at the <<forumsURL.printBase()>>!\n
         <b>Adv3Lite library:</b> Eric Eve\n
         <b>TADS 3:</b> Michael J Roberts\b
         \t<i>Testing:</i>\n
-        Mathbrush";
-        mathbrushURL.printBase();
-        "\nNightshademaker";
-        nightshademakerURL.printBase();
-        "\nPiergiorgio d'Errico\n
-        Pinkunz";
-        pinkunzURL.printBase();
-        "\nRovarsson\b
+        Mathbrush <<mathbrushURL.printBase()>>\n
+        Nightshademaker<<nightshademakerURL.printBase()>>\n
+        Piergiorgio d'Errico\n
+        Pinkunz<<pinkunzURL.printBase()>>\n
+        Rovarsson\b
         \t<i>Accessibility Consulting/Testing:</i>\n
         Rain";
 

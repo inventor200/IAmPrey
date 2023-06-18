@@ -378,27 +378,42 @@ transient prologuePrefCore: InitObject {
             gaveHTMLDisclaimer = true;
             """
             <<formatTitle('Interpreter Mismatch')>>
-            Some interpreters do not support all of the possible features found
-            in TADS games, and it seems like this one might be missing a few things.\b
-            Some online interpreters, for example, might fail to save your settings,
-            due to restrictions from your web browser.
-            All of your preferences will be dumped, if this file cannot be saved
-            or loaded, which will require you to re-input your preference every
-            time you load this game.\b
-            If you are using an <i>offline</i> interpreter, then you might be missing
-            out on music and other sound effects, as well as certain menus and actions,
-            which can be navigated with mouse clicks.\b
-            These are all things that are completely outside of my control, because
-            TADS developers must work within the constraints made by the interpreter.
-            <b>However, I have designed everything in this game to be accessible
-            and playable, even if you are just using a command-line terminal.</b>\b
-            If you would like to check out what you might be missing out on, and
-            get the most out of your experience, then
+            Games written in TADS 2, TADS 3, and HTML TADS 3 run inside of a program
+            called an <q>interpreter</q> <i>(e.g. QTADS, Gargoyle, or Parchment)</i>
+            for security and cross-platform compatibility reasons.\b
+            Most interpreters support TADS 2 and TADS 3, but <i>this</i> game was written
+            in <i><b>HTML TADS 3</b></i>, which is <b>not</b> supported by the interpreter
+            you are currently using! As a result, this interpreter will probably remove
+            certain kinds content, functionality, and formatting from the game,
+            in an attempt to continue running!\b
+            I have done everything I can to detect these issues,
+            and dynamically rearrange the <b>core game elements</b>
+            to work around incompatibilities, but
+            you will still be missing out on <b>music</b>, <b>sound effects</b>,
+            some <b>extra text styling</b>, as well as <b>clickable menus and actions</b>.\b
+            These are all things that are <i>completely outside of my control</i>,
+            because I must work within the constraints of the interpreter.\b
+            If you would like to see what you might be missing out on (and
+            get the most out of your experience), then
             it is recommended that you play this game with either the
-            <a href='https://github.com/realnc/qtads/releases'>QTADS</a>
-            or
-            <a href='https://www.ifwiki.org/HTML_TADS_(Interpreter)'>HTML TADS</a>
-            interpreters!
+            <<QTADSURL.printBase()>> or <<HTMLTADSURL.printBase()>> interpreters!
+
+            <<formatAlert('Note For Screen Reader Users:')>>
+            Screen reader users are recommended to use the
+            standard HTML TADS interpreter,
+            which shares the same name as this game's format,
+            because it is able to send text data to your screen reader.\b
+            If you do not prefer to listen to game audio while playing text-based games,
+            then you can continue using your chosen interpreter.\b
+            This game's screen reader mode rearranges a lot of the game's text
+            and removes clickable links,
+            in an effort to make the audible presentation of the text clearer.
+            As a result, you will not be missing out on any HTML TADS features,
+            as a screen reader user, if you do not prefer to hear game audio.
+
+            <<QTADSURL.printFooter()>>
+            <<HTMLTADSURL.printFooter()>>
+
             <<wait for player>>
             """;
         }

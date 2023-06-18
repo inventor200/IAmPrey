@@ -87,3 +87,15 @@ mapURL: CompULR {
     name = 'URL to the facility map (on the IFArchive)'
     url = 'https://unbox.ifarchive.org/1363p9wc5y/extras/Stylized-Map.png'
 }
+
+QTADSURL: CompULR {
+    baseText = 'QTADS'
+    name = 'URL to the downloads page for the QTADS interpreter'
+    url = 'https://github.com/realnc/qtads/releases'
+}
+
+HTMLTADSURL: CompULR {
+    baseText = 'HTML TADS'
+    name = 'URL to the IFWiki page for the HTML TADS interpreter'
+    url = 'https://www.ifwiki.org/HTML_TADS_(Interpreter)'
+}
