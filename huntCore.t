@@ -8,12 +8,13 @@ enum basicTutorial, preyTutorial, easyMode, mediumMode, hardMode, nightmareMode;
 
 #ifdef __DEBUG
 #define __DEBUG_SKASHEK_ACTIONS nil
-#define __DEBUG_SUIT true
+#define __DEBUG_SUIT nil
 #define __DEBUG_SUIT_LOCATION hangar
-#define __DEBUG_SUIT_PLACEMENT nil
+#define __DEBUG_SUIT_PLACEMENT true
 #else
 #define __DEBUG_SKASHEK_ACTIONS nil
 #define __DEBUG_SUIT nil
+#define __DEBUG_SUIT_LOCATION hangar
 #define __DEBUG_SUIT_PLACEMENT nil
 #endif
 
@@ -169,6 +170,29 @@ restoreModeSetting: DifficultySetting {
     showOtherQualities = nil
 }
 
+class ScatterZone: object {
+    construct(_scatterLocations) {
+        scatterLocations = new Vector(valToList(_scatterLocations));
+    }
+
+    scatterLocations = nil;
+
+    getSizedVersion(isLarge) {
+        local vec = new Vector(scatterLocations.length);
+        for (local i = 1; i <= scatterLocations.length; i++) {
+            local loc = scatterLocations[i];
+            if (isLarge) {
+                if (loc.maxSingleBulk > 1) vec.append(loc);
+            }
+            else {
+                if (loc.maxSingleBulk == 1) vec.append(loc);
+            }
+        }
+        if (vec.length == 0) return nil;
+        return vec;
+    }
+}
+
 enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;
 enum undoFree, undoAsTrick, undoLocked, isUndoProp;
 
@@ -304,46 +328,69 @@ huntCore: InitObject {
     wasBathTimeAnnounced = nil
     undoStyle = undoFree
 
+    // REMEMBER:
+    // helmetLocations and scatterZones need to remain
+    // non-static Lists, because they need to be evaluated
+    // and cached AFTER the map is set up!
+
     helmetLocations = [
         evaluationRoom,
         breakroomTable,
         labBTable
     ]
 
-    gearLocations = [
-        northeastCubicleFilingCabinet.topDrawer,
-        northeastCubicleFilingCabinet.middleDrawer,
-        northeastCubicleFilingCabinet.bottomDrawer,
-        northwestCubicleFilingCabinet.topDrawer,
-        northwestCubicleFilingCabinet.middleDrawer,
-        northwestCubicleFilingCabinet.bottomDrawer,
-        southeastCubicleFilingCabinet.topDrawer,
-        southeastCubicleFilingCabinet.middleDrawer,
-        southeastCubicleFilingCabinet.bottomDrawer,
-        southwestCubicleFilingCabinet.topDrawer,
-        southwestCubicleFilingCabinet.middleDrawer,
-        southwestCubicleFilingCabinet.bottomDrawer,
-        armoryShelves,
-        armoryCabinet.topDrawer,
-        armoryCabinet.middleDrawer,
-        armoryCabinet.bottomDrawer,
-        //breakRoomFridge.remapIn,
-        snackFridge.remapIn,
-        classroomShelves,
-        directorCabinet.topDrawer,
-        directorCabinet.middleDrawer,
-        directorCabinet.bottomDrawer,
-        cloneStorageChest.remapIn,
-        //evaluationShelves,
-        walkInFridge,
-        labAShelves,
-        libraryCabinet.topDrawer,
-        libraryCabinet.middleDrawer,
-        libraryCabinet.bottomDrawer,
-        securityCabinet.topDrawer,
-        securityCabinet.middleDrawer,
-        securityCabinet.bottomDrawer,
-        securityCloset.remapIn
+    scatterZones = [
+        new ScatterZone([
+            northeastCubicleFilingCabinet.topDrawer,
+            northeastCubicleFilingCabinet.middleDrawer,
+            northeastCubicleFilingCabinet.bottomDrawer,
+            northwestCubicleFilingCabinet.topDrawer,
+            northwestCubicleFilingCabinet.middleDrawer,
+            northwestCubicleFilingCabinet.bottomDrawer,
+            southeastCubicleFilingCabinet.topDrawer,
+            southeastCubicleFilingCabinet.middleDrawer,
+            southeastCubicleFilingCabinet.bottomDrawer,
+            southwestCubicleFilingCabinet.topDrawer,
+            southwestCubicleFilingCabinet.middleDrawer,
+            southwestCubicleFilingCabinet.bottomDrawer
+        ]),
+        new ScatterZone([
+            armoryShelves,
+            armoryCabinet.topDrawer,
+            armoryCabinet.middleDrawer,
+            armoryCabinet.bottomDrawer
+        ]),
+        new ScatterZone([
+            snackFridge.remapIn
+        ]),
+        new ScatterZone([
+            classroomShelves
+        ]),
+        new ScatterZone([
+            directorCabinet.topDrawer,
+            directorCabinet.middleDrawer,
+            directorCabinet.bottomDrawer
+        ]),
+        new ScatterZone([
+            cloneStorageChest.remapIn
+        ]),
+        new ScatterZone([
+            walkInFridge
+        ]),
+        new ScatterZone([
+            labAShelves
+        ]),
+        new ScatterZone([
+            libraryCabinet.topDrawer,
+            libraryCabinet.middleDrawer,
+            libraryCabinet.bottomDrawer
+        ]),
+        new ScatterZone([
+            securityCabinet.topDrawer,
+            securityCabinet.middleDrawer,
+            securityCabinet.bottomDrawer,
+            securityCloset.remapIn
+        ])
     ]
 
     //Tricks
@@ -537,16 +584,24 @@ huntCore: InitObject {
         // Move bag
         enviroSuitBag.moveInto(deliveryRoomStool);
 
-        // Scatter others
-        local smallPlaces = new Vector(gearLocations.length);
-        local largePlaces = new Vector(gearLocations.length);
-        for (local i = 1; i <= gearLocations.length; i++) {
-            local container = gearLocations[i];
-            if (container.maxSingleBulk <= 1) {
-                smallPlaces.append(container);
+        // Prepare scatter zone vectors
+        local smallScatterZoneVector = new Vector(scatterZones.length);
+        local largeScatterZoneVector = new Vector(scatterZones.length);
+        local smallWorkingScatterZoneVector = new Vector(scatterZones.length);
+        local largeWorkingScatterZoneVector = new Vector(scatterZones.length);
+
+        // Sort by size
+        for (local i = 1; i <= scatterZones.length; i++) {
+            local zone = scatterZones[i];
+            local smallVersion = zone.getSizedVersion(nil);
+            if (smallVersion != nil) {
+                smallScatterZoneVector.append(smallVersion);
+                smallWorkingScatterZoneVector.append(smallVersion);
             }
-            else if (container.maxSingleBulk > 1) {
-                largePlaces.append(container);
+            local largeVersion = zone.getSizedVersion(true);
+            if (largeVersion != nil) {
+                largeScatterZoneVector.append(largeVersion);
+                largeWorkingScatterZoneVector.append(largeVersion);
             }
         }
 
@@ -596,17 +651,38 @@ huntCore: InitObject {
         \t(in <<fakeRoom.getOutermostRoom().roomTitle>>)";
         #endif
 
+        // Scatter pieces
         for (local i = 2; i <= suitTracker.missingPieces.length; i++) {
             local piece = suitTracker.missingPieces[i];
-            local scatterVec = smallPlaces;
-            if (piece.bulk > 1) scatterVec = largePlaces;
+
+            // Choose scatter vector
+            local scatterVec = (piece.bulk > 1) ?
+                largeWorkingScatterZoneVector :
+                smallWorkingScatterZoneVector;
+            
+            // Refill empty scatter vector
+            if (scatterVec.length == 0) {
+                local sourceVec = (piece.bulk > 1) ?
+                    largeScatterZoneVector :
+                    smallScatterZoneVector;
+                for (local j = 1; j <= sourceVec.length; j++) {
+                    scatterVec.append(sourceVec[j]);
+                }
+            }
+
+            // Do scatter
             index = skashek.getRandomResult(scatterVec.length);
-            piece.moveInto(scatterVec[index]);
+            local chosenVec = scatterVec[index];
+            local secondIndex = skashek.getRandomResult(chosenVec.length);
+            local scatterLoc = chosenVec[secondIndex];
+            piece.moveInto(scatterLoc);
+
             #if __DEBUG_SUIT_PLACEMENT
             "\n<<piece.theName>> goes into\n
-            \t<<scatterVec[index].theName>>!\n
-            \t(in <<scatterVec[index].getOutermostRoom().theName>>)";
+            \t<<scatterLoc.theName>>!\n
+            \t(in <<scatterLoc.getOutermostRoom().theName>>)";
             #endif
+
             scatterVec.removeElementAt(index);
         }
     }

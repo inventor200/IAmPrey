@@ -239,7 +239,8 @@ prologueCore: InitObject {
         If <<gSkashekName>> is following you into a room, try to hide inside of something!\n
         If he sees you attempting to hide, however, then he will still hunt you down!
         <<or>>
-        There might be something cool to find in the fume hood in the kitchen!
+        There might be something cool to find in the fume hood
+        (which is found in the Kitchen)!
         <<at random>>\b\b\b";
     }
 
