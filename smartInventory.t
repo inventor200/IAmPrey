@@ -76,94 +76,6 @@ smartInventoryCore: object {
         return SMART_BAG.affinityFor(item) > 90;
     }
 
-    dataIsNotCollection(obj) {
-        if (obj == nil) return true;
-        return !obj.ofKind(Collection);
-    }
-
-    convertToVector(obj) {
-        #if __DEBUG_SMART_INVENTORY
-        "\b
-        convertToVector: Converting data to Vector...
-        \b";
-        #endif
-        if (obj == nil) {
-            #if __DEBUG_SMART_INVENTORY
-            "\b
-            convertToVector: obj was nil.
-            \b";
-            #endif
-            return new Vector();
-        }
-        if (obj.ofKind(Vector)) {
-            #if __DEBUG_SMART_INVENTORY
-            "\b
-            convertToVector: obj was a Vector of length <<obj.length>>.
-            \b";
-            #endif
-            return obj;
-        }
-        if (obj.ofKind(List)) {
-            #if __DEBUG_SMART_INVENTORY
-            "\b
-            convertToVector: obj was a List of length <<obj.length>>.
-            \b";
-            #endif
-            return new Vector(obj);
-        }
-        #if __DEBUG_SMART_INVENTORY
-        "\b
-        convertToVector: obj was an item.
-        \b";
-        #endif
-        local ret = new Vector(1);
-        ret.append(obj);
-        return ret;
-    }
-
-    dumpVectorAIntoB(a, b) {
-        if (a == nil) return;
-        if (!b.ofKind(Vector)) {
-            throw new Exception('b is not a true Vector! ');
-        }
-        if (dataIsNotCollection(a)) {
-            b.appendUnique(a);
-            return;
-        }
-        for (local i = 1; i <= a.length; i++) {
-            b.appendUnique(a[i]);
-        }
-    }
-
-    fuseVectors(a, b) {
-        local aNCol = dataIsNotCollection(a);
-        local bNCol = dataIsNotCollection(b);
-        local aLen = aNCol ? 1 : a.length;
-        local bLen = bNCol ? 1 : b.length;
-
-        local repo = new Vector(aLen + bLen);
-
-        if (a != nil) {
-            if (aNCol) {
-                repo.appendUnique(a);
-            }
-            else {
-                dumpVectorAIntoB(a, repo);
-            }
-        }
-
-        if (b != nil) {
-            if (bNCol) {
-                repo.appendUnique(b);
-            }
-            else {
-                dumpVectorAIntoB(b, repo);
-            }
-        }
-
-        return repo;
-    }
-
     vectorToBulk(vec) {
         local aVec = convertToVector(vec);
         local totalBulk = 0;
@@ -320,10 +232,10 @@ class SmartInventoryCluster: object {
     }
 
     planFit(capacity) {
-        if (itemsMovedHere.length > 0) itemsMovedHere.removeRange(1, -1);
-        if (itemsOverflowedHere.length > 0) itemsOverflowedHere.removeRange(1, -1);
-        if (clothesToWear.length > 0) clothesToWear.removeRange(1, -1);
-        if (clothesToDoff.length > 0) clothesToDoff.removeRange(1, -1);
+        clearVector(itemsMovedHere);
+        clearVector(itemsOverflowedHere);
+        clearVector(clothesToWear);
+        clearVector(clothesToDoff);
 
         local addedBulk = 0;
 
@@ -425,9 +337,10 @@ class SmartInventoryPathway: object {
     }
 
     getVectorFromProp(vecProp) {
-        return smartInventoryCore.fuseVectors(
+        return fuseVectors(
             priorityCluster.(vecProp),
-            junkCluster.(vecProp)
+            junkCluster.(vecProp),
+            true
         );
     }
 
@@ -506,15 +419,16 @@ class SmartInventoryPathway: object {
 
     resetPlan() {
         plannedCapacity = capacity - minimumBulk;
-        if (overflow.length > 0) overflow.removeRange(1, -1);
+        clearVector(overflow);
         hadOverflow = nil;
     }
 
     planFit() {
         if (!priorityCluster.planFit(plannedCapacity)) {
-            smartInventoryCore.dumpVectorAIntoB(
+            dumpVectorAIntoB(
                 priorityCluster.itemsOverflowedHere,
-                overflow
+                overflow,
+                true
             );
         }
 
@@ -523,9 +437,10 @@ class SmartInventoryPathway: object {
         );
 
         if (!junkCluster.planFit(plannedCapacity)) {
-            smartInventoryCore.dumpVectorAIntoB(
+            dumpVectorAIntoB(
                 junkCluster.itemsOverflowedHere,
-                overflow
+                overflow,
+                true
             );
         }
 
@@ -571,12 +486,13 @@ class SmartInventoryBatch: object {
             );
         }
         else {
-            matches = smartInventoryCore.convertToVector(matches);
+            matches = convertToVector(matches);
         }
 
         if (additionalItems != nil) {
-            matches = smartInventoryCore.fuseVectors(
-                matches, additionalItems
+            matches = fuseVectors(
+                matches, additionalItems,
+                true
             );
         }
 
@@ -611,11 +527,11 @@ class SmartInventoryBatch: object {
 
         // Assemble all relevant items
         local actionScope = new Vector();
-        smartInventoryCore.dumpVectorAIntoB(gPlayerChar.contents, actionScope);
+        dumpVectorAIntoB(gPlayerChar.contents, actionScope, true);
         if (bagPath.isAvailable) {
-            smartInventoryCore.dumpVectorAIntoB(IN_SMART_BAG.contents, actionScope);
+            dumpVectorAIntoB(IN_SMART_BAG.contents, actionScope, true);
         }
-        smartInventoryCore.dumpVectorAIntoB(matches, actionScope);
+        dumpVectorAIntoB(matches, actionScope, true);
 
         // Funnel into categories
         floorPath.initializeItemsHere(actionScope, foundOnFloorFilter);
@@ -741,8 +657,9 @@ class SmartInventoryBatch: object {
         performMoves(movedToBag, bagPath.destination);
         // Take hand items and clothes to wear
         performMoves(
-            smartInventoryCore.fuseVectors(movedToHands, worn),
-            handsPath.destination
+            fuseVectors(movedToHands, worn),
+            handsPath.destination,
+            true
         );
         // Wear clothes
         performWearing(worn, true);
@@ -931,9 +848,10 @@ class SmartInventoryBatch: object {
         unsortedSuitPieces = new Vector(
             handsPath.priorityCluster.itemsFoundHere.length
         );
-        smartInventoryCore.dumpVectorAIntoB(
+        dumpVectorAIntoB(
             handsPath.priorityCluster.itemsFoundHere,
-            unsortedSuitPieces
+            unsortedSuitPieces,
+            true
         );
         subtractVecs(
             unsortedSuitPieces,

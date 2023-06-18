@@ -665,9 +665,7 @@ huntCore: InitObject {
                 local sourceVec = (piece.bulk > 1) ?
                     largeScatterZoneVector :
                     smallScatterZoneVector;
-                for (local j = 1; j <= sourceVec.length; j++) {
-                    scatterVec.append(sourceVec[j]);
-                }
+                dumpVectorAIntoB(sourceVec, scatterVec);
             }
 
             // Do scatter

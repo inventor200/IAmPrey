@@ -337,7 +337,7 @@ modify skashek {
     // Replugging seeds has weird results and lag with the algorithms available
     initSeed() {
         randomize();
-        if (randPool.length > 0) randPool.removeRange(1, -1);
+        clearVector(randPool);
         for (local i = 1; i <= seedMax; i++) {
             local frontOrBack = (rand(4096) >= 2048);
             if (frontOrBack && randPool.length > 0) {
@@ -1051,9 +1051,7 @@ modify skashek {
             "\b";
         }
         #endif
-        if (perceivedSoundImpacts.length > 0) {
-            perceivedSoundImpacts.removeRange(1, -1);
-        }
+        clearVector(perceivedSoundImpacts);
     }
 
     doPlayerPeek() {

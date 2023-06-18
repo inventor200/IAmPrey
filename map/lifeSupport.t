@@ -207,7 +207,7 @@ class CoolingDuctSegment: Room {
         local vec = dropRoom.droppedItemsVector;
         if (vec == nil) return;
 
-        local problemVector = smartInventoryCore.convertToVector(
+        local problemVector = convertToVector(
             gPlayerChar.directlyHeld
         );
 
@@ -229,7 +229,7 @@ class CoolingDuctSegment: Room {
             later.<.p><<only>>";
         }
 
-        smartInventoryCore.dumpVectorAIntoB(droppedItems, vec);
+        dumpVectorAIntoB(droppedItems, vec, true);
     }
 }
 
@@ -262,7 +262,7 @@ class RoomConnectedToCoolingDuct: Room {
             behind, earlier.<.p>";
         }
 
-        droppedItemsVector.removeRange(1, -1);
+        clearVector(droppedItemsVector);
     }
 }
 

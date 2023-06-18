@@ -323,9 +323,7 @@ class TerminalFolder: TerminalFileSystemElement {
 
     traverseVector(vec, isFile) {
         if (isEncrypted()) {
-            if (vec.length > 0) {
-                vec.removeRange(1, -1);
-            }
+            clearVector(vec);
             return nil;
         }
 

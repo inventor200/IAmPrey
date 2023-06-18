@@ -396,11 +396,7 @@ transient sfxPlayer: object {
 
         hadTravel = nil;
 
-        local sortedSequence = new Vector(soundSequence.length);
-
-        for (local i = 1; i <= soundSequence.length; i++) {
-            sortedSequence.append(soundSequence[i]);
-        }
+        local sortedSequence = cloneVector(soundSequence);
 
         sortedSequence.sort(true, {a, b: a.stackingPriority - b.stackingPriority});
 
@@ -414,9 +410,7 @@ transient sfxPlayer: object {
             play(soundSequence[i], 100, i > 1);
         }
 
-        if (soundSequence.length > 0) {
-            soundSequence.removeRange(1, -1);
-        }
+        clearVector(soundSequence);
     }
 
     play(soundObj, attenuation?, doNotInterrupt?) {

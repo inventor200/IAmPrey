@@ -55,12 +55,8 @@ skashekLurkState: SkashekAIState {
         LURK: Resetting room list...
         <.p>";
         #endif
-        if (roomsLeftToCheck.length > 0) {
-            roomsLeftToCheck.removeRange(1, -1);
-        }
-        for (local i = 1; i <= checkableRooms.length; i++) {
-            roomsLeftToCheck.append(checkableRooms[i]);
-        }
+        clearVector(roomsLeftToCheck);
+        dumpVectorAIntoB(checkableRooms, roomsLeftToCheck);
     }
 
     disqualifyCurrentRoom() {

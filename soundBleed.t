@@ -78,7 +78,7 @@ soundBleedCore: object {
                 currentSoundImpact = emission;
                 doPropagationForPlayer(emission.soundProfile, emission.sourceLocation);
             }
-            envSoundEmissions.removeRange(1, -1);
+            clearVector(envSoundEmissions);
             gPlayerChar.doPerception();
         }
 
@@ -91,7 +91,7 @@ soundBleedCore: object {
                 currentSoundImpact = emission;
                 doPropagationForSkashek(emission.soundProfile, emission.sourceLocation);
             }
-            playerSoundEmissions.removeRange(1, -1);
+            clearVector(playerSoundEmissions);
             skashek.doPerception();
         }
     }
@@ -152,7 +152,7 @@ soundBleedCore: object {
 
         everyOtherCounter = nil;
 
-        propagatedRooms.removeRange(1, -1);
+        clearVector(propagatedRooms);
     }
 
     propagateRoomForPlayer(room, profile, form, strength, sourceDirection) {
@@ -585,9 +585,7 @@ modify Actor {
         if (gPlayerChar == self) {
             doPlayerPerception();
         }
-        if (perceivedSoundImpacts.length > 0) {
-            perceivedSoundImpacts.removeRange(1, -1);
-        }
+        clearVector(perceivedSoundImpacts);
     }
 
     doPlayerPerception() {

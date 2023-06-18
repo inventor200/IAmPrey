@@ -23,6 +23,7 @@ string template <<warning>> formatWarning;
 #define __ALLOW_DEBUG_ACTIONS nil
 #endif
 
+#include "vectorTools.t"
 #include "compliantHyperlinks.t"
 #include "betterChoices.t"
 
