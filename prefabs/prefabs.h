@@ -14,3 +14,4 @@
 #include "bunkbed.t"
 #include "plumbing.t"
 #include "labTech.t"
+#include "zippable.t"

@@ -95,7 +95,7 @@ hangar: Room { 'The Hangar'
 
     canTravelerPass(actor) {
         if (emergencyAirlock.allPartsPrepared()) return true;
-        return skashekAIControls.currentState != skashekChaseState;
+        return skashek.isChasing();
     }
     
     explainTravelBarrier(actor) {

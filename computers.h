@@ -1,0 +1,5 @@
+#include "computers/actions.t"
+#include "computers/structure.t"
+#include "computers/commands.t"
+#include "computers/things.t"
+#include "computers/access.t"

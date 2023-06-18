@@ -36,14 +36,6 @@ hardImpactNoiseProfile: SoundProfile {
     }
 }
 
-/*modify parkourCore {
-    certifyDiscovery(actor, path) {
-        if (gActor != gPlayerChar) return;
-        if (gAction.turnsTaken > 0) return;
-        huntCore.revokeFreeTurn();
-    }
-}*/
-
 modify actorInStagingLocation {
     spendImplicitTurn() {
         if (gActor != gPlayerChar) return;
@@ -124,6 +116,103 @@ modify VerbRule(Inventory)
     'i' | 'inv' | 'inventory' | ('take'|'check') 'inventory' | 'check' 'pockets':
 ;
 
+VerbRule(SlingOverShoulder)
+    (
+        'sling' singleDobj 'over' |
+        ('put'|'carry'|'drape') singleDobj ('on'|'over'|'across') |
+        'hang' singleDobj ('on'|'over'|'across'|'from')
+    )
+    ('my'|'the'|'prey\'s'|'preys'|'your'|) 'shoulder'
+    : VerbProduction
+    action = SlingOverShoulder
+    verbPhrase = 'sling/slinging (what) over the shoulder'
+    missingQ = 'what do you want to carry over the shoulder'
+;
+
+DefineTAction(SlingOverShoulder)
+;
+
+VerbRule(StrapOn)
+    'strap' 'on' singleDobj |
+    'strap' singleDobj 'on'
+    : VerbProduction
+    action = StrapOn
+    verbPhrase = 'strap/strapping on (what)'
+    missingQ = 'what do you want to strap on'
+;
+
+DefineTAction(StrapOn)
+;
+
+VerbRule(Unstrap)
+    'unstrap' singleDobj
+    : VerbProduction
+    action = Unstrap
+    verbPhrase = 'unstrap/unstrapping (what)'
+    missingQ = 'what do you want to unstrap'
+;
+
+DefineTAction(Unstrap)
+;
+
+modify VerbRule(Yell)
+    'yell'|'scream'|'shout'|'holler'|'cry'|'wail'|'sob' :
+;
+
+VerbRule(DryOffWith)
+    'dry' ('off'|) singleDobj ('with'|'using'|'on') singleIobj |
+    'wipe' ('down'|) singleDobj ('with'|'using'|'on') singleIobj |
+    ('wipe'|'soak'|'dry') ('up'|) singleDobj ('with'|'using'|'on') singleIobj |
+    'dry' singleDobj ('off'|) ('with'|'using'|'on') singleIobj |
+    'wipe' singleDobj ('down'|) ('with'|'using'|'on') singleIobj |
+    ('wipe'|'soak'|'dry') singleDobj ('up'|) ('with'|'using'|'on') singleIobj
+    : VerbProduction
+    action = DryOffWith
+    verbPhrase = 'dry/drying off (what) (with what)'
+    missingQ = 'what do you want to dry off; what do you want to dry it off with'
+;
+
+DefineTIAction(DryOffWith)
+    resolveIobjFirst = nil
+    allowAll = nil
+;
+
+VerbRule(DrySelfWith)
+    ('dry' ('myself'|'prey'|'yourself'|) 'off'|'wipe' ('myself'|'prey'|'yourself'|) 'down') ('with'|'using'|'on') singleDobj
+    : VerbProduction
+    action = DrySelfWith
+    verbPhrase = 'dry/drying off (with what)'
+    missingQ = 'what do you want to dry it off with'
+;
+
+DefineTAction(DrySelfWith)
+    allowAll = nil
+    execAction(cmd) {
+        doNested(DryOffWith, gActor, gDobj);
+    }
+;
+
+VerbRule(DrySelfVague)
+    ('dry' ('myself'|'prey'|'yourself'|) 'off'|'wipe' ('myself'|'prey'|'yourself'|) 'down')
+    : VerbProduction
+    action = DrySelfVague
+    verbPhrase = 'dry/drying off'
+;
+
+DefineIAction(DrySelfVague)
+    execAction(cmd) {
+        local scope = Q.scopeList(gActor);
+        for (local i = 1; i <= scope.length; i++) {
+            local item = scope[i];
+            if (!item.canDryWithMe) continue;
+            doNested(DryOffWith, gActor, item);
+            return;
+        }
+
+        "{I} {do} not see anything in reach to dry off with. ";
+    }
+;
+
 modify ParkourModule {
     canStandOnMe = true
 }
@@ -155,6 +244,18 @@ modify Thing {
         :
         '{The subj dobj} {is} not something {i} {can} enter. '
     )
+
+    canSlingOverShoulder = nil
+    canStrapOn = nil
+
+    smartInventoryName = (name)
+
+    canDryWithMe = nil
+    canDryMe = nil
+    dryVerb = '{aac} dr{ies/ied} {the dobj} off'
+
+    cannotDryWithMeMsg = '{I} {cannot} dry anything with {that iobj}. '
+    cannotDryMeMsg = '{The subj dobj} does not need drying. '
 
     doClimbPunishment(actor, traveler, path) {
         actor.addExhaustion(1);
@@ -198,6 +299,35 @@ modify Thing {
         huntCore.addBonusSkashekTurn(
             huntCore.difficultySettingObj.turnsSkipsForFalling
         );
+    }
+
+    iobjFor(DryOffWith) {
+        preCond = [touchObj]
+        verify() {
+            if (!canDryWithMe) {
+                illogical(cannotDryWithMeMsg);
+            }
+            verifyDobjTake();
+        }
+        report() {
+            if (gDobj == gActor) {
+                "{I} dr{ies/ied} {myself} off with {the iobj}. ";
+            }
+            else {
+                "{I}<<gDobj.dryVerb>> with {the iobj}. ";
+            }
+        }
+    }
+
+    dobjFor(DrySelfWith) asIobjFor(DryOffWith)
+
+    dobjFor(DryOffWith) {
+        preCond = [touchObj]
+        verify() {
+            if (!canDryMe) {
+                illogicalNow(cannotDryMeMsg);
+            }
+        }
     }
 
     dobjFor(Lick) asDobjFor(Taste)
@@ -445,6 +575,42 @@ modify Thing {
         }
     }
 
+    dobjFor(SlingOverShoulder) {
+        preCond = [touchObj]
+        verify() {
+            if (!canSlingOverShoulder) {
+                illogical('{That subj dobj} {is} not carried over a shoulder. ');
+            }
+        }
+        action() {
+            doInstead(Take, self);
+        }
+    }
+
+    dobjFor(StrapOn) {
+        preCond = [touchObj]
+        verify() {
+            if (!canStrapOn) {
+                illogical('{I} {cannot} strap {that dobj} on. ');
+            }
+        }
+        action() {
+            doInstead(Wear, self);
+        }
+    }
+
+    dobjFor(Unstrap) {
+        preCond = [touchObj]
+        verify() {
+            if (!canStrapOn) {
+                illogical('{I} {cannot} unstrap {that dobj}. ');
+            }
+        }
+        action() {
+            doInstead(Doff, self);
+        }
+    }
+
     findSurfaceUnder() {
         local surface = location;
 
@@ -483,6 +649,10 @@ modify Thing {
 }
 
 modify Actor {
+    cannotDryMeMsg = '{The subj dobj} {am} already dry. '
+
+    canDryMe = (wetness > 0)
+
     remappingSearch = true
     remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(Search)
@@ -511,6 +681,18 @@ modify Actor {
             examineSurfaceUnder();
         }
         report() { }
+    }
+
+    dobjFor(DryOffWith) {
+        verify() {
+            if (gActor != self) {
+                illogical('{The subj dobj} would not appreciate that. ');
+            }
+            inherited();
+        }
+        action() {
+            dryOff();
+        }
     }
 }
 
