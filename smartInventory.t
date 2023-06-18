@@ -16,6 +16,7 @@ smartInventoryCore: object {
     activeBatch = nil
     hasBatch = (activeBatch != nil)
     batchFailed = nil
+    silent = nil
 
     // Primary method 1
     // Uses the dobjs from gCommand
@@ -51,14 +52,12 @@ smartInventoryCore: object {
     reset() {
         activeBatch = nil;
         batchFailed = nil;
+        silent = nil;
     }
 
     getFilteredVector(originalVector, filterObject) {
         if (originalVector == nil) return nil;
         originalVector = convertToVector(originalVector);
-        /*if (dataIsNotCollection(originalVector)) {
-            originalVector = new Vector([originalVector]);
-        }*/
         if (filterObject == nil) return originalVector;
         local filtered = new Vector(originalVector.length);
 
@@ -552,7 +551,12 @@ class SmartInventoryBatch: object {
         // Pick up bag
         local wasBagOpen = IN_SMART_BAG.isOpen;
         if (bagPath.isAvailable && !wasBagOpen) {
-            nestedAction(Open, IN_SMART_BAG);
+            if (smartInventoryCore.silent) {
+                IN_SMART_BAG.makeOpen(true);
+            }
+            else {
+                nestedAction(Open, IN_SMART_BAG);
+            }
         }
 
         sortMatches();
@@ -627,11 +631,18 @@ class SmartInventoryBatch: object {
 
         // Nothing moved
         if (totalMovedItems.length) {
-            "<.p>{I} don't suppose there is a rearrangement that would
-            achieve that.<.p>";
+            if (!smartInventoryCore.silent) {
+                "<.p>{I} don't suppose there is a rearrangement
+                that would achieve that.<.p>";
+            }
             isValid = nil;
             if (!wasBagOpen) {
-                nestedAction(Close, IN_SMART_BAG);
+                if (smartInventoryCore.silent) {
+                    IN_SMART_BAG.makeOpen(nil);
+                }
+                else {
+                    nestedAction(Close, IN_SMART_BAG);
+                }
             }
             return;
         }
@@ -668,7 +679,12 @@ class SmartInventoryBatch: object {
             SMART_BAG.actionMoveInto(gPlayerChar);
             nestedAction(Wear, SMART_BAG);
             if (!wasBagOpen) {
-                nestedAction(Close, IN_SMART_BAG);
+                if (smartInventoryCore.silent) {
+                    IN_SMART_BAG.makeOpen(nil);
+                }
+                else {
+                    nestedAction(Close, IN_SMART_BAG);
+                }
             }
         }
         // Pick up items from floor
@@ -709,8 +725,10 @@ class SmartInventoryBatch: object {
     performMoves(movVec, destination) {
         if (movVec.length == 0) return;
         if (destination == gPlayerChar) {
-            "<.p>{I} take
-            <<smartInventoryCore.getList(movVec)>>.<.p>";
+            if (!smartInventoryCore.silent) {
+                "<.p>{I} take
+                <<smartInventoryCore.getList(movVec)>>.<.p>";
+            }
         }
         else {
             local inStr = destination.objInPrep + ' ' + destination.theName;
@@ -718,8 +736,10 @@ class SmartInventoryBatch: object {
                 inStr = destination.floorObj.objInPrep + ' ' +
                     destination.floorObj.theName;
             }
-            "<.p>{I} put
-            <<smartInventoryCore.getList(movVec)>> <<inStr>>.<.p>";
+            if (!smartInventoryCore.silent) {
+                "<.p>{I} put
+                <<smartInventoryCore.getList(movVec)>> <<inStr>>.<.p>";
+            }
         }
         for (local i = 1; i <= movVec.length; i++) {
             local item = movVec[i];
@@ -729,13 +749,15 @@ class SmartInventoryBatch: object {
 
     performWearing(clothesVec, state) {
         if (clothesVec.length == 0) return;
-        if (state) {
-            "<.p>{I} wear
-            <<smartInventoryCore.getList(clothesVec)>>.<.p>";
-        }
-        else {
-            "<.p>{I} take off
-            <<smartInventoryCore.getList(clothesVec)>>.<.p>";
+        if (!smartInventoryCore.silent) {
+            if (state) {
+                "<.p>{I} wear
+                <<smartInventoryCore.getList(clothesVec)>>.<.p>";
+            }
+            else {
+                "<.p>{I} take off
+                <<smartInventoryCore.getList(clothesVec)>>.<.p>";
+            }
         }
         for (local i = 1; i <= clothesVec.length; i++) {
             local item = clothesVec[i];
@@ -922,7 +944,9 @@ class SmartInventoryBatch: object {
     planWearItems() {
         isPlanningToWear = true;
         if (!isWearingAnOption) {
-            "<.p><<EnviroSuitPart.doNotWearOutsideAirlockMsg>><.p>";
+            if (!smartInventoryCore.silent) {
+                "<.p><<EnviroSuitPart.doNotWearOutsideAirlockMsg>><.p>";
+            }
             isPlanningToWear = nil;
         }
 

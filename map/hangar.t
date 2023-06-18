@@ -92,6 +92,16 @@ hangar: Room { 'The Hangar'
     airlockDoor = true
     isTransparent = true
     canSlamMe = nil
+
+    canTravelerPass(actor) {
+        if (emergencyAirlock.allPartsPrepared()) return true;
+        return skashekAIControls.currentState != skashekChaseState;
+    }
+    
+    explainTravelBarrier(actor) {
+        "The Airlock might as well be called <q>Slaughterhouse</q> while
+        <<gSkashekName>> is still chasing me. {I} need to lose him, first! ";
+    }
 }
 
 DefineBrokenWindowPairLookingAway(east, west, hangar, storageBay)
@@ -145,7 +155,7 @@ emergencyAirlock: Room { 'The Emergency Airlock'
     travelerEntering(traveler, origin) {
         inherited(traveler, origin);
         if (!traveler.isOrIsIn(gPlayerChar)) return;
-        hasAllSuitParts = allPartsInInventory();
+        hasAllSuitParts = allPartsPrepared();
         local strBfr = new StringBuffer(32);
         strBfr.append(
             '{I} need all seven pieces of the
@@ -155,6 +165,63 @@ emergencyAirlock: Room { 'The Emergency Airlock'
         suitReportMsg = '{I} need all seven pieces of the
             envirosuit in {my} inventory, before
             {i} can leave!\b' + suitTracker.getProgressLists() + '<.p>';
+        
+        if (hasAllSuitParts) {
+            local chasedBySkashek = (skashek.getOutermostRoom() == hangar);
+            
+            local heldVector = new Vector(16);
+            local dirHeld = gPlayerChar.directlyHeld;
+
+            for (local i = 1; i <= dirHeld.length; i++) {
+                local item = dirHeld[i];
+                if (item == enviroSuitBag) continue;
+                if (enviroSuitBag.affinityFor(item) <= 90) {
+                    heldVector.appendUnique(item);
+                }
+            }
+
+            if (gPlayerChar.outfit != nil) {
+                heldVector.appendUnique(gPlayerChar.outfit);
+                gPlayerChar.outfit.makeWorn(nil);
+                gPlayerChar.outfit = nil;
+            }
+
+            if (gPlayerChar.canReach(enviroSuitBag)) {
+                for (local i = 1; i <= enviroSuitBag.remapIn.contents.length; i++) {
+                    local item = enviroSuitBag.remapIn.contents[i];
+                    if (enviroSuitBag.affinityFor(item) <= 90) {
+                        heldVector.appendUnique(item);
+                    }
+                }
+            }
+
+            if (heldVector.length == 0) return;
+
+            for (local i = 1; i <= heldVector.length; i++) {
+                heldVector[i].actionMoveInto(hangar);
+            }
+
+            if (heldVector.length > 0) {
+                if (chasedBySkashek) {
+                    "<.p>
+                    {I} suppose {i} do not need to bring <i>everything</i>{dummy}
+                    with {me}, so {i} decide to throw
+                    <<smartInventoryCore.getList(heldVector)>> at <<gSkashekName>>,
+                    which makes for a competent distraction!\b
+                    <q>Prey!</q> he shouts, batting away <<heldVector[1].theName>>.
+                    <q>Your aim is <i>fine</i>, but your technique is <i>abysmal!</i></q>
+                    <.p>";
+                }
+                else {
+                    "<.p>
+                    {I} leave
+                    <<smartInventoryCore.getList(heldVector)>>
+                    behind for another Prey to use, so we may all
+                    have the same opportunities to escape.
+                    <.p>";
+                }
+            }
+        }
     }
 
     travelerLeaving(traveler, destination) {
@@ -171,16 +238,18 @@ emergencyAirlock: Room { 'The Emergency Airlock'
             applicableParts.append(piece);
         }
 
-        //addSFX(bagStowSnd);
         smartInventoryCore.performOperationOn(operationDoffItems, applicableParts);
 
         "{I} cannot risk damaging the suit,
         or letting it{dummy} weigh {me} down.<.p>";
     }
 
-    allPartsInInventory() {
+    allPartsPrepared() {
         for (local i = 1; i <= suitTracker.missingPieces.length; i++) {
-            if (!suitTracker.missingPieces[i].isIn(gPlayerChar)) return nil;
+            local piece = suitTracker.missingPieces[i];
+            if (piece.isIn(gPlayerChar)) continue;
+            if (piece.getOutermostRoom() == emergencyAirlock) continue;
+            return nil;
         }
         return true;
     }
