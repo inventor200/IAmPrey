@@ -6,20 +6,47 @@
  */
 
 modify Thing {
+    // Only apply ALL to me if I'm in inventory
     pleaseIgnoreMe = nil
+    // Never apply ALL to me
+    alwaysHideFromAll = (isDecoration)
+    // Only allow EXAMINE ALL for me
+    onlyExamineAll = (isDecoration)
 
     hideFromAll(action) {
-        // If the object is set to be ignored, then ALL only applied for inventory
-        if (pleaseIgnoreMe) {
-            return !isHeldBy(gPlayerChar);
+        if (alwaysHideFromAll) {
+            return true;
         }
 
-        // Simple actions are fine
+        local isHeld = isHeldBy(gPlayerChar);
+
+        if (onlyExamineAll) {
+            if (isOrIsIn(gPlayerChar) && !examined) return nil;
+            return !action.ofKind(Examine);
+        }
+
+        // If the object is set to be ignored, then ALL only applied for inventory
+        if (pleaseIgnoreMe) {
+            return !isHeld;
+        }
+
+        // Don't bother with anyone's clothing
+        if (isWearable && wornBy != nil) {
+            return true;
+        }
+
+        // Simple examination is fine
         if (action.ofKind(Examine)) return nil;
-        if (action.ofKind(ListenTo)) return nil;
-        if (action.ofKind(Feel)) return nil;
-        if (action.ofKind(Taste)) return nil;
-        if (action.ofKind(SmellSomething)) return nil;
+
+        // For any other senses, we need the player to be more specific.
+        if (
+            action.ofKind(ListenTo) &&
+            action.ofKind(Feel) &&
+            action.ofKind(Taste) &&
+            action.ofKind(SmellSomething)
+        ) {
+            return true;
+        }
 
         // Skip obvious problems
         if (action.ofKind(Open) || action.ofKind(Close)) return !isOpenable;
@@ -27,8 +54,13 @@ modify Thing {
         if (action.ofKind(Wear) || action.ofKind(Doff)) return !isWearable;
 
         // Player has full control over inventory
-        return !isHeldBy(gPlayerChar);
+        return !isHeld;
     }
+}
+
+modify SubComponent {
+    alwaysHideFromAll = true
+    onlyExamineAll = true
 }
 
 modify Platform {

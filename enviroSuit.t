@@ -213,6 +213,7 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     }
 
     hideFromAll(action) {
+        if (action.ofKind(Examine)) return nil;
         if (getOutermostRoom() == deliveryRoom) {
             // Make sure TAKE ALL works when the player first
             // starts the game.

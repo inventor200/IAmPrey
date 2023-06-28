@@ -59,6 +59,7 @@ cat: PlayerActor { '<<catBaseVocab>> <<catNicknameVocab>> me you self myself you
     bulk = 1
     bulkCapacity = 1
     maxSingleBulk = 1
+    alwaysHideFromAll = true
 
     seeReflection(mirror) {
         mirror.confirmSmashed();

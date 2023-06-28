@@ -7,6 +7,7 @@ class ArtificialWomb: Fixture {
     There is some springiness to the design, in case a developing clone
     twitches as it grows. "
     isBoardable = true
+    alwaysHideFromAll = true
 
     matchPhrases = ['womb', 'tank']
 
@@ -299,6 +300,7 @@ deliveryRoom: Room { 'The Delivery Room'
     canDryWithMe = true
     bulk = 0
     isListed = nil
+    onlyExamineAll = true
 
     dobjFor(Take) {
         action() {

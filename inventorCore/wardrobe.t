@@ -42,6 +42,8 @@ class Outfit: Wearable {
     headerName = 'outfit'
     headerPunctuation = '.'
 
+    onlyExamineAll = true
+
     headerDesc(wornPerspective) {
         if (wornBy == gPlayerChar) {
             return (wornPerspective ? '{I} wear a ' : '{My} ') +
@@ -65,12 +67,6 @@ class Outfit: Wearable {
         if (wornBy != nil) return 0;
         // Otherwise, its bulk is normal.
         return 2;
-    }
-
-    hideFromAll(action) {
-        if (wornBy != nil) return true;
-        if (action.ofKind(Wear) && gActor.outfit != nil) return true;
-        return inherited(action);
     }
 
     dobjFor(Wear) {

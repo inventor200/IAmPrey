@@ -3,6 +3,7 @@ prey: PlayerActor { 'The Prey;;me self myself'
     person = (gCatMode ? 3 : gDefaultPOV)
 
     location = dreamWorldPrey
+    alwaysHideFromAll = true
 
     onlySeenShatteredReflectionBefore = nil
     scaredByOwnReflection = nil
