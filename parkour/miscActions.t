@@ -7,7 +7,7 @@ modify JumpOver {
 }
 
 VerbRule(SlideUnder)
-    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither'|'climb'|'cl') 'under' singleDobj
+    ('slide'|'dive'|'roll'|'go'|'crawl'|'scramble'|'slither'|'climb'|'cl'|'scurry') 'under' singleDobj
     : VerbProduction
     action = SlideUnder
     verbPhrase = 'slide/sliding under (what)'
@@ -104,8 +104,7 @@ DefineIAction(ParkourClimbOffIntransitive)
     allowAll = nil
 
     execAction(cmd) {
-        parkourCore.cacheParkourRunner(gActor);
-        doInstead(ParkourClimbOffOf, gParkourRunner.location);
+        doInstead(ParkourClimbOffOf, gMoverLocationFor(gActor));
     }
 ;
 
@@ -135,8 +134,7 @@ VerbRule(ParkourJumpOffIntransitive)
 
 DefineIAction(ParkourJumpOffIntransitive)
     execAction(cmd) {
-        parkourCore.cacheParkourRunner(gActor);
-        doInstead(ParkourJumpOffOf, gParkourRunner.location);
+        doInstead(ParkourJumpOffOf, gMoverLocationFor(gActor));
     }
 ;
 

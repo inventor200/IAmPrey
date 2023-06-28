@@ -9,7 +9,7 @@ modify ParkourModule {
             if (platformSignal) return;
 
             if (!lexicalParent.hasParkourRecon) {
-                parkourCore.cacheParkourRunner(gActor);
+                gMoverFrom(gActor);
                 local pm = gParkourRunnerModule;
                 if (pm != nil) {
                     local path = getPathFrom(pm, true, true);

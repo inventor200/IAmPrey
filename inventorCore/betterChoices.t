@@ -10,6 +10,11 @@ class ChoiceGiver: object {
     question = 'Would you like to choose?'
     context = nil
     beforeScreenReaderCertainty = nil
+    nextChoiceIsIndented = nil
+
+    indentNextChoice() {
+        nextChoiceIsIndented = true;
+    }
 
     add(abbreviation, choiceStr, context?) {
         if (context != nil) {
@@ -18,8 +23,10 @@ class ChoiceGiver: object {
         choices.append([
             abbreviation.trim().toUpper(),
             choiceStr.trim(),
-            context
+            context,
+            nextChoiceIsIndented
         ]);
+        nextChoiceIsIndented = nil;
     }
 
     showAskPrompt() {
@@ -67,6 +74,7 @@ class ChoiceGiver: object {
             local abbreviation = choice[1];
             local text = choice[2];
             local context = choice[3];
+            local indented = choice[4];
             if (context != nil) {
                 if (context.length == 0) {
                     context = nil;
@@ -100,6 +108,9 @@ class ChoiceGiver: object {
                 say('</tt></b> = ');
                 if (outputManager.htmlMode) {
                     say('</FONT>');
+                }
+                if (indented) {
+                    say('<tt>&nbsp;&nbsp;</tt>');
                 }
                 say(aHrefAlt(
                     abbreviation,

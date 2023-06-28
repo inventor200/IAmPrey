@@ -79,4 +79,12 @@ modify Thing {
             reportShashek();
         }
     }
+
+    registerLookUnderSuccess() {
+        searchCore.reportedSuccess = true;
+    }
+
+    registerLookUnderFailure() {
+        searchCore.reportedFailure = true;
+    }
 }

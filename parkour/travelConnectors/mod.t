@@ -26,7 +26,7 @@ modify TravelConnector {
         
         if (gPlayerChar.isOrIsIn(traveler)) {
             local localPlat = getLocalPlatform();
-            if (localPlat != nil) doBeforeTravelDiscovery(gPlayerChar.location);
+            if (localPlat != nil) doBeforeTravelDiscovery(gMoverLocationFor(gPlayerChar));
         }
         
         conn.noteTraversal(actor); 

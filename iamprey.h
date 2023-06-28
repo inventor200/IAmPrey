@@ -1,31 +1,9 @@
-#include "versionInfo.h"
+#include "inventorCore.h"
 
-#define gFormatForScreenReader transScreenReader.formatForScreenReader
 #define gDefaultPOV 1
 
 string template <<free action>> freeAction;
 string template <<free actions>> freeActions;
-string template <<wait for player>> waitForPlayer;
-string template <<remember>> formatRemember;
-string template <<note>> formatNote;
-string template <<warning>> formatWarning;
-
-// Macro keyword "cached" acts like "new" for preinit cache data.
-// If this is a debug build, then the data is not transient, to
-// allow the use of save files.
-// In release versions, it WILL be transient, slimming down saves
-// quite a bit.
-#ifdef __DEBUG
-#define cached new
-#define __ALLOW_DEBUG_ACTIONS true
-#else
-#define cached new transient
-#define __ALLOW_DEBUG_ACTIONS nil
-#endif
-
-#include "vectorTools.t"
-#include "compliantHyperlinks.t"
-#include "betterChoices.t"
 
 // Begin compile modes
 #define __IS_MAP_TEST nil
@@ -50,7 +28,6 @@ string template <<warning>> formatWarning;
    #define __SKASHEK_ALLOW_TESTING_LURK_GOAL nil
   #define __SKASHEK_ALLOW_TESTING_CHASE nil
  #define __ALLOW_CLS true
-#define __DEBUG_PREFS nil
 
 // End compile modes
 #else
@@ -59,19 +36,13 @@ string template <<warning>> formatWarning;
 // ^- This is the non-debug behavior!!!
 #endif
 
-#define gActorIsPlayer (gActor == gPlayerChar)
 #define gActorIsPrey (gActor == prey)
 #define gActorIsCat (gActor == cat)
 #define gEndingOptionsWin preySong, [finishOptionCredits, finishOptionUndo, finishOptionAmusing]
 #define gEndingOptionsLoss skashekSong, [finishOptionCredits, finishOptionUndo]
 #define actorCapacity 10
 #define actorBulk 25
-#include "forEveryone.t"
-#include "cutsceneCore.t"
-#include "disamDirection.t"
-#include "distributedComponents.t"
 #include "moddedSearch.h"
-#include "awareVehicles.t"
 #define gCatMode huntCore.inCatMode
 #define gPreyMode (!huntCore.inCatMode)
 #define gSkashekName skashek.globalParamName
@@ -88,14 +59,13 @@ string template <<warning>> formatWarning;
 #include "shashekAI.h"
 #include "parkour.h"
 #include "trapsAndTracks.t"
-#include "trinkets.t"
 #include "moduleUnion.t"
 #include "prologuePrefs.t"
 #include "musicPlayer.t"
 #include "prologue.t"
 #include "epilogue.t"
 #include "preciseHelp.h"
-#include "wardrobe.t"
+#include "outfitDefs.t"
 #include "enviroSuit.t"
 #include "smartInventory.t"
 #include "computers.h"

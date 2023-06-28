@@ -268,6 +268,8 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     ownerNamed = true
     canSlingOverShoulder = true
     canStrapOn = true
+    isWearable = true
+    wornBy = (enviroSuitBag.wornBy)
 
     hideFromAll(action) {
         return enviroSuitBag.hideFromAll(action);

@@ -23,8 +23,7 @@ modify Thing {
         if (stagingLocation.ofKind(Room)) return nil;
 
         // Being on the same surface as it is obvious
-        parkourCore.cacheParkourRunner(gPlayerChar);
-        if (stagingLocation == gParkourRunner.location) return nil;
+        if (stagingLocation == gMoverLocationFor(gPlayerChar)) return nil;
 
         // The rest is not obvious
         if (parkourCore.requireRouteRecon) {
@@ -137,7 +136,7 @@ modify Thing {
     }
     
     getBetterDestinationName(destination, usePrep?, intelOverride?) {
-        local roomA = gParkourRunner.getOutermostRoom();
+        local roomA = gMover.getOutermostRoom();
         local roomB = destination.getOutermostRoom();
         local prep = destination.objInPrep + ' ';
 

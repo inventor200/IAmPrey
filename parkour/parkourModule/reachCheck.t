@@ -8,8 +8,7 @@ modify ParkourModule {
         extraReport('\nREACH TO: <<theName>>\n');
         #endif
         if (source == gActor) {
-            parkourCore.cacheParkourRunner(source);
-            source = gParkourRunner;
+            source = gMoverFrom(source);
         }
         #if __PARKOUR_REACH_DEBUG
         extraReport('\nTesting source: <<source.theName>> (<<source.contType.prep>>)\n');

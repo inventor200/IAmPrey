@@ -1,6 +1,18 @@
-class Outfit: Wearable {
-    bulk = getClothingBulk()
-    externalDesc() { }
+modify skashek {
+    getWardrobePronounSub(caps?) {
+        return getPeekHe(caps);
+    }
+
+    getWardrobePronounGen(caps?) {
+        return getPeekHis(caps);
+    }
+
+    getWardrobePronounObj(caps?) {
+        return getPeekHim(caps);
+    }
+}
+
+modify Outfit {
     desc() {
         if (gCatMode) {
             "Strange garments, which <<gSkashekName>>
@@ -10,46 +22,8 @@ class Outfit: Wearable {
             he provided a throne on his lap, instead. ";
         }
         else {
-            "<<headerDesc(nil)>>";
-            externalDesc();
+            inherited();
         }
-    }
-
-    wornDesc() {
-        "<<headerDesc(true)>>";
-        externalDesc();
-    }
-
-    headerName = 'outfit'
-    headerPunctuation = '.'
-
-    headerDesc(wornPerspective) {
-        if (wornBy == gPlayerChar) {
-            return (wornPerspective ? '{I} wear a ' : '{My} ') +
-                headerName + headerPunctuation + ' ';
-        }
-        if (wornBy == skashek) {
-            return (wornPerspective ?
-                '<<skashek.getPeekHe(true)>> wears a '
-                :
-                '<<skashek.getPeekHis(true)>> ') +
-                headerName + headerPunctuation + ' ';
-        }
-        return 'A ' + headerName + headerPunctuation + ' ';
-    }
-
-    getClothingBulk() {
-        // If we are manipulating this item, show its actual bulk.
-        if (gDobj == self) return 2;
-        // If we are manipulating something else, then the outfit
-        // does not take up inventory space when worn.
-        if (wornBy != nil) return 0;
-        // Otherwise, its bulk is normal.
-        return 2;
-    }
-
-    hideFromAll(action) {
-        return wornBy != nil;
     }
 
     dobjFor(Wear) {
@@ -65,40 +39,16 @@ class Outfit: Wearable {
                 inherited();
             }
         }
-        action() {
-            inherited();
-            gActor.outfit = self;
-        }
     }
 
     dobjFor(Doff) {
         action() {
-            gActor.outfit = nil;
             if (skashek.canSee(gActor)) {
                 skashek.witnessPreyStripping();
             }
             inherited();
         }
     }
-}
-
-modify Actor {
-    isNaked() {
-        for (local i = 1; i <= contents.length; i++) {
-            local item = contents[i];
-            if (item == enviroSuitBag) continue;
-            if (!item.isWearable) continue;
-            if (item.wornBy != self) continue;
-            return nil;
-        }
-
-        return true;
-    }
-}
-
-class ZippableGarment: FakeZippable {
-    isDecoration = true
-    decorationActions = [Examine, Zip, Unzip]
 }
 
 class CloneUniform: Outfit {

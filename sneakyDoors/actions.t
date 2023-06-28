@@ -95,8 +95,7 @@ DefineTAction(PeekDirection)
             \b";
         }
 
-        parkourCore.cacheParkourRunner(gActor);
-        local loc = parkourCore.currentParkourRunner.getOutermostRoom();
+        local loc = gMoverFrom(gActor).getOutermostRoom();
         local conn = nil;
 
         // See if the room has a special case for this first
@@ -107,7 +106,7 @@ DefineTAction(PeekDirection)
         }
 
         // Peek out of container
-        local peekerImmediateLoc = parkourCore.currentParkourRunner.location;
+        local peekerImmediateLoc = gMoverLocation;
         if (
             !peekerImmediateLoc.ofKind(Room) &&
             peekerImmediateLoc.contType == In
@@ -144,7 +143,7 @@ DefineTAction(PeekDirection)
                 doInstead(Examine, loc.ceilingObj);
             }
             else if (direction == downDir) {
-                parkourCore.currentParkourRunner.examineSurfaceUnder();
+                gMover.examineSurfaceUnder();
             }
             else {
                 "{I} {cannot} peek that way. ";

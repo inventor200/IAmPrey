@@ -8,7 +8,7 @@ sneakyCore: object {
     useVerboseReminder = true
 
     performStagingCheck(stagingLoc) {
-        if (parkourCore.currentParkourRunner.location != stagingLoc) {
+        if (gMoverLocation != stagingLoc) {
             if (!actorInStagingLocation.doPathCheck(stagingLoc, true)) {
                 exit;
             }

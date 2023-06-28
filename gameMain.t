@@ -6,8 +6,6 @@
 gameMain: GameMainDef {
     initialPlayerChar = prey
 
-    lickedHandle = nil
-
     showIntro() {
         if (huntCore.difficultySettingObj != restoreModeSetting) {
             prologueCore.play();

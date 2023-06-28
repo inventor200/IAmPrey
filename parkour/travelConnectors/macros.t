@@ -125,7 +125,7 @@
         if (gActionIs(ClimbDown)) actionMatches = true; \
         else if (gActionIs(ParkourClimbOffIntransitive)) actionMatches = true; \
         else if (gActionIs(ParkourJumpOffIntransitive)) actionMatches = true; \
-        if (actionMatches && gActor.location == self) { \
+        if (actionMatches && gMoverLocationFor(gActor) == self) { \
             doInstead(ParkourClimbGeneric, ladderObj); \
             exit; \
         } \

@@ -61,7 +61,7 @@ modify Thing {
         if (contType == Carrier) return nil;
         if (isVehicle) return nil;
         if (isFixed) {
-            //if (gParkourRunner == self) return nil;
+            //if (gMover == self) return nil;
             if (isBoardable) return true;
             if (isEnterable) return true;
             if (remapOn != nil) {

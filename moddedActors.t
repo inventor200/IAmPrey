@@ -9,7 +9,6 @@ modify Actor {
     bulkCapacity = 2
     maxSingleBulk = 2
 
-    outfit = nil
     lastLocation = nil
 
     seeReflection(mirror) {

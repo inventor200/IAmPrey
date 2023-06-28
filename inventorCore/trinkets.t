@@ -6,7 +6,14 @@
  */
 
 modify Thing {
+    pleaseIgnoreMe = nil
+
     hideFromAll(action) {
+        // If the object is set to be ignored, then ALL only applied for inventory
+        if (pleaseIgnoreMe) {
+            return !isHeldBy(gPlayerChar);
+        }
+
         // Simple actions are fine
         if (action.ofKind(Examine)) return nil;
         if (action.ofKind(ListenTo)) return nil;
@@ -22,6 +29,14 @@ modify Thing {
         // Player has full control over inventory
         return !isHeldBy(gPlayerChar);
     }
+}
+
+modify Platform {
+    pleaseIgnoreMe = true
+}
+
+modify Booth {
+    pleaseIgnoreMe = true
 }
 
 class Trinket: Thing {
@@ -40,7 +55,7 @@ class Trinket: Thing {
 
     // This check works in both Adv3 and Adv3Lite!
     hideFromAll(action) {
-        return canBeIgnored();
+        return canBeIgnored() || inherited(action);
     }
 
     // The bit that handles the actual logic.

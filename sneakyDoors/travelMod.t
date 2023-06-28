@@ -7,82 +7,20 @@ actorHasPeekAngle: PreCondition {
 }
 
 modify TravelAction {
-    execCycle(cmd) {
-        actionFailed = nil;
-        parkourCore.cacheParkourRunner(gActor);
-        local traveler = parkourCore.currentParkourRunner;
-        local oldLoc = traveler.location;
-        try {
-            inherited(cmd);
-        } catch(ExitSignal ex) {
-            actionFailed = true;
-        }
-        if (oldLoc == traveler.location) {
-            // We didn't move. We failed.
-            actionFailed = true;
-        }
+    handleExtraRoomCheck(room) {
+        sneakyCore.performStagingCheck(room);
     }
 
-    execAction(cmd) {
-        easeIntoTravel();
-        doTravel();
+    handleExtraPlayerTravelStart(conn, direction) {
+        sneakyCore.doSneakStart(conn, direction);
     }
 
-    easeIntoTravel() {
-        parkourCore.cacheParkourRunner(gActor);
-
-        // Re-interpreting getting out?
-        //TODO: Pop these changes to TravelAction out, so
-        // more modules can use them later.
-        if (!gActor.location.ofKind(Room)) {
-            local getOutAction = nil;
-            if (direction == outDir) {
-                getOutAction = GetOutOf;
-            }
-            else if (direction == downDir) {
-                getOutAction = GetOff;
-            }
-            if (getOutAction != nil) {
-                replaceAction(getOutAction, gActor.location);
-                return;
-            }
-        }
-
-        sneakyCore.performStagingCheck(gActor.getOutermostRoom());
+    handleExtraPlayerTravelEnd(conn, direction) {
+        sneakyCore.doSneakEnd(conn);
     }
 
-    doTravel() {
-        local loc = gActor.getOutermostRoom();
-        local conn;
-        local illum = loc.allowDarkTravel || loc.isIlluminated;
-        parkourCore.cacheParkourRunner(gActor);
-        local traveler = parkourCore.currentParkourRunner;
-        if (loc.propType(direction.dirProp) == TypeObject) {
-            conn = loc.(direction.dirProp);
-            if (conn.isConnectorVisible) {
-                if (gActorIsPlayer) {
-                    sneakyCore.doSneakStart(conn, direction);
-                    conn.travelVia(traveler);
-                    sneakyCore.doSneakEnd(conn);
-                }
-                else {
-                    sneakyCore.disarmSneaking();
-                    gActor.travelVia(conn);
-                }
-            }
-            else if (illum && gActorIsPlayer) {
-                sneakyCore.disarmSneaking();
-                loc.cannotGoThatWay(direction);
-            }
-            else if (gActorIsPlayer) {
-                sneakyCore.disarmSneaking();
-                loc.cannotGoThatWayInDark(direction);
-            }
-        }
-        else {
-            sneakyCore.disarmSneaking();
-            nonTravel(loc, direction);
-        }
+    handleExtraPlayerTravelCancel(direction) {
+        sneakyCore.disarmSneaking();
     }
 }
 

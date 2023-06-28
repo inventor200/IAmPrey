@@ -36,8 +36,8 @@
         remap = (remapDest) \
         verify() { } \
         check() { \
-            parkourCore.cacheParkourRunner(gActor); \
-            if (!gParkourRunner.fitForParkour) { \
+            gMoverFrom(gActor); \
+            if (!gMover.fitForParkour) { \
                 parkourCore.sayParkourRunnerError(gActor); \
             } \
         } \
@@ -46,7 +46,7 @@
                 doInstead(Parkour##climbOrJump##parkourDir##To, self); \
             } \
             else { \
-                if (gParkourRunner.location != stagingLocation) { \
+                if (gMoverLocation != stagingLocation) { \
                     local stagingParkourModule = stagingLocation.getParkourModule(); \
                     if (stagingParkourModule == nil) { \
                         parkourCore.implicitPlatform = stagingLocation; \
@@ -118,13 +118,13 @@
         illogical(cannot##ProviderAction##Msg); \
         return; \
     } \
-    parkourCore.cacheParkourRunner(actor); \
+    gMoverFrom(actor); \
     local pm = gParkourRunnerModule; \
     if (pm == nil) { \
         illogical(useless##ProviderAction##Msg); \
         return; \
     } \
-    verifyAlreadyAtDestination(gParkourRunner); \
+    verifyAlreadyAtDestination(gMover); \
     gParkourLastPath = pm.getPathThrough(realProvider); \
     if (gParkourLastPath == nil) { \
         illogical(useless##ProviderAction##Msg); \
@@ -167,10 +167,10 @@
             } \
         } \
         action() { \
-            if (checkProviderAccident(gActor, gParkourRunner, gParkourLastPath)) { \
+            if (checkProviderAccident(gActor, gMover, gParkourLastPath)) { \
                 doParkourThroughProvider(gActor); \
                 parkourDestination.doAllPunishmentsAndAccidents( \
-                    gActor, gParkourRunner, gParkourLastPath \
+                    gActor, gMover, gParkourLastPath \
                 ); \
             } \
         } \
@@ -185,9 +185,8 @@
     }
     
 #define verifyGetOffFloorRedirect \
-    parkourCore.cacheParkourRunner(gActor); \
     local om = gPlayerChar.outermostVisibleParent(); \
-    if (gParkourRunner.location != om) { \
+    if (gMoverLocationFor(gActor) != om) { \
         illogical(actorNotOnMsg); \
         return; \
     } \
@@ -226,12 +225,12 @@
     remap = nil
 
 #define verifyJumpPathFromActor(actor, canBeUnknown) \
-    parkourCore.cacheParkourRunner(actor); \
+    gMoverFrom(actor); \
     gParkourLastPath = nil; \
-    verifyAlreadyAtDestination(gParkourRunner); \
+    verifyAlreadyAtDestination(gMover); \
     local closestParkourMod = gParkourRunnerModule; \
     if (closestParkourMod == nil) { \
-        local closestSurface = gParkourRunner.location; \
+        local closestSurface = gMoverLocation; \
         if (!checkStagingExitLocationConnection(closestSurface.exitLocation)) { \
             illogical(noParkourPathFromHereMsg); \
             return; \
@@ -241,7 +240,7 @@
         return; \
     } \
     else { \
-        gParkourLastPath = getPathFrom(gParkourRunner, canBeUnknown); \
+        gParkourLastPath = getPathFrom(gMover, canBeUnknown); \
         if (gParkourLastPath == nil) { \
             illogical(noParkourPathFromHereMsg); \
             return; \
@@ -287,7 +286,7 @@
     if (gParkourLastPath == nil) { \
         /* Likely from standard container to parkour one */ \
         extraReport(parkourUnnecessaryJumpMsg + '\n'); \
-        doGetOffParkourAlt(gParkourRunner); \
+        doGetOffParkourAlt(gMover); \
         return; \
     } \
     else if (!gParkourLastPath.requiresJump) { \
@@ -297,13 +296,13 @@
     }
 
 #define doGetOffParkourAlt(actor) \
-    local closestSurface = gParkourRunner.location; \
+    local closestSurface = gMoverLocation; \
     beginParkourReset(parkourCore.announceRouteAfterTrying); \
     doNested(GetOff, closestSurface)
 
 #define tryStagingSolution(actor) \
     if (gParkourRunnerModule == nil) { \
-        local closestSurface = gParkourRunner.location; \
+        local closestSurface = gMoverLocation; \
         if (checkStagingExitLocationConnection(closestSurface.exitLocation)) { \
             beginParkourReset(parkourCore.announceRouteAfterTrying); \
             if (closestSurface.contType == On) { \
@@ -334,9 +333,9 @@
         } \
         check() { checkParkour(gActor); } \
         action() { \
-            tryStagingSolution(gParkourRunner); \
-            doClimbFor(gParkourRunner); \
-            doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \
+            tryStagingSolution(gMover); \
+            doClimbFor(gMover); \
+            doAllPunishmentsAndAccidents(gActor, gMover, gParkourLastPath); \
         } \
         report() { \
             reportParkour; \
@@ -351,10 +350,10 @@
         } \
         check() { checkParkour(gActor); } \
         action() { \
-            tryStagingSolution(gParkourRunner); \
+            tryStagingSolution(gMover); \
             tryClimbInstead(ParkourClimb##parkourDir##To); \
-            doClimbFor(gParkourRunner); \
-            doAllPunishmentsAndAccidents(gActor, gParkourRunner, gParkourLastPath); \
+            doClimbFor(gMover); \
+            doAllPunishmentsAndAccidents(gActor, gMover, gParkourLastPath); \
         } \
         report() { \
             reportParkour; \
@@ -364,9 +363,9 @@
 #define parkourReshapeGetOff(originalAction, redirectAction) \
     dobjFor(originalAction) { \
         verify() { \
-            parkourCore.cacheParkourRunner(gActor); \
+            gMoverFrom(gActor); \
             local myOn = getStandardOn(); \
-            if(!gParkourRunner.isIn(myOn) || \
+            if(!gMover.isIn(myOn) || \
                 (myOn.contType != On && !myOn.ofKind(Room))) { \
                 illogicalNow(actorNotOnMsg); \
             } \

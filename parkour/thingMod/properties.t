@@ -72,8 +72,5 @@ modify Thing {
         return nil;
     }
 
-    // Best for parkour surfaces only
-    remapReach(action) {
-        return nil;
-    }
+    // remapReach(action) is best for parkour surfaces only
 }

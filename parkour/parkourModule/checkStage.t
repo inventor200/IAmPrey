@@ -18,16 +18,16 @@ modify ParkourModule {
     }
 
     doParkourCheck(actor, path) {
-        parkourCore.cacheParkourRunner(actor);
+        gMoverFrom(actor);
         local source = gParkourRunnerModule;
 
         if (parkourCore.doParkourRunnerCheck(actor)) {
             local clearedLeaving = true;
             if (source != nil) {
-                clearedLeaving = source.checkLeaving(actor, gParkourRunner, path);
+                clearedLeaving = source.checkLeaving(actor, gMover, path);
             }
             if (clearedLeaving) {
-                if (checkArriving(actor, gParkourRunner, path)) {
+                if (checkArriving(actor, gMover, path)) {
                     local barriers = [];
                     if (path != nil) {
                         barriers += valToList(path.injectedParkourBarriers);
@@ -40,7 +40,7 @@ modify ParkourModule {
                         local barrier = barriers[i];
                         // Note: Args are traveler, path
                         // instead of     traveler, connector
-                        if (!barrier.checkTravelBarrier(gParkourRunner, path)) {
+                        if (!barrier.checkTravelBarrier(gMover, path)) {
                             return nil;
                         }
                     }

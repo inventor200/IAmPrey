@@ -94,26 +94,10 @@ DefineTAction(HideUnder)
     }
 ;
 
-VerbRule(Lick)
-    ('lick'|'mlem') singleDobj
-    : VerbProduction
-    action = Lick
-    verbPhrase = 'lick/licking (what)'
-    missingQ = 'what do you want to lick'
-;
-
-DefineTAction(Lick)
-    turnsTaken = (Taste.turnsTaken)
-;
-
 modify VerbRule(Attack)
     ('attack'|'kill'|'hit'|'kick'|'punch'|'strike'|'punish'|'swat' ('at'|)|
     ('lunge'|'dive') (('down'|) 'at'|)|'pounce' ('at'|'on'|'upon')|
     'tackle'|'ambush') singleDobj :
-;
-
-modify VerbRule(Inventory)
-    'i' | 'inv' | 'inventory' | ('take'|'check') 'inventory' | 'check' 'pockets':
 ;
 
 VerbRule(SlingOverShoulder)
@@ -329,8 +313,6 @@ modify Thing {
             }
         }
     }
-
-    dobjFor(Lick) asDobjFor(Taste)
 
     verifyAttackBasically() {
         if (gActor == gDobj) {
@@ -610,42 +592,6 @@ modify Thing {
             doInstead(Doff, self);
         }
     }
-
-    findSurfaceUnder() {
-        local surface = location;
-
-        if (surface.ofKind(Room)) {
-            return surface.floorObj;
-        }
-
-        if (surface.contType == In && surface.enclosing) {
-            return surface;
-        }
-
-        local masterSurface = surface;
-        while (masterSurface.ofKind(SubComponent)) {
-            masterSurface = masterSurface.lexicalParent;
-        }
-
-        if (surface.contType == On) {
-            return masterSurface;
-        }
-
-        return masterSurface.findSurfaceUnder();
-    }
-
-    examineSurfaceUnder() {
-        local xTarget = findSurfaceUnder();
-        if (xTarget != nil) {
-            "(examining <<xTarget.theName>>)\n";
-            doInstead(Examine, xTarget);
-            searchCore.reportedSuccess = true;
-        }
-        else {
-            "{I} {see} nothing under {the dobj}. ";
-            searchCore.reportedFailure = true;
-        }
-    }
 }
 
 modify Actor {
@@ -653,35 +599,8 @@ modify Actor {
 
     canDryMe = (wetness > 0)
 
-    remappingSearch = true
-    remappingLookIn = true
     dobjFor(PeekInto) asDobjFor(Search)
     dobjFor(PeekThrough) asDobjFor(Search)
-    dobjFor(LookIn) asDobjFor(Search)
-    dobjFor(Search) {
-        verify() {
-            if (gPlayerChar != self) {
-                inaccessible('{The dobj}{dummy} will not let {me} search {him dobj}. ');
-            }
-            else {
-                logical;
-            }
-        }
-        check() { }
-        action() {
-            doInstead(Inventory);
-        }
-        report() { }
-    }
-
-    dobjFor(LookUnder) {
-        verify() { }
-        check() { }
-        action() {
-            examineSurfaceUnder();
-        }
-        report() { }
-    }
 
     dobjFor(DryOffWith) {
         verify() {
@@ -710,14 +629,8 @@ modify Room {
 }
 
 modify Floor {
-    floorActions = [Examine, Search, SearchClose, SearchDistant, LookUnder, TakeFrom, MoveTo]
-
-    cannotLookUnderFloorMsg = 'It is impossible to look under <<theName>>. '
-
-    dobjFor(LookUnder) {
-        verify() {
-            illogical(cannotLookUnderFloorMsg);
-        }
+    getFloorActions() {
+        return inherited().append(MoveTo);
     }
 
     dobjFor(MoveTo) {
@@ -744,23 +657,11 @@ modify Surface {
 modify Platform {
     bulk = 2
     betterStorageHeader
-    hideFromAll(action) {
-        if (isHeldBy(gPlayerChar)) {
-            return nil;
-        }
-        return true;
-    }
 }
 
 modify Booth {
     bulk = 2
     betterStorageHeader
-    hideFromAll(action) {
-        if (isHeldBy(gPlayerChar)) {
-            return nil;
-        }
-        return true;
-    }
 }
 
 modify Door {
@@ -789,6 +690,4 @@ modify remoteSubContentsLister {
     }
 }
 
-#include "fakePlural.t"
-#include "homeHaver.t"
 #include "prefabs/prefabs.h"

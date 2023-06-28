@@ -1,5 +1,8 @@
 modify Actor {
     roomsTraveled = 0
+    // Inventor Core remaps these
+    remappingSearch = true
+    remappingLookIn = true
 }
 
 modify Room {
@@ -8,6 +11,12 @@ modify Room {
         if (gPlayerChar.isOrIsIn(traveler)) {
             gPlayerChar.roomsTraveled++;
         }
+    }
+}
+
+modify Floor {
+    getFloorActions() {
+        return inherited().append(SearchClose).append(SearchDistant);
     }
 }
 

@@ -7,8 +7,7 @@ modify actorInStagingLocation {
     }
 
     doPathCheck(stagingLoc, allowImplicit) {
-        parkourCore.cacheParkourRunner(gActor);
-        local loc = gParkourRunner.location;
+        local loc = gMoverLocationFor(gActor);
 
         local actorParkourMod = gParkourRunnerModule;
         local objectParkourMod = stagingLoc.getParkourModule();
@@ -24,7 +23,7 @@ modify actorInStagingLocation {
             local impDest = nil;
 
             // Attempting to do parkour in invalid vehicle
-            if (!gParkourRunner.fitForParkour) {
+            if (!gMover.fitForParkour) {
                 parkourCore.sayParkourRunnerError(actor);
             }
             else if (actorParkourMod != nil && objectParkourMod != nil) {
@@ -49,7 +48,7 @@ modify actorInStagingLocation {
                     }
                 }
             }
-            else if (gParkourRunner.canReach(stagingLoc)) {
+            else if (gMover.canReach(stagingLoc)) {
                 if (actorParkourMod == nil && loc.exitLocation == stagingLoc) {
                     if (loc.contType == On) {
                         impAction = GetOff;
@@ -76,7 +75,7 @@ modify actorInStagingLocation {
                 if (tried) {
                     spendImplicitTurn();
                 }
-                if (gParkourRunner.location == stagingLoc) return true;
+                if (gMoverLocation == stagingLoc) return true;
             }
         }
 

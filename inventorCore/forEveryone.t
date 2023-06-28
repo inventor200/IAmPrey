@@ -129,7 +129,7 @@ screenReaderInit: InitObject {
                 commands are encapsulated?'
             );
         }
-        prologuePrefCore.writePreferences();
+        preferencesCore.writePreferences();
     }
 
     prepForScreenReaders() {

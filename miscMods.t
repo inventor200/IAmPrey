@@ -1,3 +1,4 @@
+//TODO: Put score screen printing here
 modify Score {
     execAction(cmd) {
         helpMessage.showHowToWinAndProgress();
@@ -11,7 +12,7 @@ modify FullScore {
 }
 
 modify finishOptionAmusing {
-    doOption() {
+    doOption() { //TODO: Mention XYZZY here
         "<b>Here are some silly things you could try:</b>\n
         Check Akira Lowe's credit in the CREDITS text. It changes!\n
         As soon as you start a new game (outside of Cat Mode), try to CRY.\n
@@ -36,17 +37,6 @@ modify finishOptionFullScore {
 }
 
 modify statusLine {
-    showStatusHtml() {
-        "<<statusHTML(0)>><<aHref('look around', nil, nil, AHREF_Plain)>>";
-        showStatusLeft();
-        "<./a></a><<statusHTML(1)>>";
-        showStatusRight();
-        "<./a></a><<statusHTML(2)>>";
-        if (gPlayerChar.location!= nil) {
-            gPlayerChar.location.showStatuslineExits();
-        }
-    }
-
     showStatusRight() {
         local turnVerb = 'survived';
         if (gCatMode) {

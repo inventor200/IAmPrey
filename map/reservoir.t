@@ -294,6 +294,7 @@ reservoir: Room { 'The Reactor Reservoir'
     }
 
     canGetOffFloor = true
+    canLookUnderFloor = true
 
     roomBeforeAction() {
         if (gActionIs(JumpOffIntransitive) || gActionIs(ParkourJumpOffIntransitive) || gActionIs(Jump)) {

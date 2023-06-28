@@ -107,14 +107,14 @@ modify Thing {
 
     checkParkourProviderBarriers(actor, path) {
         if (parkourCore.doParkourRunnerCheck(actor)) {
-            if (checkAsParkourProvider(actor, gParkourRunner, path)) {
+            if (checkAsParkourProvider(actor, gMover, path)) {
                 local barriers = valToList(parkourBarriers);
 
                 for (local i = 1; i <= barriers.length; i++) {
                     local barrier = barriers[i];
                     // Note: Args are traveler, path
                     // instead of     traveler, connector
-                    if (!barrier.checkTravelBarrier(gParkourRunner, path)) {
+                    if (!barrier.checkTravelBarrier(gMover, path)) {
                         return nil;
                     }
                 }

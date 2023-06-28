@@ -20,7 +20,7 @@ prologueCore: InitObject {
 
         undoCounter.count = nil;
         prologuePrefCore.playerHasSeenIntro = true;
-        prologuePrefCore.writePreferences();
+        preferencesCore.writePreferences();
 
         if (!prologuePrefCore.skipIntro) {
             "<<formatAlert('Content warning:')>>";

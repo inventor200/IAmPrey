@@ -37,8 +37,9 @@ modify Room {
 // floorActions allow for extended decoration actions.
 modify Floor {
     parkourModule = (gPlayerChar.outermostVisibleParent().parkourModule)
-    decorationActions = (
-        floorActions
+
+    getFloorActions() {
+        return inherited()
         .append(ParkourClimbGeneric)
         .append(ParkourClimbUpTo)
         .append(ParkourClimbOverTo)
@@ -54,10 +55,8 @@ modify Floor {
         .append(JumpOff)
         .append(Climb)
         .append(ClimbUp)
-        .append(ClimbDown)
-    )
-
-    floorActions = [Examine, TakeFrom]
+        .append(ClimbDown);
+    }
 
     hasParkourRecon = true
 

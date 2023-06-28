@@ -1,7 +1,6 @@
 #define gParkourLastPath parkourCore.lastPath
-#define gParkourRunner parkourCore.currentParkourRunner
-#define gParkourRunnerModule parkourCore.currentParkourRunner.getParkourModule()
-#define gTaxingRunnerModule(actor) parkourCore.cacheParkourRunner(gActor).getParkourModule()
+#define gParkourRunnerModule gMover.getParkourModule()
+#define gTaxingRunnerModule(actor) gMoverFrom(actor).getParkourModule()
 
 #define expandedOnto ('onto'|'on' 'to')
 #define expandedInto ('in'|'into'|'in' 'to'|'through')

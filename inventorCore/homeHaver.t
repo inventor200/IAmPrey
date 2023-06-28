@@ -11,6 +11,7 @@ class HomeHaver: Thing {
     homeDesc() { basicDesc(); }
     home = nil
     backHomeMsg = '{I} {put} {the dobj} back where it belongs. '
+    pleaseIgnoreMe = true
 
     setHome() {
         home = location;
@@ -45,12 +46,5 @@ class HomeHaver: Thing {
                 inherited();
             }
         }
-    }
-
-    hideFromAll(action) {
-        if (isHeldBy(gPlayerChar)) {
-            return nil;
-        }
-        return true;
     }
 }

@@ -21,7 +21,7 @@ musicPlayer: InitObject {
             if (ChoiceGiver.staticAsk(
                 'Would you like to keep these settings?'
             )) {
-                prologuePrefCore.remindOfFile();
+                preferencesCore.remindOfFile();
             }
             else {
                 transMusicPlayer.playerGavePreferences = nil;
@@ -99,8 +99,8 @@ musicPlayer: InitObject {
                 'Would you like sound effects and ambience instead?'
             );
 
-            prologuePrefCore.writePreferences();
-            prologuePrefCore.remindOfFile();
+            preferencesCore.writePreferences();
+            preferencesCore.remindOfFile();
         }
     }
 

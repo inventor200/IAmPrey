@@ -21,13 +21,13 @@ modify ParkourModule {
         pathVector.append(parkourPath);
     }
 
-    provideMoveFor(actor) { // actor is usually gParkourRunner
+    provideMoveFor(actor) { // actor is usually gMover
         local plat = parent;
         if (plat.remapOn != nil) {
             plat = plat.remapOn;
         }
 
-        local oldPlat = actor.location;
+        local oldPlat = gMoverLocationFor(actor);
 
         actor.actionMoveInto(plat);
         markAsClimbed();
@@ -114,7 +114,7 @@ modify ParkourModule {
         action() {
             if (gParkourLastPath == nil) {
                 // Likely from standard container to parkour one
-                doGetOffParkourAlt(gParkourRunner);
+                doGetOffParkourAlt(gMover);
                 return;
             }
             switch (gParkourLastPath.direction) {

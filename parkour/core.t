@@ -8,29 +8,15 @@ parkourCore: object {
     announceRouteAfterTrying = true
     maxReconsPerTurn = 3
 
-    cacheParkourRunner(actor) {
-        local potentialVehicle = actor.location;
-        while (potentialVehicle != nil && !potentialVehicle.ofKind(Room)) {
-            if (potentialVehicle.isVehicle) {
-                currentParkourRunner = potentialVehicle;
-                return currentParkourRunner;
-            }
-            potentialVehicle = potentialVehicle.location;
-        }
-        
-        currentParkourRunner = actor;
-        return currentParkourRunner;
-    }
-
     doParkourRunnerCheck(actor) {
-        if (gParkourRunner.fitForParkour) return true;
+        if (gMover.fitForParkour) return true;
         sayParkourRunnerError(actor);
         return nil;
     }
 
     sayParkourRunnerError(actor) {
-        if (gParkourRunner != actor) {
-            say(gParkourRunner.cannotDoParkourInMsg);
+        if (gMover != actor) {
+            say(gMover.cannotDoParkourInMsg);
             return;
         }
 
@@ -89,8 +75,8 @@ parkourCore: object {
     }
 
     printParkourRoutes() {
-        cacheParkourRunner(gActor);
-        local str = gParkourRunner.location.getRouteListString();
+        gMoverFrom(gActor);
+        local str = gMoverLocation.getRouteListString();
         if (str.length > 0) {
             "<<str>>";
             return;
@@ -99,8 +85,7 @@ parkourCore: object {
     }
 
     getLocalPlatforms() {
-        parkourCore.cacheParkourRunner(gActor);
-        return gParkourRunner.getLocalPlatforms();
+        return gMoverFrom(gActor).getLocalPlatforms();
     }
 
     printLocalPlatforms() {
@@ -153,7 +138,6 @@ parkourCore: object {
         return implicitPlatform.theName;
     }
     lastPath = nil
-    currentParkourRunner = nil
     showNewRoute = nil
     hadAccident = nil
     hasShownClimbAbbreviationHint = nil

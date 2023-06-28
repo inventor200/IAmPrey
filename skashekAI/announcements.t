@@ -672,26 +672,6 @@ hidingParanoia_3_3_Message: HidingParanoiaMessage {
     paying no mind to the many generations of Prey, who have sustained me since.
     It feels <i>disloyal</i>, among other things.</q>"
 
-    //TODO: Marssella actually poisoned her own kelp. She used a closed social
-    // social favor to poison her kelp supply after a random amount of time
-    // had elapsed, but also relegated the task of requesting this to a note,
-    // hidden and later replaced by a decoy note, which she would not check.
-    // This complex series of events had enough separation that her artificial
-    // brainstem didn't resolve it all the way, which allowed her to successfully
-    // commit suicide.
-    //
-    // Have a note stored on a terminal somewhere that has this explained.
-    //
-    // Also have another encrypted note stored on the botanist's terminal that
-    // explains that the kelp is actually a kind of super-spinach, which reveals
-    // that cannibalism was never necessary at all. The project had to remain
-    // hidden because the facility couldn't afford to find a reason to stop the
-    // supply trucks, which also carried spies.
-    //
-    // Also, the easter egg where the kelp supposedly feeds on tritium radiation,
-    // which isn't possible, and this reveals that there's actually a reactor leak,
-    // and the water is irradiated, and the kelp actually feeds on this harder
-    // kind of radiation.
     remark3 =
     "<q>I wasn't eager, by the way. She starved herself to death, by giving me
     the <i>actual</i> remaining food supplies, while she ate that fucking

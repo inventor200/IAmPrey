@@ -6,71 +6,25 @@
 #define __PARKOUR_REACH_TRUE_NAMES nil
 #endif
 
+#undef __USE_INVENTOR_REACH_MOD
+#define __USE_INVENTOR_REACH_MOD nil
+
 enum parkourReachSuccessful, parkourReachTopTooFar, parkourSubComponentTooFar;
 
-QParkour: Special {
-    priority = 16
-    active = true
+QParkour: InventorSpecial {
+    priority = 24
+    active() { return true; }
 
-    isObjectHeldByOrComponentOfHeldBy(a, b) {
-        if (b == nil) return nil;
-        if (!b.ofKind(Actor)) return nil;
-        /*while (
-            (a.ofKind(SubComponent) || 
-            (a.location != nil && a.location.ofKind(SubComponent))) &&
-            a != nil
-        ) {
-            if (a.location != nil && a.location.ofKind(SubComponent)) {
-                a = a.location.lexicalParent;
-            }
-            else {
-                a = a.lexicalParent;
-            }
-        }
-        return a.isOrIsIn(b);*/
-        return simplifyComplexObject(a).isOrIsIn(b);
-    }
-
-    simplifyComplexObject(a) {
-        if (a.ofKind(Actor)) return a;
-        if (a.ofKind(ParkourModule)) return a;
-        local obj = a;
-        local keepLooping = true;
-        while (keepLooping) {
-            keepLooping = nil;
-            if (obj.ofKind(ParkourModule)) return obj;
-            if (obj.location == nil) return obj;
-            if (obj.location.ofKind(Actor)) return obj;
-            if (obj.location.parkourModule != nil) return obj;
-            if (obj.stagingLocation.parkourModule != nil) return obj;
-            //if (obj.location.ofKind(ParkourModule)) return obj;
-
-            if (obj.ofKind(SubComponent)) {
-                if (obj.lexicalParent == nil) return obj;
-                if (obj.lexicalParent.parkourModule != nil) return obj;
-                obj = obj.lexicalParent;
-                keepLooping = true;
-            }
-            else if (obj.location.ofKind(SubComponent)) {
-                obj = obj.location.lexicalParent;
-                keepLooping = true;
-            }
-        }
-        return obj;
-    }
-
-    debuggableSimplifyComplexObject(a) {
-        local oldObj = a;
-        local newObj = simplifyComplexObject(a);
-        if (oldObj != newObj) {
-            #if __PARKOUR_REACH_DEBUG
-            extraReport('\n(Simplified <<oldObj.theName>> to <<newObj.theName>>)\n');
-            #endif
-        }
-        return newObj;
+    getExtraSimpleStatusFor(obj) {
+        if (obj.ofKind(ParkourModule)) return true;
+        return nil;
     }
 
     reachProblemVerify(a, b) {
+        #if __PARKOUR_REACH_DEBUG
+        extraReport('\nUSING PARKOUR REACH MECHANICS\n');
+        #endif
+
         local issues = [];
 
         if (a.ofKind(Floor)) {
