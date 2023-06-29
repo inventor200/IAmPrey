@@ -17,7 +17,7 @@ string template <<free actions>> freeActions;
 
              #define __SHOW_PROLOGUE nil
             #define __FAST_DIFFICULTY 4
-           #define __TEST_ROOM deliveryRoom
+           #define __TEST_ROOM commonRoom
           #define __SKASHEK_START nil
          #define __SKASHEK_STATE nil
         #define __SKASHEK_FROZEN nil

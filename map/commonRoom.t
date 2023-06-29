@@ -181,7 +181,7 @@ commonRoom: Room { 'The Common Room'
 ++DangerousFloorHeight;
 ++JumpOverLink ->exposedSupportBeam;
 
-+topOfOtherWalls: Unthing { 'wall[weak];west w south s north n top[n] of[prep] other'
+/*+topOfOtherWalls: Unthing { 'wall[weak];west w south s north n top[n] of[prep] other'
     'Only the east wall seems to have a ledge. The upper and lower sections of the
     other walls are flush with each other. '
 
@@ -192,6 +192,21 @@ commonRoom: Room { 'The Common Room'
         'north wall', 'n wall',
         'south wall', 's wall'
     ]
+}*/
++topOfOtherWalls: SpecificWalls {
+    otherWallPartVocabFor([
+        westDir, northDir, southDir
+    ], 'top[n] of[prep]');
+    //'walls;west w south s north n top[n] of[prep] other'
+    desc = "Only the east wall seems to have a ledge. The upper and lower sections of the
+    other walls are flush with each other. "
+
+    /*matchPhrases = [
+        'west wall', 'w wall',
+        'north wall', 'n wall',
+        'south wall', 's wall',
+        'walls'
+    ]*/
 }
 
 +chessTable: FixedPlatform { 'chess[weak] table'

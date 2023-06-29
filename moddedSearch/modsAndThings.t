@@ -6,6 +6,10 @@ modify Actor {
 }
 
 modify Room {
+    // Inventor Core remaps these actions
+    remappingSearch = true
+    remappingLookIn = true
+
     travelerEntering(traveler, src) {
         inherited(traveler, src);
         if (gPlayerChar.isOrIsIn(traveler)) {

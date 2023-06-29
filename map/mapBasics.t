@@ -126,9 +126,8 @@ roomDaemonTurnTracker: object {
 
 modify Room {
     floorObj = defaultLabFloor
-    wallsObj = defaultWalls
-    ceilingObj = defaultCeiling
-    atmosphereObj = defaultAtmosphere
+    ceilingObj = defaultLabCeiling
+    atmosphereObj = defaultLabAtmosphere
 
     //isFamiliar = true
 
@@ -144,22 +143,6 @@ modify Room {
     observedRemotely = nil
 
     lastPeekTurn = -1
-    
-    remappingSearch = true
-    remappingLookIn = true
-
-    dobjFor(LookIn) asDobjFor(Search)
-    dobjFor(LookThrough) asDobjFor(Search)
-    dobjFor(Search) {
-        verify() {
-            illogical('{I} will have to be more specific,
-                and search specific containers instead. ');
-        }
-    }
-
-    dobjFor(LookUnder) {
-        remap = floorObj
-    }
 
     roomDaemon() {
         checkRoomDaemonTurns;
@@ -170,15 +153,6 @@ modify Room {
         if (!gActionIs(TravelAction)) {
             roomDaemonTurnTracker.lastRoomDaemonTurn = gTurns;
         }
-    }
-
-    roomBeforeAction() {
-        if (gActionIs(Smell)) {
-            doInstead(SmellSomething, atmosphereObj);
-            exit;
-        }
-
-        inherited();
     }
 
     travelerLeaving(traveler, dest) {
@@ -273,40 +247,7 @@ modify Room {
     }
 }
 
-class Walls: MultiLoc, FakePlural, Thing {
-    isFixed = true
-    isDecoration = true
-    initialLocationClass = Room
-    
-    isInitiallyIn(obj) { return obj.wallsObj == self; }
-    decorationActions = [Examine]
-
-    omitFromStagingError() {
-        return nil;
-    }
-}
-
-defaultWalls: Walls { 'walls;north n south s east e west w northeast ne northwest nw southeast se southwest sw one[weak] of[prep];wall'
-    "{I} {see} nothing special about the walls. "
-    fakeSingularPhrase = 'wall'
-    useOneOfThe = nil
-    matchPhrases = ['wall', 'walls']
-}
-
-class Ceiling: MultiLoc, Thing {
-    isFixed = true
-    isDecoration = true
-    initialLocationClass = Room
-    
-    isInitiallyIn(obj) { return obj.ceilingObj == self; }
-    decorationActions = [Examine]
-
-    omitFromStagingError() {
-        return nil;
-    }
-}
-
-defaultCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles frame[weak] lights'
+defaultLabCeiling: Ceiling { 'ceiling;ceiling eps polystyrene foam;panels tiles frame[weak] lights'
     "Industrial panels of expanded polystyrene foam create the ceiling here. "
     ambiguouslyPlural = true
     notImportantMsg = '{That dobj} {is} too far{dummy} above {me}. '
@@ -330,17 +271,7 @@ industrialCeiling: Ceiling { 'pipes[n] on[prep] the ceiling;upper[weak] lower[we
     }
 }
 
-class Atmosphere: MultiLoc, Thing {
-    vocab = 'air;;atmosphere breeze wind'
-    isFixed = true
-    isDecoration = true
-    initialLocationClass = Room
-    
-    isInitiallyIn(obj) { return obj.atmosphereObj == self; }
-    decorationActions = [Examine, SmellSomething, Feel]       
-}
-
-defaultAtmosphere: Atmosphere {
+defaultLabAtmosphere: Atmosphere {
     desc = "{I} {see} nothing special about the air. "
     feelDesc = "There is the mildest of breezes, thanks to
     enduring life support systems. "
