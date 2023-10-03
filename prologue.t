@@ -7,68 +7,18 @@ prologueCore: InitObject {
     selectDifficulty() {
         #if __SHOW_PROLOGUE
         clsWithSong(nil);
-        
-        if (!prologuePrefCore.skipIntro && prologuePrefCore.playerHasSeenIntro) {
-            if (ChoiceGiver.staticAsk(
-                'It seems you\'ve been here before.
-                Would you like to skip to difficulty selection?'
-            )) {
-                prologuePrefCore.playerHasIntroPreference = true;
-                prologuePrefCore.playerPrefersNoIntro = true;
-            }
-        }
 
-        undoCounter.count = nil;
+        gameUndoBroker.count = nil;
         prologuePrefCore.playerHasSeenIntro = true;
         preferencesCore.writePreferences();
 
-        if (!prologuePrefCore.skipIntro) {
-            "<<formatAlert('Content warning:')>>";
-            say(createFlowingList([
-                'violence',
-                'frequent, crude language',
-                'rare mentions of suicide'
-            ]));
-            """
-            <<formatAlert('Anxiety warning:')>>
-
-            This game features an active antagonist,
-            so your turns must be spent wisely!
-
-            <<formatTitle('Note on randomness and ' + titleCommand('UNDO'))>>
-
-            Elements of this game are randomized, with casual replayability
-            in mind. Use of <<formatCommand('UNDO')>>
-            will not change the outcomes of randomized events.\b
-            Rest assured that your survival is not decided by randomness.
-            <<wait for player>>
-            """;
         #if __IS_MAP_TEST // is map test
-        }
         huntCore.setDifficulty(1);
         clsWithSong(preySong);
         if (!prologuePrefCore.skipCatPrologue) {
             catCutscene.play();
         }
         #else // is not map test
-            """
-            <<formatTitle('Note for new and experienced players')>>
-
-            This will not be a standard parser game. Players of <b>all skill levels</b>
-            should consult <i>Prey's Survival Guide</i>
-            (which should have come with this game), or use the
-            <<formatCommand('guide')>> command
-            for the in-game version of the document.\b
-
-            There are a number of new game mechanics ahead, and
-            they were not designed with the traditions of this medium in mind.\b
-
-            For more information, experienced parser players should use the
-            <<formatCommand('parser warning')>> command.
-            <<wait for player>>
-            """;
-        }
-
         local optionsConfirmed = nil;
         local result = 7;
         local undoSelection = 1;
@@ -118,13 +68,18 @@ prologueCore: InitObject {
                 }
             }
 
-            "<<formatTitle('Clone batch settings')>>
-            <b>Difficulty:</b> <tt><<huntCore.difficultySettingObj.title>></tt>\n
-            <b>Undo style:</b> <tt><<huntCore.getUndoStyleName()>></tt>\n";
+            if (!huntCore.difficultySettings[result].fastStart) {
+                "<<formatTitle('Clone batch settings')>>
+                <b>Difficulty:</b> <tt><<huntCore.difficultySettingObj.title>></tt>\n
+                <b>Undo style:</b> <tt><<huntCore.getUndoStyleName()>></tt>\n";
 
-            optionsConfirmed = ChoiceGiver.staticAsk(
-                'Are you sure about these settings?'
-            );
+                optionsConfirmed = ChoiceGiver.staticAsk(
+                    'Are you sure about these settings?'
+                );
+            }
+            else {
+                optionsConfirmed = true;
+            }
 
             #if __ALLOW_CLS
             cls();

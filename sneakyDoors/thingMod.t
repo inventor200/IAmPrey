@@ -78,7 +78,7 @@ modify Thing {
                 else {
                     display(&readDesc);
                     if (!wasRead) {
-                        huntCore.revokeFreeTurn();
+                        gameTurnBroker.revokeFreeTurn();
                     }
                     wasRead = true;
                 }

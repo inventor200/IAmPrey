@@ -1,11 +1,8 @@
-#define hyperDir(dirName) \
-    (exitLister.enableHyperlinks ? \
-        aHrefAlt( \
-            sneakyCore.getDefaultTravelAction() + \
-            ' ' + dirName, \
-            dirName, \
-            dirName \
-        ) : dirName)
+modify hyperDirCore {
+	getDefaultTravelAction() {
+		return sneakyCore.getDefaultTravelAction();
+	}
+}
 
 #define handleComplexPeekThrough(mcRoom, mcNamePhrase, mcRemoteHeader) \
     say('{I} carefully peek{s/ed} ' + mcNamePhrase + '...<.p>'); \

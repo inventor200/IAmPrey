@@ -141,79 +141,8 @@ VerbRule(TestDeath)
 
 DefineSystemAction(TestDeath)
     execAction(cmd) {
-        huntCore.hadNegativeOutcome = true;
+        gameTurnBroker.makeNegative();
         finishGameMsgSong(ftDeath, gEndingOptionsLoss);
     }
 ;
 #endif
-
-modify Restart {
-    execAction(cmd) {
-        local desireRestart = ChoiceGiver.staticAsk(
-            'Are you sure you would like to start a new run? '
-        );
-
-        if (desireRestart) {
-            //handleConfirmedRestart();
-            doRestartGame();
-        }
-    }
-
-    doRestartGame() {
-        handleConfirmedRestart();
-        musicPlayer.playSong(nil);
-        sfxPlayer.setAmbience(nil);
-        sfxPlayer.setDecorations(nil);
-        PreRestartObject.classExec();
-        throw new RestartSignal();
-    }
-
-    handleConfirmedRestart() {
-        local choiceMade = nil;
-        if (!prologuePrefCore.playerHasIntroPreference) {
-            prologuePrefCore.playerPrefersNoIntro = ChoiceGiver.staticAsk(
-                'Would you like to skip to the difficulty selection, from now on? '
-            );
-
-            prologuePrefCore.playerHasIntroPreference = true;
-            choiceMade = true;
-        }
-
-        if (gCatMode) {
-            if (!prologuePrefCore.playerHasCatProloguePreference) {
-                prologuePrefCore.playerPrefersNoCatPrologue = ChoiceGiver.staticAsk(
-                    'Would you like to skip the cat\'s prologue, from now on? '
-                );
-
-                prologuePrefCore.playerHasCatProloguePreference = true;
-                choiceMade = true;
-            }
-        }
-        else if (!prologuePrefCore.playerHasPreyProloguePreference) {
-            prologuePrefCore.playerPrefersNoPreyPrologue = ChoiceGiver.staticAsk(
-                'Would you like to skip Prey\'s prologue, from now on? '
-            );
-
-            prologuePrefCore.playerHasPreyProloguePreference = true;
-            choiceMade = true;
-        }
-
-        preferencesCore.writePreferences();
-        if (choiceMade) {
-            preferencesCore.remindOfFile();
-        }
-    }
-}
-
-modify Quit {
-    execAction(cmd) {      
-        local desireQuit = ChoiceGiver.staticAsk(
-            'Are you sure you would like to quit? '
-        );
-
-        if (desireQuit) {
-            "\b";
-            throw new QuittingException;
-        }       
-    }
-}

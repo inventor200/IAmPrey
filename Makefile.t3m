@@ -2,6 +2,10 @@
 
 -I liblite
 -D LANGUAGE=english
+-D __GAME_VERSION_RELEASE_NUMBER=0
+-D __GAME_VERSION_STAGE_NUMBER=9
+-D __GAME_VERSION_STAGE_NAME='BETA'
+-D __GAME_VERSION_PATCH_NUMBER=13
 -Fy obj
 -Fo obj
 -FI /usr/local/share/frobtads/tads3/include
@@ -13,6 +17,7 @@
 ##sources
 -lib system
 -lib adv3Lite/adv3Lite
+-lib ../InventorCore/inventorCore
 -source gameMain.t
 
 -res

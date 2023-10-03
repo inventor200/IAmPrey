@@ -302,39 +302,6 @@ dreamWorldSkashek: Room { 'The Dream of Starvation'
     ambienceObject = nil
 }
 
-// If the player tries to refer to their surroundings by "room",
-// then this will ensure the outermost room always matches, even
-// if it does not contain the vocab for "room".
-roomRemapObject: MultiLoc, Unthing { 'room;surrounding my[weak];surroundings space'
-    initialLocationClass = Room
-
-    filterResolveList(np, cmd, mode) {
-        local om = gActor.getOutermostRoom();
-        local isRoomAlreadyMatched = nil;
-        for (local i = 1; i <= np.matches.length; i++) {
-            local matchObj = np.matches[i].obj;
-            if (matchObj == om) {
-                isRoomAlreadyMatched = true;
-                break;
-            }
-        }
-
-        if (isRoomAlreadyMatched) {
-            np.matches = np.matches.subset({m: m.obj != self});
-        }
-        else {
-            for (local i = 1; i <= np.matches.length; i++) {
-                local matchObj = np.matches[i].obj;
-                if (matchObj == self) {
-                    // Inject room match
-                    np.matches[i].obj = om;
-                    return;
-                }
-            }
-        }
-    }
-}
-
 #define DefineDoorAwayTo(outDir, inDir, outerRoom, localRoom, theLocalDoorName) \
     localRoom##ExitDoor: PrefabDoor { \
         vocab = 'the exit door' \

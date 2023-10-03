@@ -1,9 +1,4 @@
-#include "inventorCore.h"
-
 #define gDefaultPOV 1
-
-string template <<free action>> freeAction;
-string template <<free actions>> freeActions;
 
 // Begin compile modes
 #define __IS_MAP_TEST nil
@@ -15,7 +10,7 @@ string template <<free actions>> freeActions;
 /////        PROLOGUE CONTROLLER:          ////
 //////////////////////////////////////////////
 
-             #define __SHOW_PROLOGUE nil
+             #define __SHOW_PROLOGUE true
             #define __FAST_DIFFICULTY 4
            #define __TEST_ROOM commonRoom
           #define __SKASHEK_START nil

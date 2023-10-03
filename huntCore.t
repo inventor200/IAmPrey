@@ -34,6 +34,7 @@ class DifficultySetting: object {
     lockoutUndo = nil
     offerUndoOption = nil
     showOtherQualities = true
+    fastStart = nil
 
     getBlurb() {
         local strBfr = new StringBuffer(12);
@@ -168,6 +169,7 @@ restoreModeSetting: DifficultySetting {
     skipPrologue = true
     offerUndoOption = nil
     showOtherQualities = nil
+    fastStart = true
 }
 
 class ScatterZone: object {
@@ -196,7 +198,7 @@ class ScatterZone: object {
 enum plentyOfTricksRemaining, oneTrickRemaining, noTricksRemaining;
 enum undoFree, undoAsTrick, undoLocked, isUndoProp;
 
-transient undoCounter: object {
+modify gameUndoBroker {
     count = nil
 
     useCounter() {
@@ -259,13 +261,11 @@ transient undoCounter: object {
         if (count == 1) return oneTrickRemaining;
         return plentyOfTricksRemaining;
     }
-}
 
-modify Undo {
-    execAction(cmd) {
+    checkUndo() {
         if (huntCore.difficultySettingObj == nightmareModeSetting) {
-            "You cannot undo your last action in Nightmare Mode.\b\b
-            <b>Best of luck to you.</b>\b\b";
+            undoBlockedReason = 'You cannot undo your last action in Nightmare Mode.\b\b
+            <b>Best of luck to you.</b>\b\b';
             return nil;
         }
 
@@ -273,16 +273,16 @@ modify Undo {
             'The most you can do from here is improvise or use
             <<formatTheCommand('restart', shortCmd)>>.';
         if (huntCore.undoStyle == undoLocked) {
-            "You have voluntarily locked UNDO from use.
-            <<suggestion>> ";
+            undoBlockedReason = 'You have voluntarily locked UNDO from use.
+            <<suggestion>> ';
             return nil;
         }
         else if (huntCore.undoStyle == undoAsTrick) {
-            local count = undoCounter.pollTrickNumber();
+            local count = pollTrickNumber();
 
             if (count == 0) {
-                "You have no remaining opportunities to undo your last action.
-                <<suggestion>> ";
+                "You have no remaining opportunities
+                to undo your last action. <<suggestion>> ";
                 return nil;
             }
 
@@ -303,24 +303,23 @@ modify Undo {
             if (ChoiceGiver.staticAsk(
                 'Are you sure you want to spend a trick to UNDO?'
             )) {
-                local res = inherited(cmd);
                 count--;
-                undoCounter.spendTrick();
+                spendTrick();
                 local uses = count == 1 ? 'use' : 'uses';
                 local remain = count == 1 ? 'remains' : 'remain';
-                "<.p><b><<count>> <<uses>> now <<remain>>.</b> ";
-                return res;
+                undoSuccessMsg = '<.p><b><<count>> <<uses>> now <<remain>>.</b> ';
+                return true;
             }
 
-            "Undo canceled. <<count>> still remain.";
+            "Undo canceled. <<count>> still remain. ";
+            return nil;
         }
-        return inherited(cmd);
-    }   
+
+        return true;
+    }
 }
 
 huntCore: InitObject {
-    revokedFreeTurn = nil
-    hadNegativeOutcome = nil
     playerWasSeenEntering = nil
     playerWasSeenHiding = nil
     doorThatMovedOnItsOwn = nil
@@ -467,7 +466,7 @@ huntCore: InitObject {
             #else
             if (!gCatMode) scatterPieces();
             #endif
-            freeTurnAlertsRemaining =
+            gameTurnBroker.freeTurnAlertsRemaining =
                 difficultySettingObj.startingFreeTurnAlerts;
             skashekAIControls.currentState = getStartingAIState();
             skashekAIControls.currentState.needsGameStartSetup = true;
@@ -519,7 +518,7 @@ huntCore: InitObject {
 
     updateTrickCount(currentAmountProp, nextAmount) {
         if (isPropForUndo(currentAmountProp)) {
-            undoCounter.updateTrickCount(nextAmount);
+            gameUndoBroker.updateTrickCount(nextAmount);
             return;
         }
 
@@ -544,7 +543,7 @@ huntCore: InitObject {
 
     pollTrickNumber(trickCountProp) {
         if (isPropForUndo(trickCountProp)) {
-            return undoCounter.pollTrickNumber();
+            return gameUndoBroker.pollTrickNumber();
         }
 
         local actualTrickProp = getActualTrickProp(trickCountProp);
@@ -555,7 +554,7 @@ huntCore: InitObject {
 
     pollTrick(trickCountProp) {
         if (isPropForUndo(trickCountProp)) {
-            return undoCounter.pollTrick();
+            return gameUndoBroker.pollTrick();
         }
 
         local actualTrickProp = getActualTrickProp(trickCountProp);
@@ -568,7 +567,7 @@ huntCore: InitObject {
         local actualTrickProp = getActualTrickProp(trickCountProp);
 
         if (isPropForUndo(trickCountProp)) {
-            return undoCounter.spendTrick();
+            return gameUndoBroker.spendTrick();
         }
 
         self.(actualTrickProp)--;
@@ -685,8 +684,6 @@ huntCore: InitObject {
         }
     }
 
-    freeTurnAlertsRemaining = 2
-
     moveCat() {
         // Hacky method to set the cat character, because no command is performed
         // when the switch happens here, and it throws a nil error.
@@ -785,34 +782,6 @@ huntCore: InitObject {
     }
     #endif
 
-    // Generically handle free action
-    handleFreeTurn() {
-        if (freeTurnAlertsRemaining > 0) {
-            if (freeTurnAlertsRemaining > 1) {
-                "<.p><i>(You used this turn for FREE!)</i><.p>";
-            }
-            else {
-                "<.p><i>(From now-on, you will only be alerted if
-                this action </i>wasn't<i> a FREE turn!)</i><.p>";
-            }
-            freeTurnAlertsRemaining--;
-        }
-    }
-
-    // Generically handle turn-based action
-    advanceTurns() {
-        if (revokedFreeTurn) {
-            "<.p><i>(These particular consequences have cost you a turn!
-                Normally, you would have gotten this for FREE!)</i>";
-        }
-        handleSoundPropagation();
-    }
-
-    // If a trick action is available, offer a choice here
-    offerTrickAction() {
-        //
-    }
-
     addBonusSkashekTurn(count?) {
         if (count == 0) return;
         if (count == nil) count = 1;
@@ -846,13 +815,6 @@ huntCore: InitObject {
     // Perform any considerations for sound propagation
     handleSoundPropagation() {
         soundBleedCore.doPropagation();
-    }
-
-    // If an action that normally is free suddenly has a cost,
-    // then this will be called, to treat a normally-free action
-    // as costly.
-    revokeFreeTurn() {
-        revokedFreeTurn = true;
     }
 
     // Build and execute an action for Skashek
@@ -949,10 +911,6 @@ huntCore: InitObject {
     }
 }
 
-#define gHadRevokedFreeAction (turnsTaken == 0 && huntCore.revokedFreeTurn)
-#define gActionWasCostly ((turnsTaken > 0 || gHadRevokedFreeAction) \
-    && !actionFailed)
-
 modify Action {
     skashekActionDProp = nil
     skashekVisibilityDProp = nil
@@ -967,54 +925,39 @@ modify Action {
     isVisibleAsSkashek() {
         return gPlayerChar.canSee(skashek);
     }
+}
 
-    turnSequence() {
+modify gameTurnBroker {
+    beforeTurnHandling(action) {
         if (smartInventoryCore.batchFailed) {
-            actionFailed = true;
+            action.actionFailed = true;
         }
         smartInventoryCore.reset();
 
         // Map mode is done with everything frozen in time
-        if (mapModeDatabase.inMapMode || gAction.actionFailed) {
+        if (mapModeDatabase.inMapMode || action.actionFailed) {
             revokedFreeTurn = nil;
-            sfxPlayer.runSequence(actionFailed || huntCore.hadNegativeOutcome);
-            return;
+            finishActionStatus(action, actionWasNegative(action));
+            return nil;
         }
 
-        inherited();
-        
-        if (gActionWasCostly) {
-            huntCore.advanceTurns();
-            huntCore.offerTrickAction();
-            huntCore.handleSkashekAction();
-        }
-        else {
-            huntCore.handleFreeTurn();
-            huntCore.offerTrickAction();
-        }
+        return true;
+    }
 
-        sfxPlayer.runSequence(actionFailed || huntCore.hadNegativeOutcome);
+    advanceTurns(action) {
+        huntCore.handleSoundPropagation();
+    }
 
-        if (gHadRevokedFreeAction) libGlobal.totalTurns++;
+    handleNPCTurn(action) {
+        huntCore.handleSkashekAction();
+    }
 
-        huntCore.revokedFreeTurn = nil;
-        huntCore.hadNegativeOutcome = nil;
+    finishActionStatus(action, wasNegative) {
+        sfxPlayer.runSequence(wasNegative);
     }
 }
 
-modify Inventory {
-    turnsTaken = 0
-}
-
-modify Examine {
-    turnsTaken = 0
-}
-
 modify LookThrough {
-    turnsTaken = 0
-}
-
-modify Look {
     turnsTaken = 0
 }
 

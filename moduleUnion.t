@@ -40,7 +40,7 @@ modify actorInStagingLocation {
     spendImplicitTurn() {
         if (gActor != gPlayerChar) return;
         if (gAction.turnsTaken > 0) return;
-        huntCore.revokeFreeTurn();
+        gameTurnBroker.revokeFreeTurn();
     }
 }
 

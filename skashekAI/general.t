@@ -86,7 +86,7 @@ modify skashek {
     doPlayerPeek() {
         skashekAIControls.currentState.doPlayerPeek();
         if (playerWillGetCaughtPeeking()) {
-            huntCore.revokeFreeTurn();
+            gameTurnBroker.revokeFreeTurn();
             doPlayerCaughtLooking();
         }
     }

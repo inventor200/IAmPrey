@@ -1,14 +1,4 @@
-freeAction() {
-    if (gFormatForScreenReader) return 'free action';
-    return '<b><i>FREE</i> action</b>';
-}
-
-freeActions() {
-    if (gFormatForScreenReader) return 'free actions';
-    return '<b><i>FREE</i> actions</b>';
-}
-
-instructionsCore: InGameBook {
+transient instructionsCore: InGameBook {
     chapters = [
         newPlayerChapter,
         shorthandChapter,
@@ -33,9 +23,6 @@ instructionsCore: InGameBook {
         exitControlChapter,
         verbsChapter
     ]
-
-    showVerbs() {
-        open();
-        verbsChapter.play();
-    }
+    
+    verbsChapterObj = verbsChapter
 }

@@ -1,7 +1,81 @@
 #charset "us-ascii"
 #include <tads.h>
 #include "advlite.h"
+#include "inventorCore.h"
 #include "iamprey.h"
+
+authorEmailURL: CompULR {
+    baseHeader = ' ('
+    baseText = 'Email'
+    baseTail = ')'
+    altText = ''
+    name = 'Author email address'
+    url = 'josephcsoftware@gmail.com'
+    clickURL = 'mailto:josephcsoftware@gmail.com'
+}
+
+authorBandcampURL: CompULR {
+    baseHeader = ' ('
+    baseText = 'Bandcamp'
+    baseTail = ')'
+    altText = ''
+    name = 'URL to the author\'s bandcamp'
+    url = 'https://joeycramsey.bandcamp.com/'
+}
+
+forumsURL: CompULR {
+    baseText = 'Intfiction Forum'
+    name = 'URL to the Intfiction Forum'
+    url = 'https://intfiction.org/'
+}
+
+mathbrushURL: CompULR {
+    baseHeader = ' ('
+    baseText = 'Link to IFDB'
+    baseTail = ')'
+    altText = ''
+    name = 'URL to Mathbrush\'s IFDB page'
+    url = 'https://ifdb.org/showuser?id=nufzrftl37o9rw5t'
+}
+
+nightshademakerURL: CompULR {
+    baseHeader = ' ('
+    baseText = 'Link to Twitch'
+    baseTail = ')'
+    altText = ''
+    name = 'URL to Nightshademakers\'s Twitch channel'
+    url = 'https://www.twitch.tv/nightshademakers'
+}
+
+pinkunzURL: CompULR {
+    baseHeader = ' ('
+    baseText = 'Link to IFDB'
+    baseTail = ')'
+    altText = ''
+    name = 'URL to Pinkunz\'s IFDB page'
+    url = 'https://ifdb.org/showuser?id=dqr2mj29irbx1qv4'
+}
+
+mapURL: CompULR {
+    baseHeader = '<.p>'
+    baseText = 'Click here for the facility map!'
+    baseTail = '<.p>'
+    altText = ''
+    name = 'URL to the facility map (on the IFArchive)'
+    url = 'https://unbox.ifarchive.org/1363p9wc5y/extras/Stylized-Map.png'
+}
+
+QTADSURL: CompULR {
+    baseText = 'QTADS'
+    name = 'URL to the downloads page for the QTADS interpreter'
+    url = 'https://github.com/realnc/qtads/releases'
+}
+
+HTMLTADSURL: CompULR {
+    baseText = 'HTML TADS'
+    name = 'URL to the IFWiki page for the HTML TADS interpreter'
+    url = 'https://www.ifwiki.org/HTML_TADS_(Interpreter)'
+}
 
 gameMain: GameMainDef {
     initialPlayerChar = prey
@@ -30,6 +104,169 @@ gameMain: GameMainDef {
     showGoodbye() {
         "Thank you for playing! Hope you come back soon! ";
     }
+}
+
+modify gameMenuHandler {
+    showContentWarnings = (!prologuePrefCore.skipIntro)
+    #if __SHOW_PROLOGUE
+    beforeWarnings() {
+        clsWithSong(nil);
+
+        if (!prologuePrefCore.skipIntro && prologuePrefCore.playerHasSeenIntro) {
+            if (ChoiceGiver.staticAsk(
+                'It seems you\'ve been here before.
+                Would you like to skip to difficulty selection?'
+            )) {
+                prologuePrefCore.playerHasIntroPreference = true;
+                prologuePrefCore.playerPrefersNoIntro = true;
+            }
+        }
+    }
+
+    contentWarnings = [
+        'violence',
+        'frequent, crude language',
+        'rare mentions of suicide'
+    ]
+
+    showOtherWarnings() {
+        """
+        <<formatAlert('Anxiety warning:')>>
+
+        This game features an active antagonist,
+        so your turns must be spent wisely!
+
+        <<formatTitle('Note on randomness and ' + titleCommand('UNDO'))>>
+
+        Elements of this game are randomized, with casual replayability
+        in mind. Use of <<formatCommand('UNDO')>>
+        will not change the outcomes of randomized events.\b
+        Rest assured that your survival is not decided by randomness.
+        """;
+        #if __IS_MAP_TEST
+        //
+        #else
+        """
+        <<wait for player>>
+        <<formatTitle('Note for new and experienced players')>>
+
+        This will not be a standard parser game. Players of <b>all skill levels</b>
+        should consult <i>Prey's Survival Guide</i>
+        (which should have come with this game), or use the
+        <<formatCommand('guide')>> command
+        for the in-game version of the document.\b
+
+        There are a number of new game mechanics ahead, and
+        they were not designed with the traditions of this medium in mind.\b
+
+        For more information, experienced parser players should use the
+        <<formatCommand('parser warning')>> command.
+        """;
+        #endif
+    }
+    #endif
+
+	restartMsg = 'Are you sure you would like to start a new run? '
+	
+	handleConfirmedRestart() {
+        local choiceMade = nil;
+        if (!prologuePrefCore.playerHasIntroPreference) {
+            prologuePrefCore.playerPrefersNoIntro = ChoiceGiver.staticAsk(
+                'Would you like to skip to the difficulty selection, from now on? '
+            );
+
+            prologuePrefCore.playerHasIntroPreference = true;
+            choiceMade = true;
+        }
+
+        if (gCatMode) {
+            if (!prologuePrefCore.playerHasCatProloguePreference) {
+                prologuePrefCore.playerPrefersNoCatPrologue = ChoiceGiver.staticAsk(
+                    'Would you like to skip the cat\'s prologue, from now on? '
+                );
+
+                prologuePrefCore.playerHasCatProloguePreference = true;
+                choiceMade = true;
+            }
+        }
+        else if (!prologuePrefCore.playerHasPreyProloguePreference) {
+            prologuePrefCore.playerPrefersNoPreyPrologue = ChoiceGiver.staticAsk(
+                'Would you like to skip Prey\'s prologue, from now on? '
+            );
+
+            prologuePrefCore.playerHasPreyProloguePreference = true;
+            choiceMade = true;
+        }
+
+        preferencesCore.writePreferences();
+        if (choiceMade) {
+            preferencesCore.remindOfFile();
+        }
+    }
+    
+	afterConfirmedRestart() {
+		musicPlayer.playSong(nil);
+        sfxPlayer.setAmbience(nil);
+        sfxPlayer.setDecorations(nil);
+	}
+
+    handleConfirmedStateRecovery() {
+        // Recover the song from this turn.
+        musicPlayer.updateSong();
+        recoverAmbience();
+    }
+	
+    showHowToWinAndProgress() {
+        if (gCatMode) return;
+        "<b>Find all seven pieces of the environment suit, and escape through the
+        emergency airlock to win!</b>\b
+        <<suitTracker.getProgressLists()>>";
+    }
+    
+    showAdditionalHelp(fromHelpCommand) {
+    	if (sneakyCore.allowSneak) {
+            "<<formatAlert('AUTO-SNEAK is ENABLED!')>>
+            Use <<formatTheCommand('SNEAK')>> (abbreviated <<abbr('SN')>>)
+            to automatically
+            sneak around the map! For example:
+            <<createFlowingList([
+                formatCommand('SNEAK NORTH'),
+                formatCommand('SN THRU DOOR')
+            ])>>
+            <<remember>>
+            This is a <i>learning tool!</i> \^<<formatTheCommand('SNEAK')>>
+            <i>will be disabled outside of tutorial modes,</i>
+            meaning you will need to remember to
+            <<formatCommand('LISTEN')>>,
+            <<formatCommand('PEEK')>>,
+            and <<formatCommand('CLOSE DOOR')>> on your own!\b
+            If you'd rather practice without auto-sneak, simply enter in
+            <<formatTheCommand('sneak off', shortCmd)>>.\b
+            <<remember>> You are always free to
+            <<formatCommand('turn sneak back on', longCmd)>> in a tutorial mode!";
+        }
+        if (!gFormatForScreenReader) {
+            mapURL.printBase();
+            mapURL.printFooter();
+        }
+    }
+    
+    explainInstructions() {
+		"To read the in-game copy of
+        Prey's Survival Guide (which explains how to play this game), type in
+        <<formatTheCommand('guide', shortCmd)>> at the prompt.
+        This could be necessary, if you are new to
+        interactive fiction (<q><<abbr('IF')>></q>), text games, parser games,
+        text adventures, etc.";
+	}
+	
+	explainExtraHelp() {
+		"\b";
+		"Remember, you can always explore a simplified version of the
+        world&mdash;<i>without spending turns</i>&mdash;as long as you are
+        in <i>map mode!</i>\n
+        Use <<formatTheCommand('map', shortCmd)>> to enter or leave map mode!";
+	}
 }
 
 versionInfo: GameID {
@@ -71,9 +308,7 @@ versionInfo: GameID {
         >>Maid Services<<or
         >>Catering<<shuffled>>:</b> Akira Lowe\n
         <b>Special thanks</b> to my partners, friends, and the excellent community
-        over at the <<forumsURL.printBase()>>!\n
-        <b>Adv3Lite library:</b> Eric Eve\n
-        <b>TADS 3:</b> Michael J Roberts\b
+        over at the <<forumsURL.printBase()>>!\b
         \t<i>Testing:</i>\n
         Mathbrush <<mathbrushURL.printBase()>>\n
         Nightshademaker<<nightshademakerURL.printBase()>>\n
@@ -89,5 +324,7 @@ versionInfo: GameID {
         mathbrushURL.printFooter();
         nightshademakerURL.printFooter();
         pinkunzURL.printFooter();
+        
+        inherited();
     }
 }

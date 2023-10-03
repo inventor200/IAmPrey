@@ -199,6 +199,7 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     canSlingOverShoulder = true
     canStrapOn = true
     startUnzipped = true
+    hardlyClothing = true
 
     // After the player picks up the bag, any time
     // inventory is checked and the bag is not in inventory BUT
@@ -271,6 +272,7 @@ enviroSuitBag: BagOfHolding, Wearable, Zippable {
     canStrapOn = true
     isWearable = true
     wornBy = (enviroSuitBag.wornBy)
+    hardlyClothing = true
 
     hideFromAll(action) {
         return enviroSuitBag.hideFromAll(action);

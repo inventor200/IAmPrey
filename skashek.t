@@ -8,7 +8,7 @@
             "<.p>"; \
             response; \
             "<.p>"; \
-            huntCore.hadNegativeOutcome = true; \
+            gameTurnBroker.makeNegative(); \
             finishGameMsgSong(ftDeath, gEndingOptionsLoss); \
         } \
     }

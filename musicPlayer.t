@@ -3,7 +3,7 @@
 musicPlayer: InitObject {
     songDuringTurn = nil
 
-    execBeforeMe = [screenReaderInit]
+    execBeforeMe = [inventorCoreInit]
 
     execute() {
         #if __SHOW_PROLOGUE
@@ -609,36 +609,8 @@ DefineSystemAction(TestNilSong)
 ;
 #endif
 
-modify Undo {
-    execAction(cmd) {
-        local ret = inherited(cmd);
-        
-        if (ret) {
-            // Recover the song from this turn.
-            musicPlayer.updateSong();
-            recoverAmbience();
-        }
-
-        return ret;
-    }   
-}
-
-modify Restore {
-    performRestore(fname, code) {
-        local ret = inherited(fname, code);
-
-        if (ret) {
-            // Recover the song from this turn.
-            musicPlayer.updateSong();
-            recoverAmbience();
-        }
-
-        return ret;
-    }
-}
-
 finishGameMsgSong(msg, song, extra) {
-    if (gAction.hadNegativeOutcome) {
+    if (gameTurnBroker.hadNegativeOutcome) {
         playSFX(badMoveSnd);
     }
     else {

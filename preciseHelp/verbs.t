@@ -1,25 +1,3 @@
-class VerbsPage: InstructionsPage {
-    formatVerb(cmd, other, purpose, shortened, abbreviation, arg) {
-        local res = formatCommand(cmd);
-        if (other != nil) {
-            res += ' / ' + formatCommand(other);
-        }
-        if (arg != nil) {
-            res += '&nbsp;' + formatCommandArg(arg);
-        }
-        if (shortened != nil) {
-            res += '\n\tShortened to: ' + formatCommand(shortened);
-        }
-        if (abbreviation != nil) {
-            res += '\n\tAbbreviation: ' + abbr(abbreviation);
-        }
-        if (purpose != nil) {
-            res += '\n\t' + purpose;
-        }
-        return res + '\b';
-    }
-}
-
 verbsChapter: InstructionsChapter {
     name = 'Complete Index of Verbs'
 
