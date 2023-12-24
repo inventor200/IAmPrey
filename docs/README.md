@@ -1,6 +1,6 @@
 # I Am Prey
 ## A text-based, horror-lite, science fiction game of evasion!
-### by Jospeh Cramsey
+### by Joseph Cramsey
 Recommended to play with the [QTADS interpreter](https://github.com/realnc/qtads), or the [HTML TADS interpreter](https://www.ifwiki.org/HTML_TADS_(Interpreter)).
 
 More information is available on the
